@@ -1,0 +1,212 @@
+:: Check Auto Rules Activate
+ 
+<<nobr>>
+
+<<if (ndef $activeSlave.currentRules) || ($activeSlave.currentRules.length < 1)>>
+	<<set $activeSlave.currentRules to []>>
+<</if>>
+
+<<for _r to 0; _r < $defaultRules.length; _r++>>
+<<set _currentRule to $defaultRules[_r]>>
+<<set _rule to _r+1>>
+
+<<if (def _currentRule.excludedSlaves) && (_currentRule.excludedSlaves.length > 0)>>
+	<<if ruleSlaveExcluded($activeSlave, _currentRule)>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+		<<continue>>
+	<</if>>
+<</if>>
+
+<<if (def _currentRule.selectedSlaves) && (_currentRule.selectedSlaves.length > 0)>>
+	<<if !ruleSlaveSelected($activeSlave, _currentRule)>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+		<<continue>>
+	<</if>>
+<</if>>
+
+<<if (def _currentRule.facility) && (_currentRule.facility.length > 0)>>
+	<<if !ruleAppliedToSlaveFacility(_currentRule, $activeSlave)>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+		<<continue>>
+	<</if>>
+<</if>>
+
+<<if (def _currentRule.excludeFacility) && (_currentRule.excludeFacility.length > 0)>>
+	<<if ruleExcludeSlaveFacility(_currentRule, $activeSlave)>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+		<<continue>>
+	<</if>>
+<</if>>
+
+<<if (def _currentRule.assignment) && (_currentRule.assignment.length > 0)>>
+	<<if !ruleAssignment(_currentRule.assignment, $activeSlave.assignment)>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+		<<continue>>
+	<</if>>
+<</if>>
+<<if (def _currentRule.excludeAssignment) && (_currentRule.excludeAssignment.length > 0)>>
+	<<if ruleAssignment(_currentRule.excludeAssignment, $activeSlave.assignment)>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+		<<continue>>
+	<</if>>
+<</if>>
+
+<<switch _currentRule.activation>>
+<<case "always">>
+	<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+		<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+		<br>Rule _rule (_currentRule.name) is now applying to $activeSlave.slaveName.
+	<</if>>
+<<case "none">>
+	<<if ruleApplied($activeSlave, _currentRule.ID)>>
+		<<RARemoveRule>>
+	<</if>>
+<<case "devotion">>
+	<<if checkThresholds($activeSlave.devotion, _currentRule)>>
+		<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+			<br>Rule _rule (_currentRule.name) is now applying to $activeSlave.slaveName.
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+	<</if>>
+<<case "trust">>
+	<<if checkThresholds($activeSlave.trust, _currentRule)>>
+		<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+			<br>Rule _rule (_currentRule.name) is now applying to $activeSlave.slaveName.
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+	<</if>>
+<<case "health">>
+	<<if ($activeSlave.assignment is "live with your Head Girl") && ($activeSlave.health <= 100)>>
+		<<if checkThresholds($activeSlave.health, _currentRule)>>
+			<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+				<br>Rule _rule (_currentRule.name) is now applying to $activeSlave.slaveName.
+			<</if>>
+		<<else>>
+			<<if ruleApplied($activeSlave, _currentRule.ID)>>
+				<<RARemoveRule>>
+			<</if>>
+		<</if>>
+	<<elseif $activeSlave.health <= 90>>
+		<<if checkThresholds($activeSlave.health, _currentRule)>>
+			<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+				<br>Rule _rule (_currentRule.name) is now applying to $activeSlave.slaveName.
+			<</if>>
+		<<else>>
+			<<if ruleApplied($activeSlave, _currentRule.ID)>>
+				<<RARemoveRule>>
+			<</if>>
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+	<</if>>
+<<case "sex drive">>
+	<<if checkThresholds($activeSlave.energy, _currentRule)>>
+		<<if ($activeSlave.attrKnown == 1) and (ruleApplied($activeSlave, _currentRule.ID) == false)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+			<br>Rule _rule (_currentRule.name) is now applying to $activeSlave.slaveName.
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+	<</if>>
+<<case "age">>
+	<<if checkThresholds($activeSlave.physicalAge, _currentRule)>>
+		<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+			<br>Rule _rule (_currentRule.name) is now applying to $activeSlave.slaveName.
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+	<</if>>
+<<case "weight">>
+	<<if checkThresholds($activeSlave.weight, _currentRule)>>
+		<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+			<br>Rule _rule (_currentRule.name) is now applying to $activeSlave.slaveName.
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<RARemoveRule>>
+		<</if>>
+	<</if>>
+<<case "lactation">>
+	<<if checkThresholds($activeSlave.lactation, _currentRule)>>
+		<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $dump to $activeSlave.currentRules.pluck([_r])>>
+			<<display "Rules Facility Remove">>
+			<<continue>>
+		<</if>>
+	<</if>>
+<<case "pregnancy week">>
+	<<if checkThresholds($activeSlave.preg, _currentRule)>>
+		<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $dump to $activeSlave.currentRules.pluck([_r])>>
+			<<display "Rules Facility Remove">>
+			<<continue>>
+		<</if>>
+	<</if>>
+<<case "pregnancy foetuses">>
+	<<if (checkThresholds($activeSlave.pregType, _currentRule) && $activeSlave.preg > 10)>>
+		<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $dump to $activeSlave.currentRules.pluck([_r])>>
+			<<display "Rules Facility Remove">>
+			<<continue>>
+		<</if>>
+	<</if>>
+<<case "belly implant volume">>
+	<<if checkThresholds($activeSlave.bellyImplant, _currentRule)>>
+		<<if !ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $activeSlave.currentRules.push(_currentRule.ID)>>
+		<</if>>
+	<<else>>
+		<<if ruleApplied($activeSlave, _currentRule.ID)>>
+			<<set $dump to $activeSlave.currentRules.pluck([_r])>>
+			<<display "Rules Facility Remove">>
+			<<continue>>
+		<</if>>
+	<</if>>
+<</switch>>
+<</for>>
+
+<<set $activeSlave.currentRules to  $activeSlave.currentRules.sort(function(a, b) { return a-b; });>>
+
+<</nobr>>
