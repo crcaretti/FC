@@ -1,5 +1,5 @@
 :: RE relative recruiter [nobr]
- 
+
 <<set $nextButton to "Continue">>
 <<set $nextLink to "RIE Eligibility Check">>
 <<set $returnTo to "RIE Eligibility Check">>
@@ -8,45 +8,58 @@
 
 <<if $seeImages == 1>><<SlaveImage $eventSlave 2 1>><</if>>
 
-<<set $recruiters = []>>
+
+<<for $i to 0; $i < $slaves.length; $i++>>
+	<<for $j to 0; $j < $recruiters.length; $j++>>
+		<<if $slaves[$i].ID is $recruiters[$j].ID>>
+			<<set $eventSlave to $slaves[$i]>>
+			<<set $activeSlave to $recruiters[$j]>>
+		<</if>>
+	<</for>>
+<</for>>
+
+
+<<set $recruitedType = []>>
 <<if $eventSlave.mother == 0 && $eventSlave.actualAge < 24>>
-	<<set $recruiters.push("mother")>>
-	<<set $recruiters.push("mother")>>
-	<<set $recruiters.push("mother")>>
+	<<set $recruitedType.push("mother")>>
+	<<set $recruitedType.push("mother")>>
+	<<set $recruitedType.push("mother")>>
 <</if>>
 <<if $eventSlave.father == 0 && $eventSlave.actualAge < 24>>
-	<<set $recruiters.push("father")>>
+	<<set $recruitedType.push("father")>>
 <</if>>
-<<if $eventSlave.daughters < 3 && $eventSlave.actualAge > ($minimumSlaveAge+$fertilityAge) && isFertile($eventSlave)>>
-	<<set $recruiters.push("daughter")>>
-	<<set $recruiters.push("daughter")>>
-	<<set $recruiters.push("son")>>
+<<if $eventSlave.daughters < 3 && $eventSlave.actualAge > ($minimumSlaveAge+$fertilityAge) && isFertile($activeSlave)>>
+	<<set $recruitedType.push("daughter")>>
+	<<set $recruitedType.push("daughter")>>
+	<<set $recruitedType.push("son")>>
+	<<set $tempMF = "mother">>
 <</if>>
 <<if $eventSlave.daughters < 3 && $eventSlave.actualAge > ($minimumSlaveAge+$potencyAge) && $eventSlave.balls > 0>>
-	<<set $recruiters.push("daughter")>>
-	<<set $recruiters.push("daughter")>>
-	<<set $recruiters.push("son")>>
+	<<set $recruitedType.push("daughter")>>
+	<<set $recruitedType.push("daughter")>>
+	<<set $recruitedType.push("son")>>
+	<<set $tempMF = "father">>
 <</if>>
 <<if $eventSlave.sisters < 3>>
 	<<if $eventSlave.actualAge <= ($retirementAge-5)>>
-		<<set $recruiters.push("older sister")>>
-		<<set $recruiters.push("older sister")>>
-		<<set $recruiters.push("older brother")>>
-		<<set $recruiters.push("older brother")>>
+		<<set $recruitedType.push("older sister")>>
+		<<set $recruitedType.push("older sister")>>
+		<<set $recruitedType.push("older brother")>>
+		<<set $recruitedType.push("older brother")>>
 	<</if>>
 	<<if $eventSlave.actualAge >= ($minimumSlaveAge+5)>>
-		<<set $recruiters.push("younger sister")>>
-		<<set $recruiters.push("younger sister")>>
-		<<set $recruiters.push("younger brother")>>
-		<<set $recruiters.push("younger brother")>>
+		<<set $recruitedType.push("younger sister")>>
+		<<set $recruitedType.push("younger sister")>>
+		<<set $recruitedType.push("younger brother")>>
+		<<set $recruitedType.push("younger brother")>>
 	<</if>>
-	<<set $recruiters.push("twin")>>
+	<<set $recruitedType.push("twin")>>
 <</if>>
-<<if $recruiters.length = 0>>
+<<if $recruitedType.length = 0>>
 	<<set $eventSlave.canRecruit = 0>>
 	$eventSlave.slaveName requests an interview with you. However, she ends up withdrawing her request. It would seem whatever she wanted to tell you is no longer relavant.
 <<else>>
-	<<set $relationType = $recruiters.random()>>
+	<<set $relationType = $recruitedType.random()>>
 	<<set $activeSlave = $eventSlave>>
 	
 	<<set $activeSlave.weight = 0>>
@@ -247,6 +260,7 @@ She waits anxiously for your decision.
 	<<set $activeSlave.ovaries = 1>>
 	<<set $activeSlave.makeup = 1>>
 	<<set $activeSlave.nails = 4>>
+	<<set $activeSlave.hStyle = either("tails", "neat", "up", "luxurious")>>
 	<<set $activeSlave.stampTat = "advertisements">>
 	<<set $activeSlaveOneTimeMaxAge to Math.max($minimumSlaveAge, Math.min(18, ($activeSlave.actualAge - Math.min(11, $fertilityAge))))>>
 	<<set $activeSlaveOneTimeMinAge to Math.max($minimumSlaveAge, Math.min(14, $activeSlaveOneTimeMaxAge))>>
@@ -271,6 +285,7 @@ She waits anxiously for your decision.
 	<<set $activeSlave.earPiercing = 1>>
 	<<set $activeSlave.makeup = 1>>
 	<<set $activeSlave.nails = 4>>
+	<<set $activeSlave.hStyle = "tails">>
 	<<set $activeSlave.stampTat = "advertisements">>
 	<<set $activeSlaveOneTimeMaxAge to Math.max($minimumSlaveAge, Math.min(18, ($activeSlave.actualAge - Math.min(11, $fertilityAge))))>>
 	<<set $activeSlaveOneTimeMinAge to Math.max($minimumSlaveAge, Math.min(14, $activeSlaveOneTimeMaxAge))>>
@@ -463,11 +478,234 @@ She waits anxiously for your decision.
 
 <<set $activeSlave.slaveName = $activeSlave.birthName>>
 <<set $activeSlave.ID += 1000>>
-<<set $activeSlave.relation = $eventSlave.recruiter>>
-<<if $activeSlave.relation.indexOf("sister") != -1>><<set $activeSlave.relation = "sister">><</if>>
-<<set $activeSlave.relation = relationTargetWord($activeSlave)>>
-<<set $activeSlave.relationTarget = $eventSlave.ID>>
-<<set $activeSlave.recruiter = 0>>
+
+<br><br>
+You look up the $activeSlave.relation. She costs ¤$slaveCost, a bargain, but you won't be able to inspect her beyond her likely resemblance to her
+<<switch $relationType>>
+<<case "daughter" "son">>
+	mother.
+<<case "mother" "father">>
+	daughter.
+<<case "older sister" "older brother">>
+	little sister.
+<<case "younger brother" "younger sister">>
+	big sister.
+<<default>>
+	twin sister.
+<</switch>>
+
+
+<br><br>
+<span id="result">
+<<click "Buy her">>
+	<<set $slaves.push($activeSlave)>>
+	<<set $cash -= $slaveCost>>
+	<<switch $relationType>>
+	<<case "daughter">>
+		<<if $tempMF == "father">>
+			<<set $activeSlave.father = $eventSlave.ID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+				<<if areSisters($activeSlave, $slaves[$j]) > 0>>
+					<<set $activeSlave.sisters++>>
+					<<set $slaves[$j].sisters++>>
+				<</if>>
+			<</for>>
+		<<else>>
+			<<set $activeSlave.mother = $eventSlave.ID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+				<<if areSisters($activeSlave, $slaves[$j]) > 0>>
+					<<set $activeSlave.sisters++>>
+					<<set $slaves[$j].sisters++>>
+				<</if>>
+			<</for>>
+		<</if>>
+	<<case "son">>
+		<<if $tempMF == "father">>
+			<<set $activeSlave.father = $eventSlave.ID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+				<<if areSisters($activeSlave, $slaves[$j]) > 0>>
+					<<set $activeSlave.sisters++>>
+					<<set $slaves[$j].sisters++>>
+				<</if>>
+			<</for>>
+		<<else>>
+			<<set $activeSlave.mother = $eventSlave.ID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+				<<if areSisters($activeSlave, $slaves[$j]) > 0>>
+					<<set $activeSlave.sisters++>>
+					<<set $slaves[$j].sisters++>>
+				<</if>>
+			<</for>>
+		<</if>>
+	<<case "mother">>
+		<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameMom($eventSlave, $slaves[$j])>>
+				<<set $slaves[$j].mother = $activeSlave.ID>>
+			<</if>>
+		<</for>>
+		<<set $eventSlave.mother = $activeSlave.ID>>
+	<<case "father">>
+		<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameDad($eventSlave, $slaves[$j])>>
+				<<set $slaves[$j].father = $activeSlave.ID>>
+			<</if>>
+		<</for>>
+		<<set $eventSlave.father = $activeSlave.ID>>
+	<<case "older sister">>
+		<<if $eventSlave.father == 0 && $eventSlave.mother == 0>>
+			<<set $eventSlave.mother = $missingParentID>>
+			<<set $eventSlave.father = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.mother != 0 && $eventSlave.father != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<<set $activeSlave.mother = $eventSlave.father>>
+		<<elseif $eventSlave.mother != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<set $activeSlave.father = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameMom($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].father = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.father != 0>>
+			<<set $activeSlave.father = $eventSlave.father>>
+			<set $activeSlave.mother = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameDad($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].mother = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<</if>>
+	<<case "older brother">>
+		<<if $eventSlave.father == 0 && $eventSlave.mother == 0>>
+			<<set $eventSlave.mother = $missingParentID>>
+			<<set $eventSlave.father = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.mother != 0 && $eventSlave.father != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<<set $activeSlave.mother = $eventSlave.father>>
+		<<elseif $eventSlave.mother != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<set $activeSlave.father = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameMom($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].father = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.father != 0>>
+			<<set $activeSlave.father = $eventSlave.father>>
+			<set $activeSlave.mother = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameDad($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].mother = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<</if>>
+	<<case "younger brother">>
+		<<if $eventSlave.father == 0 && $eventSlave.mother == 0>>
+			<<set $eventSlave.mother = $missingParentID>>
+			<<set $eventSlave.father = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.mother != 0 && $eventSlave.father != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<<set $activeSlave.mother = $eventSlave.father>>
+		<<elseif $eventSlave.mother != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<set $activeSlave.father = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameMom($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].father = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.father != 0>>
+			<<set $activeSlave.father = $eventSlave.father>>
+			<set $activeSlave.mother = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameDad($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].mother = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<</if>>
+	<<case "younger sister">>
+		<<if $eventSlave.father == 0 && $eventSlave.mother == 0>>
+			<<set $eventSlave.mother = $missingParentID>>
+			<<set $eventSlave.father = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.mother != 0 && $eventSlave.father != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<<set $activeSlave.mother = $eventSlave.father>>
+		<<elseif $eventSlave.mother != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<set $activeSlave.father = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameMom($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].father = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.father != 0>>
+			<<set $activeSlave.father = $eventSlave.father>>
+			<set $activeSlave.mother = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameDad($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].mother = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<</if>>
+	<<default>>
+		<<if $eventSlave.father == 0 && $eventSlave.mother == 0>>
+			<<set $eventSlave.mother = $missingParentID>>
+			<<set $eventSlave.father = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $activeSlave.mother = $missingParentID>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.mother != 0 && $eventSlave.father != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<<set $activeSlave.mother = $eventSlave.father>>
+		<<elseif $eventSlave.mother != 0>>
+			<<set $activeSlave.mother = $eventSlave.mother>>
+			<set $activeSlave.father = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameMom($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].father = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<<elseif $eventSlave.father != 0>>
+			<<set $activeSlave.father = $eventSlave.father>>
+			<set $activeSlave.mother = $missingParentID>>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+			<<if sameDad($activeSlave, $slaves[$j])>>
+				<<set $slaves[$j].mother = $missingParentID>>
+			<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<</if>>
+	<</switch>>
+	<<SlaveTitle $eventSlave>>
+	<<replace "#result">>
+	You complete the legalities and biometric scanning quickly and without fuss. $activeSlave.slaveName arrives shortly. The two slaves remember each other only dimly - they parted a long time ago - but they embrace. The devoted $desc explains the situation and encourages her $activeSlave.relation to be a good slave to you. $activeSlave.slaveName looks a little fearful but clearly realizes that she's lucky to be here.
+	<<set $nextLink to "AS Dump">>
+	<<set $recruitedType = 0>>
+	<<display "New Slave Intro">>
+	<</replace>>
+<</click>>
+</span>
 
 <<else>> /* vanilla */
 
