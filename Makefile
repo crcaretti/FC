@@ -7,7 +7,7 @@ endif
 
 SRCDIR?= src
 STARTFILE?= $(SRCDIR)/config/start.tw
-FCTARG?= bin/FC.html
+FCTARG?= bin/FC_pregmod.html
 GENINCLUDES?=  ./devTools/scripts/includes.py
 all: $(FCTARG)
 
