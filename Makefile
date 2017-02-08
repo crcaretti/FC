@@ -19,4 +19,4 @@ $(FCTARG): $(STARTFILE) $(shell find ${SRCDIR} -type f -name \*.tw -print)
 	./devTools/tweeGo/$(TWEEGOBIN) -o $(FCTARG) $(STARTFILE)
 
 clean:
--$(RM) $(STARTFILE) $(FCTARG)
+	-$(RM) $(STARTFILE) $(FCTARG)
