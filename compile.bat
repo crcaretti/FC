@@ -3,7 +3,8 @@
 
 :: Uses embedded Python 3.5.3 x86_64
 :: Will add all *.tw files to StoryIncludes.
-"%~dp0devTools\python-3.5.3\python.exe" "%~dp0devTools\scripts\includes_windows.py %*"
+"%~dp0devTools\python-3.5.3\python.exe" "%~dp0devTools\scripts\includes.py" "src\config\start.tw.proto" "src\config\start.tw" "src" "%*"
 
-CALL "%~dp0devTools\tweeGo\tweego.exe" -o "%~dp0bin/FC.html" "%~dp0src\config\start.tw"
+CALL "%~dp0devTools\tweeGo\tweego.exe" -o "%~dp0bin/FC_pregmod.html" "%~dp0src\config\start.tw"
 ECHO Done
+PAUSE
