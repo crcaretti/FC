@@ -1,36 +1,37 @@
-# In loving memory of Benis.
+#!python
 
-import subprocess
 import sys
 import os.path
 
-FN = './src/config/start.tw'
+FN = sys.argv[1]
+OUT = sys.argv[2]
+DIR = sys.argv[3]
 
 def main():
     if not os.path.exists(FN):
         print >>sys.stderr, FN, 'not found'
         sys.exit(1)
-    lines = []
-    included = False
-    drop = False
-    with open(FN, 'r') as f:
-        for l in f:
-            if drop and l.startswith('::'):
-                drop = False
-            if not drop:
-                lines.append(l)
-            if l.startswith(':: StoryIncludes'):
-                drop = True
-                included = True
-                found = subprocess.check_output(["find", ".", "-name", "*.tw", "-print0"]).split('\0')
-                found.sort()
-                lines += [x+'\n' for x in found if x != './src/config/start.tw']
 
-    with open(FN, 'w') as f:
-        for l in lines:
-            f.write(l)
+    with open(FN, 'r') as fin:
+        lines = fin.readlines()
+        fin.close()
+    fout = open(OUT, 'w')
+    fout.write("".join(lines))
 
-    print >>sys.stderr, 'Include list updated'
+    # os.sep can be changed to \\ or / as appropriate
+    # can also os.path.abspath() which will canonicalize
+
+    pnames = []
+    for path, subdirs, files in os.walk(DIR):
+        for filename in files:
+            if filename.endswith('.tw'):
+                pathname = os.path.join(path, filename)
+                if pathname != OUT:
+                    pnames.append(pathname + '\n')
+
+    fout.write("".join(sorted(pnames)))
+    fout.close()
+
     return 0
 
 if __name__ == '__main__':
