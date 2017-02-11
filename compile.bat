@@ -7,4 +7,3 @@
 
 CALL "%~dp0devTools\tweeGo\tweego.exe" -o "%~dp0bin/FC_pregmod.html" "%~dp0src\config\start.tw"
 ECHO Done
-PAUSE
