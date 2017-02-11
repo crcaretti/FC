@@ -17,6 +17,6 @@ $(STARTFILE):	$(SRCDIR)/config/start.tw.proto $(GENINCLUDES) \
 
 $(FCTARG): $(STARTFILE) $(shell find ${SRCDIR} -type f -name \*.tw -print)
 	./devTools/tweeGo/$(TWEEGOBIN) -o $(FCTARG) $(STARTFILE)
-
+	-$(RM) $(STARTFILE)
 clean:
 	-$(RM) $(STARTFILE) $(FCTARG)
