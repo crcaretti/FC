@@ -1,29 +1,28 @@
-:: Incubator
+:: Incubator [nobr]
  
-<<nobr>>
+
 <<set $nextButton to "Back to Main">>
 <<set $nextLink to "Main">>
 <<set $returnTo to "Incubator">>
 
-<<if ndef $tanks>>
-	<<set $tanks = []>>
-	<<set $tanks = $tanks.push(0)>>
+<<if $tanks == 0>>
+	<<set $tanks = [0]>>
 <</if>>
-
 <<if $incubatorName != "the Incubator">>
 	<<set $incubatorNameCaps to $arcadeName.replace("the ", "The ")>>
 <</if>>
 
 <<set $incubatorSlaves to 0>>
 <<set $notIncubatorSlaves to 0>>
-<<for _i to 0; _i < $slaves.length; _i++>>
-	<<if $slaves[_i].assignment is "age in an incubator">>
+<<for _i to 0; _i < $tanks.length; _i++>>
+	<<if $tanks[_i] != 0>>
 		<<set $incubatorSlaves += 1>>
 	<<else>>
 		<<set $notIncubatorSlaves += 1>>
 	<</if>>
 <</for>>
 
+<br><br>
 $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and their connected monitoring systems.
 
 <<if $incubatorSlaves > 2>>
@@ -31,24 +30,24 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 <<elseif $incubatorSlaves > 0>>
 	It's barely used; most of the tanks lie dormant.
 <<else>>
-	It's empty and quiet. [[Decommission the incubator|Main][$incubator to 0, $incubatorUpgradeSpeed = 0, $incubatorUpgradeWeight = 0, $incubatorUpgradeMuscles = 0, $incubatorUpgradeReproduction = 0, $tanks = 0]]
+	It's empty and quiet. [[Decommission the incubator|Main][$incubator to 0, $incubatorUpgradeSpeed = 0, $incubatorUpgradeWeight = 0, $incubatorUpgradeMuscles = 0, $incubatorUpgradeReproduction = 0, $tanks = [0]]]
 <</if>>
 
 <br>It can support $incubator <<if $incubator == 1>>child<<else>>children<</if>>.
 <<if $incubator == $incubatorSlaves>>
 	All of the tanks are currently occupied by growing children.
 <</if>>
-[[Add another incubation tank|Incubator][$cash -= Math.trunc(60000*$upgradeMultiplierArcology), $incubator += 1]] //Costs ¤<<print Math.trunc(60000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+[[Add another incubation tank|Incubator][$cash -= Math.trunc(60000*$upgradeMultiplierArcology), $incubator += 1, $tanks.push(0)]] //Costs ¤<<print Math.trunc(60000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 
 <br>
 <<if $incubatorUpgradeSpeed == 4>>
 	It has been upgraded with perfected growth accelerants; children grow at the rate of 1 week to 1 year.
 <<elseif $incubatorUpgradeSpeed == 3>>
-	It has been upgraded with advanced experimental growth accelerants; children grow at the rate of 3 weeks to 1 year. [[Fund speculative research into maximizing growth rate|Incubator][$cash -= Math.trunc(500000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 1]] //Costs ¤<<print Math.trunc(500000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	It has been upgraded with advanced experimental growth accelerants; children grow at the rate of 3 weeks to 1 year. [[Fund speculative research into maximizing growth rate|Incubator][$cash -= Math.trunc(500000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 4]] //Costs ¤<<print Math.trunc(500000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <<elseif $incubatorUpgradeSpeed == 2>>
-	It has been upgraded with advanced growth accelerants; children grow at the rate of 6 weeks to 1 year. [[Fund research into increasing growth rate even further|Incubator][$cash -= Math.trunc(75000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 1]] //Costs ¤<<print Math.trunc(75000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	It has been upgraded with advanced growth accelerants; children grow at the rate of 6 weeks to 1 year. [[Fund research into increasing growth rate even further|Incubator][$cash -= Math.trunc(75000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 3]] //Costs ¤<<print Math.trunc(75000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <<elseif $incubatorUpgradeSpeed == 1>>
-	It has been upgraded with growth accelerants; children grow at the rate of 9 weeks to 1 year. [[Further upgrade the incubators with specialized stem cells to speed growth|Incubator][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 1]] //Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	It has been upgraded with growth accelerants; children grow at the rate of 9 weeks to 1 year. [[Further upgrade the incubators with specialized stem cells to speed growth|Incubator][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 2]] //Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <<else>>
 	The incubation tanks are basic; children grow at the rate of 12 weeks to 1 year. [[Upgrade the incubators with growth accelerating drugs|Incubator][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 1]] //Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <</if>>
@@ -76,38 +75,73 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 
 <<for $i to 0; $i < $tanks.length; $i++>>
 	<<if $tanks[$i] == 0>>
-		Vat #<<print $i + 1>> is currently empty.
+		<br><br>Tank #<<print $i + 1>> is currently empty.
 	<<else>>
-		Vat #<<print $i + 1>> is currently accelerating <<print $tanks[$i].slaveName>>'s growth. She will be ready for release in $tanks[$i].growth weeks.
+		<br><br>Tank #<<print $i + 1>> is currently accelerating <<print $tanks[$i].slaveName>>'s growth. She will be ready for release in $tanks[$i].growth weeks.
 		<<if $incubatorUpgradeWeight == 1>>
+			<br>
 			<<if $incubatorWeightSetting == 1>>
-				Her weight is not being properly managed, saving costs but likely causing excessive weight gain. [[Monitor|Incubator][$incubatorWeightSetting = 2]] | [[Disable|Incubator][$incubatorWeightSetting = 0]]
+				Her weight is not being properly managed, saving costs but likely causing excessive weight gain.
 			<<elseif $incubatorWeightSetting == 2>>
-				Her weight is being carefully managed; she will be released at a healthy weight. [[Estimite only|Incubator][$incubatorWeightSetting = 1]] | [[Disable|Incubator][$incubatorWeightSetting = 0]]
+				Her weight is being carefully managed; she will be released at a healthy weight.
 			<<elseif $incubatorWeightSetting == 0>>
-				Weight management systems are offline; she will likely be malnourished. [[Activate|Incubator][$incubatorWeightSetting = 2]]
+				Weight management systems are offline; she will likely be malnourished.
 			<</if>>
 		<</if>>
 		<<if $incubatorUpgradeMuscles == 1>>
+			<br>
 			<<if $incubatorMusclesSetting == 2>>
-				Her strength levels are purposefully set highter than recommended; excessive muscle gain likely. [[Limit|Incubator][$incubatorMusclesSetting = 1]] | [[Disable|Incubator][$incubatorMusclesSetting = 0]]
+				Her strength levels are purposefully set highter than recommended; excessive muscle gain likely.
 			<<elseif $incubatorMusclesSetting == 1>>
-				Her musculature is being carefully managed; she will be released with near normal strength. [[Overload|Incubator][$incubatorMusclesSetting = 2]] | [[Disable|Incubator][$incubatorMusclesSetting = 0]]
+				Her musculature is being carefully managed; she will be released with near normal strength.
 			<<elseif $incubatorMusclesSetting == 0>>
-				Strength management systems are offline; she will likely be released extremely weak. [[Activate|Incubator][$incubatorMusclesSetting = 1]]
+				Strength management systems are offline; she will likely be released extremely weak.
 			<</if>>
 		<</if>>
 		<<if $incubatorUpgradeReproduction == 1>>
+			<br>
 			<<if $incubatorReproductionSetting == 2>>
-				Her hormone levels are purposefully set highter than recommended; over-active reproductive systems likely. [[Limit|Incubator][$incubatorReproductionSetting = 1]] | [[Disable|Incubator][$incubatorReproductionSetting = 0]]
+				Her hormone levels are purposefully set highter than recommended; over-active reproductive systems likely.
 			<<elseif $incubatorReproductionSetting == 1>>
-				Her hormone levels are being carefully managed; she will be released with with fully functional reproductive organs. [[Overload|Incubator][$incubatorReproductionSetting = 2]] | [[Disable|Incubator][$incubatorReproductionSetting = 0]]
+				Her hormone levels are being carefully managed; she will be released with with fully functional reproductive organs.
 			<<elseif $incubatorReproductionSetting == 0>>
-				Reproduction management systems are offline; she will undergo normal puberty. [[Activate|Incubator][$incubatorReproductionSetting = 1]]
+				Reproduction management systems are offline; she will undergo normal puberty.
 			<</if>>
 		<</if>>
 	<</if>>
 <</for>>
 
+<br><br>
+
+<<if $incubatorUpgradeWeight == 1>>
+	<<if $incubatorWeightSetting == 1>>
+		Weight is not being properly managed, saving costs but likely causing excessive weight gain. [[Monitor|Incubator][$incubatorWeightSetting = 2]] | [[Disable|Incubator][$incubatorWeightSetting = 0]]
+	<<elseif $incubatorWeightSetting == 2>>
+		Weight is being carefully managed; children will be released at a healthy weight. [[Estimate only|Incubator][$incubatorWeightSetting = 1]] | [[Disable|Incubator][$incubatorWeightSetting = 0]]
+	<<elseif $incubatorWeightSetting == 0>>
+		Weight management systems are offline; children will likely be malnourished. [[Activate|Incubator][$incubatorWeightSetting = 2]]
+	<</if>>
+<</if>>
+<br>
+<<if $incubatorUpgradeMuscles == 1>>
+	<<if $incubatorMusclesSetting == 2>>
+		Strength levels are purposefully set highter than recommended; excessive muscle gain likely. [[Limit|Incubator][$incubatorMusclesSetting = 1]] | [[Disable|Incubator][$incubatorMusclesSetting = 0]]
+	<<elseif $incubatorMusclesSetting == 1>>
+		Musculature is being carefully managed; children will be released with near normal strength. [[Overload|Incubator][$incubatorMusclesSetting = 2]] | [[Disable|Incubator][$incubatorMusclesSetting = 0]]
+	<<elseif $incubatorMusclesSetting == 0>>
+		Strength management systems are offline; children will likely be released extremely weak. [[Activate|Incubator][$incubatorMusclesSetting = 1]]
+	<</if>>
+<</if>>
+<br>
+<<if $incubatorUpgradeReproduction == 1>>
+	<<if $incubatorReproductionSetting == 2>>
+		Hormone levels are purposefully set highter than recommended; over-active reproductive systems likely. [[Limit|Incubator][$incubatorReproductionSetting = 1]] | [[Disable|Incubator][$incubatorReproductionSetting = 0]]
+	<<elseif $incubatorReproductionSetting == 1>>
+		Hormone levels are being carefully managed; children will be released with with fully functional reproductive organs. [[Overload|Incubator][$incubatorReproductionSetting = 2]] | [[Disable|Incubator][$incubatorReproductionSetting = 0]]
+	<<elseif $incubatorReproductionSetting == 0>>
+		Reproduction management systems are offline; children will undergo normal puberty. [[Activate|Incubator][$incubatorReproductionSetting = 1]]
+	<</if>>
+<</if>>
+
 <br><br>Rename $incubatorName: <<textbox "$incubatorName" $incubatorName "Incubator">> //Use a noun or similar short phrase//
-<</nobr>>
+
