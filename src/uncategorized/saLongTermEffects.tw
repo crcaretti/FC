@@ -3555,13 +3555,15 @@ and ($slaves[$i].clothes != "a slutty qipao") and ($slaves[$i].clothes != "restr
 <<if canGetPregnant($slaves[$i])>>
 <<if $universalRulesImpregnation == "HG">>
 <<if $HeadGirl != 0>>
-<<if canBreed($slaves[$i],$HeadGirl) && ($slaves[$i].HGExclude == 0)>>
+<<if canBreed($slaves[$i], $HeadGirl)>>
 <<if $HGCum == 0>>
 	It's $HeadGirl.slaveName's responsibility to impregnate fertile slaves, but your Head Girl can only fuck a limited number of slaves enough to ensure impregnation each week.
 <</if>>
 <<else>>
 	It's $HeadGirl.slaveName's responsibility to impregnate fertile slaves, but your Head Girl is forbidden from impregnating $slaves[$i].slaveName.
 <</if>>
+<<else>>
+	$HeadGirl.slaveName's sperm is unable to fertilize $slaves[$i].slaveName's ova, so she doesn't waste her seed trying.
 <</if>>
 <</if>>
 <</if>>
@@ -3604,7 +3606,7 @@ and ($slaves[$i].clothes != "a slutty qipao") and ($slaves[$i].clothes != "restr
 	<</if>>
 	<</for>>
 <<elseif (($slaves[$i].vagina <= 0) || (($slaves[$i].ass <= 0) && ($slaves[$i].mpreg > 0)))>>
-<<elseif ($universalRulesImpregnation is "HG") && ($slaves[$i].HGExclude == 0) && ($HGCum > 0) && ($slaves[$i].ID != $HeadGirl.ID) && (($slaves[$i].vagina > 0) || (($slaves[$i].ass > 0) && ($slaves[$i].mpreg > 0))) && canBreed($slaves[$i],$HeadGirl>>
+<<elseif ($universalRulesImpregnation is "HG") && ($slaves[$i].HGExclude == 0) && ($HGCum > 0) && ($slaves[$i].ID != $HeadGirl.ID) && (($slaves[$i].vagina > 0) || (($slaves[$i].ass > 0) && ($slaves[$i].mpreg > 0))) && canBreed($slaves[$i], $HeadGirl)>>
 	It's $HeadGirl.slaveName's responsibility to get $object pregnant, a task your
 	<<if ($HeadGirl.fetish is "pregnancy") && ($HeadGirl.fetishKnown == 1) && ($HeadGirl.fetishStrength > 60)>>
 	pregnancy fetishist Head Girl is @@color:hotpink;extremely pleased@@ to take on.
@@ -3733,21 +3735,40 @@ and ($slaves[$i].clothes != "a slutty qipao") and ($slaves[$i].clothes != "restr
 			<</if>>
 		<</for>>
 		<<set $seed to random(1,100)>>
-		<<if ($slaves[$i].relationship is -3 or $slaves[$i].relationship is -2) and $PC.dick == 1> and ($slaves[$i].eggType == 1)>>
+		<<if ($slaves[$i].relationship is -3 or $slaves[$i].relationship is -2) and $PC.dick == 1 && $slaves[$i].eggType == "human">>
 			<<set $slaves[$i].pregSource to -1>>
-		<<elseif $slaves[$i].relationship > 2 and canAchieveErection($tempLover) and $tempLover.dickAccessory != "chastity" && $tempLover.pubertyXY == 1 and canBreed($slaves[$i],$tempLover)>>
+		<<elseif $slaves[$i].relationship > 2 and canAchieveErection($tempLover) and $tempLover.dickAccessory != "chastity" && $tempLover.pubertyXY == 1 and canBreed($slaves[$i], $tempLover)>>
 			<<set $slaves[$i].pregSource to $tempLover.ID>>
-		<<elseif $slaves[$i].rivalry > 2 and canAchieveErection($tempRival) and $tempRival.dickAccessory != "chastity" && $tempRival.pubertyXY == 1 and $Seed > 95 and canBreed($slaves[$i],$tempRival)>>/* raped and knocked up by rival */
+		<<elseif $slaves[$i].rivalry > 2 and canAchieveErection($tempRival) and $tempRival.dickAccessory != "chastity" && $tempRival.pubertyXY == 1 and canBreed($slaves[$i], $tempRival) and $Seed > 95>>/* raped and knocked up by rival */
 			<<set $slaves[$i].pregSource to $tempRival.ID>>
 		<<elseif $slaves[$i].subTarget != 0 and $slaves[$i].assignment is "be a subordinate slave">>
-			<<if canAchieveErection($tempSub) and $slaves[$m].dickAccessory != "chastity" && $tempSub.pubertyXY == 1 and canBreed($slaves[$i],$tempSub)>>
+			<<if canAchieveErection($tempSub) and $slaves[$m].dickAccessory != "chastity" && $tempSub.pubertyXY == 1 and canBreed($slaves[$i], $tempSub)>>
 			<<set $slaves[$i].pregSource to $tempSub.ID>>
 			<</if>>
 		<<elseif $seed > 60 and $PC.dick == 1 && $slaves[$i].eggType == "human">>
 			<<set $slaves[$i].pregSource to -1>>
 		<<elseif $seed <= 10 && $slaves[$i].eggType == "human">>
 			<<set $slaves[$i].pregSource to -2>>
-		<<else>> /*might need to be looked at, pregsource -2 should not be given to slaves with non human ova*/
+		<<elseif $slaves[$i].eggType != "human">>
+			<<for $j to 0; $j < $slaves.length; $j++>>
+				<<if $slaves[$j].dick > 0 and $slaves[$j].balls > 0 and $slaves[$j].dickAccessory != "chastity" && $slaves[$j].pubertyXY == 1 && canBreed($slaves[$i], $slaves[$j])>>
+					<<if $slaves[$i].ID is $slaves[$j].ID>>
+					/* catch for self-impregnation */
+						<<if random(1,100) > 95>>
+						<<set $slaves[$i].pregSource to $slaves[$j].ID>>
+						<<break>>
+						<</if>>
+					<<else>>
+						<<set $slaves[$i].pregSource to $slaves[$j].ID>>
+						<<break>>
+					<</if>>
+				<</if>>
+			<</for>>
+			<<if $slaves[$i].pregSource < 1>>
+				<<set $slaves[$i].preg = 0>>
+				<<set $slaves[$i].pregType = 0>>
+				<<set $slaves[$i].pregSource = 0>>
+			<</if>>
 			<<set $sourceSeed to random(0,$slaves.length-1)>>
 			/* random starting point in the slave array */
 			<<set $slaves[$i].pregSource to -2>>
@@ -4364,13 +4385,14 @@ and ($slaves[$i].clothes != "a slutty qipao") and ($slaves[$i].clothes != "restr
 		<<set $repGain += $FSSingleSlaveRep*($arcologies[0].FSTransformationFetishist/$FSLockinLevel), $arcologies[0].FSTransformationFetishist += 0.05*$FSSingleSlaveRep*$pornFameBonus>>
 		<<set _transformed = 1>>
 	<</if>>
-	<<if _transformed != 1>>
-		Society @@color:red;mildly disapproves@@ of $slaves[$i].slaveName's lack of obvious transformations; $pronoun does not advance the ideal of body modification.
-		<<set $repGain -= 0.5*$FSSingleSlaveRep*($arcologies[0].FSTransformationFetishist/$FSLockinLevel), $arcologies[0].FSTransformationFetishist -= 0.025*$FSSingleSlaveRep*$pornFameBonus>>
-	<</if>>
 	<<if $slaves[$i].fuckdoll > 0>>
 		Society @@color:green;mildly approves@@ of your owning a Fuckdoll.
 		<<set $repGain += 0.5*$FSSingleSlaveRep*($arcologies[0].FSTransformationFetishist/$FSLockinLevel), $arcologies[0].FSTransformationFetishist += 0.025*$FSSingleSlaveRep*$pornFameBonus>>
+		<<set _transformed = 1>>
+	<</if>>
+	<<if _transformed == 0>>
+		Society @@color:red;mildly disapproves@@ of $slaves[$i].slaveName's lack of obvious transformations; $pronoun does not advance the ideal of body modification.
+		<<set $repGain -= 0.5*$FSSingleSlaveRep*($arcologies[0].FSTransformationFetishist/$FSLockinLevel), $arcologies[0].FSTransformationFetishist -= 0.025*$FSSingleSlaveRep*$pornFameBonus>>
 	<</if>>
 <</if>>
 
@@ -4445,13 +4467,13 @@ and ($slaves[$i].clothes != "a slutty qipao") and ($slaves[$i].clothes != "restr
 	<<set $repGain += 0.5*$FSSingleSlaveRep*($arcologies[0].FSChattelReligionist/$FSLockinLevel), $arcologies[0].FSChattelReligionist += 0.025*$FSSingleSlaveRep*$pornFameBonus>>
 	<</if>>
 	<<if ($slaves[$i].clothes is "a chattel habit") || ($slaves[$i].clothes is "a fallen nuns habit") || ($slaves[$i].clothes is "a penitent nuns habit") || ($slaves[$i].clothes is "a hijab and abaya") || ($slaves[$i].clothes is "a succubus outfit")>>
-	Society @@color:green;mildly approves@@ of $possessive religiously themed clothing, strengthening the connection between sexual servitude and faith.
-	<<set $repGain += 0.5*$FSSingleSlaveRep*($arcologies[0].FSChattelReligionist/$FSLockinLevel), $arcologies[0].FSChattelReligionist += 0.025*$FSSingleSlaveRep*$pornFameBonus>>
+		Society @@color:green;mildly approves@@ of $possessive religiously themed clothing, strengthening the connection between sexual servitude and faith.
+		<<set $repGain += 0.5*$FSSingleSlaveRep*($arcologies[0].FSChattelReligionist/$FSLockinLevel), $arcologies[0].FSChattelReligionist += 0.025*$FSSingleSlaveRep*$pornFameBonus>>
 	<<elseif ($slaves[$i].clothes is "uncomfortable straps") or ($slaves[$i].clothes is "shibari ropes") or ($slaves[$i].clothes is "a nice maid outfit") or ($slaves[$i].clothes is "nice business attire") or ($slaves[$i].clothes is "a nice nurse outfit") or ($slaves[$i].clothes is "a kimono") or ($slaves[$i].clothes is "conservative clothing") or ($slaves[$i].clothes is "a military uniform") or ($slaves[$i].clothes is "no clothing")>>
-	Society accepts $possessive spartan clothing, seeing it as permissible under the new religious mores.
-	<<else>>
-	Society @@color:red;mildly disapproves@@ of $possessive unnecessarily gaudy attire; this slows acceptance of a link between faith and sexual servitude.
-	<<set $repGain -= 0.5*$FSSingleSlaveRep*($arcologies[0].FSChattelReligionist/$FSLockinLevel), $arcologies[0].FSChattelReligionist -= 0.025*$FSSingleSlaveRep*$pornFameBonus>>
+		Society accepts $possessive spartan clothing, seeing it as permissible under the new religious mores.
+	<<elseif ($slaves[$i].fuckdoll == 0)>>
+		Society @@color:red;mildly disapproves@@ of $possessive unnecessarily gaudy attire; this slows acceptance of a link between faith and sexual servitude.
+		<<set $repGain -= 0.5*$FSSingleSlaveRep*($arcologies[0].FSChattelReligionist/$FSLockinLevel), $arcologies[0].FSChattelReligionist -= 0.025*$FSSingleSlaveRep*$pornFameBonus>>
 	<</if>>
 	<<if ($slaves[$i].devotion > 95)>>
 	Society @@color:green;approves@@ of $possessive devotion to you as a companion to religious devotion, seeing both as the model for holy slaves.
