@@ -106,7 +106,7 @@
 	<</if>>
 	<</if>>
 	<span id = "impreg">
-	<<if canGetPregnant($activeSlave)>>
+	<<if ((canGetPregnant($activeSlave)) && ($activeSlave.clothes != "a Fuckdoll suit"))>>
 			<<if ($PC.dick != 0)>>
 			| <<click "Impregnate her yourself">><<replace "#miniscene">><<display "FPCImpreg">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><<SlaveInteractImpreg>><<SlaveInteractFertility>><</click>>
 			<</if>>
@@ -416,10 +416,8 @@ __Fucktoy use preference__: <strong><span id="hole"><<print $activeSlave.toyHole
 
 __Body modification__:
 [[Use remote surgery|Remote Surgery][$degradation to 0]]
-<<if $activeSlave.fuckdoll == 0>>
-	| [[Use body mod studio|Body Modification][$degradation to 0]]
-	| [[Use auto salon|Salon][$degradation to 0]]
-<</if>>
+| [[Use body mod studio|Body Modification][$degradation to 0]]
+| [[Use auto salon|Salon][$degradation to 0]]
 
 <br>
 
@@ -546,16 +544,25 @@ __Aphrodisiacs__: <span id="aphrodisiacs"><strong><<if $activeSlave.aphrodisiacs
 <br>&nbsp;&nbsp;&nbsp;&nbsp;
 
 <span id="fertilityblock">
+<<if $activeSlave.fuckdoll == 0>>
 <<if ($activeSlave.preg < -1)>>
 	//She is sterile//
 <<elseif ($activeSlave.pubertyXX == 0) && (($activeSlave.ovaries > 0) || ($activeSlave.mpreg == 0))>>
 	//She is not yet fertile//
+<<elseif $activeSlave.physicalAge >= 47>>
+	//She is too old to become pregnant//
 <<elseif (($activeSlave.preg >= -1) && (($activeSlave.ovaries != 0)) || ($activeSlave.mpreg == 1))>>
 __Contraception__: <span id="fertility"><strong><<if $activeSlave.preg is -1>><<print "using contraceptives">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong></span>.
 <<if ($activeSlave.preg == 0)>>
-	<<click "Use contraceptives">><<set $activeSlave.preg to -1>><<replace "#fertility">><strong><<if $activeSlave.preg is -1>><<print "using contraceptives">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong><</replace>><</click>>
+	<<click "Use contraceptives">><<set $activeSlave.preg to -1>>
+	<<SlaveInteractFertility>>
+	<<SlaveInteractImpreg>>
+	<</click>>
 <<elseif ($activeSlave.preg is -1)>>
-	<<click "Let her get pregnant">><<set $activeSlave.preg to 0>><<replace "#fertility">><strong><<if $activeSlave.preg is -1>><<print "using contraceptives">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong><</replace>><</click>>
+	<<click "Let her get pregnant">><<set $activeSlave.preg to 0>>
+	<<SlaveInteractFertility>>
+	<<SlaveInteractImpreg>>
+	<</click>>
 <<elseif $activeSlave.induce == 1>>
 	//Hormones are being slipped into her food, she will give birth suddenly and rapidly this week//
 <<elseif ($activeSlave.preg > 30) && ($activeSlave.pregType < 50) && ($activeSlave.labor == 0)>>
@@ -567,7 +574,30 @@ __Contraception__: <span id="fertility"><strong><<if $activeSlave.preg is -1>><<
 <<elseif ($activeSlave.preg > 0) && ($activeSlave.pregType < 50)>>
 	[[Abort her pregnancy|Abort]]
 <</if>>
-
+<</if>>
+<<else>>
+<<if ($activeSlave.preg < -1)>>
+	//It is sterile//
+<<elseif ($activeSlave.pubertyXX == 0) && (($activeSlave.ovaries > 0) || ($activeSlave.mpreg == 0))>>
+	//It is not yet fertile//
+<<elseif $activeSlave.physicalAge >= 47>>
+	//It is too old to become pregnant//
+<<elseif (($activeSlave.preg >= -1) && (($activeSlave.ovaries != 0)) || ($activeSlave.mpreg == 1))>>
+__Contraception__: <span id="fertility"><strong><<if $activeSlave.preg is -1>><<print "using contraceptives">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong></span>.
+<<if ($activeSlave.preg == 0)>>
+	<<click "Use contraceptives">><<set $activeSlave.preg to -1>>
+	<<SlaveInteractFertility>>
+	<</click>>
+<<elseif ($activeSlave.preg is -1)>>
+	<<click "Let her get pregnant">><<set $activeSlave.preg to 0>>
+	<<SlaveInteractFertility>>
+	<</click>>
+<<elseif ($activeSlave.pregType is 50) && ($activeSlave.preg > 30)>>
+	[[Induce mass childbirth|BirthStorm]]
+<<elseif ($activeSlave.preg > 0) && ($activeSlave.pregType < 50)>>
+	[[Abort her pregnancy|Abort]]
+<</if>>
+<</if>>
 <</if>>
 </span>
 
@@ -738,14 +768,11 @@ __Diet Base__: <strong><span id="dietBase"><<if $activeSlave.dietCum == 2>>Cum B
 	<<if $activeSlave.standardReward isnot "situational">>
 		<<click "Situational">><<set $activeSlave.standardReward to "situational">><<replace "#standardReward">><<print $activeSlave.standardReward>><</replace>><</click>>
 	<</if>>
-<</if>>
-
-<<if $activeSlave.assignmentVisible == 1>>
-<br>
-__Non-Assignment Orgasm Rules__: ''$activeSlave.releaseRules.''
-[[Permit masturbation and interslave sex|Slave Interact][$activeSlave.releaseRules to "permissive"]]
-| [[Let her get off with other slaves|Slave Interact][$activeSlave.releaseRules to "sapphic"]]
-| [[Only with you|Slave Interact][$activeSlave.releaseRules to "restrictive"]]
+	<br>
+	__Non-Assignment Orgasm Rules__: ''$activeSlave.releaseRules.''
+	[[Permit masturbation and interslave sex|Slave Interact][$activeSlave.releaseRules to "permissive"]]
+	| [[Let her get off with other slaves|Slave Interact][$activeSlave.releaseRules to "sapphic"]]
+	| [[Only with you|Slave Interact][$activeSlave.releaseRules to "restrictive"]]
 <</if>>
 
 <<if $activeSlave.clitPiercing is 3>>
