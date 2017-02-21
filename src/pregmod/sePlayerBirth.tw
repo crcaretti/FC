@@ -3,6 +3,9 @@
 <<set $nextButton to "Continue">>
 <<set $nextLink to "Scheduled Event">>
 
+<<set _gaveBirth = 0>>
+<<set _PCDegree = 0>>
+
 /*
 PC.pregSource documentation
 0  - unknown
@@ -107,20 +110,47 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 	<</if>>
 <</if>>
 
-<br><br>
+<<if _gaveBirth == 0>>
+
+<<display "Generate Child">>
+
+<<if $activeSlave.race == $PC.race>>
+	<<set _PCDegree++>>
+<</if>>
+<<if $activeSlave.hColor == $PC.hColor>>
+	<<set _PCDegree++>>
+<</if>>
+<<if $activeSlave.skin == $PC.skin>>
+	<<set _PCDegree++>>
+<</if>>
+<<if $activeSlave.eyeColor == $PC.eyeColor>>
+	<<set _PCDegree++>>
+<</if>>
+
+Your little <<if $babyGender == 1>>girl<<else>>boy<</if>>
+<<if _PCDegree == 4>>
+	looks just like you; she will likely grow up to closely resemble yourself.
+<<elseif $activeSlave.eyeColor == $PC.eyeColor>>
+	has your lovely $PC.eyeColor eyes.
+<<elseif _PCDegree > 0>>
+	looks a little like you, enough that <<if $babyGender == 1>>she<<else>>he<</if>>'ll be recognizable as yours.
+<<else>>
+	looks nothing like you; it's hard to believe <<if $babyGender == 1>>she's your daughter<<else>>he's you son<</if>>
+<</if>>
+
 <<if $PC.pregSource > 0>>
 	<<for $i to 0; $i < $slaves.length; $i++>>
 		<<if $slaves[$i].ID == $PC.pregSource>>
 			Rumors spread that your child was fathered by a slave, @@color:red;harming your lasting reputation.@@
 			<<set $PC.degeneracy += 20>>
 			<<if $arcologies[0].FSSupremacist != "unset">>
-				<<if $slaves[$i].race != $arcologies[0].FSSupremacistRace>>
+				<<if $activeSlave.race != $arcologies[0].FSSupremacistRace>>
 					Furthermore, word is that your child was not $arcologies[0].FSSupremacistRace, @@color:red;hurting your lasting reputation.@@
 					<<set $PC.degeneracy += 10>>
 				<</if>>
 			<</if>>
 			<<if $arcologies[0].FSSubjugationist != "unset">>
-				<<if $slaves[$i].race == $arcologies[0].FSSubjugationistRace>>
+				<<if $activeSlave.race == $arcologies[0].FSSubjugationistRace>>
 					In addition, there is a nasty rumor that you gave birth to a $arcologies[0].FSSubjugationistRace child, @@color:red;devastating your lasting reputation.@@
 					<<set $PC.degeneracy += 50>>
 				<</if>>
@@ -130,14 +160,21 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 <</if>>
 
 <br><br>
-Now you are faced with a decision of what to do with your new child. You're far too busy to keep it yourself, but you could @@color:orange;send your <<if $babyGender == 1>>daughter<<else>>son<</if>> to a boarding school to be raised until they are of age to serve as your heir.@@ The other option is to @@color:orange;send them to become a slave at a slave orphanage.@@<<if $Cash4Babies == 1>> Alternatively, since it is @@color:orange;legal to sell slave babies@@, your child should be worth quite a pretty ¤ at auction.<</if>>
+Now you are faced with a decision of what to do with your new child. You're far too busy to keep it yourself, but you could @@color:orange;send your <<if $babyGender == 1>>daughter<<else>>son<</if>> to a boarding school to be raised until they are of age to serve as your heir.@@ The other option is to @@color:orange;send them to become a slave at a slave orphanage.@@<<if $Cash4Babies == 1>> Alternatively, since it is @@color:orange;legal to sell slave babies@@, your child should be worth quite a pretty ¤ at auction.<</if>><<if $incubator > 0>><<if $incubator > $incubatorSlaves>> An incubation tank is empty and ready to accept a child, should you wish to @@color:orange;keep your child as a slave@@<<else>>All the incubation tanks are occupied; there is no room for your newborn child<</if>>.<</if>>
 <br><br>
 <span id="choice">What will it be?
 <br>
-<<click "Boarding School">><<replace "#choice">><<print "You have decided to send them away to be raised in your stead.">><</replace>><</click>> | <<click "Slave Orphanage">><<replace "#choice">><<print "You have decided to send them to a slave orphanage to be raised to $minimumSlaveAge and sold. Perhaps you'll even see them again, though you are unlikely to recognize them if you do.">><</replace>><</click>><<if $Cash4Babies == 1>> | <<click "Auction Them">><<replace "#choice">><<print "You send the child to be sold at auction amongst other prestigious slaves. The winning big for your offspring came in at @@color:yellowgreen;¤<<print 1000*$seed>>.@@">><</replace>><<set $cash += 1000*$seed>><</click>><</if>></span>
+<<click "Boarding School">><<replace "#choice">><<print "You have decided to send them away to be raised in your stead.">><</replace>><</click>> | 
+<<click "Slave Orphanage">><<replace "#choice">><<print "You have decided to send them to a slave orphanage to be raised to $minimumSlaveAge and sold. Perhaps you'll even see them again, though you are unlikely to recognize them if you do.">><</replace>><</click>>
+<<if $Cash4Babies == 1>> | <<click "Auction Them">><<replace "#choice">><<print "You send the child to be sold at auction amongst other prestigious slaves. The winning big for your offspring came in at @@color:yellowgreen;¤<<print 1000*$seed>>.@@">><</replace>><<set $cash += 1000*$seed>><</click>><</if>>
+<<if $incubator > $incubatorSlaves>>
+	| <<click "Incubation">><<replace "#choice">><<print "You place the child into an incubation chamber to be aged until they can legally serve as your slave.">><</replace>><<display "Incubator Workaround">><</click>>
 <</if>>
+</span>
+
+<</if>> /*closes gaveBirth*/
+<</if>> /*closes SE*/
 
 <<set $badBirth = 0>>
 <<set $PC.pregSource = 0>>
 <<set $seed = 0>>
-
