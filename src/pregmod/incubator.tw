@@ -4,6 +4,7 @@
 <<set $nextButton to "Back to Main">>
 <<set $nextLink to "Main">>
 <<set $returnTo to "Incubator">>
+<<set $targetAge to Math.clamp($targetAge, $minimumSlaveAge, 18)>>
 
 <<if $tanks == 0>>
 	<<set $tanks = [0]>>
@@ -40,16 +41,25 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 [[Add another incubation tank|Incubator][$cash -= Math.trunc(60000*$upgradeMultiplierArcology), $incubator += 1, $tanks.push(0)]] //Costs ¤<<print Math.trunc(60000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 
 <br>
+Target age for release: <<textbox "$targetAge" $targetAge "Incubator">> [[Minimum Legal Age|Incubator][$targetAge to $minimumSlaveAge]] | [[Average Age of Fertility|Incubator][$targetAge to $fertilityAge]] | [[Average Age of Potency|Incubator][$targetAge to $potencyAge]] | [[Legal Adulthood|Incubator][$targetAge to 18]]
+//Setting will not be applied to tanks in use.//
+
+<br>
 <<if $incubatorUpgradeSpeed == 4>>
 	It has been upgraded with perfected growth accelerants; children grow at the rate of 1 week to 1 year.
+	<<set _speed = 12>>
 <<elseif $incubatorUpgradeSpeed == 3>>
 	It has been upgraded with advanced experimental growth accelerants; children grow at the rate of 3 weeks to 1 year. [[Fund speculative research into maximizing growth rate|Incubator][$cash -= Math.trunc(500000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 4]] //Costs ¤<<print Math.trunc(500000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	<<set _speed = 9>>
 <<elseif $incubatorUpgradeSpeed == 2>>
 	It has been upgraded with advanced growth accelerants; children grow at the rate of 6 weeks to 1 year. [[Fund research into increasing growth rate even further|Incubator][$cash -= Math.trunc(75000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 3]] //Costs ¤<<print Math.trunc(75000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	<<set _speed = 6>>
 <<elseif $incubatorUpgradeSpeed == 1>>
 	It has been upgraded with growth accelerants; children grow at the rate of 9 weeks to 1 year. [[Further upgrade the incubators with specialized stem cells to speed growth|Incubator][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 2]] //Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	<<set _speed = 6>>
 <<else>>
 	The incubation tanks are basic; children grow at the rate of 12 weeks to 1 year. [[Upgrade the incubators with growth accelerating drugs|Incubator][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 1]] //Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	<<set _speed = 1>>
 <</if>>
 
 <br>
@@ -77,7 +87,7 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 	<<if $tanks[$i] == 0>>
 		<br><br>Tank #<<print $i + 1>> is currently empty.
 	<<else>>
-		<br><br>Tank #<<print $i + 1>> is currently accelerating <<print $tanks[$i].slaveName>>'s growth. She will be ready for release in $tanks[$i].growth weeks.
+		<br><br>Tank #<<print $i + 1>> is currently accelerating <<print $tanks[$i].slaveName>>'s growth. She will be ready for release in about Math.round($tanks[$i].growth/_speed) weeks.
 		<<if $incubatorUpgradeWeight == 1>>
 			<br>
 			<<if $incubatorWeightSetting == 1>>
@@ -108,6 +118,53 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 				Reproduction management systems are offline; she will undergo normal puberty.
 			<</if>>
 		<</if>>
+		<br>
+		Choose a name for her. <<textbox "$tanks[$i].birthName" $tanks[$i].birthName "Incubator">>
+		<<if $tanks[$i].mother > 0>>
+			<<for _j to 0; _j < $slaves.length; _j++>>
+				<<if $tanks[$i].mother == $slaves[_j].ID>>
+					<<if $slaves[_j].ID == $Concubine.ID>>
+						| [[Permit your Concubine to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<<elseif $slaves[_j].relationship == -4>>
+						| [[Permit your wife to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<<elseif $slaves[_j].ID == $Bodyguard.ID>>
+						| [[Permit your bodyguard to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<<elseif $slaves[_j].ID == $HeadGirl.ID>>
+						| [[Permit your headgirl to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<<elseif $slaves[_j].devotion > 50 && slaves[_j].trust > 50>>
+						| [[Permit her devoted mother to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<</if>>
+				<</if>>
+			<</for>>
+		<</if>>
+		<<if $tanks[$i].father > 0>>
+			<<for _j to 0; _j < $slaves.length; _j++>>
+				<<if $tanks[$i].father == $slaves[_j].ID>>
+					<<if $slaves[_j].ID == $Concubine.ID>>
+						| [[Permit your Concubine to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<<elseif $slaves[_j].relationship == -4>>
+						| [[Permit your wife to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<<elseif $slaves[_j].ID == $Bodyguard.ID>>
+						| [[Permit your bodyguard to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<<elseif $slaves[_j].ID == $HeadGirl.ID>>
+						| [[Permit your headgirl to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<<elseif $slaves[_j].devotion > 50 && slaves[_j].trust > 50 && slaves[_j].fuckdoll == 0>>
+						| [[Permit her devoted father to name her daughter|Incubator][$tanks[$i].birthName = <<ParentNames $slaves[_j], $tanks[$i]>>]]
+						<<break>>
+					<</if>>
+				<</if>>
+			<</for>>
+		<</if>>
+		<<set $tanks[$i].slaveName = $tanks[$i].birthName>>
 	<</if>>
 <</for>>
 
