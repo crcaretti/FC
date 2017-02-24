@@ -32,6 +32,7 @@ class Header (header.Header):
 				# standard macros
 				'append',
 				'button',
+				'capture',
 				'createplaylist',
 				'for',
 				'if',
