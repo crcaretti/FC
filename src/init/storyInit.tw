@@ -80,29 +80,23 @@
 		<</if>>
 	<</if>>
 	<</for>>
-	<<set $recruiters = []>>
 	<<for $i to 0; $i < $slaves.length; $i++>>
 	<<if $familyTesting == 1>>
 		<<if $slaves[$i].canRecruit == 1>>
-			<<set $recruiters.push($slaves[$i])>>
+			/*<<set $recruiters.push($slaves[$i])>>*/
 		<</if>>
 	<<else>>
 	<<if $slaves[$i].relation == 0>>
 		<<if random(1,100) <= 5>>
 		<<set $slaves[$i].recruiter to "twin">>
-		<<set $recruiters.push($slaves[$i])>>
 		<<elseif ($slaves[$i].actualAge > 32) and (random(1,100) <= 41)>>
 		<<set $slaves[$i].recruiter to "mother">>
-		<<set $recruiters.push($slaves[$i])>>
 		<<elseif ($slaves[$i].actualAge < 24) and (random(1,100) <= 40)>>
 		<<set $slaves[$i].recruiter to "daughter">>
-		<<set $recruiters.push($slaves[$i])>>
 		<<elseif ($slaves[$i].actualAge < 43) and (random(1,100) <= 20)>>
 		<<set $slaves[$i].recruiter to "older sister">>
-		<<set $recruiters.push($slaves[$i])>>
 		<<elseif ($slaves[$i].actualAge < 25) and ($slaves[$i].actualAge > 18) and (random(1,100) <= 20)>>
 		<<set $slaves[$i].recruiter to "young sister">>
-		<<set $recruiters.push($slaves[$i])>>
 		<</if>>
 	<<else>>
 		<<set $slaves[$i].recruiter to 0>>
@@ -127,7 +121,7 @@
 		<</if>>
 		<</if>>
 	<</if>>
-	<<if ($ver != "0.9.5") && ($ver != "0.9.6") && ($ver != "0.9.7") && ($ver != "0.9.8")>>
+	<<if ($ver != "0.9.5") && ($ver != "0.9.6") && ($ver != "0.9.7") && ($ver != "0.9.8") && ($ver != "0.9.9")>>
 		<<if $slaves[$i].oralSkill > 0>>
 		<<if $slaves[$i].oralSkill == 3>>
 			<<set $slaves[$i].oralSkill = 100>>
@@ -220,13 +214,12 @@
 	<<if ndef $slaves[$i].customImage>>
 		<<set $slaves[$i].customImage to 0>>
 	<</if>>
-	<<set $activeSlave to $slaves[$i]>>
-	<<display "Checkin Checks">>
 	<</for>>
+	<<set $slavesOriginal = $slaves>>
 	<<set $organs = []>>
 <<else>>
 	<<set $slaves = []>>
-	<<set $recruiters = []>>
+	<<set $slavesOriginal = []>>
 	<<set $organs = []>>
 	<<set $genePool = []>>
 <</if>>
@@ -249,6 +242,12 @@
 <<if ndef $seeSummaryImages>>
 	<<set $seeSummaryImages to 1>>
 <</if>>
+<<if ndef $universalRulesBirthing>>
+	<<set $universalRulesBirthing to 0>>
+<</if>>
+<<if def $recruiters>>
+	<<unset $recruiters>>
+<</if>>
 <<if $ver == "0.9">>
 	<<if $seeDicks == 2>>
 		<<set $seeDicks = 100>>
@@ -256,7 +255,7 @@
 		<<set $seeDicks = 25>>
 	<</if>>
 <</if>>
-<<if ($ver != "0.9.4") && ($ver != "0.9.5") && ($ver != "0.9.6") && ($ver != "0.9.7") && ($ver != "0.9.8")>>
+<<if ($ver != "0.9.4") && ($ver != "0.9.5") && ($ver != "0.9.6") && ($ver != "0.9.7") && ($ver != "0.9.8") && ($ver != "0.9.9")>>
 	<<for _r to 0; _r < $defaultRules.length; _r++>>
 		<<if ndef $defaultRules[_r].aphrodisiacs>>
 			<<set $defaultRules[_r].aphrodisiacs = 0>>
@@ -307,7 +306,7 @@
 
 <<set $cheater to 0>>
 <<set $PCName to "Anonymous">>
-<<set $PC to {title: 1, ID: -1, dick: 1, vagina: 0, preg: 0, pregSource: 0, pregMood: 0, labor: 0, births: 0, boobsBonus: 0, degeneracy: 0, voiceImplant: 0, accent: 0, shoulders: 0, shouldersImplant: 0, boobs: 0, career: "capitalist", rumor: "wealth", indenture: -1, indentureRestrictions: 0, birthWeek: random(0,51), age: 2, sexualEnergy: 4, refreshment: "cigar", refreshmentType: 0, race: "white", skin: "white", eyeColor: "blue", hColor: "blonde", nationality: "Stateless", father: 0, mother: 0, sisters: 0, daughters: 0}>>
+<<set $PC to {title: 1, ID: -1, dick: 1, vagina: 0, preg: 0, pregSource: 0, pregMood: 0, labor: 0, births: 0, boobsBonus: 0, degeneracy: 0, voiceImplant: 0, accent: 0, shoulders: 0, shouldersImplant: 0, boobs: 0, career: "capitalist", rumor: "wealth", indenture: -1, indentureRestrictions: 0, birthWeek: random(0,51), age: 2, sexualEnergy: 4, refreshment: "cigar", refreshmentType: 0, race: "white", skin: "white", eyeColor: "blue", hColor: "blonde", nationality: "Stateless", father: 0, mother: 0, sisters: 0, daughters: 0, birthElite: 0, birthMaster: 0, birthDegenerate: 0, birthClient: 0, birthOther: 0, birthArcOwner: 0}>>
 <<set $cash = 10000>>
 <<set $normalizedEvents to 0>>
 <<set $autosave to 1>>
@@ -393,15 +392,21 @@
 <<set $autoSurgery to {lactation: 0, cosmetic: 1, accent: 0, shoulders: 0, shouldersImplant: 0, boobs: 0, hips: 0, hipsImplant: 0, butt: 0, faceShape: "normal", lips: 10, holes: 0}>>
 
 <<else>>
-
-<<set $cash to 5000>>
-<<if ndef $universalRulesBirthing>>
-	<<set $universalRulesBirthing to 0>>
+	<<if $freshPC == 0>>
+		<<set $cash to Math.clamp(1000*Math.trunc($cash/100000), 5000, 1000000)>>
+		<<if $retainCareer == 0>>
+			<<set $PC.career = "arcology owner">>
+		<</if>>
+	<<else>>
+		<<set $cheater to 0>>
+		<<set $PCName to "Anonymous">>
+		<<set $PC to {title: 1, ID: -1, dick: 1, vagina: 0, preg: 0, pregSource: 0, pregMood: 0, labor: 0, births: 0, boobsBonus: 0, degeneracy: 0, voiceImplant: 0, accent: 0, shoulders: 0, shouldersImplant: 0, boobs: 0, career: "capitalist", rumor: "wealth", indenture: -1, indentureRestrictions: 0, birthWeek: random(0,51), age: 2, sexualEnergy: 4, refreshment: "cigar", refreshmentType: 0, race: "white", skin: "white", eyeColor: "blue", hColor: "blonde", nationality: "Stateless", father: 0, mother: 0, sisters: 0, daughters: 0, birthElite: 0, birthMaster: 0, birthDegenerate: 0, birthClient: 0, birthOther: 0, birthArcOwner: 0}>>
+	<</if>>
 <</if>>
 
-<</if>>
+<<set $ver = "0.9.9">>
 
-<<set $ver = "0.9.8">>
+<<set $targetArcology = {type: "New"}>>
 
 <<set $REFeminizationCheckinIDs to []>>
 <<set $REMILFCheckinIDs to []>>
@@ -593,8 +598,8 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 
 <<set $FSAnnounced to 0>>
 <<set $FSCredits to 0>>
-<<set $FSCreditCount to 4>>
-<<set $FSCreditCountString to "four">>
+<<set $FSCreditCount to 5>>
+<<set $FSCreditCountString to "five">>
 <<set $FSGotRepCreditOne to 0>>
 <<set $FSGotRepCreditTwo to 0>>
 <<set $FSGotRepCreditThree to 0>>
@@ -696,12 +701,6 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $clinicInflateBelly = 0>>
 <<set $playerBred = 0>>
 <<set $propOutcome = 0>>
-<<set $birthElite to 0>>
-<<set $birthMaster to 0>>
-<<set $birthDegenerate to 0>>
-<<set $birthClient to 0>>
-<<set $birthOther to 0>>
-<<set $birthArcOwner to 0>>
 <<set $EliteSires = []>>
 <<set $EliteSires = ["moves", "quick", "crazy", "virgin", "futa", "preggo"]>>
 <<set $startingPoint = -1>>
@@ -716,6 +715,8 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $mom = 0>>
 <<set $animalParts = 0>>
 <<set $showBestiality = 0>>
+<<set $retainCareer = 1>>
+<<set $freshPC = 0>>
 
 <<set $fakeBellies to ["a small empathy belly", "a medium empathy belly", "a large empathy belly", "a huge empathy belly"]>> /* lets fake bellies be separated from other .bellyAccessory */
 
@@ -781,7 +782,8 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 
 <<set $justiceEvents to ["slave deal", "slave training", "majority deal", "indenture deal", "virginity deal"]>>
 
-<<set $startingGirlsNationality to 0>>
+<<set $fixedNationality to 0>>
+<<set $fixedRace to 0>>
 <<set $ui to "start">>
 
 <<set $brandTarget to "buttocks">>
@@ -967,7 +969,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 
 <<set $whoreCareers to ["a prostitute", "a child prostitute", "a stripper", "a saleswoman", "a criminal", "a porn star", "a trophy wife", "a Futanari Sister", "a model", "a juvenile delinquent", "a mistress", "a serial divorcee", "a pageant star"]>>
 
-<<set $HGCareers to ["a lawyer", "a military officer", "a politician", "a model-UN star", "a student council president"]>>
+<<set $HGCareers to ["a lawyer", "a military officer", "a politician", "a model-UN star", "a student council president", "a leading arcology citizen"]>>
 
 <<set $recruiterCareers = ["a military recruiter", "a club recruiter", "a college scout", "a girl scout"]>>
 
@@ -988,6 +990,28 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $stewardessCareers to ["a secretary", "a barista", "a bartender", "an air hostess", "a professional bartender", "an office worker", "an investor", "a charity worker", "a caregiver", "a wedding planner", "an estate agent"]>>
 
 <<set $schoolteacherCareers to ["a principal", "a teaching assistant", "a teacher", "a scientist", "a professor", "a private instructor", "a librarian", "a scholar"]>>
+
+<<set $whiteNationalities = ["American", "Canadian", "Brazilian", "Argentinian", "Chilean", "Israeli", "South African", "Russian", "Ukrainian", "Irish", "Icelandic", "Finnish", "Swiss", "Danish", "Norwegian", "Austrian", "Slovak", "Dutch", "Belgian", "Czech", "Serbian", "Portuguese", "Hungarian", "Estonian", "Polish", "Lithuanian", "Romanian", "German", "French", "Italian", "British", "Australian", "a New Zealander", "Belarusian", "Scottish"]>>
+
+<<set $asianNationalities = ["American", "Saudi", "Chinese", "Korean", "Japanese", "Thai", "Vietnamese", "Indonesian", "Filipina", "Burmese", "Nepalese", "Uzbek", "Malaysian", "Kazakh", "Australian"]>>
+
+<<set $latinaNationalities = ["American", "Puerto Rican"Cuban", "Mexican", "Peruvian", "Venezuelan", "Bolivian", "Guatemalan", "Brazilian", "Argentinian", "Chilean", "Colombian"]>>
+
+<<set $middleEasternNationalities = ["American", "Egyptian", "Turkish", "Israeli", "Saudi", "Moroccan", "Ethiopian", "Afghan", "Algerian", "Libyan", "Tunisian", "Lebanese", "Jordanian", "Emirati", "Omani", "Malian", "Sudanese", "Yemeni", "Iraqi", "German", "Swedish", "French", "Italian"]>>
+
+<<set $blackNationalities = ["American"Cuban", "Haitian", "Jamaican", "Brazilian", "Egyptian", "Saudi", "Moroccan", "Nigerian", "Kenyan", "Zimbabwean", "Ugandan", "Tanzanian", "Ghanan", "Congolese", "Ethiopian", "South African", "Malian", "Sudanese", "Yemeni", "German", "Swedish", "French", "Australian", "Dominican"]>>
+
+<<set $indoAryanNationalities = ["Iranian", "Armenian", "Burmese", "Nepalese", "Afghan", "Emirati", "Omani", "Indian", "Kazakh", "Pakistani", "Bangladeshi", "Slovak", "Hungarian", "Romanian", "British"]>>
+
+<<set $pacificIslanderNationalities = ["Indonesian", "Filipina", "a New Zealander"]>>
+
+<<set $malayNationalities = ["Thai", "Indonesian", "Filipina", "Malaysian"]>>
+
+<<set $amerindianNationalities = ["American", "Canadian", "Mexican", "Peruvian", "Bolivian", "Guatemalan", "Brazilian"]>>
+
+<<set $southernEuropeanNationalities = ["French", "Italian", "Greek", "Spanish"]>>
+
+<<set $semiticNationalities = ["Egyptian", "Turkish", "Iranian", "Armenian", "Israeli", "Tanzanian", "Ghanan", "Ethiopian", "Lebanese", "Jordanian", "Yemeni", "Iraqi", "Kazakh", "Pakistani", "Romanian", "Spanish"]>>
 
 <<set $whiteAmericanSlaveNames to ["Sophia", "Emma", "Olivia", "Ava", "Isabella", "Mia", "Zoe", "Lily", "Emily", "Madelyn", "Madison", "Chloe", "Charlotte", "Aubrey", "Avery", "Abigail", "Kaylee", "Layla", "Harper", "Ella", "Amelia", "Arianna", "Riley", "Aria", "Hailey", "Hannah", "Evelyn", "Addison", "Mackenzie", "Adalyn", "Ellie", "Brooklyn", "Nora", "Scarlett", "Grace", "Anna", "Isabelle", "Natalie", "Kaitlyn", "Lillian", "Sarah", "Audrey", "Elizabeth", "Leah", "Annabelle", "Kylie", "Mila", "Claire", "Victoria", "Maya", "Lila", "Elena", "Lucy", "Savannah", "Gabriella", "Callie", "Alaina", "Sophie", "Makayla", "Kennedy", "Sadie", "Skyler", "Allison", "Caroline", "Penelope", "Alyssa", "Peyton", "Samantha", "Liliana", "Bailey", "Maria", "Reagan", "Violet", "Eliana", "Adeline", "Eva", "Stella", "Keira", "Katherine", "Jessica", "Jennifer", "Amanda", "Ashley", "Sarah", "Stephanie", "Melissa", "Nicole", "Elizabeth", "Heather", "Tiffany", "Michelle", "Amber", "Megan", "Amy", "Rachel", "Kimberly", "Christina", "Lauren", "Crystal", "Brittany", "Rebecca", "Laura", "Danielle", "Emily", "Samantha", "Angela", "Erin", "Kelly", "Sara", "Lisa", "Katherine", "Andrea", "Jamie", "Mary", "Erica", "Courtney", "Kristen", "Shannon", "April", "Katie", "Lindsey", "Kristin", "Lindsay", "Christine", "Alicia", "Vanessa", "Maria", "Kathryn", "Allison", "Julie", "Anna", "Tara", "Kayla", "Natalie", "Victoria", "Monica", "Jacqueline", "Holly", "Kristina", "Patricia", "Cassandra", "Brandy", "Whitney", "Chelsea", "Brandi", "Catherine", "Cynthia", "Kathleen", "Veronica", "Leslie", "Natasha", "Krystal", "Stacy", "Diana", "Erika", "Dana", "Jenna", "Meghan", "Carrie", "Leah", "Melanie", "Brooke", "Karen", "Alexandra", "Valerie", "Caitlin", "Julia", "Alyssa", "Jasmine", "Hannah", "Stacey", "Brittney", "Susan", "Margaret", "Sandra", "Candice", "Latoya", "Bethany", "Misty"]>>
 
@@ -1180,13 +1204,54 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 
 <<set $cowSlaveNames to ["Big Mac", "Moscow", "MooMoo", "Madonna", "Cowlick", "Bertha", "Waffles", "Brown Cow", "Hamburger", "Heifer", "Honeybun", "Cookie", "Pinky", "Sweetie", "Sunny", "Blue", "Sunshine", "Sugar", "Cupcake", "Cocoa", "Baby", "Muffin", "Princess", "Bessie", "Clarabelle", "Betty Sue", "Emma", "Henrietta", "Ella", "Penelope", "Nettie", "Anna", "Bella", "Annabelle", "Dorothy", "Molly", "Gertie", "Annie", "Rose", "Darla", "Meg", "Dahlia", "Margie", "Lois", "Flower", "Maggie", "Jasmine", "Minnie", "Esmeralda", "Bella", "Daisy", "Shelly", "Candie", "Cinnamon ", "Penny ", "Jasmayne ", "Bella ", "Clover", "Precious ", "Diamond ", "Arabella ", "Sasha ", "Sweetpea", "Swiss Miss"]>>
 
-<<set $chattelReligionistSlaveNames to ["Faith", "Patience", "Purity", "Chastity", "Constance", "Grace", "Penance", "Trinity", "Mercy", "Charity", "Verity", "Amity", "Peace", "Prudence", "Temperance", "Grace", "Love", "Hope", "Destiny", "Abundance", "Allegiance", "Amnesty", "Ardour", "Beauty", "Belief", "Blessing", "Bliss", "Charisma", "Cheer", "Charm", "Chastity", "Clarity", "Clemency", "Comfort", "Compassion", "Concord", "Condolence", "Constancy", "Courage", "Credence", "Desire", "Discretion", "Empathy", "Endurance", "Esteem", "Eternity", "Evanescence", "Favour", "Felicity", "Fidelity", "Fortune", "Gaity", "Glory", "Gracious", "Gravitas", "Harmony", "Happiness", "Honesty", "Hope", "Humility", "Innocent", "Integrity", "Joy", "Justice", "Kindness", "Laughter", "Loyalty", "Luck", "Merit", "Modesty", "Perserverance", "Piety", "Pleasant", "Prosperity", "Prudence", "Purity", "Radiance", "Remembrance", "Respect", "Reverence", "Salvation", "Sanctity", "Serendipity", "Serenity", "Silence", "Sincerity", "Solace", "Solemnity", "Success", "Sympathy", "Temperance", "Thankfulness", "Tolerance", "Tranquility", "Truth", "Unity", "Virtue", "Wisdom", "Wonder", "Heaven"]>>
+<<set $chattelReligionistSlaveNames to ["Faith", "Patience", "Purity", "Chastity", "Constance", "Grace", "Penance", "Trinity", "Mercy", "Charity", "Verity", "Amity", "Peace", "Prudence", "Temperance", "Grace", "Love", "Hope", "Destiny", "Abundance", "Allegiance", "Amnesty", "Ardour", "Beauty", "Belief", "Blessing", "Bliss", "Charisma", "Cheer", "Charm", "Chastity", "Clarity", "Clemency", "Comfort", "Compassion", "Concord", "Condolence", "Constancy", "Courage", "Credence", "Desire", "Discretion", "Empathy", "Endurance", "Esteem", "Eternity", "Evanescence", "Favour", "Felicity", "Fidelity", "Fortune", "Gaiety", "Glory", "Gracious", "Gravitas", "Harmony", "Happiness", "Honesty", "Hope", "Humility", "Innocent", "Integrity", "Joy", "Justice", "Kindness", "Laughter", "Loyalty", "Luck", "Merit", "Modesty", "Perserverance", "Piety", "Pleasant", "Prosperity", "Prudence", "Purity", "Radiance", "Remembrance", "Respect", "Reverence", "Salvation", "Sanctity", "Serendipity", "Serenity", "Silence", "Sincerity", "Solace", "Solemnity", "Success", "Sympathy", "Temperance", "Thankfulness", "Tolerance", "Tranquility", "Truth", "Unity", "Virtue", "Wisdom", "Wonder", "Heaven"]>>
 
 <<set $romanSlaveNames to ["Aconia", "Aelia", "Agrippina", "Antistia", "Antonia", "Arria", "Atia", "Aurela", "Baebiana", "Caecilia", "Caesonia", "Calpurnia", "Claudia", "Cornelia", "Crispina", "Domitia", "Domitilla", "Drusilla", "Diana", "Euphemia", "Eutropia", "Fabia", "Faustina", "Flavia", "Galeria", "Galla", "Gnaea", "Gratidia", "Helena", "Helvia", "Herennia", "Honoria", "Hostia", "Julia", "Junia", "Justina", "Leontia", "Lepida", "Licinia", "Livia", "Livilla", "Lollia", "Lucilla", "Maecia", "Magia", "Manlia", "Marcella", "Marcia", "Messalina", "Minervina", "Mellisa", "Metella", "Munatia", "Octavia", "Ocellina", "Orbiana", "Otacilia", "Paccia", "Papianilla", "Paulina", "Placiaida", "Plautia", "Plautilla", "Plotina", "Pompeia", "Popilla", "Poppaea", "Porcia", "Risca", "Pulcheria", "Sabina", "Salonina", "Sempronia", "Servilia", "Severa", "Statilia", "Sulpicia", "Terentia", "Theodora", "Titania", "Tranquillina", "Tullia", "Ulpia", "Urgulania", "Valeria", "Verina", "Vesta", "Vibia", "Violentilla", "Vipsania", "Vistilla", "Gaia", "Lucia", "Marca", "Publia", "Quinta", "Tita", "Tiberia", "Sexta", "Aula", "Decima", "Gnaea", "Spuria", "Mania", "Servia", "Appia", "Numeria", "Vibia", "Agricola", "Agrippa", "Ahala", "Ahenobarba", "Albina", "Alba", "Ambusta", "Annalis", "Aquila", "Aquilina", "Arvina", "Asina", "Atella", "Avita", "Balba", "Barba", "Barbata", "Bassa", "Bestia", "Bibacula", "Bibula", "Blaesa", "Broccha", "Bruta", "Bubulca", "Bulba", "Caeca", "Calida", "Calvina", "Calva", "Camilla", "Canina", "Cana", "Catilina", "Catula", "Celeris", "Celsa", "Cethega", "Cicurina", "Cincinnata", "Cinna", "Corda", "Cornicen", "Cornuta", "Corvina", "Corva", "Cossa", "Costa", "Cotta", "Crassipes", "Crassa", "Crispina", "Crispa", "Curva", "Dentata", "Dentra", "Dives", "Dolabella", "Drusa", "Figula", "Fimbria", "Flacca", "Flava", "Flora", "Fusa", "Gemella", "Graccha", "Gurges", "Habita", "Helva", "Imperiosa", "Iulla", "Lactuca", "Laenas", "Lanata", "Laevina", "Laterensis", "Lentula", "Lepida", "Licina", "Longa", "Luculla", "Lupa", "Macra", "Macula", "Malleola", "Mamerca", "Marcella", "Merenda", "Merga", "Merula", "Messalla", "Metella", "Murena", "Mus", "Musca", "Nasica", "Natta", "Nepos", "Nerva", "Nigra", "Novella", "Ocella", "Pacila", "Paeta", "Pansa", "Papa", "Patercula", "Paulla", "Pera", "Pictrix", "Planca", "Plauta", "Poplicola", "Postuma", "Potita", "Praeconina", "Praetextata", "Prisca", "Procula", "Publicola", "Pulchra", "Pulla", "Pulvilla", "Quadrata", "Ralla", "Regilla", "Regula", "Rufa", "Ruga", "Rulla", "Rutila", "Salinatrix", "Saturnina", "Scaeva", "Scaevola", "Scapula", "Scaura", "Scrofa", "Seneca", "Severa", "Silana", "Sila", "Structa", "Sulla", "Sura", "Taura", "Triaria", "Trigemina", "Tuberta", "Tubula", "Tuditana", "Tulla", "Turda", "Vara", "Vatia", "Verres", "Vetus", "Vitula", "Volusa"]>>
 
 <<set $ancientEgyptianSlaveNames to ["A'at", "Ahhotep", "Ahmose", "Ahmose", "Hentempet", "Ahmose", "Hent-Tenemu", "Ahmose", "Henuttimehu", "Ahmose", "Inhapi", "Ahmose", "Meryetamun", "Ahmose", "Meryt-Amon", "Ahmose-Nefertari", "Ahmose", "Nefertiry", "Ahmose", "Sitkamose", "Ahmose", "Tumerisy", "Ahset", "Amtes", "Amunet", "Ana", "Aneksi", "Ankhesenamon", "Ankhesenpaaten", "Ankhesenpaaten-ta-sherit", "Ankhes-Pepi", "Ankhetitat", "Ankhnesmery-Re", "Ankhnes-Pepi", "Aoh", "Ashait", "Ast", "Atet", "Baketamon", "Bakt", "Baktwerel", "Beketaten", "Berenib", "Betresh", "Betrest", "Bint-Anath", "Bunefer", "Dedyet", "Fent-Ankhet", "Gilukhipa", "Hapynma'at", "Hedjhekenu", "Henhenet", "Henite", "Hent", "Hentaneb", "Hentmereb", "Hentmire", "Hent-Temehu", "Henutmire", "Henutsen", "Henuttawy", "Herit", "Herneith", "Hetepheres", "Hetephernebty", "Heterphenebty", "Huy", "Imi", "Inhapi", "Intakaes", "Iput", "Ipwet", "Ipy", "Isetnofret", "Isis", "Istnofret", "Itekuyet", "Itet", "Kasmut", "Kawit", "Kemanub", "Kemanut", "Kemsit", "Kentetenka", "Khama'at", "Khamerernebty", "Khemut", "Khentikus", "Khentkawes", "Khenut", "Khumit", "Khuit", "Kiya", "Ma'at", "Hornefrure'", "Maatkare-Nefertari", "Meket-Aten", "Maia", "Menhet", "Menwi", "Mereneith", "Mereryet", "Meresankh", "Meritites", "Merneith", "Merseger", "Merti", "Meryetamun", "Meryetre", "Merysankh", "Merytamon", "Merit-Amon", "Meritaten", "Merytaten-tasherit", "Meryt-Re-Hatshepsut", "Mutemwiya", "Mutnodjme", "Mutnofret", "Muyet", "Nebet", "Nebettawy", "Nebt", "Nebt-tawya", "Neferhent", "Neferhetep", "Neferhetepes", "Neferkent", "Neferneferure", "Nefertari", "Nefertiti", "Nefertkau,", "Nefertkaw", "Neferu", "Neferu", "Neferukhayt", "Neferukhebt", "Neferu-Re", "Nefret", "Nefru", "Nefru-Ptah", "Nefrusheri", "Nefru-Sobek", "Nefru-totenen", "Neith", "Neithotep", "Nemathap", "Nenseddjedet", "Neshkons", "Nestanebtishru", "Nit", "Nitemat", "Nithotep", "Nodjmet", "Nofret", "Nofret", "Nubkhas", "Nubkhesed", "Rai", "Raia", "Redji", "Reputneb", "Sadeh", "Sadek", "Sebek-shedty-Neferu", "Senebsen", "Senisonbe", "Sennuwy", "Seshseshet", "Sitamun", "Sit-Hathor-Yunet", "Sitre", "Sobekemsaf", "Sotepenre", "Ta-Opet", "Tadukhipa", "Takhaet", "Tarset", "Taweret", "Tem", "Tener", "Teo", "Tetisheri", "Tey", "Thent", "Hep", "Tia", "Tiy", "Tiye", "Tjepu", "Tuia", "Tuya", "Tuyu", "Twosre", "Weret-Imtes"]>>
 
 <<set $edoSlaveNames to ["Adakichi", "Aihachi", "Aika", "Aikichi", "Aiko", "Aimatsu", "Akiko", "Ariko", "Asa", "Asakichi", "Asao", "Ayako", "Ayano", "Azuma", "Baicho", "Baisho", "Botan", "Charyoei", "Chieko", "Chikafuku", "Chikafumi", "Chikano", "Chikashizu", "Chikayoshi", "Chikayu", "Chikayuki", "Chisako", "Chiyo", "Chiyoe", "Chiyoha", "Chiyokichi", "Chiyoko", "Chiyoryo", "Chiyoteru", "Chiyotsuru", "Chiyowaka", "Chiyoyakko", "Chizu", "Chizuha", "Chizuru", "Cho", "Chocho", "Dan’ei", "Danji", "Danko", "Dango", "Edagiku", "Emi", "Emicho", "Emigiku", "Emiyo", "Enko", "Eriko", "Fuji", "Fujie", "Fujigiku", "Fujiha", "Fukichiyo", "Fukiha", "Fukimi", "Fukiyo", "Fukizo", "Fuku", "Fukuai", "Fukuaya", "Fukuchiyo", "Fukucho", "Fukudama", "Fukuha", "Fukuhana", "Fukuharu", "Fukuhina", "Fukuhiro", "Fukumi", "Fukumusume", "Fukunae", "Fukusato", "Fukusuke", "Fukusuzu", "Fukuteru", "Fukuya", "Fukuyo", "Fukuyoshi", "Fukuyu", "Fumi", "Fumichiyo", "Fumicho", "Fumihana", "Fumiko", "Fumino", "Fumukazu", "Fusakichi", "Fusako", "Fusao", "Hamako", "Hamayu", "Hanachiyo", "Hanaji", "Hanakichi", "Hanako", "Hanamatsu", "Hanaryo", "Hanayakko", "Harukichi", "Haruko", "Hatsu", "Hatsuko", "Hatsuyo", "Hidechiyo", "Hidecho", "Hideji", "Hidemi", "Hideryu", "Hideyakko", "Hidezuru", "Hinacho", "Hinagiku", "Hinako", "Hinazuru", "Hisa", "Hisacho", "Hisae", "Hisaei", "Hisamomo", "Hisasuzu", "Hisayo", "Hisazuru", "Ichiei", "Ichiemi", "Ichiharu", "Ichiho", "Ichika", "Ichimame", "Ichimomo", "Ichiraku", "Ichiryu", "Ichisayo", "Ichiteru", "Ichitomi", "Ichiume", "Ichiya", "Ichiyakko", "Iku", "Ikumatsu", "Imayoshi", "Ine", "Iroha", "Ishino", "Ishiyakko", "Iso", "Isoei", "Itozuru", "Kameji", "Kameko", "Kaneha", "Kanemi", "Kanoaki", "Kanoemi", "Kanoka", "Kasen", "Katsuchiyo", "Katsue", "Katsuha", "Katsuji", "Katsuna", "Katsune", "Katsuru", "Kayo", "Kichihana", "Kichiyakko", "Kichiyo", "Kichiyu", "Kiku", "Kikuka", "Kikumaru", "Kikumatsu", "Kikuno", "Kikuryo", "Kikutsuru", "Kikuya", "Kikuyakko", "Kikuyu", "Kimiei", "Kimikiku", "Kimina", "Kimitomo", "Kimiyakko", "Kin'ei", "Kin'ichi", "Kinhei", "Kinko", "Kinmatsu", "Kinroku", "Kinryo", "Kinryu", "Kinshi", "Kinsuke", "Kinu", "Kinyo", "Kitanomatsu", "Kiyo", "Kozuru", "Koen", "Kofuku", "Kofusa", "Kogiku", "Koi", "Koiku", "Kojako", "Komagiku", "Komaji", "Komako", "Komame", "Komari", "Komaru", "Komasu", "Komomo", "Komume", "Koriki", "Korin", "Koroku", "Kosaki", "Kosaku", "Kosen", "Koshizu", "Kosome", "Kosue", "Kotaka", "Kotama", "Kotatsu", "Koteru", "Kotetsu", "Koto", "Kotobuki", "Kotoei", "Kotogiku", "Kotoha", "Kotoji", "Kotomi", "Kotono", "Kotoyo", "Kotsuma", "Koume", "Koyachiyo", "Koyakko", "Koyana", "Koyei", "Koyo", "Koyone", "Koyoshi", "Koyuka", "Koyuki", "Koyumi", "Kozakura", "Kuma", "Kumakichi", "Kumano", "Kumayoshi", "Kunigiku", "Kyoka", "Kyoko", "Machi", "Mamefusa", "Mamegiku", "Mamehana", "Mameharu", "Mamehide", "Mamehiro", "Mameka", "Mamekichi", "Mameko", "Mameraku", "Mameriki", "Mameroku", "Mameryo", "Mameyakko", "Mameyo", "Mameyoshi", "Mameyu", "Maru", "Masuwaka",  "Matsuko", "Matsuriki", "Matsuyakko", "Miharu", "Mineko", "Mitsu", "Mitsugiku", "Mitsuko", "Mitsuha", "Mitsuyo", "Miyagiku", "Miyo", "Miyoha", "Miyoharu", "Miyoka", "Miyozuru", "Momifuku", "Momiji", "Momochiyo", "Momoko", "Momomaru", "Momoyakko", "Momozuru", "Naka", "Naochiyo", "Naosome", "Naosono", "Narako", "Narayone", "Oimatsu", "Omine", "Omocha", "Onao", "Otomaru", "Otoyu", "Ran", "Ren", "Riki", "Rikigo", "Rikiha", "Rikiharu", "Rikihei", "Rikiji", "Rikiko", "Rikiya", "Royo", "Ryuko", "Sakae", "Sakiko", "Sana", "Sakyo", "Sanae", "Sankatsu", "Sanko", "Sanya", "Sasa", "Sato", "Satochiyo", "Satogiku", "Satoji", "Satoka", "Satokichi", "Satomi", "Satono", "Satotsuya", "Satoyuki", "Satoyu", "Satsuki", "Sayaka", "Sayoko", "Sekka", "Sen", "Shimekichi", "Shimematsu", "Shinneji", "Shizu", "Shizue", "Shizuko", "Sodeko", "Shun", "Somagiku", "Soyo", "Sumiko", "Suzu", "Suzuhachi", "Suzuka", "Sue", "Suzuko", "Takeko", "Takewaka", "Takeyakko", "Tama", "Tamagiku", "Tamakiku", "Tamako", "Tamaryo", "Tamasuke", "Tamaye", "Tamayu", "Tamazuru", "Tamiko", "Tane", "Taneji", "Taneju", "Taneko", "Tatsu", "Tatsuko", "Teruhina", "Teruji", "Teruko", "Teruyo", "Tetsu", "Toba", "Toki", "Tokiko", "Tokimatsu", "Toku", "Tome", "Tomeko", "Tomewaka", "Tomigiku", "Tomiko", "Tomimatsu", "Tomino", "Tomiryo", "Tomitae", "Tomitsuru", "Tomiwaka", "Tomiyakko", "Tomizuru", "Tomogiku", "Tomoko", "Tomoryo", "Tomowaka", "Tomoyuki", "Tonko", "Tora", "Toshifumi", "Toshihana", "Toshiko", "Toye", "Toyochiyo", "Toyohina", "Toyoji", "Toyofu", "Toyoka", "Tsunechiyo", "Tsuneko", "Tsunemomo", "Tsuneyo", "Tsuneyu", "Tsuru", "Tsurue", "Tsuruha", "Tsuruji", "Tsuruka", "Tsurumatsu", "Tsuruyo", "Tsuruyu", "Tsuta", "Tsutaji", "Tsuyachiyo", "Tsuyu", "Ume", "Umechie", "Umechiho", "Umechika", "Umechiyo", "Umegiku", "Umeha", "Umehisa", "Umeji", "Umeko", "Umeko", "Umematsu", "Umeo", "Umeraku", "Umeryo", "Umeryu", "Umesaya", "Umesuke", "Umesuzu", "Umewaka", "Umeyae", "Umeyakko", "Umeyu", "Uno", "Unofuku", "Unoha", "Unohide", "Unoji", "Unoka", "Unokayo", "Unokazu", "Unokiyo", "Unoko", "Unoshizu", "Unowaka", "Uta", "Utachiyo", "Utaji", "Utaka", "Utamatsu", "Utayu", "Wakaba", "Wakacho", "Wakagusa", "Wakai", "Wakaji", "Wakakimi", "Wakako", "Wakakoma", "Wakamurasaki", "Wakaroku", "Wakatsune", "Wakaume", "Wakayakko", "Wakayo", "Wakayone", "Wakazuru", "Wako", "Yachiyoko", "Yae", "Yaemi", "Yaewaka", "Yaezuru", "Yaichi", "Yasuku", "Yasohachi", "Yasu", "Yoi", "Yone", "Yonehachi", "Yoneyakko", "Yuiko", "Yukako", "Yukari", "Yukiryo", "Yukizono"]>>
+
+<<set $ArcologyNamesSupremacistWhite = ["The Old Dominion", "Thule"]>>
+<<set $ArcologyNamesSupremacistAsian = ["The Celestial Temple", "Shambhala", "Shangri-La"]>>
+<<set $ArcologyNamesSupremacistLatina = ["Tenochtitlan", "Aztlan"]>>
+<<set $ArcologyNamesSupremacistMiddleEastern = ["The Caliphate", "New Cairo"]>>
+<<set $ArcologyNamesSupremacistBlack = ["United Africa", "Benin"]>>
+<<set $ArcologyNamesSupremacistIndoAryan = ["Swarga Loka", "New New Delhi"]>>
+<<set $ArcologyNamesSupremacistPacificIslander = ["Maui", "Rapa Nui"]>>
+<<set $ArcologyNamesSupremacistAmerindian = ["Cahokia", "The Confederated Tribes"]>>
+<<set $ArcologyNamesSupremacistSouthernEuropean = ["New Athens", "Olympus"]>>
+<<set $ArcologyNamesSupremacistSemitic = ["The Fifth Temple", "The Promised Land"]>>
+<<set $ArcologyNamesSubjugationistWhite = ["The World Turned Upside Down", "Anticolonialism One"]>>
+<<set $ArcologyNamesSubjugationistAsian = ["The East India Company", "Pearl of the Orient"]>>
+<<set $ArcologyNamesSubjugationistLatina = ["Fort Veracruz", "The Halls of Montezuma"]>>
+<<set $ArcologyNamesSubjugationistMiddleEastern = ["Constantinople", "Vlad's Castle"]>>
+<<set $ArcologyNamesSubjugationistBlack = ["Dixie", "The Plantation"]>>
+<<set $ArcologyNamesSubjugationistIndoAryan = ["The East India Company", "Trade Fort"]>>
+<<set $ArcologyNamesSubjugationistPacificIslander = ["Cargo Cult", "Moro Castle"]>>
+<<set $ArcologyNamesSubjugationistAmerindian = ["Fort Laramie", "The Rez"]>>
+<<set $ArcologyNamesSubjugationistSouthernEuropean = ["Istanbul", "Al-Andalus"]>>
+<<set $ArcologyNamesSubjugationistSemitic = ["Solomon's Lament", "New Canaan"]>>
+<<set $ArcologyNamesGenderRadicalist = ["Saturnalia", "Bacchanalia", "Gomorrah", "Sodom", "The Rosebud"]>>
+<<set $ArcologyNamesGenderFundamentalist = ["The Arbor", "The Rose", "The Source"]>>
+<<set $ArcologyNamesPaternalist = ["Sanctum", "Asylum", "Sanctuary", "Haven", "New Springfield", "The Sanctuary", "Glory"]>>
+<<set $ArcologyNamesDegradationist = ["Hell", "Golgotha", "The Tower"]>>
+<<set $ArcologyNamesBodyPurist = ["Walden", "New Eden", "Elysium", "Purity", "The Ark", "The Repository"]>>
+<<set $ArcologyNamesTransformationFetishist = ["The Dollhouse", "Silicone Valley", "The Hospital", "Bimboland"]>>
+<<set $ArcologyNamesYouthPreferentialist = ["Sunnyside", "Fuck High", "Dick U.", "Sex College"]>>
+<<set $ArcologyNamesMaturityPreferentialist = ["Shady Acres", "MILFtown", "MILF Heights", "Park Avenue Tower"]>>
+<<set $ArcologyNamesSlimnessEnthusiast = ["The Island", "Upskirt", "Virginland"]>>
+<<set $ArcologyNamesAssetExpansionist = ["The Bouncy Castle", "The Mounds", "Twin Peaks", "Boobs Tower"]>>
+<<set $ArcologyNamesPastoralist = ["Cornucopia", "Abundance", "Plenty", "Bounty", "Greener Pastures", "God's Country", "The Ranch", "Pasturelands"]>>
+<<set $ArcologyNamesPhysicalIdealist = ["Themyscira", "Midgard", "Muscle Beach", "Skid Row"]>>
+<<set $ArcologyNamesChattelReligionist = ["Heaven", "The Light", "Heaven on Earth"]>>
+<<set $ArcologyNamesRomanRevivalist = ["Elysian Fields", "Carthago Nova", "Nova Roma", "Neapolis", "Capua", "Ostia", "Salernum", "The City of the Seven Hills"]>>
+<<set $ArcologyNamesEgyptianRevivalist = ["Thebes", "Memphis", "Alexandria"]>>
+<<set $ArcologyNamesEdoRevivalist = ["Onogoro", "Kokyo", "Tengoku", "Takama-ga-hara", "New Kyoto", "The Imperial Palace", "New Tokyo"]>>
+<<set $ArcologyNamesArabianRevivalist = ["Jannah", "Madinat al-Salam", "Madinat al-Hareer", "Madinat al-Zahra", "Madinat al-Yasmin", "Bayt al-Hikma", "Baghdad", "Alhambra", "Samarra"]>>
+<<set $ArcologyNamesChineseRevivalist = ["Yinfu", "Huangquan", "Jiuquan", "Youming", "Huokang", "Mingfu", "Jin Shan", "Qi Lin", "Xin Hua", "Feng Huang", "The Middle Kingdom", "The Forbidden Palace"]>>
+<<set $ArcologyNamesEugenics = ["Perfection", "Ancension", "Second Chance"]>>
+<<set $ArcologyNamesRepopulationist = ["Hope", "The Womb", "Holders of the Future", "Future", "Haven of the Pregnant", "Sacred Womb", "Glorious Mother"]>>
 
 <<set $badWords to ["fuck", "shit", "ass", "cock", "piss", "dick", "slut", "cum", "whore", "butt", "boob", "cunt", "cunny", "pussy", "junk", "trash", "slave"]>>
 

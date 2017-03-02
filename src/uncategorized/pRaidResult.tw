@@ -1,19 +1,15 @@
-:: P raid result
- 
-<<nobr>>
+:: P raid result [nobr]
 
-<<set $nextButton to "Continue">>
-<<set $nextLink to "Random Nonindividual Event">>
+<<set $nextButton to "Continue", $nextLink to "Random Nonindividual Event">>
 
 <<set $PRaid to 0>>
 
-<</nobr>>\
-\
 As your VTOL craft carries you and your mercenaries out towards an area ideal for a quick raid on the refugee bands, the sensors begin to reveal that there are actually many more bands than you originally suspected. The single aircraft does not carry enough mercenaries to target more than one group, or have the cargo capacity to haul more than one back to the arcology before they disperse. Your mercenary commander makes a selection based on your instructions.
-
+<br><br>
 Out ahead of the main body of refugees there is a small knot moving quickly and in good order, carrying weapons. Farther back, there is a larger group separated from the main body who could be easily isolated. And finally, it seems a group of sick and injured refugees have clustered around a tent where there must be medical assistance of some kind.
+<br><br>
 
-<<nobr>>
+<<set _newSlaves = []>>
 <<if $PRraidTarget == 1>>
 	Under orders to target resistance, your mercenaries target the leading group. They even manage to direct a little small arms fire at the VTOL craft as it circles them, dropping mercenaries and plying its nonlethal weapons, but they are of course rapidly defeated. Your share is two slaves in good physical condition, who prove to have been survivors of the defeated attack on the arcology. The mercenaries find after a data search that one of the prisoners who's part of their share was a minor leader in the anti-Free Cities movement. After a quick consultation over their radios, the mercenaries decide that a summary execution out here would be too quick for the wretch, and bring their prize back to the arcology for more thorough punishment. Between the successful raid and the capture of this public enemy, @@color:green;the citizens are quite impressed by you.@@
 	<<set $rep += 500>>
@@ -21,15 +17,11 @@ Out ahead of the main body of refugees there is a small knot moving quickly and 
 		<<if ($seeDicks > 0)>>
 		<<display "Generate XY Slave">>
 		<<set $activeSlave.origin to "She is an enslaved refugee who participated in the defeated attack on your arcology.">>
-		<<if ($universalRulesNewSlavesRA == 1) && ($autoRulesAssistant != 0)>>	
-			<<AutoRulesActivate 1>>
-		<</if>>
-		<<set $slaves.push($activeSlave)>>
+		<<set _newSlaves.push($activeSlave)>>
 		<<else>>
 		<<display "Generate XX Slave">>
 		<<set $activeSlave.origin to "She is an enslaved refugee who participated in the defeated attack on your arcology.">>
-		<<set $genePool.push($activeSlave)>>
-		<<set $slaves.push($activeSlave)>>
+		<<set _newSlaves.push($activeSlave)>>
 		<</if>>
 	<</for>>
 <<elseif $PRraidTarget is 2>>
@@ -37,12 +29,8 @@ Out ahead of the main body of refugees there is a small knot moving quickly and 
 	<<set $rep += 200>>
 	<<for $i to 0; $i < 4; $i++>>
 		<<display "Generate New Slave">>
-		<<if ($universalRulesNewSlavesRA == 1) && ($autoRulesAssistant != 0)>>	
-			<<AutoRulesActivate 1>>
-		<</if>>
 		<<set $activeSlave.origin to "She is an enslaved refugee.">>
-		<<set $genePool.push($activeSlave)>>
-		<<set $slaves.push($activeSlave)>>
+		<<set _newSlaves.push($activeSlave)>>
 	<</for>>
 <<else>>
 	Under orders to target the largest possible group of people, your mercenaries head for the sick and injured. As the VTOL settles, it becomes apparent that most of the injuries are from combat, almost certainly in the defeat at $arcologies[0].name. The tent proves to contain a harassed nurse, almost without medical supplies and at the end of her rope. When she sees the mercenaries push through the tent flap, she heaves a sigh of mixed defeat and relief and wordlessly offers her wrists. The mercenaries give you a larger share of the other slaves in return for her: they tell you in confidence that she'll be a medical asset to them as well as the usual amusement. The successful raid @@color:green;is the talk of the Free City.@@
@@ -50,46 +38,38 @@ Out ahead of the main body of refugees there is a small knot moving quickly and 
 	<<set $rep += 200>>
 	<<for $i to 0; $i < 5; $i++>>
 		<<display "Generate New Slave">>
-		<<if ($universalRulesNewSlavesRA == 1) && ($autoRulesAssistant != 0)>>	
-			<<AutoRulesActivate 1>>
-		<</if>>
 		<<set $activeSlave.origin to "She is an enslaved refugee who was wounded in the defeated attack on your arcology.">>
 		<<set $activeSlave.health = random(-80,-40)>>
-		<<set $genePool.push($activeSlave)>>
-		<<set $slaves.push($activeSlave)>>
+		<<set _newSlaves.push($activeSlave)>>
 	<</for>>
 <</if>>
-<</nobr>>
+
 
 <span id="result">
 <<click "Sell your prisoners immediately">>
-	<<replace "#result">><<nobr>>
-	<<for $i to 0; $i < $slaves.length; $i++>>
-		<<if ($slaves[$i].origin is "She is an enslaved refugee who participated in the defeated attack on your arcology.") || ($slaves[$i].origin is "She is an enslaved refugee.") || ($slaves[$i].origin is "She is an enslaved refugee who was wounded in the defeated attack on your arcology.")>>
-		<<slaveCost $slaves[$i]>>
+	<<replace "#result">>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<slaveCost _newSlaves[$i]>>
 		<<set $cash += $slaveCost>>
-		<<set $dump to $slaves.pluck([$i], [$i])>><<set $i-->>
-		<</if>>
 	<</for>>
 	Prisoners sold.
-	<</nobr>><</replace>>
+	<</replace>>
 <</click>>
-<<click "Give your prisoners to citizens injured in the recent invasion">>
-	<<replace "#result">><<nobr>>
-	<<for $i to 0; $i < $slaves.length; $i++>>
-		<<if ($slaves[$i].origin is "She is an enslaved refugee who participated in the defeated attack on your arcology.") || ($slaves[$i].origin is "She is an enslaved refugee.") || ($slaves[$i].origin is "She is an enslaved refugee who was wounded in the defeated attack on your arcology.")>>
-		<<slaveCost $slaves[$i]>>
+<br><<click "Give your prisoners to citizens injured in the recent invasion">>
+	<<replace "#result">>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<slaveCost _newSlaves[$i]>>
 		<<set $rep += Math.trunc($slaveCost/10)>>
-		<<set $dump to $slaves.pluck([$i], [$i])>><<set $i-->>
-		<</if>>
 	<</for>>
 	Prisoners @@color:green;given away.@@
-	<</nobr>><</replace>>
+	<</replace>>
 <</click>>
-<<click "Enslave all of the refugees">>
+<br><<click "Enslave all of the refugees">>
 	<<replace "#result">>
-	<<nobr>>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<AddSlave _newSlaves[$i]>>
+	<</for>>
 	You simply enslave all of the refugees yourself. They would have been worse off had you not intervened.
-	<</nobr>><</replace>>
+	<</replace>>
 <</click>>
 </span>
