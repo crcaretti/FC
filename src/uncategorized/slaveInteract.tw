@@ -106,8 +106,8 @@
 	<</if>>
 	<</if>>
 	<span id = "impreg">
-	<<if canGetPregnant($activeSlave)>>
-			<<if ($PC.dick != 0)>>
+	<<if ((canGetPregnant($activeSlave)) && ($activeSlave.clothes != "a Fuckdoll suit"))>>
+			<<if ($PC.dick != 0 && $activeSlave.eggType == "human")>>
 			| <<click "Impregnate her yourself">><<replace "#miniscene">><<display "FPCImpreg">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><<SlaveInteractImpreg>><<SlaveInteractFertility>><</click>>
 			<</if>>
 		| [[Use another slave to impregnate her|FSlaveImpreg]]
@@ -152,10 +152,10 @@
 	<</if>>
 	</span>
 	| <<click "Abuse her">><<replace "#miniscene">><<display "FAbuse">><</replace>><</click>>
-	<<if $familyTest == 1>>
+	<<if $familyTesting == 1>>
 		<<for $i to 0; $i < $slaves.length; $i++>>
 			<<if $activeSlave.mother == $slaves[$i].ID>>
-				<<if isAvailabe($slaves[$i])>>
+				<<if isSlaveAvailable($slaves[$i])>>
 					| <<click "Fuck her with her mother">><<replace "#miniscene">><<set $partner to "mother">><<display "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</click>>
 				<<else>>
 					//Her mother, $slaves[$i].slaveName, is unavailable//
@@ -163,7 +163,7 @@
 			<</if>>
 			/*
 			<<if $activeSlave.father == $slaves[$i].ID>>
-				<<if isAvailabe($slaves[$i])>>
+				<<if isSlaveAvailable($slaves[$i])>>
 					| <<click "Fuck her with her father">><<replace "#miniscene">><<set $partner to "father">><<display "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</click>>
 				<<else>>
 					//Her father, $slaves[$i].slaveName, is unavailable//
@@ -172,24 +172,25 @@
 			*/
 		<</for>>
 		<<if $activeSlave.daughters > 0>>
-			<<set $relation = $slaves>>
-			<<set $relation = $relation.shuffle()>>
-			<<for $i to 0; $i < $relation.length; $i++>>
-				<<if ($activeSlave.ID == $relation[$i].father || $activeSlave.ID == $relation[$i].mother) && isAvailabe($relation[$i])>>
-					<<if $activeSlave.daughters == 1>>
-						| <<click "Fuck her with her daughter">><<replace "#miniscene">><<set $partner to "daughter">><<display "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</click>>
-					<<else>>
-						| <<click "Fuck her with one of her daughters">><<replace "#miniscene">><<set $partner to "daughter">><<display "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</click>>
-					<</if>>	
-					<<break>>
-				<<elseif $i == $relation.length - 1>>
+			<<set $relation = 0>>
+			<<for $i to 0; $i < $slaves.length; $i++>>
+				<<if ($activeSlave.ID == $slaves[$i].father || $activeSlave.ID == $slaves[$i].mother) && !isSlaveAvailable($slaves[$i])>>
+					<<set $relation++>>	
+				<</if>>
+			<</for>>
+			<<if $relation == $activeSlave.daughters>>
 					<<if $activeSlave.daughters == 1>>
 						//Her daughter is unavailable//
 					<<else>>
 						//Her daughters are unavailable//
 					<</if>>
+			<<else>>
+				<<if $activeSlave.daughters == 1>>
+					| <<click "Fuck her with her daughter">><<replace "#miniscene">><<set $partner to "daughter">><<display "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</click>>
+				<<else>>
+					| <<click "Fuck her with one of her daughters">><<replace "#miniscene">><<set $partner to "daughter">><<display "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</click>>
 				<</if>>
-			<</for>>
+			<</if>>
 		<</if>>
 		/*
 		<<if $activeSlave.daughters > 1>>
@@ -197,25 +198,26 @@
 		<</if>>
 		*/
 		<<if $activeSlave.sisters > 0>>
-			<<set $relation = $slaves>>
-			<<set $relation = $relation.shuffle()>>
-			<<for $i to 0; $i < $relation.length; $i++>>
-				<<if areSisters($activeSlave, $relation[$i]) > 0 && isAvailabe($relation[$i])>>
+			<<set $relation = 0>>
+			<<for $i to 0; $i < $slaves.length; $i++>>
+				<<if areSisters($activeSlave, $slaves[$i]) > 0 && isSlaveAvailable($slaves[$i]) == false>>
+					<<set $relation++>>
+				<</if>>
+			<</for>>
+			<<if $relation == $activeSlave.sisters>>
+				<<if $activeSlave.sisters == 1>>
+					//Her sister is unavailable//
+				<<else>>
+					//Her sisters are unavailable//
+				<</if>>
+			<<else>>
 					<<if $activeSlave.sisters == 1>>
 						| <<click "Fuck her with her sister">><<replace "#miniscene">><<set $partner to "sister">><<display "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</click>>
 					<<else>>
 						| <<click "Fuck her with one of her sisters">><<replace "#miniscene">><<set $partner to "sister">><<display "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</click>>
 					<</if>>	
-					<<break>>
-				<<elseif $i == $relation.length - 1>>
-					<<if $activeSlave.sisters == 1>>
-						//Her sister is unavailable//
-					<<else>>
-						//Her sisters are unavailable//
 					<</if>>
 				<</if>>
-			<</for>>
-		<</if>>
 		/*
 		<<if $activeSlave.sisters > 1>>
 			| <<click "Fuck her with her sisters">><<replace "#miniscene">><<set $partner to "sisters">><<display "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</click>>
@@ -292,11 +294,24 @@
 	<</if>>
 <</if>>
 
+<<if $universalRulesImpregnation == "HG">>
+<br><br>
+<<if $activeSlave.HGExclude == 0>>
+Will be bred by the head girl when fertile. [[Exempt her|Slave Interact][$activeSlave.useRulesAssistant to 1]]
+<<else>>
+Will not be bred by the head girl when fertile. [[Include her|Slave Interact][$activeSlave.HGExclude to 0]]
+<</if>>
+<</if>>
+
 <br><br>
 __Rules Assistant__
 //<<click "Apply Rules Assistant to this slave">>
-<<AutoRulesActivate 1>>
-<<goto "Slave Interact">><</click>>//
+	<<silently>>
+	<<display "Check Auto Rules Activate">>
+	<<display "Default Rules">>
+	<</silently>>
+	<<goto "Slave Interact">>
+<</click>>//
 <br>&nbsp;&nbsp;&nbsp;
 <<if $activeSlave.useRulesAssistant != 0>>
 ''Subject'' to the rules assistant. [[Exempt her|Slave Interact][$activeSlave.useRulesAssistant to 0]]
@@ -368,7 +383,7 @@ __Assignment__: <strong><span id="assign"><<print $activeSlave.assignment>></spa
 | <<click "Glory hole">><<set $activeSlave.assignment to "work a glory hole", $activeSlave.assignmentVisible to 1, $activeSlave.sentence to 0, $activeSlave.choosesOwnAssignment to 0>><<replace "#assign">><<print $activeSlave.assignment>><</replace>><</click>>
 <</if>>
 <<if $activeSlave.fuckdoll == 0>>
-<<if ($activeSlave.lactation > 0) || ($activeSlave.balls > 0)>>
+<<if ($activeSlave.lactation > 0) || ($activeSlave.balls > 0 && $activeSlave.ballType == "human")>>
 | <<click "Get milked">><<set $activeSlave.assignment to "get milked", $activeSlave.assignmentVisible to 1, $activeSlave.sentence to 0, $activeSlave.choosesOwnAssignment to 0>><<replace "#assign">><<print $activeSlave.assignment>><</replace>><</click>>
 <<else>>
 /*| //Not lactating// */
@@ -407,10 +422,8 @@ __Fucktoy use preference__: <strong><span id="hole"><<print $activeSlave.toyHole
 
 __Body modification__:
 [[Use remote surgery|Remote Surgery][$degradation to 0]]
-<<if $activeSlave.fuckdoll == 0>>
 	| [[Use body mod studio|Body Modification][$degradation to 0]]
 	| [[Use auto salon|Salon][$degradation to 0]]
-<</if>>
 
 <br>
 
@@ -506,40 +519,56 @@ __Drugs__: <span id="drugs"><strong><<print $activeSlave.drugs>></strong></span>
 	| <<click "Hormone enhancers">><<set $activeSlave.drugs to "hormone enhancers">><<replace "#drugs">><strong><<print $activeSlave.drugs>></strong><</replace>><</click>>
 <</if>>
 
-<br>
 __Health__: <span id="curatives"><strong><<if $activeSlave.curatives > 1>>curatives<<elseif $activeSlave.curatives > 0>>preventatives<<else>>none<</if>></strong></span>.
-/* removes 'if' for health drug options - or player can't revert changes*/
-<<click "None">><<set $activeSlave.curatives to 0>><<replace "#curatives">><strong><<print "none">></strong><</replace>><</click>>
+<<if $activeSlave.curatives != 0>>
+	<<click "None">><<set $activeSlave.curatives to 0>><<replace "#curatives">><strong><<print "none">></strong><</replace>><</click>>
+<<else>>None<</if>>
 |
-<<click "Preventatives">><<set $activeSlave.curatives to 1>><<replace "#curatives">><strong><<print "preventatives">></strong><</replace>><</click>>
+<<if $activeSlave.curatives != 1>>
+	<<click "Preventatives">><<set $activeSlave.curatives to 1>><<replace "#curatives">><strong><<print "preventatives">></strong><</replace>><</click>>
+<<else>>Preventatives<</if>>
 |
-<<click "Curatives">><<set $activeSlave.curatives to 2>><<replace "#curatives">><strong><<print "curatives">></strong><</replace>><</click>>
+<<if $activeSlave.curatives != 2>>
+	<<click "Curatives">><<set $activeSlave.curatives to 2>><<replace "#curatives">><strong><<print "curatives">></strong><</replace>><</click>>
+<<else>>Curatives<</if>>
 
-
-&nbsp;&nbsp;__Aphrodisiacs__: <span id="aphrodisiacs"><strong><<if $activeSlave.aphrodisiacs > 1>>extreme<<elseif $activeSlave.aphrodisiacs > 0>>applied<<else>>none<</if>></strong></span>.
-/* removes 'if' for aphrodisiac options - or player can't revert changes*/
-<<click "None">><<set $activeSlave.aphrodisiacs to 0>><<replace "#aphrodisiacs">><strong><<print "none">></strong><</replace>><</click>>
+__Aphrodisiacs__: <span id="aphrodisiacs"><strong><<if $activeSlave.aphrodisiacs > 1>>extreme<<elseif $activeSlave.aphrodisiacs > 0>>applied<<else>>none<</if>></strong></span>.
+<<if $activeSlave.aphrodisiacs != 0>>
+	<<click "None">><<set $activeSlave.aphrodisiacs to 0>><<replace "#aphrodisiacs">><strong><<print "none">></strong><</replace>><</click>>
+<<else>>None<</if>>
 |
-<<click "Apply">><<set $activeSlave.aphrodisiacs to 1>><<replace "#aphrodisiacs">><strong><<print "applied">></strong><</replace>><</click>>
+<<if $activeSlave.aphrodisiacs != 1>>
+	<<click "Apply">><<set $activeSlave.aphrodisiacs to 1>><<replace "#aphrodisiacs">><strong><<print "applied">></strong><</replace>><</click>>
+<<else>>Apply<</if>>
 |
-<<click "Extreme">><<set $activeSlave.aphrodisiacs to 2>><<replace "#aphrodisiacs">><strong><<print "extreme">></strong><</replace>><</click>>
-
+<<if $activeSlave.aphrodisiacs != 2>>
+	<<click "Extreme">><<set $activeSlave.aphrodisiacs to 2>><<replace "#aphrodisiacs">><strong><<print "extreme">></strong><</replace>><</click>>
+<<else>>Extreme<</if>>
 
 <</if>>
 
 <br>&nbsp;&nbsp;&nbsp;&nbsp;
 
 <span id="fertilityblock">
+<<if $activeSlave.fuckdoll == 0 && ($activeSlave.ovaries == 1 || $activeSlave.mpreg == 1)>>
 <<if ($activeSlave.preg < -1)>>
 	//She is sterile//
-<<elseif ($activeSlave.pubertyXX == 0) && (($activeSlave.ovaries > 0) || ($activeSlave.mpreg == 0))>>
+<<elseif ($activeSlave.pubertyXX == 0)>>
 	//She is not yet fertile//
-<<elseif (($activeSlave.preg >= -1) && (($activeSlave.ovaries != 0)) || ($activeSlave.mpreg == 1))>>
+<<elseif $activeSlave.physicalAge >= 47>>
+	//She is too old to become pregnant//
+<<elseif $activeSlave.preg >= -1>>
 __Contraception__: <span id="fertility"><strong><<if $activeSlave.preg is -1>><<print "using contraceptives">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong></span>.
 <<if ($activeSlave.preg == 0)>>
-	<<click "Use contraceptives">><<set $activeSlave.preg to -1>><<replace "#fertility">><strong><<if $activeSlave.preg is -1>><<print "using contraceptives">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong><</replace>><</click>>
-<<elseif ($activeSlave.preg is -1)>>
-	<<click "Let her get pregnant">><<set $activeSlave.preg to 0>><<replace "#fertility">><strong><<if $activeSlave.preg is -1>><<print "using contraceptives">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong><</replace>><</click>>
+	<<click "Use contraceptives">><<set $activeSlave.preg to -1>>
+	<<SlaveInteractFertility>>
+	<<SlaveInteractImpreg>>
+	<</click>>
+<<elseif $activeSlave.preg is -1>>
+	<<click "Let her get pregnant">><<set $activeSlave.preg to 0>>
+	<<SlaveInteractFertility>>
+	<<SlaveInteractImpreg>>
+	<</click>>
 <<elseif $activeSlave.induce == 1>>
 	//Hormones are being slipped into her food, she will give birth suddenly and rapidly this week//
 <<elseif ($activeSlave.preg > 30) && ($activeSlave.pregType < 50) && ($activeSlave.labor == 0)>>
@@ -564,10 +593,50 @@ __Contraception__: <span id="fertility"><strong><<if $activeSlave.preg is -1>><<
 		<<click "Fast Gestation">><<set $activeSlave.pregControl = "speed up">><<replace "#pregControl">>scheduled for speed up gestation agents, but they can be used only in strictly controled environiments. Slave should be directed into the clinic.<</replace>><</click>>
 	<<elseif ($activeSlave.breedingMark != 1) && ($activeSlave.preg >= 30)>>
 		<<click "Supress Labor">><<set $activeSlave.pregControl = "labor supressors">><<replace "#pregControl">>labor will be supressed<</replace>><</click>>
-	<</if>>
-	</span>
 <</if>>
-
+<<elseif ($activeSlave.ovaries == 1 || $activeSlave.mpreg == 1)>>
+<<if ($activeSlave.preg < -1)>>
+	//It is sterile//
+<<elseif ($activeSlave.pubertyXX == 0)>>
+	//It is not yet fertile//
+<<elseif $activeSlave.physicalAge >= 47>>
+	//It is too old to become pregnant//
+<<elseif ($activeSlave.preg >= -1)>>
+__Contraception__: <span id="fertility"><strong><<if $activeSlave.preg is -1>><<print "using contraceptives">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong></span>.
+<<if ($activeSlave.preg == 0)>>
+	<<click "Use contraceptives">><<set $activeSlave.preg to -1>>
+	<<SlaveInteractFertility>>
+	<</click>>
+<<elseif ($activeSlave.preg is -1)>>
+	<<click "Let her get pregnant">><<set $activeSlave.preg to 0>>
+	<<SlaveInteractFertility>>
+	<</click>>
+<<elseif ($activeSlave.pregType is 50) && ($activeSlave.preg > 30)>>
+	[[Induce mass childbirth|BirthStorm]]
+<<elseif ($activeSlave.preg > 0) && ($activeSlave.pregType < 50)>>
+	[[Abort her pregnancy|Abort]]
+<</if>>
+<</if>>
+<</if>>
+<<if $incubator > 0>>
+<<if $activeSlave.pregType < 50 && $activeSlave.preg > 3 && $activeSlave.eggType == "human">>
+<<if $activeSlave.assignment == "work in the dairy" && $dairyPregSetting > 0>>
+<<else>>
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;
+	<<if $activeSlave.reservedChildren > 0>>
+		$activeSlave.reservedChildren of her children will be placed in $incubatorName.
+		<<if ($activeSlave.reservedChildren < $activeSlave.pregType) && ($reservedChildren < $incubator)>>
+			<br>
+			[[Keep another child|Slave Interact][$activeSlave.reservedChildren += 1, $reservedChildren++]]
+		<<else>>
+			| [[Keep one less child|Slave Interact][$activeSlave.reservedChildren -= 1, $reservedChildren--]]
+		<</if>>
+	<<elseif $reservedChildren < $incubator>>
+		She is pregnant and you have an available aging tank.
+		[[Keep a child|Slave Interact][$activeSlave.reservedChildren += 1, $reservedChildren++]]
+	<</if>>
+<</if>>
+<</if>>
 <</if>>
 </span>
 
@@ -575,10 +644,12 @@ __Contraception__: <span id="fertility"><strong><<if $activeSlave.preg is -1>><<
 <<if $activeSlave.fuckdoll == 0>>
 	<<if $activeSlave.breedingMark == 0>>
 		<<if isFertile($activeSlave)>>
+			<<if $activeSlave.eggType == "human">>
 			<br>&nbsp;&nbsp;&nbsp;&nbsp;
 			[[Breeder Eligibility Exam|BreedingTest]]
 		<</if>>
 	<</if>>
+<</if>>
 <</if>>
 <</if>>
 
@@ -738,9 +809,6 @@ __Diet Base__: <strong><span id="dietBase"><<if $activeSlave.dietCum == 2>>Cum B
 	<<if $activeSlave.standardReward isnot "situational">>
 		<<click "Situational">><<set $activeSlave.standardReward to "situational">><<replace "#standardReward">><<print $activeSlave.standardReward>><</replace>><</click>>
 	<</if>>
-<</if>>
-
-<<if $activeSlave.assignmentVisible == 1>>
 <br>
 __Non-Assignment Orgasm Rules__: ''$activeSlave.releaseRules.''
 [[Permit masturbation and interslave sex|Slave Interact][$activeSlave.releaseRules to "permissive"]]

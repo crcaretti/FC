@@ -1,12 +1,12 @@
 :: P invasion [nobr]
- 
+
 <<set $nextButton to "Continue">>
 <<set $nextLink to "Random Nonindividual Event">>
 <<set $nextButton to "Continue">>
 
 <<set $invasionVictory to 1>>
 
-The day that wasn't supposed to come is here. The troubled little country next door is falling apart. Last month, its stock market collapsed. Last week, its government fell. Yesterday, there was open looting in its cities. And today, a faction of disaffected citizens that blames the Free Cities for siphoning off business and causing the collapse seized weapons from unguarded army depots<<if ($terrain is "marine") || ($terrain is "oceanic")>>, armed merchant ships and private vessels, and are approaching the Free City over the water<<else>>and advanced towards your home<</if>>. 
+The day that wasn't supposed to come is here. The troubled little country next door is falling apart. Last month, its stock market collapsed. Last week, its government fell. Yesterday, there was open looting in its cities. And today, a faction of disaffected citizens that blames the Free Cities for siphoning off business and causing the collapse seized weapons from unguarded army depots<<if ($terrain is "marine") || ($terrain is "oceanic")>>, armed merchant ships and private vessels, and are approaching the Free City over the water<<else>>and advanced towards your home<</if>>.
 
 <br><br>
 
@@ -79,6 +79,7 @@ The loose militia lately organized by the arcology owners has been called out to
 <<set $invasionVictory to 3>>
 <<set $rep += 2000>>
 
+<<set _newSlaves = []>>
 <<for $i to 0; $i < 3; $i++>>
 	<<if (random(0,99) < $seeDicks)>>
 		<<display "Generate XY Slave">>
@@ -86,10 +87,7 @@ The loose militia lately organized by the arcology owners has been called out to
 		<<display "Generate XX Slave">>
 	<</if>>
 	<<set $activeSlave.origin to "She is an enslaved prisoner of war.">>
-	<<if ($universalRulesNewSlavesRA == 1) && ($autoRulesAssistant != 0)>>	
-		<<AutoRulesActivate 1>>
-	<</if>>
-	<<set $slaves.push($activeSlave)>>
+	<<set _newSlaves.push($activeSlave)>>
 <</for>>
 
 <<set $helots += 5>>
@@ -100,31 +98,27 @@ The loose militia lately organized by the arcology owners has been called out to
 <span id="result">
 <<click "Sell your prisoners immediately">>
 	<<replace "#result">>
-	<<for $i to 0; $i < $slaves.length; $i++>>
-		<<if $slaves[$i].origin is "She is an enslaved prisoner of war.">>
-		<<slaveCost $slaves[$i]>>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<slaveCost _newSlaves[$i]>>
 		<<set $cash += $slaveCost>>
-		<<set $dump to $slaves.pluck([$i], [$i])>><<set $i-->>
-		<<set $i-->>
-		<</if>>
 	<</for>>
 	Prisoners sold.
 	<</replace>>
 <</click>>
 <br><<click "Give your prisoners to citizens who displayed bravery during the counterattack">>
 	<<replace "#result">>
-	<<for $i to 0; $i < $slaves.length; $i++>>
-		<<if $slaves[$i].origin is "She is an enslaved prisoner of war.">>
-		<<slaveCost $slaves[$i]>>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<slaveCost _newSlaves[$i]>>
 		<<set $rep += Math.trunc($slaveCost/10)>>
-		<<set $dump to $slaves.pluck([$i], [$i])>><<set $i-->>
-		<</if>>
 	<</for>>
 	Prisoners @@color:green;given away.@@
 	<</replace>>
 <</click>>
 <br><<click "Enslave all of your prisoners">>
 	<<replace "#result">>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<AddSlave _newSlaves[$i]>>
+	<</for>>
 	You simply enslave all of your prisoners yourself. These slaves will regret attacking your arcology.
 	<</replace>>
 <</click>>

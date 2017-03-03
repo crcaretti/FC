@@ -1,18 +1,56 @@
 :: Main [nobr]
 
 <<if $ver.contains("0.9") or $ver.contains("0.8") or $ver.contains("0.7") or $ver.contains("0.6")>>
-	<<if ($ver != "0.9.7")>>
-		''@@color:red;INCOMPATIBLE SAVE WARNING:@@'' your saved game was created using version $ver and you are using version 0.9.7. Please select New Game Plus from the Options menu or start a new game.
+	<<if ($ver != "0.9.7") && ($ver != "0.9.8") && ($ver != "0.9.9")>>
+		''@@color:red;INCOMPATIBLE SAVE WARNING:@@'' your saved game was created using version $ver and you are using version 0.9.8. Please select New Game Plus from the Options menu or start a new game.
 		<br><br>
 	<</if>>
 <<else>>
-	''@@color:red;INCOMPATIBLE SAVE WARNING:@@'' your saved game was created using version $ver and you are a later version which New Game Plus cannot reconcile. Please start a new game.
+	''@@color:red;INCOMPATIBLE SAVE WARNING:@@'' your saved game was created using version $ver and you are using later version which New Game Plus cannot reconcile. Please start a new game.
 	<br><br>
 <</if>>
 
 <<if ndef $defaultRules>>
 	<<display "Init Rules">>
 <</if>>
+<<if ndef $incubator>>
+	<<set $incubator = 0>>
+<</if>>
+<<if ndef $incubatorUpgradeSpeed>>
+	<<set $incubatorUpgradeSpeed = 5>>
+<</if>>
+<<if ndef $incubatorUpgradeWeight>>
+	<<set $incubatorUpgradeWeight = 0>>
+<</if>>
+<<if ndef $incubatorUpgradeMuscles>>
+	<<set $incubatorUpgradeMuscles = 0>>
+<</if>>
+<<if ndef $incubatorUpgradeReproduction>>
+	<<set $incubatorUpgradeReproduction = 0>>
+<</if>>
+<<if ndef $incubatorWeightSetting>>
+	<<set $incubatorWeightSetting = 0>>
+<</if>>
+<<if ndef $incubatorMusclesSetting>>
+	<<set $incubatorMusclesSetting = 0>>
+<</if>>
+<<if ndef $incubatorReproductionSetting>>
+	<<set $incubatorReproductionSetting = 0>>
+<</if>>
+<<if ndef $reservedChildren>>
+	<<set $reservedChildren = 0>>
+<</if>>
+<<if ndef $tanks>>
+	<<set $tanks = []>>
+	<<set $tanks = [0]>>
+<</if>>
+<<if ndef $animalParts>>
+	<<set $animalParts = 0>>
+<</if>>
+<<if ndef $genePool>>
+	<<set $genePool = []>>
+<</if>>
+
 <<set $currentRule to $defaultRules[0]>>
 
 <<switch $sortSlavesBy>>
@@ -168,6 +206,12 @@
 <<if ($pitNameCaps is "")>>
 	<<set $pitNameCaps = "The Pit">>
 <</if>>
+<<if ($incubatorName is "")>>
+	<<set $incubatorName = "the Incubator">>
+<</if>>
+<<if ($incubatorNameCaps is "")>>
+	<<set $incubatorNameCaps = "The Incubator">>
+<</if>>
 
 <<if $seeArcology == 1>>&nbsp;&nbsp;&nbsp;&nbsp;//<<display "Arcology Description">> | [[Hide|Main][$seeArcology to 0]]//<br><</if>>
 
@@ -212,22 +256,34 @@ __''MAIN MENU''__&nbsp;&nbsp;&nbsp;&nbsp;//[[Summary Options]]
 <<set $j to "Back",$k to "AS Dump",$l to "Main">>
 <<for $i to 0; $i < $slaves.length; $i++>>
 <<if ($slaves[$i].assignment is "please you")>>
-	<br><<display "Toychest">> //In the coming week you plan to concentrate on <<if $slaves[$i].fuckdoll == 0>>her<<else>>its<</if>>
+	<br><<display "Toychest">> //In the coming week you plan to concentrate on
 	<<if $slaves[$i].fuckdoll == 0>>
-		$slaves[$i].toyHole, but for now://
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;<<print "[[Use her mouth|FLips][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">> | <<print "[[Play with her tits|FBoobs][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
-		<<if canDoVaginal($slaves[$i])>>
-			| <<print "[[Fuck her|FVagina][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
-			<<if canDoAnal($slaves[$i])>>
-			| <<print "[[Use her holes|FButt][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
+		<<if $slaves[$i].toyHole != "all her holes">>
+			her $slaves[$i].toyHole, but for now://
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;<<print "[[Use her mouth|FLips][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">> | <<print "[[Play with her tits|FBoobs][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
+			<<if canDoVaginal($slaves[$i])>>
+				| <<print "[[Fuck her|FVagina][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
+				<<if canDoAnal($slaves[$i])>>
+				| <<print "[[Use her holes|FButt][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
+				<</if>>
 			<</if>>
+			<<if canDoAnal($slaves[$i])>>
+			| <<print "[[Fuck her ass|FAnus][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
+			<</if>>
+			/*check*/
+			<<if canAchieveErection($slaves[$i])>>
+			| <<print "[[Ride her|FDick][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
+			<</if>>
+			| <<print "[[Abuse her|FAbuse][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
+		<<else>>
+			all of her holes equally.
 		<</if>>
-		<<if canDoAnal($slaves[$i])>>
-		| <<print "[[Fuck her ass|FAnus][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
-		<</if>>
-		| <<print "[[Abuse her|FAbuse][$activeSlave to $slaves[" + $i + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
 	<<else>>
-		$slaves[$i].toyHole.
+		<<if $slaves[$i].toyHole != "all her holes">>
+			its $slaves[$i].toyHole.
+		<<else>>
+			all of its holes.
+		<</if>>
 	<</if>>
 <</if>>
 <</for>>
@@ -243,16 +299,16 @@ __''MAIN MENU''__&nbsp;&nbsp;&nbsp;&nbsp;//[[Summary Options]]
 		| <<print "[[Fuck her|FVagina][$activeSlave to $slaves[" + _BG + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
 		<<if canDoAnal($slaves[_BG])>>
 		| <<print "[[Use her holes|FButt][$activeSlave to $slaves[" + _BG + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
+		<</if>>
+	<</if>>
 		/*check*/
 		<<if canAchieveErection($slaves[_BG])>>
 		| <<print "[[Ride her|FDick][$activeSlave to $slaves[" + _BG + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
-		<</if>>
-		<</if>>
 	<</if>>
 	<<if canDoAnal($slaves[_BG])>>
 	| <<print "[[Fuck her ass|FAnus][$activeSlave to $slaves[" + _BG + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
 	<</if>>
-	| <<print "[[Abuse her|FAbuse][$activeSlave to $slaves[" + _BG + "],$nextButton to $j,$nextLink to $k,$returnTo to $l]]">>
+	| <<print "[[Abuse her|Gameover][$gameover to $GO]]">>
 <</if>>
 
 <<set $activeSlave to Array.random($slaves)>>

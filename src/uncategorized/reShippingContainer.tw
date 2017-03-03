@@ -1,21 +1,19 @@
 :: RE shipping container [nobr]
- 
+
 <<set $nextButton to "Continue">>
 <<set $nextLink to "RIE Eligibility Check">>
 
 <<set $seed = Math.trunc(($slaveCostFactor*1000)/100)*100>>
 <<set $seed to Math.clamp($seed, 500, 1500)>>
 
+<<set _newSlaves = []>>
 <<for $i to 0; $i < 5; $i++>>
 	<<display "Generate XX Slave">>
 	<<set $activeSlave.origin to "She arrived at your arcology in an undocumented shipping container.">>
 	<<set $activeSlave.devotion = random(-90,-75)>>
 	<<set $activeSlave.trust = -20>>
 	<<set $activeSlave.health = -10>>
-	<<if ($universalRulesNewSlavesRA == 1) && ($autoRulesAssistant != 0)>>	
-		<<AutoRulesActivate 1>>
-	<</if>>
-	<<set $slaves.push($activeSlave)>>
+	<<set _newSlaves.push($activeSlave)>>
 <</for>>
 <<set $helots += 25>>
 
@@ -41,14 +39,9 @@ For now, the crowd around you is looking at the helpless human cargo with
 <span id="result">
 <<click "Conduct an impromptu auction">>
 	<<replace "#result">>
-	<<for $i to 0; $i < $slaves.length; $i++>>
-		<<if ($slaves[$i].weekAcquired == $week)>>
-		<<if ($slaves[$i].origin is "She arrived at your arcology in an undocumented shipping container.")>>
-			<<slaveCost $slaves[$i]>>
-			<<set $cash += $slaveCost>>
-			<<set $dump to $slaves.pluck([$i], [$i])>><<set $i-->>
-		<</if>>
-		<</if>>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<slaveCost _newSlaves[$i]>>
+		<<set $cash += $slaveCost>>
 	<</for>>
 	Allowing humor into your voice, you announce an auction, to be held immediately. The crowd appreciates the wit, and @@color:green;appreciates it even more@@ when you conduct the auction yourself. It's always good to take an opportunity to show off your understanding of the slave market in public. You @@color:yellowgreen;sell them all,@@ sex slaves and menials alike. Welcome to the Free Cities.
 	<<set $helots -= 25>>
@@ -58,6 +51,9 @@ For now, the crowd around you is looking at the helpless human cargo with
 <</click>>
 <br><<click "Keep them">>
 	<<replace "#result">>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<AddSlave _newSlaves[$i]>>
+	<</for>>
 	You announce that the shipment is in violation of shipping and slave market regulations, and is being confiscated. There's a certain @@color:red;disappointment@@ in the crowd that nothing more interesting came of it, but it's minor when compared to the chattel you just seized.
 	<<set $rep -= 50>>
 	<</replace>>
@@ -65,12 +61,11 @@ For now, the crowd around you is looking at the helpless human cargo with
 <<if $arcologies[0].FSDegradationist isnot "unset">>
 <br><<click "Indulge the crowd's Degradationism">>
 	<<replace "#result">>
-	<<for $i to 0; $i < $slaves.length; $i++>>
-		<<if ($slaves[$i].origin is "She arrived at your arcology in an undocumented shipping container.")>>
-			<<set $slaves[$i].anus to 3>>
-			<<if $activeSlave.vagina > -1>><<set $slaves[$i].vagina to 3>><</if>>
-			<<set $slaves[$i].health -= 20>>
-		<</if>>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<if _newSlaves[$i].vagina > -1>><<set _newSlaves[$i].vagina to 3>><</if>>
+		<<set _newSlaves[$i].anus to 3>>
+		<<set _newSlaves[$i].health -= 20>>
+		<<AddSlave _newSlaves[$i]>>
 	<</for>>
 	You use the container handling systems to segregate the obvious menials from the those with any potential as sex slaves. The menials go into a different container, which is whisked off, leaving a little shivering knot of frightened bodies, vulnerable and naked. The crowd watched all this with good humor, and there's silence enough that everyone hears your quiet announcement. You announce that the shipment is in violation of shipping and slave market regulations, and is being confiscated; however, you don't expect to see these particular slaves delivered to your penthouse for a couple of hours. Then you turn your back and walk away. The crowd gives a kind of @@color:green;appreciative howl@@ which, understandably, produces a wail of terror from the slaves. As you head off, the sobbing turns into screaming. It sounds like your new slaves might be a bit stretched out, here and there.
 	<<set $rep += 200>>
@@ -79,14 +74,9 @@ For now, the crowd around you is looking at the helpless human cargo with
 <<elseif $arcologies[0].FSPaternalist isnot "unset">>
 <br><<click "Indulge the crowd's Paternalism">>
 	<<replace "#result">>
-	<<for $i to 0; $i < $slaves.length; $i++>>
-		<<if ($slaves[$i].weekAcquired == $week)>>
-		<<if ($slaves[$i].origin is "She arrived at your arcology in an undocumented shipping container.")>>
-			<<slaveCost $slaves[$i]>>
-			<<set $cash += $slaveCost>>
-			<<set $dump to $slaves.pluck([$i], [$i])>><<set $i-->>
-		<</if>>
-		<</if>>
+	<<for $i to 0; $i < _newSlaves.length; $i++>>
+		<<slaveCost _newSlaves[$i]>>
+		<<set $cash += $slaveCost>>
 	<</for>>
 	You hurry forward, beckoning the crowd to accompany you. The wretched slaves cringe with fear, but soon they're being comforted, offered water, and examined for injury. Once the most pressing needs are attended to, you call for everyone's attention. You pride yourself on knowing your citizens well, and you can pick good Paternalists out of the crowd at will. Calling them by name, you ask whether they'd be willing to take on one of these poor slaves. One by one, you pair slave and Master or Mistress, rewarding your best people with public approbation, not to mention a free slave. The initial gasps of surprise quickly grow into @@color:green;thunderous applause.@@ Your people love you. Several of the slaves begin to cry, mostly from confusion or sheer exhaustion; they don't yet know how lucky they are.
 	<<set $helots -= 25>>
