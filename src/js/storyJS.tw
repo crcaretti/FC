@@ -249,17 +249,41 @@ window.isFertile = function(slave) {
 };
 
 window.canBreed = function(slave1, slave2) {
-	if (slave1 != slave) {
-		return false;
-	} else if (slave2 != slave) {
-		return false;
-	} else if (slave1.eggType == slave2.ballType) {
+	if (slave1.eggType == slave2.ballType) {
 		return true;
 	} else {
 		return false;
 	}
 };
 
+//is the slave's belly big enough to get in the way
+window.bigBellyPreg = function(slave) {
+	if (!slave) {
+		return null;
+	} else if (slave.preg > 0 && slave.pregType >= 20) {
+		return true;
+	} else if (slave.preg > 10 && slave.pregType >= 10) {
+		return true;
+	} else if (slave.preg > 20) {
+		return true;
+	} else {
+		return false;
+	}
+};
+
+window.bigBelly = function(slave) {
+	if (!slave) {
+		return null;
+	} else if (bigBellyPreg(slave) == true) {
+		return true;
+	} else if (slave.inflation > 2) {
+		return true;
+	} else if (slave.bellyImplant > 8000) {
+		return true;
+	} else {
+		return false;
+	}
+};
 
 window.canAchieveErection = function(slave) {
 	if (!slave) {
@@ -269,6 +293,21 @@ window.canAchieveErection = function(slave) {
 	} else {
 		return false;
 	}
+};
+
+window.canPenetrate = function(slave) {
+	if (!slave) {
+		return null;
+	} else if (canAchieveErection(slave) == false) {
+		return false;
+	} else if (slave.dickAccessory == "chastity") {
+		return false;
+	} else if (slave.dickAccessory == "combined chastity") {
+		return false;
+	} else if (slave.dick > 7) {
+		return false;
+	}
+	return true;
 };
 
 window.canSee = function(slave) {
@@ -461,6 +500,14 @@ window.tooBigButt = function(slave){
 	}
 };
 
+window.sameTParent = function(slave1, slave2) {
+	if ((slave1.mother == slave2.father || slave1.father == slave2.mother) && (slave1.mother != 0 && slave1.mother != -2 && slave1.father != 0 && slave1.father != -2)) {
+		return true; //testtest catches the case if a mother is a father or a father a mother
+	} else {
+		return false;
+	}
+};
+
 window.sameDad = function(slave1, slave2){
 	if ((slave1.father == slave2.father) && (slave1.father != 0 && slave1.father != -2)) {
 		return true;
@@ -489,6 +536,29 @@ window.areTwins = function(slave1, slave2) {
 	}
 };
 
+//3 = half-sisters, 2 = sisters, 1 = twins, 0 = not related
+window.areSisters = function(c1, c2) {
+	if(c1.ID == c2.ID) {
+		return 0;
+	}
+	var sib = 4;
+	if(sameMom(c1, c2)) {
+		sib -= 1;
+	} 
+	if(sameDad(c1, c2)) {
+	   sib -=1;
+	}
+	if (sib == 2 && c1.actualAge == c2.actualAge && c1.birthWeek == c2.birthWeek) {
+		sib -= 1;
+	}
+	if(sib == 4) {
+		return 0
+	} else {
+		return sib;
+	}
+}
+
+/*
 window.areSisters = function(slave1, slave2) {
 	if (slave1.ID == slave2.ID) {
 		return 0; //you are not your own sister
@@ -496,6 +566,8 @@ window.areSisters = function(slave1, slave2) {
 		if (sameDad(slave1, slave2) == false && sameMom(slave1, slave2) == true) {
 			return 3; //half sisters
 		} else if (sameDad(slave1, slave2) == true && sameMom(slave1, slave2) == false) {
+			return 3; //half sisters
+		} else if (sameTParent(slave1, slave2) == true) {
 			return 3; //half sisters
 		} else if (sameDad(slave1, slave2) == true && sameMom(slave1, slave2) == true) {
 			if (slave1.actualAge == slave2.actualAge && slave1.birthWeek == slave2.birthWeek) {
@@ -510,6 +582,7 @@ window.areSisters = function(slave1, slave2) {
 		return 0; //not related
 	}
 };
+*/
 
 window.totalRelatives = function(slave) {
 	var relatives = 0;
@@ -1830,4 +1903,55 @@ window.cumAmount = function(slave) {
 		cum = Math.clamp(cum,1,1000000000000000000)
 		return cum
 	}
+};
+
+window.randomRelatedSlave = function(slave, filterFunction) {
+  if(!slave || !SugarCube) { return undefined; }
+  if(typeof filterFunction !==  'function') { filterFunction = function(s, index, array) { return true; }; }
+  return SugarCube.State.variables.slaves.filter(filterFunction).shuffle().find(function(s, index, array) {return areSisters(slave, s) || s.mother == slave.ID || s.father == slave.ID || slave.ID == s.mother || slave.ID == s.father; })
+}
+
+window.randomRelatedAvailableSlave = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return isSlaveAvailable(s); });
+}
+
+window.randomSister = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return areSisters(slave, s); });
+}
+
+window.randomAvailableSister = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return isSlaveAvailable(s) && areSisters(slave, s); });
+}
+
+window.randomDaughter = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return s.mother == slave.ID || s.father == slave.ID; });
+}
+
+window.randomAvailableDaughter = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return isSlaveAvailable(s) && (s.mother == slave.ID || s.father == slave.ID); });
+}
+
+window.randomParent = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return s.ID == slave.mother || s.ID == slave.father; });
+}
+
+window.randomAvailableParent = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return isSlaveAvailable(s) && (s.ID == slave.mother || s.ID == slave.father); });
+}
+
+window.totalPlayerRelatives = function(pc) {
+	var relatives = 0;
+	if (pc.mother > 0) {
+		relatives += 1
+	}
+	if (pc.father > 0) {
+		relatives += 1
+	}
+	if (pc.daughters > 0) {
+		relatives += pc.daughters
+	}
+	if (pc.sisters > 0) {
+		relatives += pc.sisters
+	}
+	return relatives
 };

@@ -17,8 +17,9 @@ How to mod (basic doc):
     Second run of compile.but will overwrite bin/FC.html without prompt.
 
     Linux:
-    Ensure executable permission on file devTools/tweeGo/tweego (not tweego.exe!)
-    in the root dir of sources (where you see src, devTools, bin...) run command "make" from console. Should be installed "build-essential" or at least "make" package.
+    Ensure executable permission on file "devTools/tweeGo/tweego" (not tweego.exe!)
+    Ensure executable permission on file "compile" 
+    In the root dir of sources (where you see src, devTools, bin...) run command "./compile" from console
     
 4. Simple comparing and merging with original FC:
 

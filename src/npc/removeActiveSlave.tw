@@ -7,6 +7,19 @@
 <</if>>
 <<for $x to 0; $x < $slaves.length; $x++>>
 <<if $activeSlave.ID == $slaves[$x].ID>>
+	<<if $activeSlave.reservedChildren > 0>>
+		<<set $reservedChildren -= $activeSlave.reservedChildren>>
+	<</if>>
+	<<if $incubator > 0>>
+		<<for $y to 0; $y < $tanks.length; $y++>>
+			<<if $activeSlave.ID is $tanks[$y].mother>>
+				<<set $slaves[$y].mother to $missingParentID>>
+			<</if>>
+			<<if $activeSlave.ID is $tanks[$y].father>>
+				<<set $slaves[$y].father to $missingParentID>>
+			<</if>>
+		<</for>>
+	<</if>>
 	<<for $y to 0; $y < $slaves.length; $y++>>
 		<<if $activeSlave.ID is $slaves[$y].pregSource>>
 			<<set $slaves[$y].pregSource to 0>>
@@ -21,6 +34,16 @@
 				<<set $slaves[$y].father to $missingParentID>>
 			<</if>>
 		<</for>>
+		<<if $incubator > 0>>
+			<<for $y to 0; $y < $tanks.length; $y++>>
+				<<if $activeSlave.ID is $tanks[$y].mother>>
+					<<set $slaves[$y].mother to $missingParentID>>
+				<</if>>
+				<<if $activeSlave.ID is $tanks[$y].father>>
+					<<set $slaves[$y].father to $missingParentID>>
+				<</if>>
+			<</for>>
+		<</if>>
 		<<set $missingParentID-->>
 	<</if>>
 	<<if $activeSlave.mother > 0 || $activeSlave.father > 0>>
@@ -142,7 +165,6 @@
 	<<if $activeSlave.ID is $Concubine.ID>>
 		<<set $Concubine to 0>>
 	<</if>>
-
 	<<if $activeSlave.ID is $personalAttention>>
 	<<if $PC.career == "escort">>
 		<<set $personalAttention to "whoring">>
@@ -152,9 +174,13 @@
 		<<set $personalAttention to "business">>
 	<</if>>
 	<</if>>
-
+	<<for _d to 0; _d < $slavesOriginal.length; _d++>>
+		<<if $slavesOriginal[_d].ID is $activeSlave.ID>>
+			<<set $dump to $slavesOriginal.pluck([_d], [_d])>>
+			<<break>>
+		<</if>>
+	<</for>>
 	<<set $dump to $slaves.pluck([$x], [$x])>>
-	/*<<set $x -= 1>>*/
 	<<break>>
 <</if>>
 <</for>>
