@@ -8,6 +8,9 @@ copy src\config\start.tw.proto start.tw.tmp >nul
 >>start.tw.tmp (for /r "src" %%F in (*.tw) do echo %%F)
 move start.tw.tmp src\config\start.tw >nul
 
-CALL "%~dp0devTools\tweeGo\tweego.exe" -o "%~dp0bin/FC.html" "%~dp0src\config\start.tw"
+CALL "%~dp0devTools\tweeGo\tweego.exe" -o "%~dp0bin/FC_pregmod.html" "%~dp0src\config\start.tw"
+
+del src\config\start.tw
+
 ECHO Done
 PAUSE
