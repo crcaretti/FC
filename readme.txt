@@ -17,8 +17,10 @@ How to mod (basic doc):
     Second run of compile.but will overwrite bin/FC.html without prompt.
 
     Linux:
-    Ensure executable permission on file devTools/tweeGo/tweego (not tweego.exe!)
-    in the root dir of sources (where you see src, devTools, bin...) run command "make" from console. Should be installed "build-essential" or at least "make" package.
+    Ensure executable permission on file "devTools/tweeGo/tweego" (not tweego.exe!)
+    Ensure executable permission on file "compile" 
+    In the root dir of sources (where you see src, devTools, bin...) run command "./compile" from console
+    compile-git will produce the same result file but with current commit hash in filename.
     
 4. Simple comparing and merging with original FC:
 
@@ -28,4 +30,4 @@ How to mod (basic doc):
 
 5. All modders will be wery grateful if any, who make some changes to game, with .html file also post his/her resulting src folder tree.
 
-6. For contributors to pregmod: you need to post yours version of src folder tree, not just produced FC.html !!! This html file can't be reverted to proper sources, and useless as contribution!
+6. For contributors to pregmod: you need to post yours version of src folder tree, not just produced FC_pregmod.html !!! This html file can't be reverted to proper sources, and useless as contribution!
