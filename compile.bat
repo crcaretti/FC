@@ -10,5 +10,4 @@ move start.tw.tmp src\config\start.tw >nul
 CALL "%~dp0devTools\tweeGo\tweego.exe" -o "%~dp0bin/FC_pregmod.html" "%~dp0src\config\start.tw"
 
 del src\config\start.tw
-
 ECHO Done
