@@ -1,161 +1,154 @@
 :: Spa Report [nobr]
 
-''Spa Report''<hr style="margin:0">
+<<set $spaSlaves = 0, _attendantFetish = 0, _attendantUsedCure = 0, _flawSoftened = 0, _idleBonus = 0, _restedSlaves = 0, _SL = $slaves.length, _ATD = -1>>
 
-<<set $attendantUsedCure to 0>>
-<<set $restedSlaves to 0>>
-<<set $spaSlaves to 0>>
-<<set $attendantFetish to 0>>
-<<set $flawSoftened to 0>>
-<<set $idleBonus to 0>>
-
-<<for $i to 0; $i < $slaves.length; $i++>>
-<<if ($slaves[$i].assignment is "rest in the spa")>>
-	<<if $seeImages == 1>><<SlaveArt $slaves[$i] 0 0>><</if>>
-	<<set $spaSlaves += 1>>
-	<<if ($slaves[$i].devotion <= 60) && ($slaves[$i].trust < 60)>>
-	<<set $slaves[$i].devotion += 1>>
-	<<set $slaves[$i].trust += 1>>
-	<<elseif ($slaves[$i].devotion < 40)>>
-	<<set $slaves[$i].devotion += 10>>
-	<<elseif ($slaves[$i].trust < 40)>>
-	<<set $slaves[$i].trust += 10>>
+<<if $Attendant != 0>>
+<<for _ATD = 0; _ATD < _SL; _ATD++>>
+<<if $slaves[_ATD].ID == $Attendant.ID>>
+	<<break>>
+<</if>>
+<</for>>
+<</if>>
+<<if _ATD >= 0>>
+	/* 000-250-006 */
+	/* <<if $seeImages == 1>><<SlaveArt $slaves[$i] 0 0>><</if>> */
+	<<if $seeImages == 1>>
+		<div class="imageRef smlImg">
+			<<SlaveArt $slaves[_ATD] 0 0>>
+		</div>
+	<</if>>
+	/* 000-250-006 */
+	<<if ($slaves[_ATD].health < 100)>>
+	<<set $slaves[_ATD].health += 20>>
+	<</if>>
+	<<if ($slaves[_ATD].devotion <= 60)>>
+	<<set $slaves[_ATD].devotion += 1>>
 	<</if>>
 	<<if $spaDecoration != "standard">>
-	<<set $slaves[$i].devotion += 1>>
+	<<set $slaves[_ATD].devotion += 1>>
+	<</if>>
+	<<if $slaves[_ATD].trust < 60>>
+	<<set $slaves[_ATD].trust += 1>>
+	<</if>>
+	<<if $slaves[_ATD].fetishStrength <= 95>>
+	<<if $slaves[_ATD].fetish != "submissive">>
+		<<fetishChangeChance $slaves[_ATD]>>
+		<<if $fetishChangeChance > random(0,100)>>
+			<<set _attendantFetish to 1, $slaves[_ATD].fetishKnown to 1, $slaves[_ATD].fetish to "submissive">>
+		<</if>>
+	<<elseif $slaves[_ATD].fetishKnown == 0>>
+		<<set _attendantFetish to 1, $slaves[_ATD].fetishKnown to 1>>
+	<<else>>
+		<<set _attendantFetish to 2, $slaves[_ATD].fetishStrength += 4>>
+	<</if>>
+	<</if>>
+	<<set $Attendant = $slaves[_ATD]>>
+<</if>>
+
+<<for _i = 0; _i < _SL; _i++>>
+	<<if ($slaves[_i].assignment != "rest in the spa")>><<continue>><</if>>
+	/* 000-250-006 */
+	/* <<if $seeImages == 1>><<SlaveArt $slaves[$i] 0 0>><</if>> */
+	<<if $seeImages == 1>>
+		<div class="imageRef smlImg">
+			<<SlaveArt $slaves[_i] 0 0>>
+		</div>
+	<</if>>
+	/* 000-250-006 */
+	<<set $spaSlaves++>>
+	<<if ($slaves[_i].devotion <= 60) && ($slaves[_i].trust < 60)>>
+	<<set $slaves[_i].devotion += 1, $slaves[_i].trust += 1>>
+	<<elseif ($slaves[_i].devotion < 40)>>
+	<<set $slaves[_i].devotion += 10>>
+	<<elseif ($slaves[_i].trust < 40)>>
+	<<set $slaves[_i].trust += 10>>
+	<</if>>
+	<<if $spaDecoration != "standard">>
+	<<set $slaves[_i].devotion += 1>>
 	<</if>>
 	<<if $Attendant != 0>>
-	<<if ($slaves[$i].fetish is "mindbroken") && ($slaves[$i].health > 20) && ($attendantUsedCure == 0) && ($spaFix != 2)>>
-		<<set $attendantUsedCure to 1>>
+	<<if ($slaves[_i].fetish is "mindbroken") && ($slaves[_i].health > 20) && (_attendantUsedCure == 0) && ($spaFix != 2)>>
+		<<set _attendantUsedCure to 1>>
 		<<if (random(1,100) > 90-$Attendant.devotion)>>
-		@@color:green;Something almost miraculous has happened.@@ $Attendant.slaveName has always refused to believe that $slaves[$i].slaveName could not be reached, and has spent weeks lavishing patient tenderness on her in $spaName. $slaves[$i].slaveName has begun to respond, and is stirring from her mental torpor.
-		<<set $slaves[$i].devotion to -3>>
-		<<set $slaves[$i].sexualFlaw to "apathetic">>
-		<<set $slaves[$i].behavioralFlaw to either("hates men", "odd")>>
-		<<set $slaves[$i].fetish to "none">>
-		<<set $slaves[$i].fetishKnown to 1>>
+		@@color:green;Something almost miraculous has happened.@@ $Attendant.slaveName has always refused to believe that $slaves[_i].slaveName could not be reached, and has spent weeks lavishing patient tenderness on her in $spaName. $slaves[_i].slaveName has begun to respond, and is stirring from her mental torpor.
+		<<set $slaves[_i].devotion to -3, $slaves[_i].sexualFlaw to "apathetic", $slaves[_i].behavioralFlaw to either("hates men", "odd"), $slaves[_i].fetish to "none", $slaves[_i].fetishKnown to 1>>
 		<<if ($arcologies[0].FSPaternalist > 0)>>
-			Society @@color:green;strongly approves@@ of $slaves[$i].slaveName being restored to sanity, which advances ideals about enlightened slave ownership.
-			<<set $repGain += 2*$FSSingleSlaveRep*($arcologies[0].FSPaternalist/$FSLockinLevel)>>
-			<<set $arcologies[0].FSPaternalist += 0.01*$FSSingleSlaveRep>>
+			Society @@color:green;strongly approves@@ of $slaves[_i].slaveName being restored to sanity, which advances ideals about enlightened slave ownership.
+			<<set $repGain += 2*$FSSingleSlaveRep*($arcologies[0].FSPaternalist/$FSLockinLevel), $arcologies[0].FSPaternalist += 0.01*$FSSingleSlaveRep>>
 		<</if>>
 		<</if>>
 	<</if>>
 	<<if ($Attendant.fetish is "none") || ($Attendant.fetish is "submissive")>>
-		<<set $slaves[$i].devotion += 1>>
+		<<set $slaves[_i].devotion += 1>>
 	<</if>>
 	<<if ($Attendant.visualAge > 35)>>
-		<<set $slaves[$i].trust += 1>>
+		<<set $slaves[_i].trust += 1>>
 	<</if>>
-	<<if isFertile($Attendant) || ($Attendant.preg > 0)  || ($Attendant.bellyImplant >= 2000)>>
-		<<set $slaves[$i].health += 1>>
+	<<if isFertile($Attendant) || ($Attendant.preg > 0) || ($Attendant.bellyImplant >= 2000)>>
+		<<set $slaves[_i].health += 1>>
 	<</if>>
-	<<set $seed to 0>>
-	<<if $attendantCareers.contains($Attendant.career)>>
-		<<if $slaves[$i].trust < 60>>
-		<<set $slaves[$i].trust += 1>>
-		<<set $seed to 10>>
-		<</if>>
+	<<set _seed to 0>>
+	<<if $attendantCareers.contains($Attendant.career) && $slaves[_i].trust < 60>>
+		<<set $slaves[_i].trust += 1, _seed to 10>>
 	<</if>>
 	<<if ($Attendant.intelligence > 0) && ($spaFix == 0)>>
-		<<if $slaves[$i].behavioralFlaw != "none">>
-		<<if random(1,100) > (100-($Attendant.intelligence*10)-$seed)>>
-			<<set $flawSoftened to $slaves[$i].slaveName>>
-			<<if ($slaves[$i].behavioralFlaw is "arrogant")>>
-			<<set $slaves[$i].behavioralQuirk to "confident">>
-			<<elseif ($slaves[$i].behavioralFlaw is "bitchy")>>
-			<<set $slaves[$i].behavioralQuirk to "cutting">>
-			<<elseif ($slaves[$i].behavioralFlaw is "odd")>>
-			<<set $slaves[$i].behavioralQuirk to "funny">>
-			<<elseif ($slaves[$i].behavioralFlaw is "hates men")>>
-			<<set $slaves[$i].behavioralQuirk to "adores women">>
-			<<elseif ($slaves[$i].behavioralFlaw is "hates women")>>
-			<<set $slaves[$i].behavioralQuirk to "adores men">>
-			<<elseif ($slaves[$i].behavioralFlaw is "gluttonous")>>
-			<<set $slaves[$i].behavioralQuirk to "fitness">>
-			<<elseif ($slaves[$i].behavioralFlaw is "anorexic")>>
-			<<set $slaves[$i].behavioralQuirk to "insecure">>
-			<<elseif ($slaves[$i].behavioralFlaw is "devout")>>
-			<<set $slaves[$i].behavioralQuirk to "sinful">>
-			<<elseif ($slaves[$i].behavioralFlaw is "liberated")>>
-			<<set $slaves[$i].behavioralQuirk to "advocate">>
+		<<if $slaves[_i].behavioralFlaw != "none">>
+		<<if random(1,100) > (100-($Attendant.intelligence*10)-_seed)>>
+			<<set _flawSoftened to $slaves[_i].slaveName>>
+			<<if ($slaves[_i].behavioralFlaw is "arrogant")>>
+			<<set $slaves[_i].behavioralQuirk to "confident">>
+			<<elseif ($slaves[_i].behavioralFlaw is "bitchy")>>
+			<<set $slaves[_i].behavioralQuirk to "cutting">>
+			<<elseif ($slaves[_i].behavioralFlaw is "odd")>>
+			<<set $slaves[_i].behavioralQuirk to "funny">>
+			<<elseif ($slaves[_i].behavioralFlaw is "hates men")>>
+			<<set $slaves[_i].behavioralQuirk to "adores women">>
+			<<elseif ($slaves[_i].behavioralFlaw is "hates women")>>
+			<<set $slaves[_i].behavioralQuirk to "adores men">>
+			<<elseif ($slaves[_i].behavioralFlaw is "gluttonous")>>
+			<<set $slaves[_i].behavioralQuirk to "fitness">>
+			<<elseif ($slaves[_i].behavioralFlaw is "anorexic")>>
+			<<set $slaves[_i].behavioralQuirk to "insecure">>
+			<<elseif ($slaves[_i].behavioralFlaw is "devout")>>
+			<<set $slaves[_i].behavioralQuirk to "sinful">>
+			<<elseif ($slaves[_i].behavioralFlaw is "liberated")>>
+			<<set $slaves[_i].behavioralQuirk to "advocate">>
 			<</if>>
-			<<set $slaves[$i].behavioralFlaw to "none">>
+			<<set $slaves[_i].behavioralFlaw to "none">>
 		<</if>>
-		<<elseif $slaves[$i].sexualFlaw != "none">>
-		<<if random(1,100) > (100-($Attendant.intelligence*10)-$seed)>>
-			<<set $flawSoftened to $slaves[$i].slaveName>>
-			<<if ($slaves[$i].sexualFlaw is "hates oral")>>
-			<<set $slaves[$i].sexualQuirk to "gagfuck queen">>
-			<<elseif ($slaves[$i].sexualFlaw is "hates anal")>>
-			<<set $slaves[$i].sexualQuirk to "painal queen">>
-			<<elseif ($slaves[$i].sexualFlaw is "hates penetration")>>
-			<<set $slaves[$i].sexualQuirk to "strugglefuck queen">>
-			<<elseif ($slaves[$i].sexualFlaw is "shamefast")>>
-			<<set $slaves[$i].sexualQuirk to "tease">>
-			<<elseif ($slaves[$i].sexualFlaw is "idealistic")>>
-			<<set $slaves[$i].sexualQuirk to "romantic">>
-			<<elseif ($slaves[$i].sexualFlaw is "repressed")>>
-			<<set $slaves[$i].sexualQuirk to "perverted">>
-			<<elseif ($slaves[$i].sexualFlaw is "apathetic")>>
-			<<set $slaves[$i].sexualQuirk to "caring">>
-			<<elseif ($slaves[$i].sexualFlaw is "crude")>>
-			<<set $slaves[$i].sexualQuirk to "unflinching">>
-			<<elseif ($slaves[$i].sexualFlaw is "judgemental")>>
-			<<set $slaves[$i].sexualQuirk to "size queen">>
+		<<elseif $slaves[_i].sexualFlaw != "none">>
+		<<if random(1,100) > (100-($Attendant.intelligence*10)-_seed)>>
+			<<set _flawSoftened to $slaves[_i].slaveName>>
+			<<if ($slaves[_i].sexualFlaw is "hates oral")>>
+			<<set $slaves[_i].sexualQuirk to "gagfuck queen">>
+			<<elseif ($slaves[_i].sexualFlaw is "hates anal")>>
+			<<set $slaves[_i].sexualQuirk to "painal queen">>
+			<<elseif ($slaves[_i].sexualFlaw is "hates penetration")>>
+			<<set $slaves[_i].sexualQuirk to "strugglefuck queen">>
+			<<elseif ($slaves[_i].sexualFlaw is "shamefast")>>
+			<<set $slaves[_i].sexualQuirk to "tease">>
+			<<elseif ($slaves[_i].sexualFlaw is "idealistic")>>
+			<<set $slaves[_i].sexualQuirk to "romantic">>
+			<<elseif ($slaves[_i].sexualFlaw is "repressed")>>
+			<<set $slaves[_i].sexualQuirk to "perverted">>
+			<<elseif ($slaves[_i].sexualFlaw is "apathetic")>>
+			<<set $slaves[_i].sexualQuirk to "caring">>
+			<<elseif ($slaves[_i].sexualFlaw is "crude")>>
+			<<set $slaves[_i].sexualQuirk to "unflinching">>
+			<<elseif ($slaves[_i].sexualFlaw is "judgemental")>>
+			<<set $slaves[_i].sexualQuirk to "size queen">>
 			<</if>>
-			<<set $slaves[$i].sexualFlaw to "none">>
+			<<set $slaves[_i].sexualFlaw to "none">>
 		<</if>>
 		<</if>>
 	<</if>>
 	<</if>>
-	<<if ($slaves[$i].health < 100)>>
-	<<if ($spaUpgrade == 1)>>
-		<<set $slaves[$i].health += 3>>
+	<<if ($slaves[_i].health < 100) && ($spaUpgrade == 1)>>
+		<<set $slaves[_i].health += 3>>
 	<</if>>
+	<<if ($slaves[_i].health >= 20) && ($slaves[_i].trust > 60) && ($slaves[_i].devotion > 60) && $slaves[_i].fetish != "mindbroken">>
+		<<set $slaves[_i].assignment to "rest", $slaves[_i].assignmentVisible to 1, _restedSlaves++>>
 	<</if>>
-	<<if ($slaves[$i].health >= 20)>>
-	<<if ($slaves[$i].trust > 60)>>
-	<<if ($slaves[$i].devotion > 60)>>
-	<<if $slaves[$i].fetish != "mindbroken">>
-		<<set $slaves[$i].assignment to "rest">>
-		<<set $slaves[$i].assignmentVisible to 1>>
-		<<set $restedSlaves += 1>>
-	<</if>>
-	<</if>>
-	<</if>>
-	<</if>>
-
-<<elseif ($Attendant != 0) && ($slaves[$i].ID is $Attendant.ID)>>
-	<<if ($slaves[$i].health < 100)>>
-	<<set $slaves[$i].health += 20>>
-	<</if>>
-	<<if ($slaves[$i].devotion <= 60)>>
-	<<set $slaves[$i].devotion += 1>>
-	<</if>>
-	<<if $spaDecoration != "standard">>
-	<<set $slaves[$i].devotion += 1>>
-	<</if>>
-	<<if $slaves[$i].trust < 60>>
-	<<set $slaves[$i].trust += 1>>
-	<</if>>
-	<<if $slaves[$i].fetishStrength <= 95>>
-	<<if $slaves[$i].fetish != "submissive">>
-		<<fetishChangeChance $slaves[$i]>>
-		<<if $fetishChangeChance > random(0,100)>>
-			<<set $attendantFetish to 1>>
-			<<set $slaves[$i].fetishKnown to 1>>
-			<<set $slaves[$i].fetish to "submissive">>
-		<</if>>
-	<<elseif $slaves[$i].fetishKnown == 0>>
-		<<set $attendantFetish to 1>>
-		<<set $slaves[$i].fetishKnown to 1>>
-	<<else>>
-		<<set $attendantFetish to 2>>
-		<<set $slaves[$i].fetishStrength += 4>>
-	<</if>>
-	<</if>>
-<</if>>
 <</for>>
 
 <<if ($spaSlaves > 0)>>
@@ -163,276 +156,262 @@
 	<<if ($spaSlaves == 1)>>''There is one slave resting and recuperating in the spa.''<<else>>''There are $spaSlaves slaves resting and recuperating in the spa.''<</if>>
 
 	<<if ($Attendant != 0)>>
-	$Attendant.slaveName is serving as the spa attendant.<<if $Attendant.relationship is -3>>  She tries her best to be your perfect attentive and caring wife.<</if>>
-	<<if ($attendantFetish == 1)>>
+	$Attendant.slaveName is serving as the spa attendant.<<if $Attendant.relationship is -3>> She tries her best to be your perfect attentive and caring wife.<</if>>
+	<<if (_attendantFetish == 1)>>
 		When she is paid a visit by a slave with sexual issues to work out, she provides her with an understanding, willing, giving partner. She finds real satisfaction in helping your slaves find sexual gratification, and @@color:lightsalmon;becomes a submissive.@@
-	<<elseif ($attendantFetish == 2)>>
+	<<elseif (_attendantFetish == 2)>>
 		Every new slave in the spa is a new girl she gets to connect with and serve. Sexually. @@color:lightsalmon;She becomes more submissive.@@
 	<</if>>
 	<<if $attendantCareers.contains($Attendant.career)>>
 		She has experience with counseling from her life before she was a slave, making her better at building a rapport with troubled slaves, and giving her a better chance of softening flaws into beneficial quirks.
-		<<set $idleBonus += 1>>
+		<<set _idleBonus += 1>>
 	<</if>>
 	<<if ($Attendant.eyes is -2)>>
 		Her blindness allows her to deeply connect with her girls.
-		<<set $idleBonus += 1>>
+		<<set _idleBonus += 1>>
 	<</if>>
 	<<if ($Attendant.fetish is "none")>>
 		$Attendant.slaveName respects the slaves lounging in the spa, allowing them to relax completely.
-		<<set $idleBonus += 1>>
+		<<set _idleBonus += 1>>
 	<<elseif ($Attendant.fetish is "submissive")>>
 		$Attendant.slaveName lets the slaves resting in the spa take the lead sexually, doing her best to please them.
-		<<set $idleBonus += 1>>
+		<<set _idleBonus += 1>>
 	<<elseif ($Attendant.fetishKnown == 1)>>
 		$Attendant.slaveName can't keep her hands to herself, preventing the slaves in the spa from relaxing completely.
 	<</if>>
 	<<if ($Attendant.visualAge > 35)>>
 		Her age encourages the slaves in the spa to relax and pour out their troubles to her.
-		<<set $idleBonus += 1>>
+		<<set _idleBonus += 1>>
 	<</if>>
 	<<if ($Attendant.intelligence > 0)>>
 		She's so intelligent she can suss out the cause of slaves' emotional issues and counsel them effectively.
-		<<set $idleBonus += 1>>
+		<<set _idleBonus += 1>>
 	<</if>>
 	<<if isFertile($Attendant) || ($Attendant.preg > 0)  || ($Attendant.bellyImplant >= 2000)>>
 		She has a natural mothering instinct and really makes her girls feel at home.
-		<<set $idleBonus += 1>>
+		<<set _idleBonus += 1>>
 	<</if>>
-	<<for $i to 0; $i < $slaves.length; $i++>>
+	<<for _i to 0; _i < _SL; _i++>>
+	<<if $slaves[_i].assignment != "rest in the spa">><<continue>><</if>>
 	<<if $familyTesting == 1>>
-		<<if $slaves[$i].assignment == "rest in the spa">>
-		<<if $slaves[$i].mother == $Attendant.ID>>
-			She makes sure to spend extra time caring for her daughter, $slaves[$i].slaveName.
-			<<set $slaves[$i].trust += 1>>
+		<<if $slaves[_i].mother == $Attendant.ID>>
+			She makes sure to spend extra time caring for her daughter, $slaves[_i].slaveName.
+			<<set $slaves[_i].trust += 1>>
 		<</if>>
-		<<if $slaves[$i].father == $Attendant.ID>>
-			She makes sure to spend extra time caring for her daughter, $slaves[$i].slaveName.
-			<<set $slaves[$i].trust += 1>>
+		<<if $slaves[_i].father == $Attendant.ID>>
+			She makes sure to spend extra time caring for her daughter, $slaves[_i].slaveName.
+			<<set $slaves[_i].trust += 1>>
 		<</if>>
-		<<if $slaves[$i].ID == $Attendant.father>>
-			She makes sure to spend extra time caring for her father, $slaves[$i].slaveName.
-			<<set $slaves[$i].trust += 1>>
+		<<if $slaves[_i].ID == $Attendant.father>>
+			She makes sure to spend extra time caring for her father, $slaves[_i].slaveName.
+			<<set $slaves[_i].trust += 1>>
 		<</if>>
-		<<if $slaves[$i].ID == $Attendant.mother>>
-			She makes sure to spend extra time caring for her mother, $slaves[$i].slaveName.
-			<<set $slaves[$i].trust += 1>>
+		<<if $slaves[_i].ID == $Attendant.mother>>
+			She makes sure to spend extra time caring for her mother, $slaves[_i].slaveName.
+			<<set $slaves[_i].trust += 1>>
 		<</if>>
-		<<if areSisters($slaves[$i], $Attendant) == 1>>
-			She makes sure to spend extra time caring for her twin sister, $slaves[$i].slaveName.
-			<<set $slaves[$i].trust += 1>>
-		<<elseif areSisters($slaves[$i], $Attendant) == 2>>
-			She makes sure to spend extra time caring for her sister, $slaves[$i].slaveName.
-			<<set $slaves[$i].trust += 1>>
-		<<elseif areSisters($slaves[$i], $Attendant) == 3>>
-			She makes sure to spend extra time caring for her half-sister, $slaves[$i].slaveName.
-			<<set $slaves[$i].trust += 1>>
-		<</if>>
+		<<if areSisters($slaves[_i], $Attendant) == 1>>
+			She makes sure to spend extra time caring for her twin sister, $slaves[_i].slaveName.
+			<<set $slaves[_i].trust += 1>>
+		<<elseif areSisters($slaves[_i], $Attendant) == 2>>
+			She makes sure to spend extra time caring for her sister, $slaves[_i].slaveName.
+			<<set $slaves[_i].trust += 1>>
+		<<elseif areSisters($slaves[_i], $Attendant) == 3>>
+			She makes sure to spend extra time caring for her half-sister, $slaves[_i].slaveName.
+			<<set $slaves[_i].trust += 1>>
 		<</if>>
 	<<else>>
-		<<if $Attendant.relationTarget is $slaves[$i].ID and $slaves[$i].assignment is "rest in the spa">>
-			She makes sure to spend extra time caring for her $slaves[$i].relation, $slaves[$i].slaveName.
-			<<set $slaves[$i].trust += 1>>
+		<<if $Attendant.relationTarget is $slaves[_i].ID>>
+			She makes sure to spend extra time caring for her $slaves[_i].relation, $slaves[_i].slaveName.
+			<<set $slaves[_i].trust += 1>>
 		<</if>>
 	<</if>>
-	<<if $Attendant.relationshipTarget is $slaves[$i].ID and $slaves[$i].assignment is "rest in the spa">>
-		She dedicates most of her attention to her <<if $Attendant.relationship == 1>>friend<<elseif $Attendant.relationship is 2>>best friend<<elseif $Attendant.relationship is 3>>friend with benefits<<elseif $Attendant.relationship is 4>>lover<<elseif $Attendant.relationship is 5>>slave wife<</if>>, $slaves[$i].slaveName, making her stress, both physical and mental, wash away.
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
+	<<if $Attendant.relationshipTarget is $slaves[_i].ID>>
+		She dedicates most of her attention to her <<if $Attendant.relationship == 1>>friend<<elseif $Attendant.relationship is 2>>best friend<<elseif $Attendant.relationship is 3>>friend with benefits<<elseif $Attendant.relationship is 4>>lover<<elseif $Attendant.relationship is 5>>slave wife<</if>>, $slaves[_i].slaveName, making her stress, both physical and mental, wash away.
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
 	<</if>>
-	<<if $Attendant.rivalryTarget is $slaves[$i].ID and $slaves[$i].assignment is "rest in the spa">>
-		She constantly harasses her <<if $Attendant.rivalry == 1>>growing rival<<elseif $Attendant.rivalry is 2>>rival<<elseif $Attendant.rivalry is 3>>bitter rival<</if>>, $slaves[$i].slaveName, preventing her from getting comfortable and forcing her to keep her guard up.
-		<<set $slaves[$i].devotion -= 4>>
-		<<set $slaves[$i].trust -= 4>>
+	<<if $Attendant.rivalryTarget is $slaves[_i].ID>>
+		She constantly harasses her <<if $Attendant.rivalry == 1>>growing rival<<elseif $Attendant.rivalry is 2>>rival<<elseif $Attendant.rivalry is 3>>bitter rival<</if>>, $slaves[_i].slaveName, preventing her from getting comfortable and forcing her to keep her guard up.
+		<<set $slaves[_i].devotion -= 4, $slaves[_i].trust -= 4>>
 		<<if random(1,100) > 35>>
-			<<set $Attendant.rivalry += 1>>
-		<<set $slaves[$i].rivalry += 1>>
+			<<set $Attendant.rivalry += 1, $slaves[_ATD].rivalry += 1, $slaves[_i].rivalry += 1>>
 		<</if>>
 	<</if>>
-	<<if $slaves[$i].prestigeDesc is "She is a famed Free Cities whore, and commands top prices." and $slaves[$i].assignment is "rest in the spa">>
-		She does her best to relax the famous whore, $slaves[$i].slaveName, making sure to pay special attention to her worn holes.
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
+	<<if $slaves[_i].prestigeDesc is "She is a famed Free Cities whore, and commands top prices.">>
+		She does her best to relax the famous whore, $slaves[_i].slaveName, making sure to pay special attention to her worn holes.
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
 	<</if>>
-	<<if $slaves[$i].prestigeDesc is "She is a famed Free Cities slut, and can please anyone." and $slaves[$i].assignment is "rest in the spa">>
-		She does her best to soothe the famous entertainer, $slaves[$i].slaveName, letting her relax in blissful peace.
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
+	<<if $slaves[_i].prestigeDesc is "She is a famed Free Cities slut, and can please anyone.">>
+		She does her best to soothe the famous entertainer, $slaves[_i].slaveName, letting her relax in blissful peace.
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
 	<</if>>
-	<<if $slaves[$i].prestigeDesc is "She is remembered for winning best in show as a cockmilker." and $slaves[$i].assignment is "rest in the spa">>
+	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a cockmilker.">>
 		<<if $Attendant.fetish is "cumslut">>
-		She can't keep her hands off $slaves[$i].slaveName's cock and balls, but she doesn't mind being milked constantly.  Before long strands of cum can be found floating all throughout the bath.
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
-		<<set $Attendant.fetishStrength += 4>>
+		She can't keep her hands off $slaves[_i].slaveName's cock and balls, but she doesn't mind being milked constantly.  Before long strands of cum can be found floating all throughout the bath.
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3, $Attendant.fetishStrength += 4, $slaves[_ATD].fetishStrength += 4>>
 		<<else>>
-		She does her best to accommodate $slaves[$i].slaveName's massive genitals and tends to her when ever she feels a need for release.
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
-		<<if random(1,100) > 65 and $Attendant.fetish is "none">>
+		She does her best to accommodate $slaves[_i].slaveName's massive genitals and tends to her when ever she feels a need for release.
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
+		<<if random(1,100) > 65 && $Attendant.fetish is "none">>
 			After taking several massive loads to the face, $Attendant.slaveName begins to find satisfaction in being coated in cum.
-			<<set $Attendant.fetish to "cumslut">>
+			<<set $Attendant.fetish to "cumslut", $slaves[_ATD].fetish to "cumslut">>
 		<</if>>
 		<</if>>
 	<</if>>
-	<<if $slaves[$i].prestigeDesc is "She is remembered for winning best in show as a dairy cow." and $slaves[$i].assignment is "rest in the spa">>
+	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a dairy cow.">>
 		<<if $Attendant.fetish is "boobs">>
-		She can't keep her hands off $slaves[$i].slaveName's huge breasts, but she doesn't mind being milked constantly.  Before long the bath gains a white tint.
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
-		<<set $Attendant.fetishStrength += 4>>
+		She can't keep her hands off $slaves[_i].slaveName's huge breasts, but she doesn't mind being milked constantly.  Before long the bath gains a white tint.
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3, $Attendant.fetishStrength += 4>>
 		<<else>>
-		She does her best to accommodate $slaves[$i].slaveName's massive breasts and tends to her when ever she feels a need for release.
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
-		<<if random(1,100) > 65 and $Attendant.fetish is "none">>
+		She does her best to accommodate $slaves[_i].slaveName's massive breasts and tends to her when ever she feels a need for release.
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
+		<<if random(1,100) > 65 && $Attendant.fetish is "none">>
 			After multiple milking sessions, $Attendant.slaveName begins to find herself fantasizing about having giant milky breasts too.
-			<<set $Attendant.fetish to "boobs">>
+			<<set $Attendant.fetish to "boobs", $slaves[_ATD].fetish to "boobs">>
 		<</if>>
 		<</if>>
 	<</if>>
-	<<if $slaves[$i].prestigeDesc is "She is remembered for winning best in show as a breeder." and $slaves[$i].assignment is "rest in the spa" and $slaves[$i].preg > 10>>
+	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a breeder." && $slaves[_i].preg > 10>>
 		<<if $Attendant.fetish is "pregnancy">>
-		She can't keep her hands off $slaves[$i].slaveName's pregnancy, but she doesn't mind her full belly being fondled. 
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
-		<<set $Attendant.fetishStrength += 4>>
+		She can't keep her hands off $slaves[_i].slaveName's pregnancy, but she doesn't mind her full belly being fondled. 
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3, $Attendant.fetishStrength += 4>>
 		<<else>>
-		She does her best to accommodate $slaves[$i].slaveName's pregnancy and to make sure the mother-to-be is happy and comfortable.
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
+		She does her best to accommodate $slaves[_i].slaveName's pregnancy and to make sure the mother-to-be is happy and comfortable.
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
 		<<if random(1,100) > 65 and $Attendant.fetish is "none">>
-			After massaging $slaves[$i].slaveName's growing belly multiple times, $Attendant.slaveName begins to find herself fantasizing about being swollen with life too.
-			<<set $Attendant.fetish to "pregnancy">>
+			After massaging $slaves[_i].slaveName's growing belly multiple times, $Attendant.slaveName begins to find herself fantasizing about being swollen with life too.
+			<<set $Attendant.fetish to "pregnancy", $slaves[_ATD].fetish to "pregnancy">>
 		<</if>>
 		<</if>>
 	<</if>>
-	<<if $slaves[$i].prestigeDesc is "She is remembered for winning best in show as a breeder." and $slaves[$i].assignment is "rest in the spa">>
+	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a breeder.">>
 		<<if $Attendant.fetish is "pregnancy">>
-		She can't help but pester $slaves[$i].slaveName with questions about her pregnancy, limiting her ability to truly relax. 
-		<<set $slaves[$i].devotion += 1>>
-		<<set $slaves[$i].trust += 1>>
+		She can't help but pester $slaves[_i].slaveName with questions about her pregnancy, limiting her ability to truly relax. 
+		<<set $slaves[_i].devotion += 1, $slaves[_i].trust += 1>>
 		<<else>>
-		She does her best to encourage $slaves[$i].slaveName's fertilization by performing any fertility boosting actions she can.
-		<<set $slaves[$i].devotion += 3>>
-		<<set $slaves[$i].trust += 3>>
+		She does her best to encourage $slaves[_i].slaveName's fertilization by performing any fertility boosting actions she can.
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
 		<</if>>
 	<</if>>
 	<</for>>
 	<<if ($spaSlaves < $spa)>>
-		<<set $seed to random(1,10)+(($spa-$spaSlaves)*(random(150,170)+($idleBonus*10)))>>
-		<<set $cash += $seed>>
-		Since she doesn't have enough girls to occupy all her time, the spa takes in citizens' slaves on a contract basis and she helps them too, earning @@color:yellowgreen;¤$seed.@@
+		<<set _seed to random(1,10)+(($spa-$spaSlaves)*(random(150,170)+(_idleBonus*10)))>>
+		<<set $cash += _seed>>
+		Since she doesn't have enough girls to occupy all her time, the spa takes in citizens' slaves on a contract basis and she helps them too, earning @@color:yellowgreen;¤_seed.@@
 	<</if>>
 	<</if>>
 
-	<<if ($restedSlaves > 0)>>
-	<<if ($restedSlaves == 1)>>
+	<<if (_restedSlaves > 0)>>
+	<<if (_restedSlaves == 1)>>
 		One slave has rested until she reached a state of @@color:hotpink;devotion@@ and @@color:mediumaquamarine;trust@@ and will leave the spa before the end of the week.
 	<<else>>
-		$restedSlaves slaves have rested until they reached a state of @@color:hotpink;devotion@@ and @@color:mediumaquamarine;trust@@ and will leave the spa before the end of the week.
+		_restedSlaves slaves have rested until they reached a state of @@color:hotpink;devotion@@ and @@color:mediumaquamarine;trust@@ and will leave the spa before the end of the week.
 	<</if>>
 	<<if $spaDecoration != "standard">>
-		$spaNameCaps's $spaDecoration atmosphere @@color:hotpink;had an impact on <<if $restedSlaves == 1>>her while she<<else>>them while they<</if>>@@ were resting.
+		$spaNameCaps's $spaDecoration atmosphere @@color:hotpink;had an impact on <<if _restedSlaves == 1>>her while she<<else>>them while they<</if>>@@ were resting.
 	<</if>>
-	<<set $spaSlaves -= $restedSlaves>>
-	<</if>>
-
-	<<if ($flawSoftened != 0)>>
-	$Attendant.slaveName works carefully with $flawSoftened, and successfully @@color:green;softens her behavioral flaw@@ into an appealing quirk.
+	<<set $spaSlaves -= _restedSlaves>>
 	<</if>>
 
-	<<for $i to 0; $i < $slaves.length; $i++>>
-	<<if ($slaves[$i].ID is $Attendant.ID)>>
+	<<if (_flawSoftened != 0)>>
+	$Attendant.slaveName works carefully with _flawSoftened, and successfully @@color:green;softens her behavioral flaw@@ into an appealing quirk.
+	<</if>>
+
+	<<if $Attendant != 0>>
 	<br><br>
+	<<set $i = _ATD>>
 	<<if $showEWD == 0>>
 		''__@@color:pink;$slaves[$i].slaveName@@__'' is serving as the Attendant in the spa.<br>
 		<<silently>>
 		<<if $slaves[$i].choosesOwnClothes == 1>>
-		<<display "SA chooses own clothes">>
+		<<include "SA chooses own clothes">>
 		<<if ($slaves[$i].devotion <= 20)>>
 			<<set $slaves[$i].devotion -= 5>>
 		<<else>>
 			<<set $slaves[$i].devotion += 1>>
 		<</if>>
 		<</if>>
-		<<display "SA diet">>
-		<<display "SA long term effects">>
-		<<display "SA drugs">>
-		<<display "SA relationships">>
-		<<display "SA rivalries">>
-		<<display "SA devotion">>
+		<<include "SA diet">>
+		<<include "SA long term effects">>
+		<<include "SA drugs">>
+		<<include "SA relationships">>
+		<<include "SA rivalries">>
+		<<include "SA devotion">>
 		<</silently>>
 	<<else>>
 		''__@@color:pink;$slaves[$i].slaveName@@__'' is serving as the Attendant in the spa.
 		<<if $slaves[$i].choosesOwnClothes == 1>>
-		<<display "SA chooses own clothes">>
+		<<include "SA chooses own clothes">>
 		<<if ($slaves[$i].devotion <= 20)>>
 			<<set $slaves[$i].devotion -= 5>>
 		<<else>>
 			<<set $slaves[$i].devotion += 1>>
 		<</if>>
 		<</if>>
-		<<display "SA diet">>
-		<<display "SA long term effects">>
-		<<display "SA drugs">>
-		<<display "SA relationships">>
-		<<display "SA rivalries">>
-		<br>
-		<<display "SA devotion">>
-		<br>
+		<<include "SA diet">>
+		<<include "SA long term effects">>
+		<<include "SA drugs">>
+		<<include "SA relationships">>
+		<<include "SA rivalries">>
+		<br><<include "SA devotion">>
+		<br><br>
 	<</if>>
-	<<elseif ($slaves[$i].assignment is "rest in the spa")>>
-	<br>
-	<<if $showEWD == 0>>
-		''__@@color:pink;$slaves[$i].slaveName@@__'' is resting in the spa.
-		<<silently>>
-		<<display [[SA rest]]>>
-		<<if $slaves[$i].choosesOwnClothes == 1>>
-		<<display "SA chooses own clothes">>
-		<<if ($slaves[$i].devotion <= 20)>>
-			<<set $slaves[$i].devotion -= 5>>
-		<<else>>
-			<<set $slaves[$i].devotion += 1>>
-		<</if>>
-		<</if>>
-		<<display "SA diet">>
-		<<display "SA long term effects">>
-		<<display "SA drugs">>
-		<<display "SA relationships">>
-		<<display "SA rivalries">>
-		<<display "SA devotion">>
-		<</silently>>
-	<<else>>
-		''__@@color:pink;$slaves[$i].slaveName@@__''
-		<<display [[SA rest]]>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;
-		<<if $slaves[$i].choosesOwnClothes == 1>>
-		<<display "SA chooses own clothes">>
-		<<if ($slaves[$i].devotion <= 20)>>
-			<<set $slaves[$i].devotion -= 5>>
-		<<else>>
-			<<set $slaves[$i].devotion += 1>>
-		<</if>>
-		<</if>>
-		<<display "SA diet">>
-		<<display "SA long term effects">>
-		<<display "SA drugs">>
-		<<display "SA relationships">>
-		<<display "SA rivalries">>
-		<br>
-		<<display "SA devotion">>
-		<br>
+	<<set $Attendant = $slaves[_ATD]>>
 	<</if>>
-	<</if>>
-	<</for>>
 
-<<elseif ($Attendant != 0)>>
-	''$spaNameCaps is empty'' except for $Attendant.slaveName, the attendant.
-	<<set $seed to random(1,10)+(($spa-$spaSlaves)*(random(150,170)+($idleBonus*10)))>>
-	<<set $cash += $seed>>
-	Since she doesn't have anyone to help, citizens are allowed to buy their slaves vacations in the spa, earning @@color:yellowgreen;¤$seed.@@
+	<<if ($spaSlaves > 0)>>
+	<<if $showEWD == 0>>
+	<<for $i to 0; $i < _SL; $i++>>
+		<<if ($slaves[$i].assignment != "rest in the spa")>><<continue>><</if>>
+		''__@@color:pink;$slaves[$i].slaveName@@__'' is resting in the spa.<br>
+		<<silently>>
+		<<if $slaves[$i].choosesOwnClothes == 1>>
+		<<include "SA chooses own clothes">>
+		<<if ($slaves[$i].devotion <= 20)>>
+			<<set $slaves[$i].devotion -= 5>>
+		<<else>>
+			<<set $slaves[$i].devotion += 1>>
+		<</if>>
+		<</if>>
+		<<include "SA rest">>
+		<<include "SA diet">>
+		<<include "SA long term effects">>
+		<<include "SA drugs">>
+		<<include "SA relationships">>
+		<<include "SA rivalries">>
+		<<include "SA devotion">>
+		<</silently>>
+	<</for>>
+	<<else>>
+	<<for $i to 0; $i < _SL; $i++>>
+		<<if ($slaves[$i].assignment != "rest in the spa")>><<continue>><</if>>
+		''__@@color:pink;$slaves[$i].slaveName@@__'' is resting in the spa.<br>
+		&nbsp;&nbsp;&nbsp;&nbsp;
+		<<if $slaves[$i].choosesOwnClothes == 1>>
+		<<include "SA chooses own clothes">>
+		<<if ($slaves[$i].devotion <= 20)>>
+			<<set $slaves[$i].devotion -= 5>>
+		<<else>>
+			<<set $slaves[$i].devotion += 1>>
+		<</if>>
+		<</if>>
+		She<<include "SA rest">>
+		<<include "SA diet">>
+		<<include "SA long term effects">>
+		<<include "SA drugs">>
+		<<include "SA relationships">>
+		<<include "SA rivalries">>
+		<br><<include "SA devotion">>
+		<br><br>
+	<</for>>
+	<</if>>
+	<</if>>
 
 <<else>>
-	''$spaNameCaps is empty.''
+	<br>''$spaNameCaps is empty.''
+	<<if ($Attendant != 0)>>
+	<<set _seed to random(1,10)+(($spa-$spaSlaves)*(random(150,170)+(_idleBonus*10)))>>
+	<<set $cash += _seed>>
+	except for $Attendant.slaveName, the attendant. Since she doesn't have anyone to help, citizens are allowed to buy their slaves vacations in the spa, earning @@color:yellowgreen;¤_seed.@@
+	<</if>>
 <</if>>
-<br><br>
