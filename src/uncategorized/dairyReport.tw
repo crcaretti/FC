@@ -1,11 +1,10 @@
 :: Dairy Report [nobr]
 
-
-<<set $bioreactorPerfectedID = 0, $dairySlaves = 0, $legendaryBallsID = 0, $legendaryCowID = 0, $milkmaidDevotionBonus = 0, $milkmaidHealthBonus = 0, $milkmaidTrustBonus = 0>>
+<<set $bioreactorPerfectedID = 0, $dairySlaves = 0, $legendaryBallsID = 0, $legendaryCowID = 0, $milkmaidDevotionBonus = 1, $milkmaidHealthBonus = 0, $milkmaidTrustBonus = 1, $milkmaidDevotionThreshold = 45, $milkmaidTrustThreshold = 35>>
 
 <<set _anusesStretched = 0, _birthers = 0, _births = 0, _cumWeek = 0, _femCumWeek = 0, _milkmaidFetish = 0, _milkmaidImpregnated = 0, _milkWeek = 0>>
 
-<<set _balltacular = 0, _boobtacular = 0, _careerForgotten = 0, _chemMinor = 0, _chemSevere = 0, _desterilized = 0, _hatefilled = 0, _horrified = 0, _intelligenceLost = 0, _mindbroken = 0, _profits = 0, _skillsLost = 0, _stupidified = 0, _vaginasStretched = 0, _SL = $slaves.length, _MM = -1>>
+<<set _balltacular = 0, _boobtacular = 0, _careerForgotten = 0, _chemMinor = 0, _chemSevere = 0, _desterilized = 0, _hatefilled = 0, _horrified = 0, _intelligenceLost = 0, _mindbroken = 0, _profits = 0, _skillsLost = 0, _stupidified = 0, _vaginasStretched = 0, _SL = $slaves.length, _MM = -1, _MMAttentionString = "">>
 
 <<if ($Milkmaid != 0)>>
 <<for _MM = 0; _MM < _SL; _MM++>>
@@ -17,60 +16,64 @@
 
 <<if _MM != -1>>
 	<<set $i = _MM>>
+	<<if $slaves[_MM].health < 90>>
+		<<set $slaves[_MM].curatives to 2>>
+	<</if>>
+	<<if ($slaves[_MM].muscles > 50)>>	
+		<<set ($slaves[_MM].diet to "healthy")>>
+	<<else>>
+		<<set ($slaves[_MM].diet to "muscle building")>>
+	<</if>>
 	<<silently>>
+	<<include "SA diet">>
 	<<include "SA long term effects">>
+	<<include "SA drugs">>
 	<<include "SA relationships">>
 	<<include "SA rivalries">>
 	<</silently>>
-	<<if ($slaves[_MM].health < -80)>>
-	<<set $slaves[_MM].health += 20>>
-	<<elseif ($slaves[_MM].health < -40)>>
-	<<set $slaves[_MM].health += 15>>
-	<<elseif ($slaves[_MM].health < 0)>>
-	<<set $slaves[_MM].health += 10>>
-	<<elseif ($slaves[_MM].health < 90)>>
-	<<set $slaves[_MM].health += 7>>
-	<</if>>
 	<<if $slaves[_MM].devotion <= 60>>
-	<<set $slaves[_MM].devotion += 5>>
+		<<set $slaves[_MM].devotion += 5>>
 	<</if>>
 	<<if $slaves[_MM].trust < 60>>
-	<<set $slaves[_MM].trust += 5>>
+		<<set $slaves[_MM].trust += 5>>
 	<</if>>
 	<<if $slaves[_MM].relationship is -3>>
-	<<set $milkmaidDevotionBonus += 0.4, $milkmaidTrustBonus += 0.4>>
+		<<set $milkmaidDevotionBonus += 2, $milkmaidTrustBonus += 2>>
 	<</if>>
 	<<if ($slaves[_MM].sexualQuirk is "caring")>>
-	<<set $milkmaidTrustBonus += 0.2>>
+		<<set $milkmaidTrustBonus += 1>>
 	<</if>>
 	<<if ($slaves[_MM].behavioralQuirk is "funny")>>
-	<<set $milkmaidTrustBonus += 0.2>>
+		<<set $milkmaidTrustBonus += 1>>
 	<</if>>
 	<<if ($slaves[_MM].oralSkill > 0)>>
-	<<set $milkmaidDevotionBonus += Math.trunc($slaves[_MM].oralSkill/30)>>
+		<<set $milkmaidDevotionBonus += Math.trunc($slaves[_MM].oralSkill/30)>>
 	<</if>>
 	<<if ($slaves[_MM].health >= 80)>>
-	<<set $milkmaidHealthBonus += 0.3>>
+		<<set $milkmaidHealthBonus += 1>>
 	<</if>>
 	<<set $toSearch to $slaves[_MM].career>>
 	<<if $milkmaidCareers.contains($toSearch)>>
-	<<set $milkmaidHealthBonus += 0.2>>
+		<<set $milkmaidHealthBonus += 1>>
 	<</if>>
 	<<if ($slaves[_MM].muscles > 30)>>
-	<<set $milkmaidHealthBonus += 0.2>>
+		<<set $milkmaidHealthBonus += 1>>
 	<</if>>
+	<<set $milkmaidDevotionThreshold += (5*$milkmaidDevotionBonus), $milkmaidTrustThreshold += (5*$milkmaidTrustBonus)>>
+
 	<<if $slaves[_MM].fetishStrength <= 95>>
-	<<if $slaves[_MM].fetish != "boobs">>
-		<<fetishChangeChance $slaves[_MM]>>
-		<<if $fetishChangeChance > random(0,100)>>
-			<<set _milkmaidFetish to 1, $slaves[_MM].fetishKnown to 1, $slaves[_MM].fetish to "boobs">>
+		<<if $slaves[_MM].fetish != "boobs">>
+			<<fetishChangeChance $slaves[_MM]>>
+			<<if $fetishChangeChance > random(0,100)>>
+				<<set _milkmaidFetish to 1, $slaves[_MM].fetishKnown to 1, $slaves[_MM].fetish to "boobs">>
+			<</if>>
+		<<elseif $slaves[_MM].fetishKnown == 0>>
+			<<set _milkmaidFetish to 1, $slaves[_MM].fetishKnown to 1>>
+		<<else>>
+			<<set _milkmaidFetish to 2, $slaves[_MM].fetishStrength += 4>>
 		<</if>>
-	<<elseif $slaves[_MM].fetishKnown == 0>>
-		<<set _milkmaidFetish to 1, $slaves[_MM].fetishKnown to 1>>
-	<<else>>
-		<<set _milkmaidFetish to 2, $slaves[_MM].fetishStrength += 4>>
 	<</if>>
-	<</if>>
+	
 	<<set $Milkmaid = $slaves[_MM]>>
 <</if>>
 
@@ -89,13 +92,18 @@
 /* 000-250-006 */
 
 	<<set $dairySlaves++>>
-	<<if ($legendaryCowID == 0) && ($slaves[_i].lactation > 0) && (($slaves[_i].boobs-$slaves[_i].boobsImplant) > 6000) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
-	<<set $legendaryCowID to $slaves[_i].ID>>
-	<</if>>
-	<<if ($legendaryBallsID == 0) && ($slaves[_i].balls > 5) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
-	<<set $legendaryBallsID to $slaves[_i].ID>>
-	<</if>>
 	<<set $i = _i>>
+	
+	/* Perform facility based rule changes */
+	<<if ($dairySlimMaintain == 0) && ($slaves[_i].weight <= 30)>>
+		<<set $slaves[_i].diet to "fattening">>
+	<<elseif ($slaves[_i].diet is "fattening") || ($dairyRestraintsSetting > 1)>>
+		<<set $slaves[_i].diet to "healthy">>
+	<<elseif ($slaves[_i].balls >0) && $cumProDiet == 1>>
+		<<set $slaves[_i].diet to "cum production">>
+	<</if>>
+	
+	/* General End of Week effects */
 	<<silently>>
 	<<include "SA get milked">>
 	<<set _milkWeek += $milk, _cumWeek += $cum>>
@@ -104,10 +112,77 @@
 			<<set $slaves[_i].preg to 1, $slaves[_i].pregSource to $Milkmaid.ID, _milkmaidImpregnated++, $slaves[_i].vaginalCount += 10, $vaginalTotal += 10>>
 		<</if>>
 	<</if>>
+	<<include "SA diet">>
 	<<include "SA long term effects">>
 	<<include "SA relationships">>
 	<<include "SA rivalries">>
 	<</silently>>
+
+	/* Special attention section */
+	<<if ($legendaryCowID == 0) && ($slaves[_i].lactation > 0) && (($slaves[_i].boobs-$slaves[_i].boobsImplant) > 6000) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
+		<<set $legendaryCowID to $slaves[_i].ID>>
+	<</if>>
+	<<if ($legendaryBallsID == 0) && ($slaves[_i].balls > 5) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
+		<<set $legendaryBallsID to $slaves[_i].ID>>
+	<</if>>
+	<<set $i = _i>>
+	<<if $familyTesting == 1>>
+		<<if $slaves[_i].mother == $Milkmaid.ID>>
+			<<set _MMAttentionString += "She pays special attention to her daughter, $slaves["+_i+"].slaveName, making sure she is well kept and happy. ">>
+			<<set $slaves[_i].trust += 1>>
+		<</if>>
+		<<if $slaves[_i].father == $Milkmaid.ID>>
+			<<set _MMAttentionString += "She pays special attention to her daughter, $slaves["+_i+"].slaveName, making sure she is well kept and happy. ">>
+			<<set $slaves[_i].trust += 1>>
+		<</if>>
+		<<if $slaves[_i].ID == $Milkmaid.father>>
+			<<set _MMAttentionString += "She pays special attention to her father, $slaves["+_i+"].slaveName, making sure she is well kept and happy. ">>
+			<<set $slaves[_i].trust += 1>>
+		<</if>>
+		<<if $slaves[_i].ID == $Milkmaid.mother>>
+			<<set _MMAttentionString += "She pays special attention to her mother, $slaves["+_i+"].slaveName, making sure she is well kept and happy. ">>
+			<<set $slaves[_i].trust += 1>>
+		<</if>>
+		<<if areSisters($slaves[_i], $Milkmaid) == 1>>
+			<<set _MMAttentionString += "She pays special attention to her twin sister, $slaves["+_i+"].slaveName, making sure she is well kept and happy. ">>
+			<<set $slaves[_i].trust += 1>>
+		<<elseif areSisters($slaves[_i], $Milkmaid) == 2>>
+			<<set _MMAttentionString += "She pays special attention to her sister, $slaves["+_i+"].slaveName, making sure she is well kept and happy. ">>
+			<<set $slaves[_i].trust += 1>>
+		<<elseif areSisters($slaves[_i], $Milkmaid) == 3>>
+			<<set _MMAttentionString += "She pays special attention to her half-sister, $slaves["+_i+"].slaveName, making sure she is well kept and happy. ">>
+			<<set $slaves[_i].trust += 1>>
+		<</if>>
+	<<else>>
+	<<if $Milkmaid.relationTarget is $slaves[_i].ID>>
+		<<set _MMAttentionString += "She pays special attention to her $slaves["+_i+"].relation, $slaves["+_i+"].slaveName, making sure she is well kept and happy. ">>
+		<<set $slaves[_i].trust += 1>>
+	<</if>>
+	<</if>> /*closes family mode */
+	<<if $Milkmaid.relationshipTarget is $slaves[_i].ID>>
+		<<set _MMAttentionString += "She dotes over her <<if $Milkmaid.relationship == 1>>friend<<elseif $Milkmaid.relationship is 2>>best friend<<elseif $Milkmaid.relationship is 3>>friend with benefits<<elseif $Milkmaid.relationship is 4>>lover<<elseif $Milkmaid.relationship is 5>>slave wife<</if>>, $slaves["+_i+"].slaveName, making sure she is happy and comfortable. ">>
+		<<set $slaves[_i].devotion += 1>>
+	<</if>>
+	<<if $Milkmaid.rivalryTarget is $slaves[_i].ID>>
+		<<set _MMAttentionString += "She either neglects or harasses her <<if $Milkmaid.rivalry == 1>>growing rival<<elseif $Milkmaid.rivalry is 2>>rival<<elseif $Milkmaid.rivalry is 3>>bitter rival<</if>>, $slaves["+_i+"].slaveName, making sure she is unhappy and uncomfortable. ">>
+		<<set $slaves[_i].devotion -= 3, $slaves[_i].trust -= 3>>
+		<<if random(1,100) > 65>>
+			<<set $Milkmaid.rivalry += 1, $slaves[_MM].rivalry += 1, $slaves[_i].rivalry += 1>>
+		<</if>>
+	<</if>>
+	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a dairy cow.">>
+		<<set _MMAttentionString += "She spends extra time with $slaves["+_i+"].slaveName, the well-known cow.  $Milkmaid.slaveName is fascinated by her massive $slaves["+_i+"].boobs"+"cc breasts and spends extra time massaging and kneading them to maximize production. ">>
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
+	<</if>>
+	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a cockmilker.">>
+		<<set _MMAttentionString += "She spends extra time with $slaves["+_i+"].slaveName, the massive ejaculating cow.  She can't help but massage the cow's dick and testes to stimulate them further and coax more from them. ">>
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
+	<</if>>
+	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a breeder." && $slaves[_i].preg > 10>>
+		<<set _MMAttentionString += "She spends extra time with $slaves["+_i+"].slaveName, the well-known breeder. $Milkmaid.slaveName is fascinated by her growing pregnancy and popular womb. She makes sure her belly and it's occupants are nice and comfortable. ">>
+		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
+	<</if>>
+	/* Facility Specific End of Week effects */
 	<<if ($slaves[_i].devotion <= 20) && ($slaves[_i].trust > -20)>>
 		<<set $slaves[_i].devotion -= 5, $slaves[_i].trust -= 5>>
 	<</if>>
@@ -137,14 +212,7 @@
 			<</if>>
 		<</if>>
 	<</if>>
-	<<if ($dairySlimMaintain == 0) && ($slaves[_i].weight <= 30)>>
-		<<set $slaves[_i].diet to "fattening">>
-	<<elseif ($slaves[_i].diet is "fattening") || ($dairyRestraintsSetting > 1)>>
-		<<set $slaves[_i].diet to "healthy">>
-	<<elseif ($slaves[_i].balls >0) && $cumProDiet == 1>>
-		<<set $slaves[_i].diet to "cum production">>
-	<</if>>
-	<<silently>><<include "SA diet">><</silently>>
+	
 	<<if ($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0)>>
 		<<if ($dairySlimMaintain == 0)>>
 			<<if ($slaves[_i].balls == 0)>>
@@ -485,9 +553,15 @@
 	<</if>>
 	<<if ($Milkmaid.muscles > 30)>>
 		Her muscles help her handle the fattest or most reluctant cow.
+	<<else>>
+		Her constant handling of cows causes her to @@color:lime;gain muscle.@@.
 	<</if>>
 	<<if ($Milkmaid.oralSkill > 30)>>
 		Her skilled tongue helps her keep her girls happy.
+	<</if>>
+	<<if ($Milkmaid.oralSkill < 90)>>
+		<<set $skillIncrease = 3>>
+		<<OralSkillIncrease $slaves[_MM]>>
 	<</if>>
 	<<if ($Milkmaid.sexualQuirk is "caring")>>
 		She's very caring, and does her best to get the cows to trust her.
@@ -499,65 +573,9 @@
 	<<if $milkmaidCareers.contains($toSearch)>>
 		She has career experience dealing with milk animals.
 	<</if>>
-	<<for _i to 0; _i < _SL; _i++>>
-	<<if $slaves[_i].assignment != "work in the dairy">><<continue>><</if>>
-	<<if $familyTesting == 1>>
-		<<if $slaves[_i].mother == $Milkmaid.ID>>
-			She pays special attention to her daughter, $slaves[_i].slaveName, making sure she is well kept and happy.
-			<<set $slaves[_i].trust += 1>>
-		<</if>>
-		<<if $slaves[_i].father == $Milkmaid.ID>>
-			She pays special attention to her daughter, $slaves[_i].slaveName, making sure she is well kept and happy.
-			<<set $slaves[_i].trust += 1>>
-		<</if>>
-		<<if $slaves[_i].ID == $Milkmaid.father>>
-			She pays special attention to her father, $slaves[_i].slaveName, making sure she is well kept and happy.
-			<<set $slaves[_i].trust += 1>>
-		<</if>>
-		<<if $slaves[_i].ID == $Milkmaid.mother>>
-			She pays special attention to her mother, $slaves[_i].slaveName, making sure she is well kept and happy.
-			<<set $slaves[_i].trust += 1>>
-		<</if>>
-		<<if areSisters($slaves[_i], $Milkmaid) == 1>>
-			She pays special attention to her twin sister, $slaves[_i].slaveName, making sure she is well kept and happy.
-			<<set $slaves[_i].trust += 1>>
-		<<elseif areSisters($slaves[_i], $Milkmaid) == 2>>
-			She pays special attention to her sister, $slaves[_i].slaveName, making sure she is well kept and happy.
-			<<set $slaves[_i].trust += 1>>
-		<<elseif areSisters($slaves[_i], $Milkmaid) == 3>>
-			She pays special attention to her half-sister, $slaves[_i].slaveName, making sure she is well kept and happy.
-			<<set $slaves[_i].trust += 1>>
-		<</if>>
-	<<else>>
-	<<if $Milkmaid.relationTarget is $slaves[_i].ID>>
-		She pays special attention to her $slaves[_i].relation, $slaves[_i].slaveName, making sure she is well kept and happy.
-		<<set $slaves[_i].trust += 1>>
-	<</if>>
-	<</if>> /*closes family mode */
-	<<if $Milkmaid.relationshipTarget is $slaves[_i].ID>>
-		She dotes over her <<if $Milkmaid.relationship == 1>>friend<<elseif $Milkmaid.relationship is 2>>best friend<<elseif $Milkmaid.relationship is 3>>friend with benefits<<elseif $Milkmaid.relationship is 4>>lover<<elseif $Milkmaid.relationship is 5>>slave wife<</if>>, $slaves[_i].slaveName, making sure she is happy and comfortable.
-		<<set $slaves[_i].devotion += 1>>
-	<</if>>
-	<<if $Milkmaid.rivalryTarget is $slaves[_i].ID>>
-		She either neglects or harasses her <<if $Milkmaid.rivalry == 1>>growing rival<<elseif $Milkmaid.rivalry is 2>>rival<<elseif $Milkmaid.rivalry is 3>>bitter rival<</if>>, $slaves[_i].slaveName, making sure she is unhappy and uncomfortable.
-		<<set $slaves[_i].devotion -= 3, $slaves[_i].trust -= 3>>
-		<<if random(1,100) > 65>>
-			<<set $Milkmaid.rivalry += 1, $slaves[_MM].rivalry += 1, $slaves[_i].rivalry += 1>>
-		<</if>>
-	<</if>>
-	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a dairy cow.">>
-		She spends extra time with $slaves[_i].slaveName, the well-known cow.  $Milkmaid.slaveName is fascinated by her massive <<print $slaves[_i].boobs>>cc breasts and spends extra time massaging and kneading them to maximize production.
-		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
-	<</if>>
-	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a cockmilker.">>
-		She spends extra time with $slaves[_i].slaveName, the massive ejaculating cow.  She can't help but massage the cow's dick and testes to stimulate them further and coax more from them.
-		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
-	<</if>>
-	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a breeder." && $slaves[_i].preg > 10>>
-		She spends extra time with $slaves[_i].slaveName, the well-known breeder.  $Milkmaid.slaveName is fascinated by her growing pregnancy and popular womb. She makes sure her belly and it's occupants are nice and comfortable.
-		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
-	<</if>>
-	<</for>>
+	
+	<<print _MMAttentionString>>
+	
 	<<if (_cumWeek > 0) && ($dairyStimulatorsSetting < 2)>>
 	<<if ($Milkmaid.dick > 4) && (canPenetrate($Milkmaid))>>
 		She uses her turgid cock to give prostate stimulation to slaves that need help ejaculating.
