@@ -6,6 +6,8 @@
 
 <<set _balltacular = 0, _boobtacular = 0, _careerForgotten = 0, _chemMinor = 0, _chemSevere = 0, _desterilized = 0, _hatefilled = 0, _horrified = 0, _intelligenceLost = 0, _mindbroken = 0, _profits = 0, _skillsLost = 0, _stupidified = 0, _vaginasStretched = 0, _SL = $slaves.length, _MM = -1, _MMAttentionString = "">>
 
+<<set _MMWorkout = 0, _MMMuscles = 0>>
+
 <<if ($Milkmaid != 0)>>
 <<for _MM = 0; _MM < _SL; _MM++>>
 <<if $slaves[_MM].ID == $Milkmaid.ID>>
@@ -19,10 +21,8 @@
 	<<if $slaves[_MM].health < 90>>
 		<<set $slaves[_MM].curatives to 2>>
 	<</if>>
-	<<if ($slaves[_MM].muscles > 50)>>	
+	<<if ($slaves[_MM].diet != "healthy")>>	
 		<<set ($slaves[_MM].diet to "healthy")>>
-	<<else>>
-		<<set ($slaves[_MM].diet to "muscle building")>>
 	<</if>>
 	<<silently>>
 	<<include "SA diet">>
@@ -103,6 +103,44 @@
 		<<set $slaves[_i].diet to "cum production">>
 	<</if>>
 	
+	<<if $dairyRestraintsSetting != 2 && $Milkmaid != 0>> /* how much effort the MM must take to force a slave into a stall */
+		<<if $slaves[_i].devotion < 20>>
+			<<set _MMWorkout++>>
+		<</if>>
+		<<if $slaves[_i].trust < 20>>
+			<<set _MMWorkout++>>
+		<</if>>
+		<<if $slaves[_i].muscles >= 30>>
+			<<set _MMWorkout++>>
+		<</if>>
+		<<if $slaves[_i].weight >= 70>>
+			<<set _MMWorkout++>>
+		<</if>>
+		<<if $slaves[_i].boobs >= 6000>>
+			<<set _MMWorkout++>>
+		<</if>>
+		<<if $slaves[_i].balls >= 30>>
+			<<set _MMWorkout++>>
+		<</if>>
+		<<if bigBellyPreg($slaves[_i])>>
+			<<set _MMWorkout++>>
+		<</if>>
+		<<if !canWalk($slaves[_i])>> /* big bonus if they can't move themselves and are fat as cows */
+			<<if $slaves[_i].weight >= 70>>
+				<<set _MMWorkout += 2>>
+			<</if>>
+			<<if $slaves[_i].boobs >= 6000>>
+				<<set _MMWorkout += 2>>
+			<</if>>
+			<<if $slaves[_i].balls >= 30>>
+				<<set _MMWorkout += 2>>
+			<</if>>
+			<<if bigBellyPreg($slaves[_i])>>
+				<<set _MMWorkout += 2>>
+			<</if>>
+		<</if>>
+	<</if>>
+	
 	/* General End of Week effects */
 	<<silently>>
 	<<include "SA get milked">>
@@ -171,7 +209,7 @@
 		<</if>>
 	<</if>>
 	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a dairy cow.">>
-		<<set _MMAttentionString += "She spends extra time with $slaves["+_i+"].slaveName, the well-known cow.  $Milkmaid.slaveName is fascinated by her massive $slaves["+_i+"].boobs"+"cc breasts and spends extra time massaging and kneading them to maximize production. ">>
+		<<set _MMAttentionString += "She spends extra time with $slaves["+_i+"].slaveName, the well-known cow.  $Milkmaid.slaveName is fascinated by her massive $slaves["+_i+"].boobs cc breasts and spends extra time massaging and kneading them to maximize production. ">>
 		<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
 	<</if>>
 	<<if $slaves[_i].prestigeDesc is "She is remembered for winning best in show as a cockmilker.">>
@@ -479,6 +517,10 @@
 	<</if>>
 <</for>>
 
+<<if _MMWorkout > (random(1,100)+$Milkmaid.muscles) && $Milkmaid.muscles < 60>>
+	<<set _MMMuscles = 1>>
+<</if>>
+
 <<if $inflatedSlavesMilk > 0>>
 	<<set $milkWeek -= ((8*$inflatedSlavesMilk*10)+8)>>
 <</if>>
@@ -553,8 +595,10 @@
 	<</if>>
 	<<if ($Milkmaid.muscles > 30)>>
 		Her muscles help her handle the fattest or most reluctant cow.
-	<<else>>
-		Her constant handling of cows causes her to @@color:lime;gain muscle.@@.
+	<</if>>
+	<<if (_MMMuscles = 1)>>
+		Her constant handling of unruly or heavy cows forces her to @@color:lime;build muscle.@@
+		<<set $slaves[_MM].muscles += 1>>
 	<</if>>
 	<<if ($Milkmaid.oralSkill > 30)>>
 		Her skilled tongue helps her keep her girls happy.
