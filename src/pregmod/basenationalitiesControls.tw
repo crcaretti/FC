@@ -1,0 +1,139 @@
+:: Basenationalities Controls [nobr]
+
+<<if $nationalities.length < 1>>
+	//You cannot be a slave owner without a slave trade. Please add nationalities to continue.//
+<<else>>
+	<<link "Confirm customization">>
+		<<unset $baseControlsFilter>>
+		<<if $customWA == 0>>
+			<<goto "Intro Summary">>
+		<<else>>
+			<<goto "Extreme Intro">>
+		<</if>>
+	<</link>>
+<</if>>
+<br>
+
+/* Generates cloned array of $nationalities, removing duplicates */
+<<set $nationalitiescheck = clone($nationalities)>>
+<<for _i = 0; _i < $nationalitiescheck.length; _i++>>
+	<<set _nation to $nationalitiescheck[_i]>>
+		<<if $nationalitiescheck.count(_nation)>>
+			<<set $nationalitiescheck.delete(_nation),$nationalitiescheck.push(_nation),$nationalitiescheck.sort()>>
+		<</if>>			
+<</for>>
+
+/* Prints distribution of $nationalities, using $nationalitiescheck to render array */
+<<for _i = 0; _i < $nationalitiescheck.length; _i++>>
+	<<set _nation to $nationalitiescheck[_i]>>
+	<<print _nation>> @@color:orange;<<print (($nationalities.count(_nation)/$nationalities.length)*100).toFixed(2)>>%@@
+<<if _i < $nationalitiescheck.length-1>> | <</if>>
+<</for>>
+<br><br>
+
+/* Fine control tweaking of populations */
+Adjust slave populations:
+<br style="clear:both" /><hr style="margin:0">
+
+/* Filter controls */
+Filter by Race: 
+<<for _i = 0; _i < $filterRaces.length; _i++>>	
+	<<set _race to $filterRaces[_i]>>
+	<<if $baseControlsFilter == _race.toLowerCase().replace(/[ -]/g, '')>>
+		<<print _race>>
+	<<else>>
+		<<print "
+			<<link _race>>
+				<<set $baseControlsFilter to $filterRaces[" + _i + "].toLowerCase().replace(/[ -]/g, '')>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+	<</if>>
+	<<if _i < $filterRaces.length-1>>
+	|
+	<</if>>
+<</for>>
+<br>
+Filter by Region:
+<<for _i = 0; _i < $filterRegions.length; _i++>>	
+	<<set _region to $filterRegions[_i]>>
+	<<if $baseControlsFilter == _region.toLowerCase().replace(/[ -]/g, '')>>
+		<<print _region>>
+	<<else>>
+		<<print "
+			<<link _region>>
+				<<set $baseControlsFilter to $filterRegions[" + _i + "].toLowerCase().replace(/[ -]/g, '')>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+	<</if>>
+	<<if _i < $filterRegions.length-1>>
+	|
+	<</if>>
+<</for>>
+<br style="clear:both" /><hr style="margin:0">
+
+/* Unfiltered pop controls */
+<<if $baseControlsFilter == "all">>
+	<<for _i = 0; _i < $basenationalities.length; _i++>>
+		<<set _nation to $basenationalities[_i]>>
+		<<print "
+		_nation 
+			<<link '+'>>
+				<<set $nationalities.push($basenationalities[" + _i + "])>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+	<<if $nationalitiescheck.includes(_nation) > 0 >>
+		<<print "
+			<<link '–'>>
+				<<set $nationalities.deleteAt(($nationalities.indexOf($basenationalities[" + _i + "])))>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+		<</if>>
+	<<if $nationalities.count(_nation) > 1 >>
+		<<print "
+			<<link '0'>>
+				<<set $nationalities.delete($basenationalities[" + _i + "])>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+	<</if>>
+	<<if _i < $basenationalities.length-1>>
+	|
+	<</if>>
+	<</for>>
+<<else>>
+/* Filtered pop controls */
+	<<set _controlsNationality = State.variables[$baseControlsFilter+'Nationalities']>>
+	<<for _i = 0; _i < _controlsNationality.length; _i++>>
+		<<set _nation to _controlsNationality[_i]>>
+		<<print "
+		_nation 
+			<<link '+'>>
+				<<set $nationalities.push(_controlsNationality[" + _i + "])>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+	<<if $nationalitiescheck.includes(_nation) > 0 >>
+		<<print "
+			<<link '–'>>
+				<<set $nationalities.deleteAt(($nationalities.indexOf(_controlsNationality[" + _i + "])))>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+		<</if>>
+	<<if $nationalities.count(_nation) > 1 >>
+		<<print "
+			<<link '0'>>
+				<<set $nationalities.delete(_controlsNationality[" + _i + "])>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+	<</if>>
+	<<if _i < _controlsNationality.length-1>>
+	|
+	<</if>>
+	<</for>>
+<</if>>
