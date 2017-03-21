@@ -230,8 +230,12 @@ $Madam.slaveName is serving as the madam.<<if $Madam.relationship is -3>> As you
 	<<set _seed = Math.trunc(1.5*_seed)>>
 	Since she doesn't have enough whores to manage to keep her busy, she sees $beauty customers herself, earning you @@color:yellowgreen;¤_seed@@. She can charge more for her time, since many citizens find it erotic to fuck the Madam.
 	<<set _profits += _seed>>
-	<<set $facility.brothel.income.get(_MDM).income += _seed>>
+	<<set $facility.brothel.income.get($slaves[_MDM].ID).income += _seed>>
 	<</if>>
+<</if>>
+/% Add the some costs if not done above (if the Madam doesn't whore herself out) %/
+<<if !$facility.brothel.income.has($Madam.ID)>>
+	<<run $facility.brothel.income.set($Madam.ID, {ID: $Madam.ID, slaveName: $Madam.slaveName, customLabel: $Madam.customLabel, customers: 0, income: 0, adsIncome: 0, rep: 0, cost: getSlaveCost($Madam)})>>
 <</if>>
 <</if>>
 
@@ -458,9 +462,11 @@ $Madam.slaveName is serving as the madam.<<if $Madam.relationship is -3>> As you
 	<</if>>
 
 	<<set _profits += $cash-$oldCash>>
+	<!-- Record statistics -->
 	<<set $facility.brothel.whoreIncome = [... $facility.brothel.income.values()].map(function(i) { return i.income + i.adsIncome; }).reduce(function(s, i) { return s + i; }, 0)>>
 	<<set $facility.brothel.customers = [... $facility.brothel.income.values()].map(function(i) { return i.customers; }).reduce(function(s, i) { return s + i; }, 0)>>
 	<<set $facility.brothel.whoreCosts = [... $facility.brothel.income.values()].map(function(i) { return i.cost; }).reduce(function(s, i) { return s + i; }, 0)>>
+	<<set $facility.brothel.rep = [... $facility.brothel.income.values()].map(function(i) { return i.rep; }).reduce(function(s, i) { return s + i; }, 0)>>
 	<<set $facility.brothel.adsCosts = $brothelAdsSpending>>
 	<<set $facility.brothel.maintenance = ($brothel*$facilityCost)+(0.2*$brothelUpgradeDrugs*$brothel*$facilityCost)>>
 	
@@ -468,6 +474,7 @@ $Madam.slaveName is serving as the madam.<<if $Madam.relationship is -3>> As you
 	<<set $facility.brothel.totalExpenses = $facility.brothel.whoreCosts + $facility.brothel.adsCosts + $facility.brothel.maintenance>>
 	<<set $facility.brothel.profit = $facility.brothel.totalIncome - $facility.brothel.totalExpenses>>
 	
+
 	$brothelNameCaps makes you @@color:yellowgreen;¤_profits@@ this week.
 
 	<<if $brothel < $brothelSlaves>>
