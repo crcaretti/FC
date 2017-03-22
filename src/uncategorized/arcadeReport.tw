@@ -1,44 +1,33 @@
 :: Arcade Report [nobr]
 
-<<set $arcadeSlaves = 0, $implanted = 0, _cockmilked = 0, _milked = 0, _profits = 0, _SL = $slaves.length>>
+<<set $arcadeSlaves = 0, _cockmilked = 0, _implanted = 0, _milked = 0, _profits = 0, _SL = $slaves.length>>
 
-<<for _i to 0; _i < _SL; _i++>>
+<<for _i = 0; _i < _SL; _i++>>
 	<<if ($slaves[_i].assignment != "be confined in the arcade")>><<continue>><</if>>
-
-/* 000-250-006 */
-/* <<if $seeImages == 1>><<SlaveArt $slaves[_i] 0 0>><</if>> */
-<<if $seeImages == 1>>
-    <div class="imageRef tinyImg">
-    <<SlaveArt $slaves[_i] 0 0>>
-</div>
-<</if>>
-/* 000-250-006 */
-
-	<<set $slaves[_i].trust -= 5, $arcadeSlaves++, $i = _i>>
+	<<set $arcadeSlaves++, $oldCash = $cash, $i = _i>>
 	<<silently>>
 	<<if ($arcadeUpgradeInjectors == 1)>>
-	<<if ($slaves[_i].health < -60)>>
-		<<set $slaves[_i].health = -60>>
-	<<elseif ($slaves[_i].health > -50)>>
-		<<set $slaves[_i].health -= 10>>
-	<</if>>
-	<<set $slaves[_i].aphrodisiacs = 2>>
-	<<include "SA drugs">>
-	<<set $slaves[_i].devotion -= 5, $slaves[_i].trust -= 5>>
+		<<if ($slaves[_i].health < -60)>>
+			<<set $slaves[_i].health = -60>>
+		<<elseif ($slaves[_i].health > -50)>>
+			<<set $slaves[_i].health -= 10>>
+		<</if>>
+		<<set $slaves[_i].aphrodisiacs = 2, $slaves[_i].devotion -= 5, $slaves[_i].trust -= 10>>
 	<<else>>
-	<<if ($slaves[_i].health < -60)>>
-		<<set $slaves[_i].health += 20>>
-	<<elseif ($slaves[_i].health < 10)>>
-		<<set $slaves[_i].health += 10>>
-	<<elseif ($slaves[_i].health > 20)>>
-		<<set $slaves[_i].health -= 10>>
+		<<if ($slaves[_i].health < -60)>>
+			<<set $slaves[_i].health += 20>>
+		<<elseif ($slaves[_i].health < 10)>>
+			<<set $slaves[_i].health += 10>>
+		<<elseif ($slaves[_i].health > 20)>>
+			<<set $slaves[_i].health -= 10>>
+		<</if>>
+		<<set $slaves[_i].trust -= 5>>
 	<</if>>
-	<</if>>
-	<<set $oldCash to $cash>>
+	<<include "SA drugs">>
 	<<include "SA work a glory hole">>
 	<<if ($arcadeUpgradeCollectors > 0)>>
 	<<if ($slaves[_i].lactation < 2)>>
-		<<set $slaves[_i].lactation to 2, $slaves[_i].health -= 10, $cash -= $surgeryCost, $implanted += 1>>
+		<<set $slaves[_i].lactation = 2, $slaves[_i].health -= 10, $cash -= $surgeryCost, _implanted++>>
 	<<elseif ($slaves[_i].lactation > 0) || ($slaves[_i].balls > 0)>>
 		<<include "SA get milked">>
 		<<if ($slaves[_i].boobs < 2000)>>
@@ -48,15 +37,11 @@
 		<<elseif ($slaves[_i].boobs < 10000)>>
 		<<set $slaves[_i].boobs += 25>>
 		<</if>>
-		<<if ($slaves[_i].balls > 0) && ($slaves[_i].balls < 6)>>
-		<<if (random(1,100) > (40+(10*$slaves[_i].balls)))>>
+		<<if ($slaves[_i].balls > 0) && ($slaves[_i].balls < 6) && (random(1,100) > (40+(10*$slaves[_i].balls)))>>
 			<<set $slaves[_i].balls += 1>>
 		<</if>>
-		<</if>>
-		<<if ($slaves[_i].dick > 0) && ($slaves[_i].dick < 6)>>
-		<<if (random(1,100) > (40+(10*$slaves[_i].dick)))>>
+		<<if ($slaves[_i].dick > 0) && ($slaves[_i].dick < 6) && (random(1,100) > (40+(10*$slaves[_i].dick)))>>
 			<<set $slaves[_i].dick += 1>>
-		<</if>>
 		<</if>>
 		<<if ($slaves[_i].lactation > 0)>>
 		<<set _milked += 1>>
@@ -67,22 +52,26 @@
 	<</if>>
 	<</if>>
 	<<set _profits += $cash-$oldCash>>
+	<<include "SA diet">>
 	<<include "SA long term effects">>
+	<<include "SA relationships">>
+	<<include "SA rivalries">>
+	<<include "SA devotion">>
 	<</silently>>
 <</for>>
 
 <<if ($arcadeSlaves > 0)>>
 	<<if $seeImages == 1>><br style="clear:both" /><</if>>
-	<<if ($arcadeSlaves == 1)>>''There is one inmate confined in $arcadeName.''<<else>>''There are $arcadeSlaves inmates confined in $arcadeName.''<</if>>
+	&nbsp;&nbsp;&nbsp;&nbsp;<<if ($arcadeSlaves == 1)>>''There is one inmate confined in $arcadeName.''<<else>>''There are $arcadeSlaves inmates confined in $arcadeName.''<</if>>
 	<<if _milked == 1>>
 	One of them is lactating and spends her time in $arcadeName being simultaneously milked and fucked.
 	<<elseif _milked > 1>>
 	_milked of them are lactating and spend their time in $arcadeName being simultaneously milked and fucked.
 	<</if>>
-	<<if $implanted == 1>>
+	<<if _implanted == 1>>
 	One of them was not lactating, so she is implanted with long-acting lactation inducing drugs.
-	<<elseif $implanted > 1>>
-	$implanted of them were not lactating, so they are implanted with long-acting lactation inducing drugs.
+	<<elseif _implanted > 1>>
+	_implanted of them were not lactating, so they are implanted with long-acting lactation inducing drugs.
 	<</if>>
 	<<if _cockmilked == 1>>
 	One of them retains testicles and is brutally cockmilked as she is used.
@@ -104,9 +93,13 @@
 	<<set $repGain -= Math.trunc(_profits/100)>>
 	<</if>>
 
+	<<if $arcadeDecoration != "standard">>
+	$arcadeNameCaps's customers enjoy @@color:green;getting off in $arcadeDecoration surroundings.@@
+	<</if>>
+
 	<<if ($arcadeUpgradeFuckdolls == 1) && ($arcade < $arcadeSlaves)>>
 		<<set $activeSlave = 0, _Age = -1, _FD = -1, _MB = -1, _Con = -1>>
-		<<for _i to 0; _i < _SL; _i++>>
+		<<for _i = 0; _i < _SL; _i++>>
 			<<if $slaves[_i].assignment == "be confined in the arcade">>
 				<<if ($slaves[_i].fetish == "mindbroken")>>
 					<<if ($slaves[_i].fuckdoll == 0)>>
@@ -133,16 +126,10 @@
 		<<elseif _Con > -1>>
 			<<set $activeSlave = $slaves[_Con]>>
 		<</if>>
-		$activeSlave.slaveName is low-quality and surplus to the needs of the arcade, so she has been converted into a Fuckdoll.
-		<<set $fuckdolls += 1>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;$activeSlave.slaveName is low-quality and surplus to the needs of the arcade, so she has been converted into a Fuckdoll.
 		<<include "Remove activeSlave">>
-		<<set _SL = $slaves.length>>
+		<<set $fuckdolls += 1, _SL = $slaves.length>>
 	<</if>>
-
-	<<if $arcadeDecoration != "standard">>
-	$arcadeNameCaps's customers enjoy @@color:green;getting off in $arcadeDecoration surroundings.@@
-	<</if>>
-
 <<else>>
 	''$arcadeNameCaps is empty.''
 <</if>>

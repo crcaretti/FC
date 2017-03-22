@@ -1,5 +1,7 @@
 :: Slave Assignments Report [nobr]
 
+<h1> <<print $arcologies[0].name + " Weekly Report - Week " + $week>></h1>
+
 <<set $nextLink to "Economics", $nextButton to "Continue">>
 
 <<for _i to 0; _i < $slaves.length; _i++>>
@@ -334,245 +336,59 @@
 <</if>>
 <</if>>
 
+/**
+ * Accordion
+ * @version 0.7RC
+ * @author 000-250-006
+ *
+ * @param array _facListArr $args
+ *     Multidimensional temporary array
+ *     0: The passage name for the facility's report
+ *     1: The facility name capitalized (@see todo)
+ *     2: max number of slaves allowed in facility - > 0 implies open
+ *     3: number of slaves assigned to facility
+ *     4: ID of the slave assigned to run the facility ("Boss")
+ *     5: Text title of the Boss
+ *
+ * @todo This is a proof of concept construct, if it works and cuts overhead, intended to create an object
+ *      for deeper use in multiple locations, including streamlining reports/facilities code to one widget
+ * @todo Figure out if this would be better as an object rather than an array for overhead
+ *       StoryInit also?
+ * @todo Figure out why we're not using ndef/-1 for a bunch of these story variables. Leaky conditionals
+ * @todo Figure out why we're using variable space with capitalized facility names when we can parse it from true name
+ */ 
+ 
+<<set _facListArr to [
+    ["Brothel Report", $brothelNameCaps, $brothel, $brothelSlaves, $Madam, "Madam"],
+    ["Club Report", $clubNameCaps, $club, $clubSlaves, $DJ, "DJ"],
+    ["Arcade Report", $arcadeNameCaps, $arcade, $arcadeSlaves, -1, -1],
+    ["Dairy Report", $dairyNameCaps, $dairy, $dairySlaves, $Milkmaid, "Milkmaid"],
+    ["Servants' Quarters Report", $servantsQuartersNameCaps, $servantsQuarters, $servantsQuartersSlaves, $Stewardess, "Stewardess"],
+    ["Schoolroom Report", $schoolroomNameCaps, $schoolroom, $schoolroomSlaves, $Schoolteacher, "Schoolteacher"],
+    ["Spa Report", $spa, $spaNameCaps, $spaSlaves, $Attendant, "Attendant"],
+    ["Clinic Report", $clinicNameCaps, $clinic, $clinicSlaves, $Nurse, "Nurse"],
+    ["Cellblock Report", $cellblockNameCaps, $cellblock, $cellblockSlaves, $Wardeness, "Wardeness"],
+    ["Incubator Report", $incubaterNameCaps, $incubator, $incubatorSlaves, -1, -1],
+    ["Master Suite Report", $masterSuiteNameCaps, $masterSuite, $masterSuiteSlaves, $Concubine, "Concubine"]
+]>>
 
-/* Accordion 000-250-006 */
-<<if ($brothel > 0)>>
-    <<if ($brothelSlaves eq 0) and ($Madam eq 0)>> /* Is there even anyone home? */
-        <div class="unStaffed" data-after="Mandatory sensitivity classes">''$brothelNameCaps'' is currently unstaffed</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $brothelSlaves eq 1>>
-                    <<set _str1 to "There is one slave serving">>
-                <<else>>
-                    <<set _str1 to "There are " + $brothelSlaves + " serving">>
-                <</if>>
-                <<= '<button id="passage-brothel-report" class="accordion" data-after="' + _str1 + ' in ' + $brothelNameCaps + '">$brothelNameCaps Report</button>'>>
-            <<else>>
-                ''$brothelNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Brothel Report" "div">>
-        </div>
+<<for _ii to 0; _ii lt _facListArr.length; _ii++>>
+    <<set _facSubArr to _facListArr[_ii]>>
+    <<if _facSubArr[2] > 0>>                                                                                       /** Do we have one of these? */
+        <<if $useAccordion > 0>><<set _accText to " accordion">><</if>>                                                 /** Quick settings check - static or pretty tops? */
+        <<if (_facSubArr[3] eq 0) && (_facSubArr[4] eq 0)>>                                                   /** Do we have anyone inside? */
+            <<= '<div class="unStaffed">' + _facSubArr[1] + ' is currently unstaffed</div>'>>    /** Display the "Unstaffed" facility header bar */
+        <<else>>
+            <<= '<button id="passage-' + _res + '" class="' + _accText + '" data-after="' + _facSubArr[3] + ' slaves in ' + _facSubArr[1] + '">' + _facSubArr[1] + ' Report</button>'>>        
+        <</if>>
+    <<include `_facSubArr[0]` "div">>                                                                             /** OK, we're done with the pretty stuff, go get the guts */
     <</if>>
-<</if>>
+    <<unset _facSubArr>>
+<</for>>
 
-<<if ($club > 0)>>
-    <<if ($clubSlaves eq 0) and ($DJ eq 0)>> /* Is there even anyone home? */
-        <div class="unStaffed" data-after="Who said disco is dead?">''$clubNameCaps'' is currently dark and silent</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $clubSlaves eq 1>>
-                    <<set _str1 to "There is one slave serving">>
-                <<else>>
-                    <<set _str1 to "There are " + $clubSlaves + " serving">>
-                <</if>>
-                <<= '<button id="passage-club-report" class="accordion" data-after="' + _str1 + ' in ' + $clubNameCaps + '">$clubNameCaps Report</button>'>>
-            <<else>>
-                ''$brothelNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Club Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-
-<<if ($arcade > 0)>>
-    <<if $arcadeSlaves eq 0>> /* Is there even anyone home? */
-        <div class="unStaffed" data-after="No glory (hole), no guts ...">''$arcadeNameCaps'' is currently empty</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $arcadeSlaves eq 1>>
-                    <<set _str1 to "There is one slave serving">>
-                <<else>>
-                    <<set _str1 to "There are " + $arcadeSlaves + " slaves serving">>
-                <</if>>
-                <<= '<button id="passage-arcade-report" class="accordion" data-after="' + _str1 + ' in ' + $arcadeNameCaps + '">$arcadeNameCaps Report</button>'>>
-            <<else>>
-                ''$arcadeNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Arcade Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-
-<<if ($dairy > 0)>>
-    <<if ($dairySlaves eq 0) and ($Milkmaid eq 0)>> /* Is there even anyone home? */
-        <div class="unStaffed" data-after="Cows gone to pasture?">''$dairyNameCaps'' is empty</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $dairySlaves eq 1>>
-                    <<set _str1 to "There is one">>
-                    <<set _plurals to "">>
-                <<else>>
-                    <<set _str1 to "There are " + $dairySlaves>>
-                    <<set _plurals to "s">>
-                <</if>>
-                <<if ($dairyRestraintsSetting > 1)>> 
-                    <<set _str2 to " bioreactor" + _plurals>> 
-                <<else>>
-                    <<set _str2 to " cow" + _plurals>> 
-                <</if>>
-                <<= '<button id="passage-dairy-report" class="accordion" data-after="' + _str1 + _str2 + ' in ' + $dairyNameCaps + '">$dairyNameCaps Report</button>'>>
-            <<else>>
-                ''$dairyNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Dairy Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-
-<<if ($servantsQuarters > 0)>>
-    <<if ($servantsQuartersSlaves eq 0) and ($Stewardess eq 0)>> /* Is there even anyone home? */
-        <div class="unStaffed" data-after="Those sheets aren't gonna fold themselves">''$servantsQuartersNameCaps'' is currently unstaffed</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $servantsQuartersSlaves eq 1>>
-                    <<set _str1 to "There is slave serving">>
-                <<else>>
-                    <<set _str1 to "There are " + $servantsQuartersSlaves + " serving">>
-                <</if>>
-                <<= '<button id="passage-servants-quarters-report" class="accordion" data-after="' + _str1 + ' in ' + $servantsQuartersNameCaps + '">$servantsQuartersNameCaps Report</button>'>>
-            <<else>>
-                ''$servantsQuartersNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Servants' Quarters Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-
-<<if ($schoolroom > 0)>>
-    <<if ($schoolroomSlaves eq 0) and ($Schoolteacher eq 0)>> /* Is there even anyone home? */ /* DEV: Is this the right camelcase for schooteacher? */
-        <div class="unStaffed" data-after="School's out for summer!">''$schoolroomNameCaps'' is empty</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $schoolroomSlaves eq 1>>
-                    <<set _str1 to "There is one slave">>
-                <<else>>
-                    <<set _str1 to "There are " + $schoolroomSlaves + " slaves serving">>
-                <</if>>
-                <<= '<button id="passage-schoolroom-report" class="accordion" data-after="' + _str1 + ' in ' + $schoolroomNameCaps + '">$schoolroomNameCaps Report</button>'>>
-            <<else>>
-                ''$schoolroomNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Schoolroom Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-
-<<if ($spa > 0)>>
-    <<if ($spaSlaves eq 0) and ($Attendant eq 0)>> /* Is there even anyone home? */
-        <div class="unStaffed" data-after="All work and no play ...">''$spaNameCaps'' is currently unstaffed</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $spaSlaves eq 1>>
-                    <<set _str1 to "There is one slave relaxing">>
-                <<else>>
-                    <<set _str1 to "There are " + $spaSlaves + " slaves relaxing">>
-                <</if>>
-                <<= '<button id="passage-spa-report" class="accordion" data-after="' + _str1 + ' in ' + $spaNameCaps + '">$spaNameCaps Report</button>'>>
-            <<else>>
-                ''$spaNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Spa Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-
-<<if ($clinic > 0)>>
-  <<if ($clinicSlaves eq 0) and ($Nurse eq 0)>> /* Is there even anyone home? */
-        <div class="unStaffed" data-after="What is the nature of the medical emergency?">''$clinicNameCaps'' is currently unstaffed</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $clinicSlaves eq 1>>
-                    <<set _str1 to "There is one slave recovering">>
-                <<else>>
-                    <<set _str1 to "There are " + $brothelSlaves + " recovering">>
-                <</if>>
-                <<= '<button id="passage-clinic-report" class="accordion" data-after="' + _str1 + ' in ' + $clinicNameCaps + '">$clinicNameCaps Report</button>'>>
-            <<else>>
-                ''$clinicNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Clinic Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-
-<<if ($cellblock > 0)>>
-    <<if ($cellblockSlaves eq 0) and ($Wardeness eq 0)>> /* Is there even anyone home? */ 
-        <div class="unStaffed" data-after="Just means you haven't caught them yet">''$cellblockNameCaps'' is empty</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $cellblockSlaves eq 1>>
-                    <<set _str1 to "There is one slave confined">>
-                <<else>>
-                    <<set _str1 to "There are " + $cellblockSlaves + " slaves confined">>
-                <</if>>
-                <<= '<button id="passage-cellblock-report" class="accordion" data-after="' + _str1 + ' in ' + $cellblockNameCaps + '">$cellblockNameCaps Report</button>'>>
-            <<else>>
-                ''$cellblockNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Cellblock Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-<<if ($incubator > 0)>>
-    <<if ($incubatorSlaves == 0)>>
-        <div class="unStaffed" data-after="The tanks stand dormant">''$incubatorNameCaps'' is empty</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion == 1>>
-                <<if $incubatorSlaves == 1>>
-                    <<set _str1 to "There is one child aging">>
-                <<else>>
-                    <<set _str1 to "There are " + $incubatorSlaves + " children aging">>
-                <</if>>
-                <<= '<button id="passage-incubator-report" class="accordion" data-after="' + _str1 + ' in ' + $incubatorNameCaps + '">$incubatorNameCaps Report</button>'>>
-            <<else>>
-                ''$incubatorNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Incubator Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-<<if ($masterSuite > 0)>>
-    <<if ($masterSuiteSlaves eq 0) and ($Concubine eq 0)>> /* Is there even anyone home? */
-        <div class="unStaffed" data-after="You have the TV remote control to yourself for once!">''$masterSuiteNameCaps'' is empty</div>
-    <<else>>
-        <div class="staffed">
-            <<if $useAccordion eq 1>>
-                <<if $masterSuiteSlaves eq 1>>
-                    <<set _str1 to "There is one slave awaiting you">>
-                <<else>>
-                    <<set _str1 to "There are " + $masterSuiteSlaves + " slaves awaiting you">>
-                <</if>>
-                <<= '<button id="passage-mastersuite-report" class="accordion" data-after="' + _str1 + ' in ' + $masterSuiteNameCaps + '">$masterSuiteNameCaps Report</button>'>>
-            <<else>>
-                ''$masterSuiteNameCaps Report''
-                <hr style="margin:0">
-            <</if>>
-            <<include "Master Suite Report" "div">>
-        </div>
-    <</if>>
-<</if>>
-
-/* Accordion 000-250-006 */
+/* IMPORTANT FOR REASONS!!! */
+<<unset _ii>>
+/** /Accordion */
 
 <<if $slavesVisible > 0>>
 __''Penthouse Report''__<br>
