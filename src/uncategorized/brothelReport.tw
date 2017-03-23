@@ -462,19 +462,25 @@ $Madam.slaveName is serving as the madam.<<if $Madam.relationship is -3>> As you
 	<</if>>
 
 	<<set _profits += $cash-$oldCash>>
-	<!-- Record statistics -->
-	<<set $facility.brothel.whoreIncome = [... $facility.brothel.income.values()].map(function(i) { return i.income + i.adsIncome; }).reduce(function(s, i) { return s + i; }, 0)>>
-	<<set $facility.brothel.customers = [... $facility.brothel.income.values()].map(function(i) { return i.customers; }).reduce(function(s, i) { return s + i; }, 0)>>
-	<<set $facility.brothel.whoreCosts = [... $facility.brothel.income.values()].map(function(i) { return i.cost; }).reduce(function(s, i) { return s + i; }, 0)>>
-	<<set $facility.brothel.rep = [... $facility.brothel.income.values()].map(function(i) { return i.rep; }).reduce(function(s, i) { return s + i; }, 0)>>
-	<<set $facility.brothel.adsCosts = $brothelAdsSpending>>
-	<<set $facility.brothel.maintenance = ($brothel*$facilityCost)+(0.2*$brothelUpgradeDrugs*$brothel*$facilityCost)>>
-	
-	<<set $facility.brothel.totalIncome = $facility.brothel.whoreIncome + $facility.brothel.adsIncome>>
-	<<set $facility.brothel.totalExpenses = $facility.brothel.whoreCosts + $facility.brothel.adsCosts + $facility.brothel.maintenance>>
-	<<set $facility.brothel.profit = $facility.brothel.totalIncome - $facility.brothel.totalExpenses>>
-	
-
+	<!-- Record statistics gathering -->
+	<<script>>
+		var b = State.variables.facility.brothel;
+		b.whoreIncome = 0;
+		b.customers = 0;
+		b.whoreCosts = 0;
+		b.rep = 0;
+		for(var si of b.income.values()) {
+			b.whoreIncome += si.income + si.adsIncome;
+			b.customers += si.customers;
+			b.whoreCosts += si.cost;
+			b.rep += si.rep;
+		}
+		b.adsCosts = State.variables.brothelAdsSpending;
+		b.maintenance = State.variables.brothel * State.variables.facilityCost * (1.0 + 0.2 * State.variables.brothelUpgradeDrugs);
+		b.totalIncome = b.whoreIncome + b.adsIncome;
+		b.totalExpenses = b.whoreCosts + b.adsCosts + b.maintenance;
+		b.profit = b.totalIncome - b.totalExpenses;
+	<</script>>
 	$brothelNameCaps makes you @@color:yellowgreen;¤_profits@@ this week.
 
 	<<if $brothel < $brothelSlaves>>
