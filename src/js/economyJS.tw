@@ -1,0 +1,195 @@
+:: EconomyJS [script]
+
+window.LivingRule = Object.freeze({LUXURIOUS: 'luxurious', NORMAL: 'normal', SPARSE: 'sparse'});
+window.Job = Object.freeze({
+	DAIRY: 'work in the dairy', MASTER_SUITE: 'serve in the master suite', CONCUBINE: 'be your concubine',
+	BABY_FACTORY: 'labor in the production line'});
+
+window.getSlaveCost = function(s) {
+	if(!s) { return 0; }
+	// Data duplicated from Cost Report
+	var cost = 0;
+	var rulesCost = State.variables.rulesCost;
+	var foodCost = State.variables.foodCost;
+	var drugsCost = State.variables.drugsCost;
+	
+	// Living expenses
+	if(s.livingRules === LivingRule.LUXURIOUS) {
+		cost += rulesCost * (s.relationship >= 4 ? 3 : 4);
+	} else if(s.livingRules == LivingRule.NORMAL) {
+		cost += rulesCost * 2;
+	} else {
+		cost += rulesCost;
+	}
+	
+	// Food
+	cost += foodCost * 4;
+	switch(s.diet) {
+		case 'fattening': case 'muscle building':
+			cost += foodCost;
+			break;
+		case 'restricted': case 'slimming':
+			cost -= foodCost;
+	}
+	if(s.weight > 50) {
+		cost += foodCost;
+	} else if(s.weight < -50) {
+		cost -= foodCost;
+	}
+	if(s.lactation > 0) {
+		cost += foodCost * (1 + s.lactation * (1 + Math.trunc(s.boobs/10000)));
+	}
+	if(s.preg > 5) {
+		if(s.assignment === Job.DAIRY && State.variables.dairyFeedersSetting > 0) {
+			// Extra feeding costs to support pregnancy are covered by dairy feeders.
+			// TODO: Include them here anyway?
+		} else if((s.assignment === Job.MASTER_SUITE || s.assignment === Job.CONCUBINE)
+			&& State.variables.masterSuiteUpgradePregnancy === 1) {
+			// Extra feeding costs to support pregnancy are covered by master suite luxuries.
+			// TODO: Include them here anyway?
+		} else {
+			cost += foodCost * s.pregType * (s.pregControl === 'speed up' ? 3 : 1);
+		}
+	}
+	if(s.diet === 'XX' || s.diet === 'XY') {
+		cost += 25;
+	} else if(s.diet === 'XXY') {
+		cost += 75;
+	}
+	
+	// Accessibility costs
+	if(State.variables.boobAccessibility !== 1 && s.boobs > 7500
+		&& (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2)) {
+		cost += 50;
+	}
+	if(State.variables.pregAccessibility !== 1
+		&& ((s.preg > 30 && s.pregType >= 2) || (s.preg > 20 && s.pregType >= 10) || (s.preg > 10 && s.pregType >= 20) || s.bellyImplant >= 10000)
+		&& s.assignment != Job.BABY_FACTORY) {
+		cost += 100;
+	}
+	if(State.variables.dickAccessibility != 1 && s.dick > 45) {
+		cost += 50;
+	}
+	if(State.variables.ballsAccessibility != 1 && s.balls > 90) {
+		cost += 50;
+	}
+	if(State.variables.buttAccessibility != 1 && s.butt > 15) {
+		cost += 50;
+	}
+	if(!canSee(s)) {
+		cost += 50;
+	} else if(s.eyes <= -1) {
+		cost += 25;
+	} else if(s.eyewear === 'blurring glasses' || s.eyewear === 'blurring contacts') {
+		cost += 25;
+	}
+	if(s.amp !== 0) {
+		if(s.amp === 1) {
+			cost += rulesCost;
+		} else {
+			cost += rulesCost / 2;
+		}
+	} else if(!canWalk(s)) {
+		cost += rulesCost;
+	}
+	
+	// Maintenance
+	if(s.boobs > 10000 && s.boobsImplantType === 1) {
+		cost += 50;
+	}
+	if(s.butt > 10 && s.buttImplantType === 1) {
+		cost += 50;
+	}
+	if(s.preg > 25 && s.universalRulesBirthing === 1) {
+		cost += 50;
+	}
+
+	// Retirement account
+	if(State.variables.CitizenRetirement === 1) {
+		cost += 250;
+	}
+
+	if(s.inflationType === 'water') {
+		switch(s.inflation) {
+			case 3:
+				cost += 100;
+				break;
+			case 2:
+				cost += 50;
+				break;
+			case 1:
+				cost += 25;
+				break;
+		}
+	}
+
+	// Drugs
+	if(s.drugs === 'anti-aging cream') {
+		cost += drugsCost * 10;
+	} else if(s.drugs === 'female hormone injections' || s.drugs === 'male hormone injections') {
+		cost += drugsCost * 5;
+	} else if(s.drugs != 'no drugs') {
+		cost += drugsCost + 2;
+	}
+	if(s.curatives > 0) {
+		cost += drugsCost * (1 + s.curatives);
+	}
+	if(s.aphrodisiacs > 0) {
+		cost += drugsCost * s.aphrodisiacs;
+	}
+	if(s.hormones !== 0) {
+		cost += Math.trunc(drugsCost * Math.abs(s.hormones) * 0.5);
+	}
+	if(s.preg === -1 && isFertile(s)) {
+		cost += Math.trunc(drugsCost * 0.5);
+	}
+	
+	// Promotion costs
+	if(State.variables.studio === 1) {
+		if(s.pornFameSpending > 0) {
+			cost += s.pornFameSpending;
+		}
+	}
+	
+	if(isNaN(cost)) {
+		throw new Error('Cost calculation for slave ' + s.slaveName + ' (' + s.ID + ') failed.');
+	}
+	return cost;
+};
+
+window.getSlaveStatisticData = function(s, facility) {
+	if(!s || !facility) {
+		return {};
+	}
+	
+	if(!facility.income) {
+		facility.income = new Map();
+	}
+	
+	if(facility.income.has(s.ID)) {
+		return facility.income.get(s.ID);
+	} else {
+		var data = {
+			ID: s.ID, slaveName: s.slaveName, customLabel: s.customLabel,
+			income: 0, adsIncome: 0, rep: 0, cost: getSlaveCost(s),
+			customers: 0 /* brothel, club, ... */
+		};
+		facility.income.set(s.ID, data);
+		return data;
+	}
+};
+
+window.initFacilityStatistics = function(facility) {
+	facility = facility || {};
+	facility.adsIncome = 0;
+	facility.maintenance = 0;
+	facility.totalIncome = 0;
+	facility.totalExpenses = 0;
+	facility.profit = 0;
+	facility.income = new Map();
+	return facility;
+}
+
+Number.prototype.toFixedHTML = function() {
+	return Number.prototype.toFixed.apply(this, arguments).replace(/\.0+$/, '<span style="opacity: 0.3">$&</span>');
+}

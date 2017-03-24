@@ -4,6 +4,9 @@
 
 <<set $legendaryWombID = 0, $pregYes to 0, $pregNo to 0>>
 
+<!-- Statistics gathering -->
+<<set $facility = $facility || {}, $facility.brothel = initFacilityStatistics($facility.brothel)>>
+
 <<for _i = 0; _i < _SL; _i++>>
 <<if ($slaves[_i].assignment == "work in the brothel")>>
 	<<set $brothelSlaves++>>
@@ -61,6 +64,8 @@
 	<</if>>
 	<</if>>
 	<<set $Madam = $slaves[_MDM]>>
+	/% Make sure we have registered living expenses as for any other slave %/
+	<<run getSlaveStatisticData($Madam, $facility.brothel)>>
 &nbsp;&nbsp;&nbsp;&nbsp;$Madam.slaveName is serving as the madam.
 <<if $Madam.relationship == -3>>
 	As your wife, she does her best to attract attention to your brothel.
@@ -199,7 +204,7 @@
 	<<if ($brothelSlaves+$slavesGettingHelp < 5)>>
 	<<set $oldCash = $cash, $i = _MDM>>
 	<<silently>><<include "SA whore">><</silently>>
-	<<set $Madam = $slaves[_MDM], _seed = $cash-$oldCash, $cash += Math.trunc(0.5*_seed), _seed = Math.trunc(1.5*_seed), _profits += _seed>>
+	<<set $Madam = $slaves[_MDM], _seed = $cash-$oldCash, $cash += Math.trunc(0.5*_seed), _seed = Math.trunc(1.5*_seed), _profits += _seed, getSlaveStatisticData($Madam, $facility.brothel).income += _seed>>
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;Since she doesn't have enough whores to manage to keep her busy, she sees $beauty customers herself (<<print Math.trunc($beauty/7)>> a day), earning you @@color:yellowgreen;¤_seed@@. She can charge more for her time, since many citizens find it erotic to fuck the Madam.
 	<</if>>
 <</if>>
@@ -312,9 +317,9 @@
 		<</if>>
 	<</if>>
 	<<if _seed > 0>>
-		<<set $cash += _seed * random(50,60) * Math.trunc($brothelAdsSpending/1000)>>
+		<<set _adsIncome = _seed * random(50,60) * Math.trunc($brothelAdsSpending/1000), $cash += _adsIncome, getSlaveStatisticData($slaves[_i], $facility.brothel).adsIncome += _adsIncome>>
 	<<else>>
-		<<set $cash += random(50,60) * Math.trunc($brothelAdsSpending/1000)>>
+		<<set _adsIncome = random(50,60) * Math.trunc($brothelAdsSpending/1000), $cash += _adsIncome, getSlaveStatisticData($slaves[_i], $facility.brothel).adsIncome += _adsIncome>>
 	<</if>>
 	<</if>>
 	<<set _profits += $cash-$oldCash>>
@@ -355,7 +360,7 @@
 	<<if ($brothelAdsSpending == 0) || ($brothelAdsStacked == 0)>>
 		<<set _possibleBonuses++>>
 		<<if ($slim > 0) && ($stacked > 0) && (Math.abs($slim-$stacked) <= ($brothelSlaves/3))>>
-		<<set $cash += $brothelSlaves*random(20,30), _brothelBonuses++>>
+		<<set _adsIncome = $brothelSlaves*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
 		The brothel offers a @@color:yellowgreen;wide@@ variety of slim and stacked slaves.
 		<</if>>
 	<</if>>
@@ -364,7 +369,7 @@
 	<<if ($brothelAdsSpending == 0) || ($brothelAdsPreg == 0)>>
 		<<set _possibleBonuses++>>
 		<<if ($pregYes > 0) && ($pregNo > 0) && (Math.abs($pregYes-$pregNo) <= ($brothelSlaves/3))>>
-		<<set $cash += $brothelSlaves*random(20,30), _brothelBonuses++>>
+		<<set _adsIncome = $brothelSlaves*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
 		The brothel offers a @@color:yellowgreen;wide@@ variety of slaves with big bellies and slaves with flat bellies.
 		<</if>>
 	<</if>>
@@ -373,7 +378,7 @@
 	<<if ($brothelAdsSpending == 0) || ($brothelAdsModded == 0)>>
 		<<set _possibleBonuses++>>
 		<<if ($modded > 0) && ($unmodded > 0) && (Math.abs($modded-$unmodded) <= ($brothelSlaves/3))>>
-		<<set $cash += $brothelSlaves*random(20,30), _brothelBonuses++>>
+		<<set _adsIncome = $brothelSlaves*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
 		The brothel offers a @@color:yellowgreen;both@@ heavily pierced and tattooed slaves and slaves with more natural bodies.
 		<</if>>
 	<</if>>
@@ -382,7 +387,7 @@
 	<<if ($brothelAdsSpending == 0) || ($brothelAdsImplanted == 0)>>
 		<<set _possibleBonuses++>>
 		<<if ($implanted > 0) && ($pure > 0) && (Math.abs($implanted-$pure) <= ($brothelSlaves/3))>>
-		<<set $cash += $brothelSlaves*random(20,30), _brothelBonuses++>>
+		<<set _adsIncome = $brothelSlaves*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
 		The brothel offers @@color:yellowgreen;both@@ all-natural girls, and slaves whose beauty has been improved by surgical means.
 		<</if>>
 	<</if>>
@@ -391,7 +396,7 @@
 	<<if ($brothelAdsSpending == 0) || ($brothelAdsXX == 0)>>
 		<<set _possibleBonuses++>>
 		<<if ($XX > 0) && ($XY > 0) && (Math.abs($XX-$XY) <= ($brothelSlaves/3))>>
-		<<set $cash += $brothelSlaves*random(20,30), _brothelBonuses++>>
+		<<set _adsIncome = $brothelSlaves*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
 		The brothel offers a @@color:yellowgreen;mix@@ of whores that can appeal to varied tastes in genitalia.
 		<</if>>
 	<</if>>
@@ -400,18 +405,37 @@
 	<<if ($brothelAdsSpending == 0) || ($brothelAdsOld == 0)>>
 		<<set _possibleBonuses++>>
 		<<if ($young > 0) && ($old > 0) && (Math.abs($young-$old) <= ($brothelSlaves/3))>>
-		<<set $cash += $brothelSlaves*random(20,30), _brothelBonuses++>>
+		<<set _adsIncome = $brothelSlaves*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
 		The brothel offers girls @@color:yellowgreen;both@@ young and mature.
 		<</if>>
 	<</if>>
 	<</if>>
 
 	<<if (_possibleBonuses > 0) && (_brothelBonuses >= _possibleBonuses)>>
-		<<set $cash += $brothelSlaves*random(40,60)>>
+		<<set _adsIncome = $brothelSlaves*random(40,60), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome>>
 		There is a ''@@color:yellowgreen;perfect variety@@'' of slave whores working in the brothel.
 	<</if>>
 
 	<<set _profits += $cash-$oldCash>>
+	<!-- Record statistics gathering -->
+	<<script>>
+		var b = State.variables.facility.brothel;
+		b.whoreIncome = 0;
+		b.customers = 0;
+		b.whoreCosts = 0;
+		b.rep = 0;
+		for(var si of b.income.values()) {
+			b.whoreIncome += si.income + si.adsIncome;
+			b.customers += si.customers;
+			b.whoreCosts += si.cost;
+			b.rep += si.rep;
+		}
+		b.adsCosts = State.variables.brothelAdsSpending;
+		b.maintenance = State.variables.brothel * State.variables.facilityCost * (1.0 + 0.2 * State.variables.brothelUpgradeDrugs);
+		b.totalIncome = b.whoreIncome + b.adsIncome;
+		b.totalExpenses = b.whoreCosts + b.adsCosts + b.maintenance;
+		b.profit = b.totalIncome - b.totalExpenses;
+	<</script>>
 	$brothelNameCaps makes you @@color:yellowgreen;¤_profits@@ this week.
 
 	<<if $brothel < $brothelSlaves>>
@@ -424,6 +448,8 @@
 	$brothelNameCaps's customers enjoy @@color:green;fucking whores in $brothelDecoration surroundings.@@
 	<</if>>
 
+	<!-- Statistics output -->
+	<<BrothelStatistics 0>>
 <<else>>
 	''$brothelNameCaps is empty''<<if (_MDM > -1)>> except for the Madam<</if>>.
 	<<set $brothelSpots = $brothel>>
