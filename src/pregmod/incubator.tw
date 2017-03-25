@@ -1,20 +1,15 @@
 :: Incubator [nobr]
  
-
-<<set $nextButton to "Back to Main">>
-<<set $nextLink to "Main">>
-<<set $returnTo to "Incubator">>
-<<set $targetAge to Math.clamp($targetAge, $minimumSlaveAge, 42)>>
+<<set $nextButton = "Back to Main", $nextLink = "Main", $returnTo = "Incubator">>
+<<set $targetAge = Math.clamp($targetAge, $minimumSlaveAge, 42)>>
 
 <<if $incubatorName != "the Incubator">>
-	<<set $incubatorNameCaps to $incubatorName.replace("the ", "The ")>>
+	<<set $incubatorNameCaps = $incubatorName.replace("the ", "The ")>>
 <</if>>
 
-<<set $readySlaves to 0>>
-<<set $readySlave to 0>>
-<<set $incubatorSlaves to 0>>
-<<for _i to 0; _i < $tanks.length; _i++>>
-		<<set $incubatorSlaves += 1>>
+<<set $readySlaves = 0, $readySlave = 0, $incubatorSlaves = 0, _TL = $tanks.length, _SL = $slaves.length, _eligibility = 0>>
+<<for _i = 0; _i < _TL; _i++>>
+	<<set $incubatorSlaves += 1>>
 <</for>>
 
 <br><br>
@@ -25,7 +20,7 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 <<elseif $incubatorSlaves > 0>>
 	It's barely used; most of the tanks lie dormant.
 <<else>>
-	It's empty and quiet. [[Decommission the incubator|Main][$incubator to 0, $incubatorUpgradeSpeed = 0, $incubatorUpgradeWeight = 0, $incubatorUpgradeMuscles = 0, $incubatorUpgradeReproduction = 0, $tanks = []]]
+	It's empty and quiet. [[Decommission the incubator|Main][$incubator = 0, $incubatorUpgradeSpeed = 0, $incubatorUpgradeWeight = 0, $incubatorUpgradeMuscles = 0, $incubatorUpgradeReproduction = 0, $tanks = []]]
 <</if>>
 
 <br>It can support $incubator <<if $incubator == 1>>child<<else>>children<</if>>.
@@ -34,46 +29,102 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 <</if>>
 [[Add another incubation tank|Incubator][$cash -= Math.trunc(60000*$upgradeMultiplierArcology), $incubator += 1]] //Costs ¤<<print Math.trunc(60000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 
-<br>
-Target age for release: <<textbox "$targetAge" $targetAge "Incubator">> [[Minimum Legal Age|Incubator][$targetAge to $minimumSlaveAge]] | [[Average Age of Fertility|Incubator][$targetAge to $fertilityAge]] | [[Average Age of Potency|Incubator][$targetAge to $potencyAge]] | [[Legal Adulthood|Incubator][$targetAge to 18]]
+<br><br>
+Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $incubator tanks, <<print $incubator-$incubatorSlaves>> are availalbe. Of those, $reservedChildren tanks are reserved.
+<<for _i = 0; _i < _SL; _i++>>
+	<<if $slaves[_i].pregType < 50 && $slaves[_i].preg > 3 && $slaves[_i].eggType == "human">>
+	<<if $slaves[_i].assignment == "work in the dairy" && $dairyPregSetting > 0>>
+	<<else>>
+		<<if $slaves[_i].reservedChildren > 0>>
+			<br>
+			$slaves[_i].reservedChildren of ''@@color:pink;$slaves[_i].slaveName's@@'' children will be placed in $incubatorName.
+			<<if ($slaves[_i].reservedChildren < $slaves[_i].pregType) && ($reservedChildren < ($incubator-$incubatorSlaves))>>
+				<br>&nbsp;&nbsp;&nbsp;&nbsp;
+				<<print "[[Keep another child|Incubator][$slaves[" + _i + "].reservedChildren += 1, $reservedChildren += 1]]">>
+				<<if $slaves[_i].reservedChildren > 0>>
+					| <<print "[[Keep one less child|Incubator][$slaves[" + _i + "].reservedChildren -= 1, $reservedChildren -= 1]]">>
+				<</if>>
+			<<elseif ($slaves[_i].reservedChildren == $slaves[_i].pregType) || ($reservedChildren == ($incubator-$tanks.length))>>
+				<br>&nbsp;&nbsp;&nbsp;&nbsp;
+				<<print "[[Keep one less child|Incubator][$slaves[" + _i + "].reservedChildren -= 1, $reservedChildren -= 1]]">>
+			<</if>>
+		<<elseif $reservedChildren < ($incubator-$incubatorSlaves)>>
+			<br>
+			''@@color:pink;$slaves[_i].slaveName@@'' is pregnant and you have an available aging tank.
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;
+			<<print "[[Keep a child|Incubator][$slaves[" + _i + "].reservedChildren += 1, $reservedChildren += 1]]">>
+		<<elseif $reservedChildren == ($incubator-$incubatorSlaves)>>
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;
+			You have no room for ''@@color:pink;$slaves[_i].slaveName's@@'' offspring.
+		<</if>>
+		<<set _eligibility = 1>>
+	<</if>>
+	<</if>>
+<</for>>
+<<if _eligibility == 0>>
+	<br>
+	//You have no pregnant slaves bearing eligible children.//
+<</if>>
+<<if $PC.preg > 4 && $PC.pregSource != -1>>
+	<<if $reservedChildren < ($incubator-$incubatorSlaves)>>
+		<br>''@@color:pink;You're pregnant@@'' and have an unreserved tank. If it is @@color:lime;still available when you give birth, you can place your child into it.@@
+	<<else>>
+		<br>''@@color:pink;You're pregnant@@'' but have no unreserved tanks. If a tank is @@color:red;not available when you give birth, you will not be able to keep your child.@@
+	<</if>>
+<</if>>
+<<if $reservedChildren != 0>> /* the oops I made it go negative somehow button */
+	<br>
+	 <<link "Clear all reserved children">>
+		<<for _i = 0; _i < _SL; _i++>>
+			<<if $slaves[_i].reservedChildren != 0>>
+				<<set $slaves[_i].reservedChildren = 0>>
+			<</if>>
+		<</for>>
+		<<set $reservedChildren = 0>>
+		<<goto "Incubator">>
+	 <</link>>
+<</if>>
+
+<br><br>
+Target age for release: <<textbox "$targetAge" $targetAge "Incubator">> [[Minimum Legal Age|Incubator][$targetAge = $minimumSlaveAge]] | [[Average Age of Fertility|Incubator][$targetAge = $fertilityAge]] | [[Average Age of Potency|Incubator][$targetAge = $potencyAge]] | [[Legal Adulthood|Incubator][$targetAge = 18]]
 //Setting will not be applied to tanks in use.//
 
 <br>
 <<if $incubatorUpgradeSpeed == 52>>
 	It has been upgraded with perfected growth accelerants; children grow at the rate of 1 week to 1 year.
 <<elseif $incubatorUpgradeSpeed == 18>>
-	It has been upgraded with advanced experimental growth accelerants; children grow at the rate of 3 weeks to 1 year. [[Fund speculative research into maximizing growth rate|Incubator][$cash -= Math.trunc(500000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 52]] //Costs ¤<<print Math.trunc(500000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	It has been upgraded with advanced experimental growth accelerants; children grow at the rate of 3 weeks to 1 year. [[Fund speculative research into maximizing growth rate|Incubator][$cash -= Math.trunc(500000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed = 52]] //Costs ¤<<print Math.trunc(500000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <<elseif $incubatorUpgradeSpeed == 9>>
-	It has been upgraded with advanced growth accelerants; children grow at the rate of 6 weeks to 1 year. [[Fund research into increasing growth rate even further|Incubator][$cash -= Math.trunc(75000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 18]] //Costs ¤<<print Math.trunc(75000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	It has been upgraded with advanced growth accelerants; children grow at the rate of 6 weeks to 1 year. [[Fund research into increasing growth rate even further|Incubator][$cash -= Math.trunc(75000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed = 18]] //Costs ¤<<print Math.trunc(75000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <<elseif $incubatorUpgradeSpeed == 6>>
-	It has been upgraded with growth accelerants; children grow at the rate of 9 weeks to 1 year. [[Further upgrade the incubators with specialized stem cells to speed growth|Incubator][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 9]] //Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	It has been upgraded with growth accelerants; children grow at the rate of 9 weeks to 1 year. [[Further upgrade the incubators with specialized stem cells to speed growth|Incubator][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed = 9]] //Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <<elseif $incubatorUpgradeSpeed == 5>>
-	The incubation tanks are basic; children grow at the rate of 12 weeks to 1 year. [[Upgrade the incubators with growth accelerating drugs|Incubator][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed to 6]] //Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	The incubation tanks are basic; children grow at the rate of 12 weeks to 1 year. [[Upgrade the incubators with growth accelerating drugs|Incubator][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $incubatorUpgradeSpeed = 6]] //Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <</if>>
 
 <br>
 <<if $incubatorUpgradeWeight == 1>>
 	Advanced caloric monitoring systems have been installed in the tanks to monitor and maintain a developing child's weight.
 <<else>>
-	There are no systems in place to control a growing child's weight; they will likely come out emaciated from rapidly growing. [[Upgrade the growth tanks with weight monitoring systems|Incubator][$cash -= Math.trunc(20000*$upgradeMultiplierArcology), $incubatorUpgradeWeight to 1]] //Costs ¤<<print Math.trunc(20000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	There are no systems in place to control a growing child's weight; they will likely come out emaciated from rapidly growing. [[Upgrade the growth tanks with weight monitoring systems|Incubator][$cash -= Math.trunc(20000*$upgradeMultiplierArcology), $incubatorUpgradeWeight = 1]] //Costs ¤<<print Math.trunc(20000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <</if>>
 
 <br>
 <<if $incubatorUpgradeMuscles == 1>>
 	Advanced monitoring and steriod injection systems have been installed in the tanks to monitor and maintain a developing child's musculature.
 <<else>>
-	There are no systems in place to control a growing child's musculature; they will likely come out frail and weak from rapidly growing. [[Upgrade the growth tanks with muscle monitoring systems|Incubator][$cash -= Math.trunc(20000*$upgradeMultiplierArcology), $incubatorUpgradeMuscles to 1]] //Costs ¤<<print Math.trunc(20000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	There are no systems in place to control a growing child's musculature; they will likely come out frail and weak from rapidly growing. [[Upgrade the growth tanks with muscle monitoring systems|Incubator][$cash -= Math.trunc(20000*$upgradeMultiplierArcology), $incubatorUpgradeMuscles = 1]] //Costs ¤<<print Math.trunc(20000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <</if>>
 
 <br>
 <<if $incubatorUpgradeReproduction == 1>>
 	Advanced monitoring and hormone injection systems have been installed in the tanks to influence a developing child's reproductive organs.
 <<else>>
-	There are no systems in place to control a growing child's reproductive capability. [[Upgrade the growth tanks with hormone monitoring systems|Incubator][$cash -= Math.trunc(50000*$upgradeMultiplierArcology), $incubatorUpgradeReproduction to 1]] //Costs ¤<<print Math.trunc(50000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
+	There are no systems in place to control a growing child's reproductive capability. [[Upgrade the growth tanks with hormone monitoring systems|Incubator][$cash -= Math.trunc(50000*$upgradeMultiplierArcology), $incubatorUpgradeReproduction = 1]] //Costs ¤<<print Math.trunc(50000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 <</if>>
 
 <<if $incubatorSlaves > 0>>
-<<for $i to 0; $i < $tanks.length; $i++>>
+<<for $i = 0; $i < _TL; $i++>>
 		<<if $tanks[$i].growTime <= 0>>
 			<<set $readySlaves = 1>>
 			<br><br>@@color:pink;$tanks[$i].slaveName@@ is ready to be released from her tank.
@@ -146,7 +197,7 @@ Target age for release: <<textbox "$targetAge" $targetAge "Incubator">> [[Minimu
 <</if>>
 
 <<if $readySlaves == 1>>
-	<<for $i to 0; $i < $tanks.length; $i++>>
+	<<for $i = 0; $i < _TL; $i++>>
 		<<if $tanks[$i].growTime <= 0>>
 			<<set $readySlave = $tanks.pluck([$i], [$i])>>
 			<<break>>
