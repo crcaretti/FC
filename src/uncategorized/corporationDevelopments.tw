@@ -1,12 +1,12 @@
 :: Corporation Developments [nobr]
-<<if ndef _NumGeneral || ndef _NumSlaves || ndef _NumEntrap || ndef _NumCapture || ndef _NumTrain || ndef _NumSurgery || ndef _NumPharma>>
-<<set _NumGeneral = 1>>
-<<set _NumSlaves = 1>>
-<<set _NumEntrapment = 1>>
-<<set _NumCapture = 1>>
-<<set _NumTraining = 1>>
-<<set _NumSurgery = 1>>
-<<set _NumDrug = 1>>
+<<if $detailedCorpControls == 1>>
+<<set _Numgeneral = "ALL">>
+<<set _Numslave = "ALL">>
+<<set _Numentrapment = "ALL">>
+<<set _Numcapture = "ALL">>
+<<set _Numtraining = "ALL">>
+<<set _Numsurgical = "ALL">>
+<<set _Numdrug = "ALL">>
 <</if>>
 __The Corporation__
 <br>
@@ -166,137 +166,150 @@ You hold $personalShares shares personally while $publicShares are publicly held
 	<</if>>
 <</if>>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<span id="genAssets">¤<<print $generalAssetPrice*$generalAssets>> (<<print $generalAssets/500>> unit<<if $generalAssets/500 > 1>>s<</if>>)</span> in general assets.
-Prices are 
-<<if $generalAssetPrice > 10>>
-	@@color:yellowgreen;¤<<print $generalAssetPrice*500>>ea@@.
-<<elseif $generalAssetPrice < 10>>
-	@@color:gold;¤<<print $generalAssetPrice*500>>ea@@.
+<<if $detailedCorpControls != 1>>
+	<span id="genAssets">¤<<print $generalAssetPrice*$generalAssets>></span> in general assets.
+	General asset prices are
+	<<if $generalAssetPrice > 12>>@@color:yellowgreen;very high@@<<elseif $generalAssetPrice > 10>>@@color:yellowgreen;high@@<<elseif $generalAssetPrice == 10>>average<<elseif $generalAssetPrice >= 8>>@@color:gold;low@@<<else>>@@color:gold;very low@@<</if>>.
+	| <<link "Buy">>
+		<<if $generalAssetPrice*500 < $corpCash>>
+			<<set $generalAssets += 500>>
+			<<set $corpCash -= 500*$generalAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#genAssets">>
+				¤<<print $generalAssetPrice*$generalAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+		<<replace "#purchasing">>
+			There are insufficient funds for additional purchases.
+		<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Massive investment">>
+		 <<if $generalAssetPrice*1000 < $corpCash>>
+			<<set $generalAssets += (Math.trunc($corpCash/($generalAssetPrice*500)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($generalAssetPrice*500)))*($generalAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#genAssets">>
+				¤<<print $generalAssetPrice*$generalAssets>>
+			<</replace>>
+		<<else>>
+		<<replace "#purchasing">>
+			There are insufficient funds for additional purchases.
+		<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Sell">>
+		<<if $generalAssets >= 1000>>
+			<<set $generalAssets -= 500>>
+			<<set $corpCash += 500*$generalAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#genAssets">>
+				¤<<print $generalAssetPrice*$generalAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
+				You cannot sell any more assets.
+			<</replace>>
+		<</if>>
+	<</link>>
 <<else>>
-	¤<<print $generalAssetPrice*500>>ea.
+	<span id="generalAssetsDisp">¤<<print $generalAssetPrice*$generalAssets>> (<<print $generalAssets/500>> unit<<if $generalAssets/500 > 1>>s<</if>>)</span> in general assets.
+	Prices are 
+	<<if $generalAssetPrice > 10>>
+		@@color:yellowgreen;¤<<print $generalAssetPrice*500>>ea@@.
+	<<elseif $generalAssetPrice < 10>>
+		@@color:gold;¤<<print $generalAssetPrice*500>>ea@@.
+	<<else>>
+		¤<<print $generalAssetPrice*500>>ea.
+	<</if>>
+	<span id="controlsgeneral"><<CorpDevBuySell "general" "Numgeneral">></span><span id='generalAssetsPurchasing'></span>
 <</if>>
-| Trade Qty <<textbox "_NumGeneral" _NumGeneral>><<script>>setTextboxMaxLength('_NumGeneral', 5);<</script>>
- : <<link "Buy">>
-	<<if Number.isInteger(Number.parseFloat(_NumGeneral)) == false>>
-		<<replace "#genAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif _NumGeneral*$generalAssetPrice*500 < $corpCash>>
-		<<set $generalAssets += _NumGeneral*500>>
-		<<set $corpCash -= _NumGeneral*500*$generalAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#genAssets">>
-			¤<<print $generalAssetPrice*$generalAssets>> (<<print $generalAssets/500>> unit<<if $generalAssets/500 > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#genAssetsPurchasing">><</replace>>
-	<<elseif $corpCash > $generalAssetPrice*500>>
-		<<replace "#genAssetsPurchasing">> You can only buy <<print Math.floor($corpCash/($generalAssetPrice*500))>> more unit<<if Math.floor($corpCash/($generalAssetPrice*500)) > 1 >>s<</if>> of this asset. <</replace>>
-	<<else>>
-		<<replace "#genAssetsPurchasing">>
-		There are insufficient funds for additional purchases.
-		<</replace>>
-	<</if>>
-<</link>>
-| <<link "Sell">>
-	<<if Number.isInteger(Number.parseFloat(_NumGeneral)) == false>>
-		<<replace "#genAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif $generalAssets > 500 && (_NumGeneral*500) < $generalAssets>>
-		<<set $generalAssets -= _NumGeneral*500>>
-		<<set $corpCash += _NumGeneral*500*$generalAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#genAssets">>
-			¤<<print $generalAssetPrice*$generalAssets>> (<<print $generalAssets/500>> unit<<if $generalAssets > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#genAssetsPurchasing">>
-		<</replace>>
-	<<elseif $generalAssets > 500>>
-		<<replace "#genAssetsPurchasing">>
-			You can only sell <<print Math.floor(($generalAssets-500)/500)>> more unit<<if Math.floor(($generalAssets-500)/500) > 1 >>s<</if>> of this asset.
-		<</replace>>
-	<<else>>
-		<<replace "#genAssetsPurchasing">>
-			You cannot sell any more of this asset.
-		<</replace>>
-	<</if>>
-<</link>>
-<span id="genAssetsPurchasing"></span>
-<br>
 
+<br>
 <<set $slaveAssetPrice = Math.trunc(10*$slaveCostFactor)>>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<span id="slaveAssets">¤<<print $slaveAssetPrice*$slaveAssets>> (<<print Math.floor($slaveAssets/500)>> unit<<if Math.floor($slaveAssets/500) > 1>>s<</if>>)</span> in slaves.
-Prices are 
-<<if $slaveAssetPrice > 10>>
-	@@color:yellowgreen;¤<<print $slaveAssetPrice*500>>ea@@
-<<elseif $slaveAssetPrice < 10>>
-	@@color:gold;¤<<print $slaveAssetPrice*500>>ea@@
+<<if $detailedCorpControls != 1>>
+	<span id="slavAssets">¤<<print $slaveAssetPrice*$slaveAssets>></span> in slaves.
+	Slave prices are
+	<<if $slaveAssetPrice > 12>>@@color:yellowgreen;very high@@<<elseif $slaveAssetPrice > 10>>@@color:yellowgreen;high@@<<elseif $slaveAssetPrice == 10>>average<<elseif $slaveAssetPrice >= 8>>@@color:gold;low@@<<else>>@@color:gold;very low@@<</if>>.
+	| <<link "Buy">>
+		 <<if $slaveAssetPrice*500 < $corpCash>>
+			<<set $slaveAssets += 500>>
+			<<set $corpPeopleEnslaved += Math.trunc((500*$slaveAssetPrice)/1000)>>
+			<<set $corpCash -= 500*$slaveAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#slavAssets">>
+				¤<<print $slaveAssetPrice*$slaveAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+		<<replace "#purchasing">>
+			There are insufficient funds for additional purchases.
+		<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Massive investment">>
+		<<if $slaveAssetPrice*1000 < $corpCash>>
+			<<set $slaveAssets += (Math.trunc($corpCash/($slaveAssetPrice*500)))*500>>
+			<<set $corpPeopleEnslaved += Math.trunc(($corpCash/($slaveAssetPrice*2))/1000)>>
+			<<set $corpCash -= (Math.trunc($corpCash/($slaveAssetPrice*500)))*($slaveAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#slavAssets">>
+				¤<<print $slaveAssetPrice*$slaveAssets>>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Sell">>
+		<<if $slaveAssets >= 1000>>
+			<<set $slaveAssets -= 500>>
+			<<set $corpCash += 500*$slaveAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#slavAssets">>
+				¤<<print $slaveAssetPrice*$slaveAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
+				You cannot sell any more assets.
+			<</replace>>
+		<</if>>
+	<</link>>
 <<else>>
-	¤<<print $slaveAssetPrice*500>>ea
+	<span id="slaveAssetsDisp">¤<<print $slaveAssetPrice*$slaveAssets>> (<<print Math.floor($slaveAssets/500)>> unit<<if Math.floor($slaveAssets/500) > 1>>s<</if>>)</span> in slaves.
+	Prices are 
+	<<if $slaveAssetPrice > 10>>
+		@@color:yellowgreen;¤<<print $slaveAssetPrice*500>>ea@@
+	<<elseif $slaveAssetPrice < 10>>
+		@@color:gold;¤<<print $slaveAssetPrice*500>>ea@@
+	<<else>>
+		¤<<print $slaveAssetPrice*500>>ea
+	<</if>>
+	<span id="controlsslave"><<CorpDevBuySell "slave" "Numslave">></span><span id='slaveAssetsPurchasing'></span>
 <</if>>
-| Trade Qty <<textbox "_NumSlaves" _NumSlaves>><<script>>setTextboxMaxLength('_NumSlaves', 5);<</script>>
- : <<link "Buy">>
-	<<if Number.isInteger(Number.parseFloat(_NumSlaves)) == false>>
-		<<replace "#slaveAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif _NumSlaves*$slaveAssetPrice*500 < $corpCash>>
-		<<set $slaveAssets += _NumSlaves*500>>
-		<<set $corpCash -= _NumSlaves*500*$slaveAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#slaveAssets">>
-			¤<<print $slaveAssetPrice*$slaveAssets>> (<<print Math.floor($slaveAssets/500)>> unit<<if $slaveAssets/500 > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#slaveAssetsPurchasing">><</replace>>
-	<<elseif $corpCash > $slaveAssetPrice*500>>
-		<<replace "#slaveAssetsPurchasing">> The corp can only buy <<print Math.floor($corpCash/($slaveAssetPrice*500))>> more unit<<if Math.floor($corpCash/($slaveAssetPrice*500)) > 1 >>s<</if>> of this asset. <</replace>>
-	<<else>>
-	<<replace "#slaveAssetsPurchasing">>
-		There are insufficient funds for additional purchases.
-	<</replace>>
-	<</if>>
-<</link>>
-| <<link "Sell">>
-	<<if Number.isInteger(Number.parseFloat(_NumSlaves)) == false>>
-		<<replace "#slaveAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif $slaveAssets >500 && (_NumSlaves*500) < $slaveAssets>>
-		<<set $slaveAssets -= _NumSlaves*500>>
-		<<set $corpCash += _NumSlaves*500*$slaveAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#slaveAssets">>
-				¤<<print $slaveAssetPrice*$slaveAssets>> 
-					<<if $slaveAssetPrice*$slaveAssets < $slaveAssetPrice*500>>
-					(<1 unit)
-					<<else>>
-					(<<print Math.floor($slaveAssets/500)>> unit<<if Math.floor($slaveAssets/500) > 1>>s<</if>>)
-					<</if>>
-		<</replace>>
-		<<replace "#slaveAssetsPurchasing">>
-		<</replace>>
-	<<elseif $slaveAssets > 500>>
-		<<replace "#slaveAssetsPurchasing">>
-			The corp can only sell <<print Math.ceil(($slaveAssets-500)/500)>> more unit<<if Math.ceil(($slaveAssets-500)/500) > 1 >>s<</if>> of this asset.
-		<</replace>>
-	<<else>>
-		<<replace "#slaveAssetsPurchasing">>
-			The corp cannot sell any more of this asset.
-		<</replace>>
-	<</if>>
-<</link>>
-<span id="slaveAssetsPurchasing"></span>
-<br>
 
+<br>
 <<if $entrapmentAssetPrice > 10>>
 	<<if random(1,100) > 50>>
 	<<set $entrapmentAssetPrice -= 1>>
@@ -321,68 +334,76 @@ Prices are
 	<<set $entrapmentAssetPrice to 5>>
 <</if>>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<span id="trapAssets">¤<<print $entrapmentAssetPrice*$entrapmentAssets>> (<<print Math.floor($entrapmentAssets/500)>> unit<<if Math.floor($entrapmentAssets/500) > 1>>s<</if>>)</span> in legal enslavement assets.
-Prices are 
-<<if $entrapmentAssetPrice > 10>>
-	@@color:yellowgreen;¤<<print $entrapmentAssetPrice*500>>ea@@
-<<elseif $entrapmentAssetPrice < 10>>
-	@@color:gold;¤<<print $entrapmentAssetPrice*500>>ea@@
+<<if $detailedCorpControls != 1>>
+	<span id="trapAssets">¤<<print $entrapmentAssetPrice*$entrapmentAssets>></span> in legal enslavement assets.
+	Legal enslavement asset prices are
+	<<if $entrapmentAssetPrice > 12>>@@color:yellowgreen;very high@@<<elseif $entrapmentAssetPrice > 10>>@@color:yellowgreen;high@@<<elseif $entrapmentAssetPrice == 10>>average<<elseif $entrapmentAssetPrice >= 8>>@@color:gold;low@@<<else>>@@color:gold;very low@@<</if>>.
+	| <<link "Buy">>
+		<<if $entrapmentAssetPrice*500 < $corpCash>>
+			<<set $entrapmentAssets += 500>>
+			<<set $corpCash -= 500*$entrapmentAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#trapAssets">>
+				¤<<print $entrapmentAssetPrice*$entrapmentAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Massive investment">>
+		<<if $entrapmentAssetPrice*1000 < $corpCash>>
+			<<set $entrapmentAssets += (Math.trunc($corpCash/($entrapmentAssetPrice*500)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($entrapmentAssetPrice*500)))*($entrapmentAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#trapAssets">>
+				¤<<print $entrapmentAssetPrice*$entrapmentAssets>>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Sell">>
+		<<if $entrapmentAssets >= 1000>>
+			<<set $entrapmentAssets -= 500>>
+			<<set $corpCash += 500*$entrapmentAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#trapAssets">>
+				¤<<print $entrapmentAssetPrice*$entrapmentAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
+				You cannot sell any more assets.
+			<</replace>>
+		<</if>>
+	<</link>>
 <<else>>
-	¤<<print $entrapmentAssetPrice*500>>ea
+	<span id="entrapmentAssetsDisp">¤<<print $entrapmentAssetPrice*$entrapmentAssets>> (<<print Math.floor($entrapmentAssets/500)>> unit<<if Math.floor($entrapmentAssets/500) > 1>>s<</if>>)</span> in legal enslavement assets.
+	Prices are 
+	<<if $entrapmentAssetPrice > 10>>
+		@@color:yellowgreen;¤<<print $entrapmentAssetPrice*500>>ea@@
+	<<elseif $entrapmentAssetPrice < 10>>
+		@@color:gold;¤<<print $entrapmentAssetPrice*500>>ea@@
+	<<else>>
+		¤<<print $entrapmentAssetPrice*500>>ea
+	<</if>>
+	<span id="controlsentrapment"><<CorpDevBuySell "entrapment" "Numentrapment">></span><span id='entrapmentAssetsPurchasing'></span>
 <</if>>
-| Trade Qty <<textbox "_NumEntrapment" _NumEntrapment>><<script>>setTextboxMaxLength('_NumEntrapment', 5);<</script>>
- : <<link "Buy">>
-	<<if Number.isInteger(Number.parseFloat(_NumEntrapment)) == false>>
-		<<replace "#entrapmentAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif _NumEntrapment*$entrapmentAssetPrice*500 < $corpCash>>
-		<<set $entrapmentAssets += _NumEntrapment*500>>
-		<<set $corpCash -= _NumEntrapment*500*$entrapmentAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#trapAssets">>
-			¤<<print $entrapmentAssetPrice*$entrapmentAssets>> (<<print Math.floor($entrapmentAssets/500)>> unit<<if $entrapmentAssets/500 > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#entrapmentAssetsPurchasing">><</replace>>
-	<<elseif $corpCash > $entrapmentAssetPrice*500>>
-		<<replace "#entrapmentAssetsPurchasing">> The corp can only buy <<print Math.floor($corpCash/($entrapmentAssetPrice*500))>> more unit<<if Math.floor($corpCash/($entrapmentAssetPrice*500)) > 1 >>s<</if>> this asset. <</replace>>
-	<<else>>
-	<<replace "#entrapmentAssetsPurchasing">>
-		There are insufficient funds for additional purchases.
-	<</replace>>
-	<</if>>
-<</link>>
-| <<link "Sell">>
-	<<if Number.isInteger(Number.parseFloat(_NumEntrapment)) == false>>
-		<<replace "#entrapmentAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif $entrapmentAssets > 500 && ((_NumEntrapment*500) < $entrapmentAssets)>>
-		<<set $entrapmentAssets -= _NumEntrapment*500>>
-		<<set $corpCash += _NumEntrapment*500*$entrapmentAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#trapAssets">>
-			¤<<print $entrapmentAssetPrice*$entrapmentAssets>> (<<print Math.floor($entrapmentAssets/500)>> unit<<if Math.floor($entrapmentAssets/500) > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#entrapmentAssetsPurchasing">>
-		<</replace>>
-	<<elseif $entrapmentAssets > 500>>
-		<<replace "#entrapmentAssetsPurchasing">>
-			The corp can only sell <<print Math.floor(($entrapmentAssets-500)/500)>> more unit<<if Math.floor(($entrapmentAssets-500)/500) > 1 >>s<</if>> of this asset.
-		<</replace>>
-	<<else>>
-		<<replace "#entrapmentAssetsPurchasing">>
-			The corp cannot sell any more of this asset.
-		<</replace>>
-	<</if>>
-<</link>>
-<span id="entrapmentAssetsPurchasing"></span>
-<br>
 
+<br>
 <<if $captureAssetPrice > 10>>
 	<<if random(1,100) > 50>>
 	<<set $captureAssetPrice -= 1>>
@@ -407,66 +428,74 @@ Prices are
 	<<set $captureAssetPrice to 5>>
 <</if>>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<span id="capAssets">¤<<print $captureAssetPrice*$captureAssets>> (<<print Math.floor($captureAssets/500)>> unit<<if Math.floor($captureAssets/500) > 1>>s<</if>>)</span> in conflict zone enslavement assets.
-Prices are 
-<<if $captureAssetPrice > 10>>
-	@@color:yellowgreen;¤<<print $captureAssetPrice*500>>ea@@
-<<elseif $captureAssetPrice < 10>>
-	@@color:gold;¤<<print $captureAssetPrice*500>>ea@@
+<<if $detailedCorpControls != 1>>
+	<span id="capAssets">¤<<print $captureAssetPrice*$captureAssets>></span> in conflict zone enslavement assets.
+	Extralegal enslavement asset prices are
+	<<if $captureAssetPrice > 12>>@@color:yellowgreen;very high@@<<elseif $captureAssetPrice > 10>>@@color:yellowgreen;high@@<<elseif $captureAssetPrice == 10>>average<<elseif $captureAssetPrice >= 8>>@@color:gold;low@@<<else>>@@color:gold;very low@@<</if>>.
+	| <<link "Buy">>
+		<<if $captureAssetPrice*500 < $corpCash>>
+			<<set $captureAssets += 500>>
+			<<set $corpCash -= 500*$captureAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#capAssets">>
+				¤<<print $captureAssetPrice*$captureAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Massive investment">>
+		<<if $captureAssetPrice*1000 < $corpCash>>
+			<<set $captureAssets += (Math.trunc($corpCash/($captureAssetPrice*500)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($captureAssetPrice*500)))*($captureAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#capAssets">>
+				¤<<print $captureAssetPrice*$captureAssets>>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Sell">>
+		<<if $captureAssets >= 1000>>
+			<<set $captureAssets -= 500>>
+			<<set $corpCash += 500*$captureAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#capAssets">>
+				¤<<print $captureAssetPrice*$captureAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
+				You cannot sell any more assets.
+			<</replace>>
+		<</if>>
+	<</link>>
 <<else>>
-	¤<<print $captureAssetPrice*500>>ea
+	<span id="captureAssetsDisp">¤<<print $captureAssetPrice*$captureAssets>> (<<print Math.floor($captureAssets/500)>> unit<<if Math.floor($captureAssets/500) > 1>>s<</if>>)</span> in conflict zone enslavement assets.
+	Prices are 
+	<<if $captureAssetPrice > 10>>
+		@@color:yellowgreen;¤<<print $captureAssetPrice*500>>ea@@
+	<<elseif $captureAssetPrice < 10>>
+		@@color:gold;¤<<print $captureAssetPrice*500>>ea@@
+	<<else>>
+		¤<<print $captureAssetPrice*500>>ea
+	<</if>>
+	<span id="controlscapture"><<CorpDevBuySell "capture" "Numcapture">></span><span id='captureAssetsPurchasing'></span>
 <</if>>
-| Trade Qty <<textbox "_NumCapture" _NumCapture>><<script>>setTextboxMaxLength('_NumCapture', 5);<</script>>
- : <<link "Buy">>
-	<<if Number.isInteger(Number.parseFloat(_NumCapture)) == false>>
-		<<replace "#captureAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif _NumCapture*$captureAssetPrice*500 < $corpCash>>
-		<<set $captureAssets += _NumCapture*500>>
-		<<set $corpCash -= _NumCapture*500*$captureAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#capAssets">>
-			¤<<print $captureAssetPrice*$captureAssets>> (<<print Math.floor($captureAssets/500)>> unit<<if $captureAssets/500 > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#captureAssetsPurchasing">><</replace>>
-	<<elseif $corpCash > $captureAssetPrice*500>>
-		<<replace "#captureAssetsPurchasing">> The corp can only buy <<print Math.floor($corpCash/($captureAssetPrice*500))>> more unit<<if Math.floor($corpCash/($captureAssetPrice*500)) > 1 >>s<</if>> of this asset. <</replace>>
-	<<else>>
-	<<replace "#captureAssetsPurchasing">>
-		There are insufficient funds for additional purchases.
-	<</replace>>
-	<</if>>
-<</link>>
-| <<link "Sell">>
-	<<if Number.isInteger(Number.parseFloat(_NumCapture)) == false>>
-		<<replace "#captureAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif $captureAssets > 500 && (_NumCapture*500) < $captureAssets>>
-		<<set $captureAssets -= _NumCapture*500>>
-		<<set $corpCash += _NumCapture*500*$captureAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#capAssets">>
-			¤<<print $captureAssetPrice*$captureAssets>> (<<print Math.floor($captureAssets/500)>> unit<<if Math.floor($captureAssets/500) > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#captureAssetsPurchasing">>
-		<</replace>>
-	<<elseif $captureAssets > 500>>
-		<<replace "#captureAssetsPurchasing">>
-			The corp can only sell <<print Math.floor(($captureAssets-500)/500)>> more unit<<if Math.floor(($captureAssets-500)/500) > 1 >>s<</if>> of this asset.
-		<</replace>>
-	<<else>>
-		<<replace "#captureAssetsPurchasing">>
-			The corp cannot sell any more of this asset.
-		<</replace>>
-	<</if>>
-<</link>>
-<span id="captureAssetsPurchasing"></span>
 
 <br>
 <<if $trainingAssetPrice > 10>>
@@ -493,66 +522,74 @@ Prices are
 	<<set $trainingAssetPrice to 5>>
 <</if>>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<span id="trainAssets">¤<<print $trainingAssetPrice*$trainingAssets>> (<<print Math.floor($trainingAssets/500)>> unit<<if Math.floor($trainingAssets/500) > 1>>s<</if>>)</span> of slave training assets.
-Prices are 
-<<if $trainingAssetPrice > 10>>
-	@@color:yellowgreen;¤<<print $trainingAssetPrice*500>>ea@@
-<<elseif $trainingAssetPrice < 10>>
-	@@color:gold;¤<<print $trainingAssetPrice*500>>ea@@
+<<if $detailedCorpControls != 1>>
+	<span id="trainAssets">¤<<print $trainingAssetPrice*$trainingAssets>></span> in slave training assets.
+	Slave training asset prices are
+	<<if $trainingAssetPrice > 12>>@@color:yellowgreen;very high@@<<elseif $trainingAssetPrice > 10>>@@color:yellowgreen;high@@<<elseif $trainingAssetPrice == 10>>average<<elseif $trainingAssetPrice >= 8>>@@color:gold;low@@<<else>>@@color:gold;very low@@<</if>>.
+	| <<link "Buy">>
+		<<if $trainingAssetPrice*500 < $corpCash>>
+			<<set $trainingAssets += 500>>
+			<<set $corpCash -= 500*$trainingAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#trainAssets">>
+				¤<<print $trainingAssetPrice*$trainingAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Massive investment">>
+		<<if $trainingAssetPrice*1000 < $corpCash>>
+			<<set $trainingAssets += (Math.trunc($corpCash/($trainingAssetPrice*500)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($trainingAssetPrice*500)))*($trainingAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#trainAssets">>
+				¤<<print $trainingAssetPrice*$trainingAssets>>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Sell">>
+		<<if $trainingAssets >= 1000>>
+			<<set $trainingAssets -= 500>>
+			<<set $corpCash += 500*$trainingAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#trainAssets">>
+				¤<<print $trainingAssetPrice*$trainingAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
+				You cannot sell any more assets.
+			<</replace>>
+		<</if>>
+	<</link>>
 <<else>>
-	¤<<print $trainingAssetPrice*500>>ea
+	<span id="trainingAssetsDisp">¤<<print $trainingAssetPrice*$trainingAssets>> (<<print Math.floor($trainingAssets/500)>> unit<<if Math.floor($trainingAssets/500) > 1>>s<</if>>)</span> of slave training assets.
+	Prices are 
+	<<if $trainingAssetPrice > 10>>
+		@@color:yellowgreen;¤<<print $trainingAssetPrice*500>>ea@@
+	<<elseif $trainingAssetPrice < 10>>
+		@@color:gold;¤<<print $trainingAssetPrice*500>>ea@@
+	<<else>>
+		¤<<print $trainingAssetPrice*500>>ea
+	<</if>>
+	<span id="controlstraining"><<CorpDevBuySell "training" "Numtraining">></span><span id='trainingAssetsPurchasing'></span>
 <</if>>
-| Trade Qty <<textbox "_NumTraining" _NumTraining>><<script>>setTextboxMaxLength('_NumTraining', 5);<</script>>
- : <<link "Buy">>
-	<<if Number.isInteger(Number.parseFloat(_NumTraining)) == false>>
-		<<replace "#trainingAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif _NumTraining*$trainingAssetPrice*500 < $corpCash>>
-		<<set $trainingAssets += _NumTraining*500>>
-		<<set $corpCash -= _NumTraining*500*$trainingAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#trainAssets">>
-			¤<<print $trainingAssetPrice*$trainingAssets>> (<<print Math.floor($trainingAssets/500)>> unit<<if $trainingAssets/500 > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#trainingAssetsPurchasing">><</replace>>
-	<<elseif $corpCash > $trainingAssetPrice*500>>
-		<<replace "#trainingAssetsPurchasing">> The corp can only buy <<print Math.floor($corpCash/($trainingAssetPrice*500))>> more unit<<if Math.floor($corpCash/($trainingAssetPrice*500)) > 1 >>s<</if>> of this asset. <</replace>>
-	<<else>>
-	<<replace "#trainingAssetsPurchasing">>
-		There are insufficient funds for additional purchases.
-	<</replace>>
-	<</if>>
-<</link>>
-| <<link "Sell">>
-	<<if Number.isInteger(Number.parseFloat(_NumTraining)) == false>>
-		<<replace "#trainingAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif $trainingAssets > 500 && (_NumTraining*500) < $trainingAssets>>
-		<<set $trainingAssets -= _NumTraining*500>>
-		<<set $corpCash += _NumTraining*500*$trainingAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#trainAssets">>
-			¤<<print $trainingAssetPrice*$trainingAssets>> (<<print Math.floor($trainingAssets/500)>> unit<<if Math.floor($trainingAssets/500) > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#trainingAssetsPurchasing">>
-		<</replace>>
-	<<elseif $trainingAssets > 500>>
-		<<replace "#trainingAssetsPurchasing">>
-			The corp can only sell <<print Math.floor(($trainingAssets-500)/500)>> more unit<<if Math.floor(($trainingAssets-500)/500) > 1 >>s<</if>> of this asset.
-		<</replace>>
-	<<else>>
-		<<replace "#trainingAssetsPurchasing">>
-			The corp cannot sell any more of this asset.
-		<</replace>>
-	<</if>>
-<</link>>
-<span id="trainingAssetsPurchasing"></span>
 
 <br>
 <<if $surgicalAssetPrice > 10>>
@@ -579,66 +616,74 @@ Prices are
 	<<set $surgicalAssetPrice to 5>>
 <</if>>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<span id="surgAssets">¤<<print $surgicalAssetPrice*$surgicalAssets>> (<<print Math.floor($surgicalAssets/500)>> unit<<if Math.floor($surgicalAssets/500) > 1>>s<</if>>)</span> in surgical assets.
-Prices are 
-<<if $surgicalAssetPrice > 10>>
-	@@color:yellowgreen;¤<<print $surgicalAssetPrice*500>>ea@@
-<<elseif $surgicalAssetPrice < 10>>
-	@@color:gold;¤<<print $surgicalAssetPrice*500>>ea@@
+<<if $detailedCorpControls != 1>>
+	<span id="surgAssets">¤<<print $surgicalAssetPrice*$surgicalAssets>></span> in surgical assets.
+	Surgical asset prices are
+	<<if $surgicalAssetPrice > 12>>@@color:yellowgreen;very high@@<<elseif $surgicalAssetPrice > 10>>@@color:yellowgreen;high@@<<elseif $surgicalAssetPrice == 10>>average<<elseif $surgicalAssetPrice >= 8>>@@color:gold;low@@<<else>>@@color:gold;very low@@<</if>>.
+	| <<link "Buy">>
+		<<if $surgicalAssetPrice*500 < $corpCash>>
+			<<set $surgicalAssets += 500>>
+			<<set $corpCash -= 500*$surgicalAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#surgAssets">>
+				¤<<print $surgicalAssetPrice*$surgicalAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Massive investment">>
+		<<if $surgicalAssetPrice*1000 < $corpCash>>
+			<<set $surgicalAssets += (Math.trunc($corpCash/($surgicalAssetPrice*500)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($surgicalAssetPrice*500)))*($surgicalAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#surgAssets">>
+				¤<<print $surgicalAssetPrice*$surgicalAssets>>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Sell">>
+		<<if $surgicalAssets >= 1000>>
+			<<set $surgicalAssets -= 500>>
+			<<set $corpCash += 500*$surgicalAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#surgAssets">>
+				¤<<print $surgicalAssetPrice*$surgicalAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
+				You cannot sell any more assets.
+			<</replace>>
+		<</if>>
+	<</link>>
 <<else>>
-	¤<<print $surgicalAssetPrice*500>>ea
+	<span id="surgicalAssetsDisp">¤<<print $surgicalAssetPrice*$surgicalAssets>> (<<print Math.floor($surgicalAssets/500)>> unit<<if Math.floor($surgicalAssets/500) > 1>>s<</if>>)</span> in surgical assets.
+	Prices are 
+	<<if $surgicalAssetPrice > 10>>
+		@@color:yellowgreen;¤<<print $surgicalAssetPrice*500>>ea@@
+	<<elseif $surgicalAssetPrice < 10>>
+		@@color:gold;¤<<print $surgicalAssetPrice*500>>ea@@
+	<<else>>
+		¤<<print $surgicalAssetPrice*500>>ea
+	<</if>>
+	<span id="controlssurgical"><<CorpDevBuySell "surgical" "Numsurgical">></span><span id='surgicalAssetsPurchasing'></span>
 <</if>>
-| Trade Qty <<textbox "_NumSurgery" _NumSurgery>><<script>>setTextboxMaxLength('_NumSurgery', 5);<</script>>
- : <<link "Buy">>
-	<<if Number.isInteger(Number.parseFloat(_NumSurgery)) == false>>
-		<<replace "#surgicalAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif _NumSurgery*$surgicalAssetPrice*500 < $corpCash>>
-		<<set $surgicalAssets += _NumSurgery*500>>
-		<<set $corpCash -= _NumSurgery*500*$surgicalAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#surgAssets">>
-			¤<<print $surgicalAssetPrice*$surgicalAssets>> (<<print Math.floor($surgicalAssets/500)>> unit<<if $surgicalAssets/500 > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#surgicalAssetsPurchasing">><</replace>>
-	<<elseif $corpCash > $surgicalAssetPrice*500>>
-		<<replace "#surgicalAssetsPurchasing">> The corp can only buy <<print Math.floor($corpCash/($surgicalAssetPrice*500))>> more unit<<if Math.floor($corpCash/($surgicalAssetPrice*500)) > 1 >>s<</if>> of this asset. <</replace>>
-	<<else>>
-	<<replace "#surgicalAssetsPurchasing">>
-		There are insufficient funds for additional purchases.
-	<</replace>>
-	<</if>>
-<</link>>
-| <<link "Sell">>
-	<<if Number.isInteger(Number.parseFloat(_NumSurgery)) == false>>
-		<<replace "#surgicalAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif $surgicalAssets >500 && (_NumSurgery*500) < $surgicalAssets>>
-		<<set $surgicalAssets -= _NumSurgery*500>>
-		<<set $corpCash += _NumSurgery*500*$surgicalAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#surgAssets">>
-			¤<<print $surgicalAssetPrice*$surgicalAssets>> (<<print Math.floor($surgicalAssets/500)>> unit<<if Math.floor($surgicalAssets/500) > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#surgicalAssetsPurchasing">>
-		<</replace>>
-	<<elseif $surgicalAssets > 500>>
-		<<replace "#surgicalAssetsPurchasing">>
-			The corp can only sell <<print Math.floor(($surgicalAssets-500)/500)>> more unit<<if Math.floor(($surgicalAssets-500)/500) > 1 >>s<</if>> of this asset.
-		<</replace>>
-	<<else>>
-		<<replace "#surgicalAssetsPurchasing">>
-			The corp cannot sell any more of this asset.
-		<</replace>>
-	<</if>>
-<</link>>
-<span id="surgicalAssetsPurchasing"></span>
 
 <br>
 <<if $drugAssetPrice > 10>>
@@ -665,67 +710,74 @@ Prices are
 	<<set $drugAssetPrice to 5>>
 <</if>>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<span id="drugAssets">¤<<print $drugAssetPrice*$drugAssets>> (<<print Math.floor($drugAssets/500)>> unit<<if Math.floor($drugAssets/500) > 1>>s<</if>>)</span> in pharmaceutical assets.
-Prices are 
-<<if $drugAssetPrice > 10>>
-	@@color:yellowgreen;¤<<print $drugAssetPrice*500>>ea@@
-<<elseif $drugAssetPrice < 10>>
-	@@color:gold;¤<<print $drugAssetPrice*500>>ea@@
+<<if $detailedCorpControls != 1>>
+	<span id="drAssets">¤<<print $drugAssetPrice*$drugAssets>></span> in pharmaceutical assets.
+	Drug asset prices are
+	<<if $drugAssetPrice > 12>>@@color:yellowgreen;very high@@<<elseif $drugAssetPrice > 10>>@@color:yellowgreen;high@@<<elseif $drugAssetPrice == 10>>average<<elseif $drugAssetPrice >= 8>>@@color:gold;low@@<<else>>@@color:gold;very low@@<</if>>.
+	| <<link "Buy">>
+		<<if $drugAssetPrice*500 < $corpCash>>
+			<<set $drugAssets += 500>>
+			<<set $corpCash -= 500*$drugAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#drAssets">>
+				¤<<print $drugAssetPrice*$drugAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Massive investment">>
+		<<if $drugAssetPrice*1000 < $corpCash>>
+			<<set $drugAssets += (Math.trunc($corpCash/($drugAssetPrice*500)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($drugAssetPrice*500)))*($drugAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#drAssets">>
+				¤<<print $drugAssetPrice*$drugAssets>>
+			<</replace>>
+		<<else>>
+			<<replace "#purchasing">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Sell">><<set $drugAssets -= 500>>
+		<<if $drugAssets >= 1000>>
+			<<set $drugAssets -= 500>>
+			<<set $corpCash += 500*$drugAssetPrice>>
+			<<replace "#cashOnHand">>
+				¤<<print $corpCash>>
+			<</replace>>
+			<<replace "#drAssets">>
+				¤<<print $drugAssetPrice*$drugAssets>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
+				You cannot sell any more assets.
+			<</replace>>
+		<</if>>
+	<</link>>
 <<else>>
-	¤<<print $drugAssetPrice*500>>ea
+	<span id="drugAssetsDisp">¤<<print $drugAssetPrice*$drugAssets>> (<<print Math.floor($drugAssets/500)>> unit<<if Math.floor($drugAssets/500) > 1>>s<</if>>)</span> in pharmaceutical assets.
+	Prices are 
+	<<if $drugAssetPrice > 10>>
+		@@color:yellowgreen;¤<<print $drugAssetPrice*500>>ea@@
+	<<elseif $drugAssetPrice < 10>>
+		@@color:gold;¤<<print $drugAssetPrice*500>>ea@@
+	<<else>>
+		¤<<print $drugAssetPrice*500>>ea
+	<</if>>
+	<span id="controlsdrug"><<CorpDevBuySell "drug" "Numdrug">></span><span id='drugAssetsPurchasing'></span>
 <</if>>
-| Trade Qty <<textbox "_NumDrug" _NumDrug>><<script>>setTextboxMaxLength('_NumDrug', 5);<</script>>
- : <<link "Buy">>
-	<<if Number.isInteger(Number.parseFloat(_NumDrug)) == false>>
-		<<replace "#drugAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif _NumDrug*$drugAssetPrice*500 < $corpCash>>
-		<<set $drugAssets += _NumDrug*500>>
-		<<set $corpCash -= _NumDrug*500*$drugAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#drugAssets">>
-			¤<<print $drugAssetPrice*$drugAssets>> (<<print Math.floor($drugAssets/500)>> unit<<if $drugAssets/500 > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#drugAssetsPurchasing">><</replace>>
-	<<elseif $corpCash > $drugAssetPrice*500>>
-		<<replace "#drugAssetsPurchasing">> The corp can only buy <<print Math.floor($corpCash/($drugAssetPrice*500))>> more unit<<if Math.floor($corpCash/($drugAssetPrice*500)) > 1 >>s<</if>> of this asset. 
-		<</replace>>
-	<<else>>
-	<<replace "#drugAssetsPurchasing">>
-		There are insufficient funds for additional purchases.
-	<</replace>>
-	<</if>>
-<</link>>
-| <<link "Sell">>
-	<<if Number.isInteger(Number.parseFloat(_NumDrug)) == false>>
-		<<replace "#drugAssetsPurchasing">>
-		Please input a round number.
-		<</replace>>
-	<<elseif $drugAssets >500 && (_NumDrug*500) < $drugAssets>>
-		<<set $drugAssets -= _NumDrug*500>>
-		<<set $corpCash += _NumDrug*500*$drugAssetPrice>>
-		<<replace "#cashOnHand">>
-			¤<<print $corpCash>>
-		<</replace>>
-		<<replace "#drugAssets">>
-			¤<<print $drugAssetPrice*$drugAssets>> (<<print Math.floor($drugAssets/500)>> unit<<if Math.floor($drugAssets/500) > 1>>s<</if>>)
-		<</replace>>
-		<<replace "#drugAssetsPurchasing">>
-		<</replace>>
-	<<elseif $drugAssets > 500>>
-		<<replace "#drugAssetsPurchasing">>
-			The corp can only sell <<print Math.floor(($drugAssets-500)/500)>> more unit<<if Math.floor(($drugAssets-500)/500) > 1 >>s<</if>> of this asset.
-		<</replace>>
-	<<else>>
-		<<replace "#drugAssetsPurchasing">>
-			The corp cannot sell any more of this asset.
-		<</replace>>
-	<</if>>
-<</link>>
-<span id="drugAssetsPurchasing"></span>
 
 <span id="direction">
 
