@@ -1,5 +1,5 @@
 :: Neighbor Interact [nobr]
- 
+
 <<set $nextLink to "Manage Arcology">>
 <<set $nextButton to "Back">>
 
@@ -12,10 +12,10 @@
 <<if $buyArcologyDirection != 0>>
 <<for $i to 0; $i < $arcologies.length; $i++>>
   <<if $arcologies[$i].direction == $buyArcologyDirection>>
-	<<set $cash -= 500*Math.trunc($arcologies[$i].prosperity*(1+($arcologies[$i].demandFactor/100)))>>
+	<<set $cash -= $transaction*(500*Math.trunc($arcologies[$i].prosperity*(1+($arcologies[$i].demandFactor/100))))>>
 	<<set $cash -= 10000>>
-	<<set $arcologies[$i].PCminority += 1>>
-	<<set $arcologies[$i].demandFactor += 5>>
+	<<set $arcologies[$i].PCminority += $transaction>>
+	<<set $arcologies[$i].demandFactor += $transaction*5>>
 	<<break>>
   <</if>>
 <</for>>
@@ -24,14 +24,15 @@
 <<if $sellArcologyDirection != 0>>
 <<for $i to 0; $i < $arcologies.length; $i++>>
   <<if $arcologies[$i].direction == $sellArcologyDirection>>
-	<<set $cash += 500*Math.trunc($arcologies[$i].prosperity*(1+($arcologies[$i].demandFactor/100)))>>
-	<<set $arcologies[$i].PCminority -= 1>>
-	<<set $arcologies[$i].demandFactor -= 2>>
+	<<set $cash += $transaction*(500*Math.trunc($arcologies[$i].prosperity*(1+($arcologies[$i].demandFactor/100))))>>
+	<<set $arcologies[$i].PCminority -= $transaction>>
+	<<set $arcologies[$i].demandFactor -= $transaction*2>>
 	<<break>>
   <</if>>
 <</for>>
 <</if>>
 <<set $sellArcologyDirection = 0>>
+<<set $transaction = 0>>
 
 <<if $arcologies[0].embargoTarget == -1>>
 	You are not engaged in economic warfare against a neighboring arcology.
@@ -165,15 +166,22 @@
 <</if>>
 <br>&nbsp;&nbsp;&nbsp;&nbsp;You own ''$activeArcology.PCminority%'' of $activeArcology.name.
 <<set $seed to 500*Math.trunc($activeArcology.prosperity*(1+($activeArcology.demandFactor/100)))>>
-A 1% interest in $activeArcology.name is worth ¤$seed and will require an transaction cost of ¤10000 to acquire.
-<<if ($activeArcology.ownership + $activeArcology.PCminority + $activeArcology.minority < 100) && ($activeArcology.PCminority < 50)>>
-	[[Buy|Neighbor Interact][$buyArcologyDirection to $activeArcology.direction]]
+A 1% interest in $activeArcology.name is worth ¤$seed and will require a transaction cost of ¤10000 to acquire.
+<<if ($activeArcology.ownership + $activeArcology.PCminority + $activeArcology.minority < 100)>>
+	[[Buy|Neighbor Interact][$buyArcologyDirection to $activeArcology.direction, $transaction = 1]]
+	<<if ($activeArcology.ownership + $activeArcology.PCminority + $activeArcology.minority <= 90)>>
+	<<if $cash > 10*(500*Math.trunc($arcologies[$i].prosperity*(1+($arcologies[$i].demandFactor/100))))>>
+		[[Buy 10%|Neighbor Interact][$buyArcologyDirection to $activeArcology.direction, $transaction = 10]]
+		//Transaction costs will only be paid once//
+	<</if>>
+	<</if>>
 <</if>>
-<<if ($activeArcology.ownership + $activeArcology.PCminority + $activeArcology.minority < 100) && ($activeArcology.PCminority > 0)>>
-	|
-<</if>>
+<<if ($activeArcology.ownership + $activeArcology.PCminority + $activeArcology.minority < 100) && ($activeArcology.PCminority > 0)>>|<</if>>
 <<if $activeArcology.PCminority > 0>>
-	[[Sell|Neighbor Interact][$sellArcologyDirection to $activeArcology.direction]]
+	[[Sell|Neighbor Interact][$sellArcologyDirection to $activeArcology.direction, $transaction = 1]]
+	<<if $activeArcology.PCminority >= 10>>
+		| [[Sell 10%|Neighbor Interact][$sellArcologyDirection to $activeArcology.direction, $transaction = 10]]
+	<</if>>
 <</if>>
 <br>
 <<if ($activeArcology.government == "your trustees") || ($activeArcology.government == "your agent")>>
@@ -274,7 +282,7 @@ A 1% interest in $activeArcology.name is worth ¤$seed and will require an trans
 	<br><<link "Force Abandonment of Chinese Revivalism">><<set $activeArcology.FSChineseRevivalist = "unset">><<goto "Neighbor Interact">><</link>>
 <</if>>
 <</if>>
-	
+
 <<if $arcologies[0].embargoTarget != -1>>
   <br>
   [[Cancel economic warfare|Neighbor Interact][$arcologies[0].embargoTarget to -1]]
