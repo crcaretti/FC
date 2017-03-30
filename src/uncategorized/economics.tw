@@ -234,17 +234,25 @@ __Personal Business__
 <<else>>
 	You have enough cash to manage your affairs, but not enough to do much business.
 <</if>>
-<<if ($cash > 1000)>>
-	<<set $seed to random(500,1500)>>
-	<<if $CashForRep == 1>>
-	This week, you gave up business opportunities worth ¤$seed to help deserving citizens, @@color:green;burnishing your reputation.@@
-	<<set $cash -= $seed>>
-	<<set $rep += 100>>
-	<<elseif $RepForCash == 1>>
-	This week, you used your position to secure business opportunities worth ¤$seed at the expense of citizens, @@color:red;damaging your reputation.@@
-	<<set $cash += $seed>>
+<<if $cash > 1000>>
+<<if $CashForRep == 1>>
+	This week you gave up business opportunities worth ¤$policyCost to help deserving citizens, @@color:green;burnishing your reputation.@@
+	<<set $rep += 100, $cash -= $policyCost>>
+<</if>>
+<</if>>
+<<if $rep > 100>>
+<<if $RepForCash == 1>>
+	This week you used your position to secure business opportunities worth ¤$policyCost at the expense of citizens, @@color:red;damaging your reputation.@@
+	<<set $rep -= 100, $cash += $policyCost>>
+<</if>>
+<</if>>
+<<if $rep <= 18000>>
+<<if $rep > 100>>
+<<if $RegularParties != 1>>
+	Your @@color:red;reputation is damaged@@ by your not hosting regular social events for your leading citizens.
 	<<set $rep -= 100>>
-	<</if>>
+<</if>>
+<</if>>
 <</if>>
 
 Routine upkeep of your demesne costs @@color:yellow;¤$costs.@@
@@ -1478,124 +1486,126 @@ earning you @@color:yellowgreen;¤$seed.@@
 	<</if>>
 <</for>>
 <<if $seed > 0>>
-	Some refugees and other desperate people filtered towards the arcology during the week: as owner, you were able to enslave $seed of them.
+	Some desperate people filtered into the arcology during the week: as owner, you were able to enslave $seed of them.
 	<<set $helots += $seed>>
 <</if>>
 
-<<set $AWeekGrowth to $AGrowth>>
-<<if $AWeekGrowth+$arcologies[0].prosperity > $AProsperityCap>>
-	@@color:yellow;$arcologies[0].name is taxed to capacity by its own prosperity, so your rents will not increase until it is upgraded.@@
-<<elseif (2*$AWeekGrowth)+$arcologies[0].prosperity >= $AProsperityCap>>
-	@@color:yellow;Your arcology is nearly at its maximum prosperity, and your rents will not increase further once it is at maximum capacity.@@
-	<<set $arcologies[0].prosperity += $AWeekGrowth>>
+<<set _AWeekGrowth to $AGrowth>>
+<<if _AWeekGrowth+$arcologies[0].prosperity > $AProsperityCap>>
+	@@color:yellow;$arcologies[0].name is at its maximum prosperity, so rents will not increase until it is upgraded.@@
+<<elseif (2*_AWeekGrowth)+$arcologies[0].prosperity >= $AProsperityCap>>
+	@@color:yellow;Your arcology is nearly at its maximum prosperity.@@
+	<<set $arcologies[0].prosperity += _AWeekGrowth>>
 <<else>>
-	<<if $arcologies[0].ownership >= random(40,100)>>
-		Your controlling interest in $arcologies[0].name allows you to lead it economically, @@color:green;speeding growth.@@
-		<<set $AWeekGrowth += 1>>
+	<<if $arcologies[0].ownership >= 100>>
+		Your controlling interest in $arcologies[0].name allows you to lead it economically, @@color:green;supercharging growth.@@
+		<<set _AWeekGrowth += 3>>
+	<<elseif $arcologies[0].ownership >= random(40,100)>>
+		Your interest in $arcologies[0].name allows you to lead it economically, @@color:green;boosting growth.@@
+		<<set _AWeekGrowth++>>
 	<</if>>
 	<<if $arcologies[0].prosperity < ($rep/100)>>
 		Your impressive reputation relative to $arcologies[0].name's prosperity @@color:green;drives an increase in business.@@
-		<<set $AWeekGrowth += 1>>
+		<<set _AWeekGrowth++>>
 	<<elseif $rep > 18000>>
 	<<elseif $arcologies[0].prosperity > ($rep/60)>>
 		Your low reputation relative to $arcologies[0].name's prosperity @@color:red;seriously impedes business growth.@@
-		<<set $AWeekGrowth -= 2>>
+		<<set _AWeekGrowth -= 2>>
 	<<elseif $arcologies[0].prosperity > ($rep/80)>>
 		Your unimpressive reputation relative to $arcologies[0].name's prosperity @@color:yellow;slows business growth.@@
-		<<set $AWeekGrowth -= 1>>
+		<<set _AWeekGrowth-->>
 	<</if>>
 	<<if $personalAttention is "business">>
 		<<if ($PC.career is "capitalist") || ($PC.career is "arcology owner")>>
-		Your @@color:springgreen;business focus and your experience@@ allows you to greatly assist in advancing the arcology's prosperity.
-		<<set $AWeekGrowth += 2>>
+			Your @@color:springgreen;business focus and your experience@@ allow you to greatly assist in advancing the arcology's prosperity.
+			<<set _AWeekGrowth += 2>>
 		<<else>>
-		Your business focus allows you to help improve the arcology's prosperity.
-		<<set $AWeekGrowth += 1>>
+			Your business focus allows you to help improve the arcology's prosperity.
+			<<set _AWeekGrowth++>>
 		<</if>>
-		<<if $arcologies[0].FSMaturityPreferentialistLaw == 1>>
 		<<if $PC.actualAge >= 50>>
-		You are able to leverage your long seniority in the business community using the arcology's favorable laws to further advance prosperity.
-		<<set $AWeekGrowth += 1>>
-		<</if>>
-		<</if>>
-		<<if $arcologies[0].FSYouthPreferentialistLaw == 1>>
-		<<if $PC.actualAge < 35>>
-		You are able to leverage your freshness in the business community using the arcology's favorable laws to further advance prosperity.
-		<<set $AWeekGrowth += 1>>
-		<</if>>
+			<<if $arcologies[0].FSMaturityPreferentialistLaw == 1>>
+				You are able to leverage your long seniority in the business community using the arcology's favorable laws to further advance prosperity.
+				<<set _AWeekGrowth++>>
+			<</if>>
+		<<elseif $PC.actualAge < 35>>
+			<<if $arcologies[0].FSYouthPreferentialistLaw == 1>>
+				You are able to leverage your freshness in the business community using the arcology's favorable laws to further advance prosperity.
+				<<set _AWeekGrowth++>>
+			<</if>>
 		<</if>>
 	<</if>>
 	<<if $arcologies[0].FSNull != "unset">>
 		Your cultural openness is a powerful driver of economic activity.
-		<<set $AWeekGrowth += Math.trunc($arcologies[0].FSNull/25)>>
+		<<set _AWeekGrowth += Math.trunc($arcologies[0].FSNull/25)>>
 	<</if>>
 	<<if $arcologies[0].FSRestart != "unset">>
 		Your powerful connections open many avenues of economic expansion.
-		<<set $AWeekGrowth += Math.trunc($arcologies[0].FSRestart/10)>>
+		<<set _AWeekGrowth += Math.trunc($arcologies[0].FSRestart/10)>>
 	<</if>>
 	<<if $arcologies[0].FSPaternalist >= random(1,100)>>
 		This week, the careful attention to slave welfare your new society emphasizes has been a driver of prosperity.
-		<<set $AWeekGrowth += 1>>
+		<<set _AWeekGrowth++>>
 	<</if>>
 	<<if $arcologies[0].FSChattelReligionistCreed == 1>>
 	<<if $nicaeaFocus == "owners">>
 		The focus on slaveowners' whims in the creed of $nicaeaName interests the rich and powerful, increasing prosperity.
-		<<set $AWeekGrowth += $nicaeaPower>>
+		<<set _AWeekGrowth += $nicaeaPower>>
 	<</if>>
 	<</if>>
 	<<if $arcologies[0].FSRomanRevivalist >= random(1,100)>>
 		This week, intense interest in your project to revive Roman values has driven prosperity.
-		<<set $AWeekGrowth += 1>>
+		<<set _AWeekGrowth++>>
 	<<elseif $arcologies[0].FSChineseRevivalist != "unset">>
-	  <<if ($HeadGirl != 0) && ($Recruiter != 0) && ($Bodyguard != 0)>>
-		This week, your imperial administration, staffed with a Head Girl, a Recruiter, and a Bodyguard, has improved prosperity.
-		<<set $AWeekGrowth += 2>>
-	  <</if>>
+		<<if ($HeadGirl != 0) && ($Recruiter != 0) && ($Bodyguard != 0)>>
+			This week, your imperial administration, staffed with a Head Girl, a Recruiter, and a Bodyguard, has improved prosperity.
+			<<set _AWeekGrowth += 2>>
+		<</if>>
 	<</if>>
 	<<if $PC.career is "capitalist">>
 		Your @@color:springgreen;business skills@@ drive increased prosperity.
-		<<set $AWeekGrowth += 1>>
+		<<set _AWeekGrowth++>>
 	<<elseif $PC.career is "arcology owner">>
 		Your @@color:springgreen;experience in the Free Cities@@ helps increase prosperity.
-		<<set $AWeekGrowth += 1>>
+		<<set _AWeekGrowth++>>
 	<</if>>
-	<<set $seed to $TSS.schoolPresent+$GRI.schoolPresent+$SCP.schoolPresent+$LDE.schoolPresent+$TGA.schoolPresent+$TFS.schoolPresent>>
-	<<if $seed == 1>>
+	<<set _schools to $TSS.schoolPresent+$GRI.schoolPresent+$SCP.schoolPresent+$LDE.schoolPresent+$TGA.schoolPresent+$TFS.schoolPresent>>
+	<<if _schools == 1>>
 		The presence of a slave school in the arcology improves the local economy.
-	<<elseif $seed > 0>>
+	<<elseif _schools > 0>>
 		The presence of slave schools in the arcology greatly improves the local economy.
 	<<elseif $arcologies[0].prosperity > 80>>
 		The lack of a branch campus from a reputable slave school is slowing further development of the local economy.
-		<<set $AWeekGrowth -= 1>>
+		<<set _AWeekGrowth-->>
 	<</if>>
-	<<set $AWeekGrowth += $seed>>
+	<<set _AWeekGrowth += _schools>>
 	<<if $arcologies[0].FSDegradationistLaw == 1>>
 		Requiring menials to be given time to fuck human sex toys in the arcade reduces labor efficiency, slowing growth.
-		<<set $AWeekGrowth -= 1>>
+		<<set _AWeekGrowth-->>
 	<</if>>
 	<<if $arcologies[0].FSBodyPuristLaw == 1>>
 		The drug surcharge used to fund the purity regime reduces growth.
-		<<set $AWeekGrowth -= 1>>
+		<<set _AWeekGrowth-->>
 	<</if>>
 	<<if $arcologies[0].FSPastoralistLaw == 1>>
 		Prosperity improvement is slowed by the regulations on animal products.
-		<<set $AWeekGrowth -= 1>>
+		<<set _AWeekGrowth-->>
 	<</if>>
 	<<if $arcologies[0].FSPaternalistSMR == 1>>
 		Your slave market regulations slow the flow of chattel through the arcology.
-		<<set $AWeekGrowth -= 1>>
+		<<set _AWeekGrowth-->>
 	<</if>>
 	<<if $terrain is "urban">>
 		Since your arcology is located in the heart of an urban area, its commerce is naturally vibrant.
-		<<set $AWeekGrowth += 1>>
+		<<set _AWeekGrowth++>>
 	<</if>>
 	<<if $terrain is "ravine">>
 		Since your arcology is located in the heart of a ravine, its commerce is hindered by a lack of accessability.
-		<<set $AWeekGrowth -= 1>>
+		<<set _AWeekGrowth -= 1>>
 	<</if>>
 	<<if def $arcologies[0].embargoTarget and $arcologies[0].embargoTarget != -1>>
 		The local economy is hurt by the double edged sword of your economic warfare.
-		<<set $AWeekGrowth -= $arcologies[0].embargo*2>>
+		<<set _AWeekGrowth -= $arcologies[0].embargo*2>>
 	<</if>>
 	<<set $desc to []>>
 	<<set $descNeg to []>>
@@ -1625,10 +1635,11 @@ earning you @@color:yellowgreen;¤$seed.@@
 		<<else>>
 		''$desc[0]''<<if $descNeg.length > 0>>, but<<else>>.<</if>>
 		<</if>>
-		<<set $AWeekGrowth += $desc.length>>
+		<<set _AWeekGrowth += $desc.length>>
 	<</if>>
 	<<if $descNeg.length > 0>>
-		<<if $desc.length == 0>>Your arcology's economy<</if>> is hindered by social conflicts with
+		<<if $desc.length == 0>>Your arcology's economy<</if>>
+		is hindered by social conflicts with
 		<<if $descNeg.length > 2>>
 		''$descNeg[0]'',
 		<<for $k to 1; $k < $descNeg.length; $k++>>
@@ -1643,20 +1654,21 @@ earning you @@color:yellowgreen;¤$seed.@@
 		<<else>>
 		''$descNeg[0]''.
 		<</if>>
-		<<set $AWeekGrowth -= $descNeg.length>>
+		<<set _AWeekGrowth -= $descNeg.length>>
 	<</if>>
-	<<if $AWeekGrowth > 0>>
+	<<if $alwaysSubsidizeGrowth == 1>>
+		Growth was subsidized as planned.
+		<<set _AWeekGrowth++>>
+	<</if>>
+	<<set _AWeekGrowth = Math.trunc(0.5*_AWeekGrowth)>>
+	<<if _AWeekGrowth > 0>>
 		Since $arcologies[0].name can support more citizens and more activity, @@color:green;its prosperity improved this week.@@
-	<<elseif $AWeekGrowth == 0>>
+	<<elseif _AWeekGrowth == 0>>
 		Though $arcologies[0].name can support more citizens and more activity, @@color:yellow;growth was moribund this week.@@
 	<<else>>
 		Though $arcologies[0].name can support more citizens and more activity, @@color:red;it lost prosperity this week.@@
 	<</if>>
-	<<set $arcologies[0].prosperity += $AWeekGrowth>>
-	<<if $alwaysSubsidizeGrowth == 1>>
-		<<set $arcologies[0].prosperity += 1>>
-		Growth subsidized as planned.
-	<</if>>
+	<<set $arcologies[0].prosperity += _AWeekGrowth>>
 <</if>>
 
 <<if $TSS.schoolPresent+$GRI.schoolPresent+$SCP.schoolPresent+$LDE.schoolPresent+$TGA.schoolPresent+$TFS.schoolPresent > 0>>
