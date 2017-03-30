@@ -1,12 +1,16 @@
-:: Remove activeSlave
+:: Remove activeSlave [silently]
 
-<<silently>>
 <<set _SL = $slaves.length, _ID = $activeSlave.ID>>
-<<for _x = 0; _x < _SL; _x++>>
-<<if _ID == $slaves[_x].ID>>
-	<<break>>
+
+<<if (def _i) && ($slaves[_i].ID == _ID)>>
+	<<set _x = _i>>
+<<else>>
+	<<for _x = 0; _x < _SL; _x++>>
+		<<if _ID == $slaves[_x].ID>>
+			<<break>>
+		<</if>>
+	<</for>>
 <</if>>
-<</for>>
 
 <<if _ID == $PC.pregSource>>
 	<<set $PC.pregSource to 0>>
@@ -106,13 +110,6 @@
 	<<if _ID == $retiree.ID>>
 		<<set $retiree = 0>>
 	<</if>>
-	<<if $fighterIDs.contains(_ID)>>
-	<<for _y = 0; _y < $fighterIDs.length; _y++>>
-		<<if _ID == $fighterIDs[_y]>>
-			<<set _dump = $fighterIDs.pluck([_y], [_y]), _y-->>
-		<</if>>
-	<</for>>
-	<</if>>
 	<<if _ID == $fighterTwo.ID>>
 		<<set $fighterTwo = 0>>
 	<</if>>
@@ -155,13 +152,23 @@
 			<<set $personalAttention = "business">>
 		<</if>>
 	<</if>>
-	<<for _y = 0; _y < $slavesOriginal.length; _y++>>
+	<<for _y = 0; _y < $fighterIDs.length; _y++>>
+		<<if _ID == $fighterIDs[_y]>>
+			<<set _dump = $fighterIDs.pluck([_y], [_y]), _y-->>
+		<</if>>
+	<</for>>
+	/% Remove from facility array if assigned %/
+	<<switch $slaves[_x].assignment>>
+	<<case "learn in the schoolroom" "get treatment in the clinic" "rest in the spa" "work in the dairy" "be confined in the arcade" "live with your Head Girl" "be confined in the cellblock" "serve in the club" "serve in the master suite" "work as a servant" "work in the brothel">>
+		<<removeJob $activeSlave $activeSlave.assignment>>
+	<</switch>>
+
+	<<set _Tcount = $slavesOriginal.length>>
+	<<for _y = 0; _y < _Tcount; _y++>>
 		<<if $slavesOriginal[_y].ID == _ID>>
 			<<set _dump = $slavesOriginal.pluck([_y], [_y])>>
 			<<break>>
 		<</if>>
 	<</for>>
-	<<set _dump = $slaves.pluck([_x], [_x])>>
+	<<set _dump = $slaves.pluck([_x], [_x]), _SL--, $activeSlave = 0>>
 <</if>>
-
-<</silently>>
