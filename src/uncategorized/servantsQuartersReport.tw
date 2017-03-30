@@ -1,189 +1,117 @@
 :: Servants' Quarters Report [nobr]
 
-<<set $servantsQuartersSlaves = 0, $stewardessBonus = 0, _SQMilk = 0, _SQMilkSale = 0, _stewardessFetish = 0, _stewardessImpregnated = 0, _SL = $slaves.length, _SWD = -1>>
+<<set $stewardessBonus = 0, _FLsFetish = 0, _DL = $ServQiIDs.length, $servantsQuartersSlaves = _DL, _SL = $slaves.length, _FLs = -1>>
 
-<<if $schoolroomDecoration != "standard">>
+<<if _DL > 0>>
+<<for _dI = 0; _dI < _DL; _dI++>>
+<<set _i = $ServQiIDs[_dI].Index, _ID = $ServQiIDs[_dI].ID>>
+<<if _ID != $slaves[_i].ID>>
+	/% Slaves.ID and $ServQiIDs.ID's don't match-up so let's find her %/
+	<<for _i = 0; _i < _SL; _i++>>
+	<<if _ID == $slaves[_i].ID>>
+		/% Correct the Index %/
+		<<set $ServQiIDs[_dI].Index = _i>>
+	<</if>>
+	<</for>>
+<</if>>
+<</for>>
+<<SlaveSort $ServQiIDs>>
+<</if>>
+
+<<if $servantsQuartersDecoration != "standard">>
 	<<set _devBonus = 1>>
 <<else>>
 	<<set _devBonus = 0>>
 <</if>>
 
 <<if ($Stewardess != 0)>>
-<<for _SWD = 0; _SWD < _SL; _SWD++>>
-<<if $slaves[_SWD].ID == $Stewardess.ID>>
-	<<break>>
-<</if>>
-<</for>>
-<</if>>
-<<if _SWD != -1>>
-	<<set $i = _SWD, $slaves[_SWD].devotion += _devBonus>>
-	<<silently>>
-	<<if $slaves[_SWD].choosesOwnClothes == 1>>
-	<<include "SA chooses own clothes">>
-	<<if ($slaves[_SWD].devotion <= 20)>>
-		<<set $slaves[_SWD].devotion -= 5>>
-	<<else>>
-		<<set $slaves[_SWD].devotion++>>
+	<<for _FLs = 0; _FLs < _SL; _FLs++>>
+	<<if $slaves[_FLs].ID == $Stewardess.ID>>
+		<<break>>
 	<</if>>
+	<</for>>
+	<<set $slaves[_FLs].devotion += _devBonus>>
+	<<if ($slaves[_FLs].health < -80)>>
+	<<set $slaves[_FLs].health += 20>>
+	<<elseif ($slaves[_FLs].health < -40)>>
+	<<set $slaves[_FLs].health += 15>>
+	<<elseif ($slaves[_FLs].health < 0)>>
+	<<set $slaves[_FLs].health += 10>>
+	<<elseif ($slaves[_FLs].health < 90)>>
+	<<set $slaves[_FLs].health += 7>>
 	<</if>>
-	<<include "SA diet">>
-	<<include "SA long term effects">>
-	<<include "SA drugs">>
-	<<include "SA relationships">>
-	<<include "SA rivalries">>
-	<<include "SA devotion">>
-	<</silently>>
-	<<if ($slaves[_SWD].health < -80)>>
-	<<set $slaves[_SWD].health += 20>>
-	<<elseif ($slaves[_SWD].health < -40)>>
-	<<set $slaves[_SWD].health += 15>>
-	<<elseif ($slaves[_SWD].health < 0)>>
-	<<set $slaves[_SWD].health += 10>>
-	<<elseif ($slaves[_SWD].health < 90)>>
-	<<set $slaves[_SWD].health += 7>>
+	<<if $slaves[_FLs].devotion <= 60>>
+	<<set $slaves[_FLs].devotion++>>
 	<</if>>
-	<<if $slaves[_SWD].devotion <= 60>>
-	<<set $slaves[_SWD].devotion++>>
+	<<if $slaves[_FLs].trust < 60>>
+	<<set $slaves[_FLs].trust++>>
 	<</if>>
-	<<if $slaves[_SWD].trust < 60>>
-	<<set $slaves[_SWD].trust += 1>>
-	<</if>>
-	<<if $slaves[_SWD].fetishStrength <= 95>>
-	<<if $slaves[_SWD].fetish != "dom">>
-		<<fetishChangeChance $slaves[_SWD]>>
+	<<if $slaves[_FLs].fetishStrength <= 95>>
+	<<if $slaves[_FLs].fetish != "dom">>
+		<<fetishChangeChance $slaves[_FLs]>>
 		<<if $fetishChangeChance > random(0,100)>>
-			<<set _stewardessFetish = 1, $slaves[_SWD].fetishKnown = 1, $slaves[_SWD].fetish = "dom">>
+			<<set _FLsFetish = 1, $slaves[_FLs].fetishKnown = 1, $slaves[_FLs].fetish = "dom">>
 		<</if>>
-	<<elseif $slaves[_SWD].fetishKnown == 0>>
-		<<set _stewardessFetish = 1, $slaves[_SWD].fetishKnown = 1>>
+	<<elseif $slaves[_FLs].fetishKnown == 0>>
+		<<set _FLsFetish = 1, $slaves[_FLs].fetishKnown = 1>>
 	<<else>>
-		<<set _stewardessFetish = 2, $slaves[_SWD].fetishStrength += 4>>
+		<<set _FLsFetish = 2, $slaves[_FLs].fetishStrength += 4>>
 	<</if>>
 	<</if>>
-	<<set $Stewardess = $slaves[_SWD]>>
-	<<if ($Stewardess.health >= 10) && ($Stewardess.health < 80)>>
-	<<set $stewardessBonus += 50>>
-	<<elseif ($Stewardess.health >= 80)>>
-	<<set $stewardessBonus += 75>>
-	<</if>>
-	<<if $stewardessCareers.contains($Stewardess.career)>>
-	<<set $stewardessBonus += 25>>
-	<</if>>
-	<<if ($Stewardess.actualAge > 35)>>
-	<<set $stewardessBonus += 25>>
-	<</if>>
-	<<if ($Stewardess.intelligence > 0)>>
-	<<set $stewardessBonus += 25*$Stewardess.intelligence>>
-	<</if>>
-<</if>>
-
-<<set $servantMilkersMultiplier = 0.5>>
-<<for _i to 0; _i < _SL; _i++>>
-	<<if ($slaves[_i].assignment != "work as a servant")>><<continue>><</if>>
-	<<set $servantsQuartersSlaves++, $i = _i, $slaves[_i].devotion += _devBonus>>
-	<<silently>>
-	<<include "SA servant">>
-	<<if ($servantMilkers == 1) && ($slaves[_i].lactation > 0)>>
-		<<include "SA get milked">>
-		<<set _SQMilk += $milk, _SQMilkSale += $milkSale>>
-	<</if>>
-	<<if ($stewardessImpregnates == 1) && ($Stewardess != 0)>>
-	<<if (canGetPregnant($slaves[_i])) && (canPenetrate($Stewardess)) && $Stewardess.pubertyXY == 1 && canBreed($slaves[_i], $Stewardess)>>
-		<<set $slaves[_i].preg to 1, $slaves[_i].pregSource to $Stewardess.ID, _stewardessImpregnated += 1, $slaves[_i].vaginalCount += 10, $vaginalTotal += 10>>
-	<</if>>
-	<</if>>
-	<<if $slaves[_i].choosesOwnClothes == 1>>
-	<<include "SA chooses own clothes">>
-	<<if ($slaves[_i].devotion <= 20)>>
-		<<set $slaves[_i].devotion -= 5>>
-	<<else>>
-		<<set $slaves[_i].devotion++>>
-	<</if>>
-	<</if>>
-	<<include "SA diet">>
-	<<include "SA long term effects">>
-	<<include "SA drugs">>
-	<<include "SA relationships">>
-	<<include "SA rivalries">>
-	<<include "SA devotion">>
-	<</silently>>
-	<<if ($slaves[_i].devotion <= 20) && ($slaves[_i].trust > -20)>>
-	<<set $slaves[_i].devotion -= 5, $slaves[_i].trust -= 5>>
-	<<elseif ($slaves[_i].devotion < 2)>>
-	<<set $slaves[_i].devotion += 2>>
-	<<elseif ($slaves[_i].devotion > 3)>>
-	<<set $slaves[_i].devotion -= 2>>
-	<</if>>
-	<<if ($slaves[_i].trust < -50)>>
-	<<set $slaves[_i].trust += 2>>
-	<<elseif ($slaves[_i].trust < -6)>>
-	<<set $slaves[_i].trust += 1>>
-	<</if>>
-	<<if ($slaves[_i].health < -80)>>
-	<<set $slaves[_i].health += 20>>
-	<<elseif ($slaves[_i].health < -40)>>
-	<<set $slaves[_i].health += 10>>
-	<<elseif ($slaves[_i].health < 0)>>
-	<<set $slaves[_i].health += 7>>
-	<<elseif ($slaves[_i].health < 90)>>
-	<<set $slaves[_i].health += 3>>
-	<</if>>
-	<<if ($Stewardess != 0)>>
-		<<set $cash += $stewardessBonus>>
-		<<if ($Stewardess.energy > 95) || (($Stewardess.fetishKnown == 1) && ($Stewardess.fetish == "dom"))>>
-			<<if ($slaves[_i].devotion < 45)>>
-			<<set $slaves[_i].devotion += 5>>
-			<</if>>
-		<</if>>
-	<</if>>
-<</for>>
-<<set $servantMilkersMultiplier = 1>>
-
-<<if ($Stewardess != 0)>>
+	<<set $Stewardess = $slaves[_FLs]>>
 	&nbsp;&nbsp;&nbsp;&nbsp;$Stewardess.slaveName is serving as your stewardess.<<if $Stewardess.relationship == -3>> She does her best to be your perfect housewife.<</if>>
-	<<if _stewardessImpregnated > 0>>
-		It's her responsibility to keep her charges pregnant, and
-		<<if _stewardessImpregnated == 1>>
-			she cums in the fertile one's pussy all week.
-		<<else>>
-			she ensures the _stewardessImpregnated fertile servants are full of her cum at all times.
+	<<if ($stewardessImpregnates == 1) && (_DL > 0) && (canPenetrate($Stewardess)) && $Stewardess.pubertyXY == 1>>
+		<<set _stewardessImpregnated = 0>>
+		<<for _dI = 0; _dI < _DL; _dI++>>
+			<<set _i = $ServQiIDs[_dI].Index>>
+			<<if (canGetPregnant($slaves[_i])) && canBreed($slaves[_i], $Stewardess)>>
+				<<set $slaves[_i].preg = 1, $slaves[_i].pregSource = $Stewardess.ID, _stewardessImpregnated++, $slaves[_i].vaginalCount += 10, $vaginalTotal += 10>>
+			<</if>>
+		<</for>>
+		<<if _stewardessImpregnated > 0>>
+			It's her responsibility to keep her charges pregnant, and
+			<<if _stewardessImpregnated == 1>>
+				she cums in the fertile one's pussy all week.
+			<<else>>
+				she ensures the _stewardessImpregnated fertile servants are full of her cum at all times.
+			<</if>>
+			<<set _Tmult = (_stewardessImpregnated * 10), $slaves[_FLs].penetrativeCount += _Tmult, $Stewardess.penetrativeCount += _Tmult, $penetrativeTotal += _Tmult>>
 		<</if>>
-		<<set _Tmult = (_stewardessImpregnated * 10), $slaves[_SWD].penetrativeCount += _Tmult, $Stewardess.penetrativeCount += _Tmult, $penetrativeTotal += _Tmult>>
 	<</if>>
-	<<if _stewardessFetish == 1>>
+	<<if _FLsFetish == 1>>
 		She's allowed and even expected to use her charges for her own gratification, and sometimes they'll even instigate submissive sex with her just to ingratiate themselves. She becomes comfortable with the role of a @@color:lightcoral;sexual dominant.@@
-	<<elseif _stewardessFetish == 2>>
+	<<elseif _FLsFetish == 2>>
 		Having a legion of girls jumping to obey her daily commands @@color:lightsalmon;makes her more dominant.@@
 	<</if>>
 	<<if ($Stewardess.health < 10)>>
 		Though $Stewardess.slaveName tries to watch the servants, her lack of good health inhibits her.
 	<<elseif ($Stewardess.health < 80)>>
+		<<set $stewardessBonus += 50>>
 		Her good health allows her to work long hours and @@color:yellowgreen;drive@@ the servants hard.
 	<<else>>
+		<<set $stewardessBonus += 75>>
 		Her perfect health allows her to work exhaustive hours and @@color:yellowgreen;drive@@ the servants very hard.
 	<</if>>
-	<<if $stewardessCareers.contains($Stewardess.career)>>
+	<<if $stewardessCareers.includes($Stewardess.career)>>
+		<<set $stewardessBonus += 25>>
 		She has applicable experience with daily sums and organizational trifles from her life before she was a slave.
 	<</if>>
 	<<if ($Stewardess.actualAge > 35)>>
+		<<set $stewardessBonus += 25>>
 		Her age and experience give her added effectiveness.
 	<</if>>
 	<<if ($Stewardess.intelligence > 0)>>
+		<<set $stewardessBonus += 25*$Stewardess.intelligence>>
 		She's smart enough that she misses very little.
 	<</if>>
-	<br>
-<</if>>
-
-<<if ($servantsQuartersSlaves > 0)>>
-	<<if $seeImages == 1>><br style="clear:both" /><</if>>
-	&nbsp;&nbsp;&nbsp;&nbsp;<<if ($servantsQuartersSlaves == 1)>>''There is one slave working out of the servants' quarters.'' She works to<<else>>''There are $servantsQuartersSlaves slaves working out of the servants' quarters.'' They work to<</if>>
-	@@color:yellowgreen;reduce@@ your household expenses; having a well-staffed house slightly @@color:green;increases@@ your reputation.
-	<<if _SQMilk > 0>>
-		Since your lactating servants spend most of their time working in the penthouse, they use the milkers there, giving _SQMilk liters of milk over the week, which is sold for @@color:yellowgreen;¤_SQMilkSale.@@
-	<</if>>
-	<<if ($Stewardess != 0)>>
-	<<for _i = 0; _i < _SL; _i++>>
-		<<if $slaves[_i].assignment != "work as a servant">><<continue>><</if>>
+	<<if _DL > 0>>
+		<<if ($Stewardess.energy > 95) || (($Stewardess.fetishKnown == 1) && ($Stewardess.fetish == "dom"))>>
+			<<set _BonusToggle = 1>>
+		<<else>>
+			<<set _BonusToggle = 0>>
+		<</if>>
+	<<for _dI = 0; _dI < _DL; _dI++>>
+		<<set _i = $ServQiIDs[_dI].Index>>
 		<<if $familyTesting == 1>>
 			<<if $slaves[_i].mother == $Stewardess.ID>>
 				She pays special attention to her daughter, $slaves[_i].slaveName, making sure she doesn't slack off just because they are related.
@@ -225,47 +153,184 @@
 			She bears down on her <<if $Stewardess.rivalry == 1>>growing rival<<elseif $Stewardess.rivalry == 2>>rival<<elseif $Stewardess.rivalry == 3>>bitter rival<</if>>, $slaves[_i].slaveName, forcing her to work extra hard or suffer punishment.
 			<<set $slaves[_i].devotion--, $slaves[_i].trust-->>
 			<<if random(1,100) > 65>>
-				<<set $Stewardess.rivalry++, $slaves[_SWD].rivalry++, $slaves[_i].rivalry++>>
+				<<set $Stewardess.rivalry++, $slaves[_FLs].rivalry++, $slaves[_i].rivalry++>>
 			<</if>>
 		<</if>>
-		<<if $slaves[_i].prestigeDesc == "She is a famed Free Cities whore, and commands top prices.">>
+		<<switch $slaves[_i].prestigeDesc>>
+		<<case "She is a famed Free Cities whore, and commands top prices.">>
 			She does her best to motivate the famous whore, $slaves[_i].slaveName, though she is uncertain why she is here.
-		<</if>>
-		<<if $slaves[_i].prestigeDesc == "She is a famed Free Cities slut, and can please anyone.">>
+		<<case "She is a famed Free Cities slut, and can please anyone.">>
 			She ignores her duties in order the fawn over the famous entertainer, $slaves[_i].slaveName.
-		<</if>>
-		<<if $slaves[_i].prestigeDesc == "She is remembered for winning best in show as a cockmilker.">>
-			$slaves[_i].slaveName leaves a trail of cum wherever she goes and frequently stops to masturbate, greatly annoying $Stewardess.slaveName.
+		<<case "She is remembered for winning best in show as a cockmilker.">>
+			$slaves[_i].slaveName leaves a trail of cum wherever she goes and frequently stops to masturbate greatly annoying $Stewardess.slaveName.
 			<<if random(1,100) > 90 && $Stewardess.rivalry == 0 && $slaves[_i].rivalry == 0>>
-			<<set $Stewardess.rivalryTarget = $slaves[_i].ID, $Stewardess.rivalry++, $slaves[_SWD].rivalryTarget = $slaves[_i].ID, $slaves[_SWD].rivalry++>>
+			<<set $Stewardess.rivalryTarget = $slaves[_i].ID, $Stewardess.rivalry++, $slaves[_FLs].rivalryTarget = $slaves[_i].ID, $slaves[_FLs].rivalry++>>
 			<<set $slaves[_i].rivalryTarget = $Stewardess.ID, $slaves[_i].rivalry++>>
 			<</if>>
-		<</if>>
-		<<if $slaves[_i].prestigeDesc == "She is remembered for winning best in show as a dairy cow.">>
+		<<case "She is remembered for winning best in show as a dairy cow.">>
 			$slaves[_i].slaveName's huge breasts frequently get in the way of her work and she leaks milk everywhere, greatly annoying $Stewardess.slaveName.
-			<<if random(1,100) > 90 && $Stewardess.rivalry == 0 and $slaves[_i].rivalry == 0>>
-			<<set $Stewardess.rivalryTarget = $slaves[_i].ID, $Stewardess.rivalry++, $slaves[_SWD].rivalryTarget = $slaves[_i].ID, $slaves[_SWD].rivalry++>>
+			<<if random(1,100) > 90 && $Stewardess.rivalry == 0 && $slaves[_i].rivalry == 0>>
+			<<set $Stewardess.rivalryTarget = $slaves[_i].ID, $Stewardess.rivalry++, $slaves[_FLs].rivalryTarget = $slaves[_i].ID, $slaves[_FLs].rivalry++>>
 			<<set $slaves[_i].rivalryTarget = $Stewardess.ID, $slaves[_i].rivalry++>>
 			<</if>>
-		<</if>>
-		<<if $slaves[_i].prestigeDesc == "She is remembered for winning best in show as a breeder." and $slaves[_i].preg > 20>>
-			$slaves[_i].slaveName's big pregnant belly frequently gets in the way of her work. However, $Stewardess.slaveName is willing to overlook it, as well as allow her easy jobs, due to how valuable her womb is.
+		case "She is remembered for winning best in show as a breeder.">>
+			<<if $slaves[_i].preg > 20>>
+				$slaves[_i].slaveName's big pregnant belly frequently gets in the way of her work. However, $Stewardess.slaveName is willing to overlook it, as well as allow her easy jobs, due to how valuable her womb is.
+			<</if>>
+		<</switch>>
+		<<if (_BonusToggle == 1) && ($slaves[_i].devotion < 45)>>
+			<<set $slaves[_i].devotion += 5>>
 		<</if>>
 	<</for>>
-	<<if ($Stewardess.fetishKnown == 1)>>
-		<<if ($Stewardess.fetish == "dom")>>
-		She walks among the cowering servants as a queen among peasants, playing the role of dominant to perfection and increasing her charges' @@color:hotpink;obedience.@@
+		<<if ($Stewardess.fetishKnown == 1) && ($Stewardess.fetish == "dom")>>
+			She walks among the cowering servants as a queen among peasants, playing the role of dominant to perfection and increasing her charges' @@color:hotpink;obedience.@@
+		<<elseif ($Stewardess.energy > 95)>>
+			She walks among the cowering servants looking for an excuse to extract sex from shirkers as @@color:hotpink;punishment.@@
 		<</if>>
-	<<elseif ($Stewardess.energy > 95)>>
-		She walks among the cowering servants looking for an excuse to extract sex from shirkers as @@color:hotpink;punishment.@@
+		/% Get it out of the loop %/
+		<<set $cash += ($stewardessBonus * $servantsQuartersSlaves)>>
+		<br>
 	<</if>>
-	<<if _stewardessImpregnated == 1>>
-		The Societal Elite know you've ordered $Stewardess.slaveName to impregnate your maids. @@color:red;They are not amused by your disenterest in eugenics.@@
-		<<set $failedElite += 10>>
-	<</if>>
-	<</if>>
+<</if>>
 
-	<<set $repGain += $servantsQuartersSlaves*20>>
+<<if _stewardessImpregnated == 1>>
+	The Societal Elite know you've ordered $Stewardess.slaveName to impregnate your maids. @@color:red;They are not amused by your disenterest in eugenics.@@
+	<<set $failedElite += 10>>
+<</if>>
+<<if ($servantsQuartersSlaves > 0)>>
+	&nbsp;&nbsp;&nbsp;&nbsp;<<if ($servantsQuartersSlaves != 1)>>''There are $servantsQuartersSlaves slaves working out of the servants' quarters.'' They work to<<else>>''There is one slave working out of the servants' quarters.'' She works to<</if>> @@color:yellowgreen;reduce@@ your household expenses; having a well-staffed house slightly @@color:green;increases@@ your reputation.
+<</if>>
+
+<<if ($Stewardess != 0)>>
+	<<if $showEWD != 0>>
+		<br><br>''__@@color:pink;$slaves[_FLs].slaveName@@__'' is serving as your stewardess.
+		/* 000-250-006 */
+		<<if $seeImages == 1 && $imageChoice == 0>>
+		<div class="imageRef tinyImg">
+			<<SlaveArt $slaves[_FLs] 0 0>>
+		</div>
+		<</if>>
+		/* 000-250-006 */
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;
+		<<if $slaves[$i].choosesOwnClothes == 1>>
+		<<include "SA chooses own clothes">>
+		<<if ($slaves[$i].devotion <= 20)>>
+			<<set $slaves[$i].devotion -= 5>>
+		<<else>>
+			<<set $slaves[$i].devotion++>>
+		<</if>>
+		<</if>>
+		<<include "SA diet">>
+		<<include "SA long term effects">>
+		<<include "SA drugs">>
+		<<include "SA relationships">>
+		<<include "SA rivalries">>
+		<br><<include "SA devotion">>
+		<br><br>
+	<<else>>
+		<<silently>>
+		<<if $slaves[$i].choosesOwnClothes == 1>>
+		<<include "SA chooses own clothes">>
+		<<if ($slaves[$i].devotion <= 20)>>
+			<<set $slaves[$i].devotion -= 5>>
+		<<else>>
+			<<set $slaves[$i].devotion++>>
+		<</if>>
+		<</if>>
+		<<include "SA diet">>
+		<<include "SA long term effects">>
+		<<include "SA drugs">>
+		<<include "SA relationships">>
+		<<include "SA rivalries">>
+		<<include "SA devotion">>
+		<</silently>>
+	<</if>>
+	<<set $Stewardess = $slaves[_FLs]>>
+<</if>>
+
+<<if _DL > 0>>
+	<<set $servantMilkersMultiplier = 0.5, _SQMilk = 0, _SQMilkSale = 0>>
+	<<if ($Stewardess == 0)>>
+		<br><br>
+	<</if>>
+<<for _dI = 0; _dI < _DL; _dI++>>
+	<<set _i = $ServQiIDs[_dI].Index, $i = _i, $slaves[_i].devotion += _devBonus>>
+	<<if ($slaves[_i].devotion <= 20) && ($slaves[_i].trust > -20)>>
+	<<set $slaves[_i].devotion -= 5, $slaves[_i].trust -= 5>>
+	<<elseif ($slaves[_i].devotion < 2)>>
+	<<set $slaves[_i].devotion += 2>>
+	<<elseif ($slaves[_i].devotion > 3)>>
+	<<set $slaves[_i].devotion -= 2>>
+	<</if>>
+	<<if ($slaves[_i].trust < -50)>>
+	<<set $slaves[_i].trust += 2>>
+	<<elseif ($slaves[_i].trust < -6)>>
+	<<set $slaves[_i].trust += 1>>
+	<</if>>
+	<<if ($slaves[_i].health < -80)>>
+	<<set $slaves[_i].health += 20>>
+	<<elseif ($slaves[_i].health < -40)>>
+	<<set $slaves[_i].health += 10>>
+	<<elseif ($slaves[_i].health < 0)>>
+	<<set $slaves[_i].health += 7>>
+	<<elseif ($slaves[_i].health < 90)>>
+	<<set $slaves[_i].health += 3>>
+	<</if>>
+	<<if $showEWD != 0>>
+		/* 000-250-006 */
+		<<if $seeImages == 1 && $imageChoice == 0>>
+		<div class="imageRef tinyImg">
+			<<SlaveArt $slaves[_i] 0 0>>
+		</div>
+		<</if>>
+		/* 000-250-006 */
+		''__@@color:pink;$slaves[$i].slaveName@@__'' is working out of the servants' quarters.
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA servant">>
+		<<if ($servantMilkers == 1) && ($slaves[_i].lactation > 0)>>
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA get milked">>
+			<<set _SQMilk += $milk, _SQMilkSale += $milkSale>>
+		<</if>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;
+		<<if $slaves[_i].choosesOwnClothes == 1>>
+		<<include "SA chooses own clothes">>
+		<<if ($slaves[_i].devotion <= 20)>>
+			<<set $slaves[_i].devotion -= 5>>
+		<<else>>
+			<<set $slaves[_i].devotion++>>
+		<</if>>
+		<</if>>
+		<<include "SA diet">>
+		<<include "SA long term effects">>
+		<<include "SA drugs">>
+		<<include "SA relationships">>
+		<<include "SA rivalries">>
+		<br><<include "SA devotion">>
+		<br><br>
+	<<else>>
+		<<silently>>
+		<<include "SA servant">>
+		<<if ($servantMilkers == 1) && ($slaves[_i].lactation > 0)>>
+			<<include "SA get milked">>
+			<<set _SQMilk += $milk, _SQMilkSale += $milkSale>>
+		<</if>>
+		<<if $slaves[_i].choosesOwnClothes == 1>>
+		<<include "SA chooses own clothes">>
+		<<if ($slaves[_i].devotion <= 20)>>
+			<<set $slaves[_i].devotion -= 5>>
+		<<else>>
+			<<set $slaves[_i].devotion++>>
+		<</if>>
+		<</if>>
+		<<include "SA diet">>
+		<<include "SA long term effects">>
+		<<include "SA drugs">>
+		<<include "SA relationships">>
+		<<include "SA rivalries">>
+		<<include "SA devotion">>
+		<</silently>>
+	<</if>>
+<</for>>
+	<<set $servantMilkersMultiplier = 1, $repGain += $servantsQuartersSlaves*20>>
 
 	<<if $servantsQuarters < $servantsQuartersSlaves>>
 	<<set $servantsQuartersSpots = 0>>
@@ -273,8 +338,11 @@
 	<<set $servantsQuartersSpots = $servantsQuarters - $servantsQuartersSlaves>>
 	<</if>>
 
+	<<if _SQMilk > 0>>
+		Since your lactating servants spend most of their time working in the penthouse, they use the milkers there, giving _SQMilk liters of milk over the week, which is sold for @@color:yellowgreen;¤_SQMilkSale.@@
+	<</if>>
 	<<if $servantsQuartersDecoration != "standard">>
-	$servantsQuartersNameCaps's $servantsQuartersDecoration atmosphere @@color:hotpink;has a minor impact on your servants.@@
+		$servantsQuartersNameCaps's $servantsQuartersDecoration atmosphere @@color:hotpink;has a minor impact on your servants.@@
 	<</if>>
 <<else>>
 	''$servantsQuartersNameCaps is empty.''

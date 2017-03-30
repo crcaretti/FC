@@ -1,34 +1,10 @@
-:: Clinic
- 
-<<nobr>>
-<<set $nextButton to "Back to Main", $nextLink to "Main", $returnTo to "Clinic">>
+:: Clinic [nobr]
+
+<<set $nextButton = "Back to Main", $nextLink = "Main", $returnTo = "Clinic", $showEncyclopedia = 1, $encyclopedia = "Clinic", _DL = $CliniciIds.length, $clinicSlaves = _DL, _SL = $slaves.length>>
 
 <<if $clinicName != "the Clinic">>
-	<<set $clinicNameCaps to $clinicName.replace("the ", "The ")>>
+	<<set $clinicNameCaps = $clinicName.replace("the ", "The ")>>
 <</if>>
-
-<<set $clinicSlaves to 0>>
-<<set $notClinicSlaves to 0>>
-<<for _i to 0; _i < $slaves.length; _i++>>
-	<<if $slaves[_i].assignment is "get treatment in the clinic">>
-		<<set $clinicSlaves++>>
-		<<if $clinicSpeedGestation == 1>>
-			<<if $slaves[_i].preg > 0>>
-				<<set $slaves[_i].pregControl = "speed up">>
-			<</if>>
-		<</if>>
-	<<else>>
-		<<set $notClinicSlaves++>>
-	<</if>>
-<</for>>
-
-<<for _i to 0; _i < $slaves.length; _i++>>
-	<<if $slaves[_i].preg is "get treatment in the clinic">>
-		<<set $clinicSlaves++>>
-	<<else>>
-		<<set $notClinicSlaves++>>
-	<</if>>
-<</for>>
 
 $clinicNameCaps
 <<switch $clinicDecoration>>
@@ -87,17 +63,19 @@ $clinicNameCaps
 <<elseif $Nurse != 0>>
 	$Nurse.slaveName is alone in the clinic, and has nothing to do but keep the place spotlessly clean and ready for its next patients.
 <<else>>
-	$clinicNameCaps is empty and quiet. [[Decommission the Clinic|Main][$clinic to 0, $clinicDecoration to "standard"]]
+	$clinicNameCaps is empty and quiet. [[Decommission the Clinic|Main][$clinic = 0, $clinicDecoration = "standard", $clinicUpgradeScanner = 0, $clinicUpgradeFilters = 0, $clinicUpgradePurge = 0, $clinicInflateBelly = 0, $clinicSpeedGestation = 0]]
 <</if>>
 
+<<set _Tmult0 = Math.trunc($clinic*1000*$upgradeMultiplierArcology)>>
 <br>$clinicNameCaps has room to support $clinic slaves while they receive treatment.
-[[Expand the clinic|Clinic][$cash -=  Math.trunc($clinic*1000*$upgradeMultiplierArcology), $clinic += 5]] //Costs ¤<<print Math.trunc($clinic*1000*$upgradeMultiplierArcology)>>//
+[[Expand the clinic|Clinic][$cash -= _Tmult0, $clinic += 5]] //Costs ¤_Tmult0//
 
 <br>
 <<if $clinicUpgradeScanner == 1>>
 	$clinicNameCaps's scanners have been upgraded with a sampling system that can estimate carcinogenic damage to a slave's genome.
 <<else>>
-	It mounts powerful medical scanning technology. [[Upgrade the scanners to help detect genomic damage|Clinic][$cash -=  Math.trunc(10000*$upgradeMultiplierArcology), $clinicUpgradeScanner to 1]] //Costs ¤<<print Math.trunc(10000*$upgradeMultiplierArcology)>>//
+	<<set _Tmult1 = Math.trunc(10000*$upgradeMultiplierArcology)>>
+	It mounts powerful medical scanning technology. [[Upgrade the scanners to help detect genomic damage|Clinic][$cash -= _Tmult1, $clinicUpgradeScanner = 1]] //Costs ¤_Tmult1//
 <</if>>
 
 <br>
@@ -105,10 +83,12 @@ $clinicNameCaps
 	<<if $clinicUpgradePurge == 1>>
 		The entire floor beneath $clinicName is occupied by a huge filtration plant that constantly cycles out the patients' blood to remove impurities. The blood is intensely cleaned to greatly decrease the presence of impurities at the cost of compatability. Patients will likely be ill for the duration of the treatment.
 	<<else>>
-		The entire floor beneath $clinicName is occupied by a huge filtration plant that constantly cycles out the patients' blood to remove impurities. [[Increase the effectiveness of the impurity purging|Clinic][$cash -= Math.trunc(150000*$upgradeMultiplierArcology), $clinicUpgradePurge to 1]] //Costs ¤<<print Math.trunc(150000*$upgradeMultiplierArcology)>> and may cause health problems in slaves//
+		<<set _Tmult3 = Math.trunc(150000*$upgradeMultiplierArcology)>>
+		The entire floor beneath $clinicName is occupied by a huge filtration plant that constantly cycles out the patients' blood to remove impurities. [[Increase the effectiveness of the impurity purging|Clinic][$cash -= _Tmult3, $clinicUpgradePurge to 1]] //Costs ¤_Tmult3 and may cause health problems in slaves//
 	<</if>>
 <<else>>
-	It includes standard dialysis equipment. [[Install advanced blood treatment equipment to help address drug side effects|Clinic][$cash -= Math.trunc(50000*$upgradeMultiplierArcology), $clinicUpgradeFilters to 1]] //Costs ¤<<print Math.trunc(50000*$upgradeMultiplierArcology)>>//
+	<<set _Tmult2 = Math.trunc(50000*$upgradeMultiplierArcology)>>
+	It includes standard dialysis equipment. [[Install advanced blood treatment equipment to help address drug side effects|Clinic][$cash -= _Tmult2, $clinicUpgradeFilters = 1]] //Costs ¤_Tmult2//
 <</if>>
 
 <br>
@@ -131,24 +111,23 @@ $clinicNameCaps
 
 <br><br>
 <<if $Nurse != 0>>
-	<<set $Flag to 2>>
+	<<set $Flag = 2>>
 	<<include "Slave Summary">>
 <<else>>
 	You do not have a slave serving as a clinical Nurse. [[Appoint one|Nurse Select]]
 <</if>>
 
-<<if $clinicSlaves > 0>>
+<<if _DL > 0>>
 	<br><br>''Take a slave out of the clinic:''
-	<<set $Flag to 1>>
+	<<set $Flag = 1>>
 	<<include "Slave Summary">>
 <</if>>
 
-<<if $notClinicSlaves > 0>>
+<<if (_SL > _DL)>>
 	<br><br>''Send a slave to get treatment in the clinic:''
-	<<set $Flag to 0>>
+	<<set $Flag = 0>>
 	<<include "Slave Summary">>
 <</if>>
 <<unset $Flag>>
 
 <br><br>Rename $clinicName: <<textbox "$clinicName" $clinicName "Clinic">> //Use a noun or similar short phrase//
-<</nobr>>

@@ -1,18 +1,34 @@
 :: Master Suite Report [nobr]
 
-<<set $legendaryAbolitionistID = 0, $masterSuiteAverageEnergy = 0, $masterSuiteSlaves = 0, _masterSuiteAverageCum = 0, _masterSuiteAverageDick = 0, _masterSuiteAverageDom = 0, _masterSuiteAverageMilk = 0, _masterSuiteAveragePreg = 0, _masterSuiteAverageSadism = 0, _masterSuitePregnantSlaves = 0, _masterSuitePregnantSlavesMultiple = 0, _SL = $slaves.length, _CCB = -1>>
+<<set $legendaryAbolitionistID = 0, $masterSuiteAverageEnergy = 0, _masterSuiteAverageCum = 0, _masterSuiteAverageDick = 0, _masterSuiteAverageDom = 0, _masterSuiteAverageMilk = 0, _masterSuiteAveragePreg = 0, _masterSuiteAverageSadism = 0, _masterSuitePregnantSlaves = 0, _masterSuitePregnantSlavesMultiple = 0, _DL = $MastSiIDs.length, $masterSuiteSlaves = _DL, _SL = $slaves.length, _FLs = -1>>
 
+
+<<SlaveSort $MastSiIDs>>
 <<if $Concubine != 0>>
-<<for _CCB = 0; _CCB < _SL; _CCB++>>
-<<if $slaves[_CCB].ID == $Concubine.ID>>
+<<for _FLs = 0; _FLs < _SL; _FLs++>>
+<<if $slaves[_FLs].ID == $Concubine.ID>>
+	<<set $MastSiIDs.push({ID: $Concubine.ID, Index: _FLs}), _DL++, $masterSuiteSlaves = _DL>>
 	<<break>>
 <</if>>
 <</for>>
 <</if>>
 
-<<for _i = 0; _i < _SL; _i++>>
-	<<if ($slaves[_i].assignment != "serve in the master suite") && ($slaves[_i].assignment != "be your Concubine")>><<continue>><</if>>
-	<<set $masterSuiteSlaves++, $masterSuiteAverageEnergy += $slaves[_i].energy>>
+<<if $masterSuiteSlaves > 0>>
+	<<for _dI = 0; _dI < _DL; _dI++>>
+		<<set _i = $MastSiIDs[_dI].Index, _ID = $MastSiIDs[_dI].ID>>
+		<<if _ID != $slaves[_i].ID>>
+			/% Slaves.ID and $MastSiIDs.ID's don't match-up so let's find her %/
+			<<for _i = 0; _i < _SL; _i++>>
+			<<if _ID == $slaves[_i].ID>>
+				/% Correct the Index %/
+				<<set $MastSiIDs[_dI].Index = _i>>
+			<</if>>
+			<</for>>
+		<</if>>
+	<</for>>
+<<for _dI = 0; _dI < _DL; _dI++>>
+	<<set _i = $MastSiIDs[_dI].Index, $i = _i>>
+	<<set $masterSuiteAverageEnergy += $slaves[_i].energy>>
 	<<if $masterSuiteUpgradeLuxury == 2>>
 	<<if canAchieveErection($slaves[_i])>>
 		<<set _masterSuiteAverageCum += $slaves[_i].balls, _masterSuiteAverageDick += $slaves[_i].dick>>
@@ -29,15 +45,10 @@
 		<<set _masterSuiteAverageSadism -= $slaves[_i].fetishStrength>>
 	<</switch>>
 	<</if>>
-	<<if ($legendaryAbolitionistID == 0) && ($slaves[_i].devotion > 95) && ($slaves[_i].prestige == 0)>>
-	<<if ($slaves[_i].origin is "You sentenced her to enslavement as a punishment for attempted theft of a slave.") || ($slaves[_i].origin is "She is an enslaved Daughter of Liberty.")>>
+	<<if ($legendaryAbolitionistID == 0) && ($slaves[_i].devotion > 95) && ($slaves[_i].prestige == 0) && (($slaves[_i].origin is "You sentenced her to enslavement as a punishment for attempted theft of a slave.") || ($slaves[_i].origin is "She is an enslaved Daughter of Liberty."))>>
 		<<set $legendaryAbolitionistID = $slaves[_i].ID>>
 	<</if>>
-	<</if>>
 <</for>>
-
-<<if ($masterSuiteSlaves > 0)>>
-
 <<set $masterSuiteAverageEnergy = $masterSuiteAverageEnergy/$masterSuiteSlaves>>
 <<set _masterSuiteAverageMilk = _masterSuiteAverageMilk/$masterSuiteSlaves>>
 <<set _masterSuiteAverageCum = _masterSuiteAverageCum/$masterSuiteSlaves>>
@@ -46,13 +57,11 @@
 <<set _masterSuiteAverageDom = _masterSuiteAverageDom/$masterSuiteSlaves>>
 <<set _masterSuiteAverageSadism = _masterSuiteAverageSadism/$masterSuiteSlaves>>
 
-<<if $seeImages == 1>><br style="clear:both" /><</if>>
 &nbsp;&nbsp;&nbsp;&nbsp;''There <<if ($masterSuiteSlaves == 1)>>is one slave<<else>>are $masterSuiteSlaves slaves<</if>>
 seeing to your pleasure in the master suite.'' Such sexual opulence @@color:green;improves@@ your reputation.
 <<if ($arcologies[0].FSEgyptianRevivalist > 0) && ($masterSuiteSlaves >= 5)>>
 	Society @@color:green;approves@@ of your keeping a large number of women, which advances the Egyptian revivalist ideal of multiple concubinage.
-	<<set $repGain += 0.2*$masterSuiteSlaves*$FSSingleSlaveRep*($arcologies[0].FSEgyptianRevivalist/$FSLockinLevel)>>
-	<<set $arcologies[0].FSEgyptianRevivalist += 0.01*$masterSuiteSlaves*$FSSingleSlaveRep>>
+	<<set $repGain += 0.2*$masterSuiteSlaves*$FSSingleSlaveRep*($arcologies[0].FSEgyptianRevivalist/$FSLockinLevel), $arcologies[0].FSEgyptianRevivalist += 0.01*$masterSuiteSlaves*$FSSingleSlaveRep>>
 <</if>>
 <<if (_masterSuitePregnantSlaves >= 1)>>
 	The suite is supporting the pregnancies of the slaves
@@ -96,18 +105,15 @@ The level of sexual energy in the suite is
 <</if>>
 <</if>>
 
+<<for _dI = 0; _dI < _DL; _dI++>>
+	<<set _i = $MastSiIDs[_dI].Index, $i = _i>>
 <br><br>
-<<for _i = 0; _i < _SL; _i++>>
-	<<if ($slaves[_i].assignment != "serve in the master suite") && ($slaves[_i].assignment != "be your Concubine")>><<continue>><</if>>
-	<<set $i = _i>>
-
-<<if ($slaves[_i].assignment == "serve in the master suite")>>
+<<if ($slaves[_i].assignment != "be your Concubine")>>
 	<<if $verboseDescriptions == 1>>''__@@color:pink;$slaves[_i].slaveName@@__'' sees to your pleasure in the master suite.<</if>>
 	/* 000-250-006 */
-	/* <<if $seeImages == 1>><<SlaveArt $slaves[_i] 0 0>><</if>> */
 	<<if $seeImages == 1 && $imageChoice == 0>>
-	    <div class="imageRef tinyImg">
-	    <<SlaveArt $slaves[_i] 0 0>>
+	<div class="imageRef tinyImg">
+		<<SlaveArt $slaves[_i] 0 0>>
 	</div>
 	<</if>>
 	/* 000-250-006 */
@@ -150,61 +156,61 @@ The level of sexual energy in the suite is
 	<</if>>
 	<</if>>
 <<else>>
-	<<set $Concubine = $slaves[_CCB]>>
+	<<set $Concubine = $slaves[_FLs]>>
 	<<if $verboseDescriptions == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>''Your concubine $Concubine.slaveName is serving you in $masterSuiteName.'' More than any other slave, her sexual brilliance and physical appeal are @@color:green;critical@@ to your reputation.
 	/* 000-250-006 */
-	/* <<if $seeImages == 1>><<SlaveArt $slaves[_CCB] 0 0>><</if>> */
 	<<if $seeImages == 1 && $imageChoice == 0>>
 		<div class="imageRef tinyImg">
-			<<SlaveArt $slaves[_CCB] 0 0>>
+			<<SlaveArt $slaves[_FLs] 0 0>>
 		</div>
 	<</if>>
 	/* 000-250-006 */
 	<<if ($Concubine.career == "an arcology owner")>>
-	She was once your rival, and your relationship is widely thought to be @@color:green;the perfect modern romance.@@
+		She was once your rival, and your relationship is widely thought to be @@color:green;the perfect modern romance.@@
 		<<set $repGain += 250>>
 	<<elseif ($Concubine.prestige > 0)>>
 		<<if $verboseDescriptions == 1>>Keeping such a prestigious slave as your concubine @@color:green;adds to your fame.@@<</if>>
-			<<set $repGain += 25*$Concubine.prestige>>
-		<</if>>
-		<<if $Concubine.prestigeDesc == "She is a famed Free Cities whore, and commands top prices.">>
-			When she has a free moment, she refines her flexibility so that she is prepared for any sexual position you can think of, and many more that she researched just for your pleasure. 
-		<</if>>
-		<<if $Concubine.prestigeDesc == "She is a famed Free Cities slut, and can please anyone.">>
-			When she has a free moment, she pretties herself up so that she may be as beautiful as possible to make you look even better.
-		<</if>>
-		<<if $Concubine.prestigeDesc == "She is remembered for winning best in show as a cockmilker.">>
-			She does her best to prevent herself from making a mess when you don't want one. When she has free time, she researches new techniques to makes use of her huge loads to entertain you.
-		<</if>>
-		<<if $Concubine.prestigeDesc == "She is remembered for winning best in show as a dairy cow.">>
-			She does her best to prevent herself from making a mess when you don't want one. When she has free time, she researches new techniques to makes use of her excessive milk to entertain you.
-		<</if>>
-		<<if $Concubine.prestigeDesc == "She is remembered for winning best in show as a breeder." && $Concubine.preg > 10>>
-			When she has a free moment, she refines her flexibility so that she can perform any sexual position possible for her in her motherly state. She takes the time to look up new positions to work around her growing pregnancy. 
-		<</if>>
-		<<if $Concubine.prestigeDesc == "She is remembered for winning best in show as a breeder.">>
-			When she has a free moment, she refines her flexibility so that she is prepared for any sexual position you can think of, no matter how heavy she becomes with children. 
-		<</if>>
-		<<if ($Concubine.oralCount + $Concubine.analCount + $Concubine.vaginalCount + $Concubine.mammaryCount + $Concubine.penetrativeCount > 1000)>>
-			<<if $verboseDescriptions == 1>>Many citizens <<if $Concubine.publicCount > 10>>remember having had her themselves, and <</if>>@@color:green;respectfully@@ envy you her exclusive company.<</if>>
-			<<set $repGain += 25>>
-		<</if>>
-		<<if $slaves[_i].devotion <= 20>>
-		<<if $masterSuiteUpgradeLuxury > 0>>
-			<<set $slaves[_i].devotion += 4, $slaves[_i].trust += 4>>
-		<<else>>
-			<<set $slaves[_i].devotion += 2, $slaves[_i].trust += 2>>
-		<</if>>
-		<</if>>
-		<<if $masterSuiteDecoration != "standard">>
-			<<set $slaves[_i].devotion++>>
+		<<set $repGain += 25*$Concubine.prestige>>
+		<<if $verboseDescriptions == 1>>
+			<<if $Concubine.prestigeDesc == "She is a famed Free Cities whore, and commands top prices.">>
+				When she has a free moment, she refines her flexibility so that she is prepared for any sexual position you can think of, and many more that she researched just for your pleasure. 
+			<</if>>
+			<<if $Concubine.prestigeDesc == "She is a famed Free Cities slut, and can please anyone.">>
+				When she has a free moment, she pretties herself up so that she may be as beautiful as possible to make you look even better.
+			<</if>>
+			<<if $Concubine.prestigeDesc == "She is remembered for winning best in show as a cockmilker.">>
+				She does her best to prevent herself from making a mess when you don't want one. When she has free time, she researches new techniques to makes use of her huge loads to entertain you.
+			<</if>>
+			<<if $Concubine.prestigeDesc == "She is remembered for winning best in show as a dairy cow.">>
+				She does her best to prevent herself from making a mess when you don't want one. When she has free time, she researches new techniques to makes use of her excessive milk to entertain you.
+			<</if>>
+			<<if $Concubine.prestigeDesc == "She is remembered for winning best in show as a breeder." && $Concubine.preg > 10>>
+				When she has a free moment, she refines her flexibility so that she can perform any sexual position possible for her in her motherly state. She takes the time to look up new positions to work around her growing pregnancy. 
+			<</if>>
+			<<if $Concubine.prestigeDesc == "She is remembered for winning best in show as a breeder.">>
+				When she has a free moment, she refines her flexibility so that she is prepared for any sexual position you can think of, no matter how heavy she becomes with children. 
+			<</if>>
 		<</if>>
 	<</if>>
-
-	<<if $masterSuiteUpgradeLuxury == 2>>
-
+	<<if ($Concubine.oralCount + $Concubine.analCount + $Concubine.vaginalCount + $Concubine.mammaryCount + $Concubine.penetrativeCount > 1000)>>
+		<<if $verboseDescriptions == 1>>Many citizens <<if $Concubine.publicCount > 10>>remember having had her themselves, and <</if>>@@color:green;respectfully@@ envy you her exclusive company.<</if>>
+		<<set $repGain += 25>>
+	<</if>>
+	<<if $slaves[_i].devotion <= 20>>
+	<<if $masterSuiteUpgradeLuxury > 0>>
+		<<set $slaves[_i].devotion += 4, $slaves[_i].trust += 4>>
+	<<else>>
+		<<set $slaves[_i].devotion += 2, $slaves[_i].trust += 2>>
+	<</if>>
+	<</if>>
+	<<if $masterSuiteDecoration != "standard">>
+		<<set $slaves[_i].devotion++>>
+	<</if>>
+<</if>>
+/% Both %/
+<<if $masterSuiteUpgradeLuxury == 2>>
 	<<if ($slaves[_i].trust > -20) && ($slaves[_i].devotion > -10) && ($slaves[_i].fetishStrength <= 95)>>
-		<<if $masterSuiteAverageEnergy > random(50,90)>>
+	<<if $masterSuiteAverageEnergy > random(50,90)>>
 	<<if $verboseDescriptions == 1>>
 		<<set _Verb = "She">>
 	<<else>>
@@ -216,7 +222,7 @@ The level of sexual energy in the suite is
 			<<if $verboseDescriptions == 1>>Her<<else>>$slaves[_i].slaveName's<</if>> @@color:lightcoral;boob fetish is strengthened@@ by the constant availability of milky nipples for her to play with.
 			<<set $slaves[_i].fetishStrength += 4>>
 		<<else>>
-			<<if $verboseDescriptions == 1>>She<<else>>$slaves[_i].slaveName<</if>> @@color:lightcoral;acquires a boob fetish@@ after spending a lot of time in the fuckpit drinking from her fellow fucktoys' tits.
+			_Verb @@color:lightcoral;acquires a boob fetish@@ after spending a lot of time in the fuckpit drinking from her fellow fucktoys' tits.
 			<<set $slaves[_i].fetish = "boobs", $slaves[_i].fetishStrength = 65>>
 		<</if>>
 	<<elseif (_masterSuiteAverageDick > 3) && ($slaves[_i].anus > 0) && ($fetishChangeChance > random(0,50))>>
@@ -291,7 +297,7 @@ The level of sexual energy in the suite is
 <</if>>
 
 <<if $verboseDescriptions == 1>>
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;<<include "SA please you">>
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA please you">>
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;
 	<<if $slaves[_i].choosesOwnClothes == 1>>
 	<<include "SA chooses own clothes">>
@@ -307,7 +313,6 @@ The level of sexual energy in the suite is
 	<<include "SA relationships">>
 	<<include "SA rivalries">>
 	<br><<include "SA devotion">>
-	<br><br>
 <<else>>
 	<<silently>>
 	<<include "SA please you">>
@@ -342,7 +347,7 @@ The level of sexual energy in the suite is
 		<<set $slaves[_i].drugs = "fertility drugs">>
 	<<elseif ($masterSuiteHyperPregnancy == 1) && ($slaves[_i].drugs != "super fertility drugs") && canGetPregnant($slaves[_i])>>
 		<<set $slaves[_i].drugs = "super fertility drugs">>
-	<<elseif ((($masterSuitePregnancyFertilityDrugs == 0) && ($slaves[_i].drugs is "fertility drugs")) || (($masterSuiteHyperPregnancy == 0) && ($slaves[_i].drugs == "super fertility drugs")))>>
+	<<elseif ((($masterSuitePregnancyFertilityDrugs == 0) && ($slaves[_i].drugs == "fertility drugs")) || (($masterSuiteHyperPregnancy == 0) && ($slaves[_i].drugs == "super fertility drugs")))>>
 		<<set $slaves[_i].drugs = "no drugs">>
 	<</if>>
 	<</if>>
@@ -383,15 +388,15 @@ The level of sexual energy in the suite is
 
 <</for>>
 
-<<if _CCB != -1>>
-	<<set $Concubine = $slaves[_CCB]>>
+<<if _FLs > -1>>
+	<<set $Concubine = $slaves[_FLs], _dump = $MastSiIDs.pluck([_DL], [_DL]), _DL--, $masterSuiteSlaves = _DL>>
 <</if>>
 
 <<if $arcologies[0].FSRestart != "unset">>
 <<if $propOutcome != 1>>
-<<if $masterSuitePregnantSlaves > 0>>
+<<if _masterSuitePregnantSlaves > 0>>
 	The Societal Elite know what you are doing with your bedslaves. @@color:red;They do not approve@@.
-	<<set $failedElite += 5*$masterSuitePregnantSlaves>>
+	<<set $failedElite += 5*_masterSuitePregnantSlaves>>
 <</if>>
 <</if>>
 <</if>>
@@ -403,3 +408,4 @@ The level of sexual energy in the suite is
 <<else>>
 	''The Master Suite is empty.''
 <</if>>
+<br><br>
