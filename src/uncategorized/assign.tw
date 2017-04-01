@@ -1,107 +1,50 @@
-:: Assign
- 
-<<if $returnTo is "Pit">>
-	<<set $fighterIDs.push($activeSlave.ID)>>
-	<<goto "Pit">>
-<<else>>
-<<if $returnTo is "Coursing Association">>
-	<<set $Lurcher to $activeSlave>>
-	<<goto "Coursing Association">>
-<<else>>
+:: Assign [silently]
 
-<<if $returnTo is "Arcade">>
-	<<set $activeSlave.assignment to "be confined in the arcade">>
-	<<set $activeSlave.clothes to "no clothing">>
-<<elseif $returnTo is "Head Girl Suite">>
-	<<set $activeSlave.assignment to "live with your Head Girl">>
-<<elseif $returnTo is "Master Suite">>
-	<<set $activeSlave.assignment to "serve in the master suite">>
-<<elseif $returnTo is "Clinic">>
-	<<set $activeSlave.assignment to "get treatment in the clinic">>
-<<elseif $returnTo is "Spa">>
-	<<set $activeSlave.assignment to "rest in the spa">>
-<<elseif $returnTo is "Cellblock">>
-	<<set $activeSlave.assignment to "be confined in the cellblock">>
-<<elseif $returnTo is "Schoolroom">>
-	<<set $activeSlave.assignment to "learn in the schoolroom">>
-<<elseif $returnTo is "Servants' Quarters">>
-	<<set $activeSlave.assignment to "work as a servant">>
-<<elseif $returnTo is "Dairy">>
-	<<set $activeSlave.assignment to "work in the dairy">>
+<<set $activeSlave = $slaves[$i], _ID = $activeSlave.ID, _SL = $slaves.length>>
+
+<<assginJob $activeSlave $returnTo>>
+<<switch $returnTo>>
+<<case "Arcade">>
+	<<set $activeSlave.clothes = "no clothing">>
+<<case "Master Suite">>
+	<<if $masterSuiteUpgradeLuxury > 1>>
+		<<set $activeSlave.livingRules = "luxurious">>
+	<<else>>
+		<<set $activeSlave.livingRules = "normal">>
+	<</if>>
+<<case "Dairy">>
 	<<if $dairyRestraintsSetting > 1>>
-		<<set $activeSlave.collar to "none">>
-		<<set $activeSlave.clothes to "no clothing">>
-		<<set $activeSlave.buttplug to "none">>
-		<<set $activeSlave.vaginalAccessory to "none">>
+		<<set $activeSlave.collar = "none", $activeSlave.clothes = "no clothing", $activeSlave.buttplug = "none", $activeSlave.vaginalAccessory = "none">>
 	<</if>>
 	<<if $dairyPregSetting > 0>>
 		<<set $reservedChildren -= $activeSlave.reservedChildren>>
 		<<set $activeSlave.reservedChildren to 0>>
 	<</if>>
-<<elseif $returnTo is "Brothel">>
-	<<set $activeSlave.assignment to "work in the brothel">>
-<<elseif $returnTo is "Club">>
-	<<set $activeSlave.assignment to "serve in the club">>
+<<case "Pit">>
+	<<set $fighterIDs.push(_ID)>>
+<<case "Coursing Association">>
+	<<set $Lurcher = $activeSlave>>
+<</switch>>
+
+<<if ($returnTo != "Pit") && ($returnTo != "Coursing Association")>>
+
+<<if $returnTo != "Master Suite">>
+	<<set $activeSlave.livingRules = "spare">>
 <</if>>
 
-<<if $returnTo is "Master Suite">>
-	<<if $masterSuiteUpgradeLuxury == 1>>
-	<<set $activeSlave.livingRules to "luxurious">>
-	<<else>>
-	<<set $activeSlave.livingRules to "spare">>
-	<</if>>
-<<else>>
-	<<set $activeSlave.livingRules to "spare">>
-<</if>>
-<<set $activeSlave.assignmentVisible to 0>>
-<<set $activeSlave.choosesOwnAssignment to 0>>
-<<set $activeSlave.standardPunishment to "situational">>
-<<set $activeSlave.standardReward to "situational">>
-<<set $activeSlave.releaseRules to "restrictive">>
-<<set $activeSlave.drugs to "no drugs">>
-<<set $activeSlave.sentence to 0>>
+<<set $activeSlave.drugs = "no drugs", $activeSlave.releaseRules = "restrictive", $activeSlave.sentence = 0, $activeSlave.standardPunishment = "situational", $activeSlave.standardReward = "situational">>
 
-<<if $activeSlave.ID is $personalAttention>>
-	<<if $PC.career == "escort">>
-		<<set $personalAttention to "whoring">>
-	<<elseif $PC.career == "servant">>
-		<<set $personalAttention to "upkeep">>
-	<<else>>
-		<<set $personalAttention to "business">>
-	<</if>>
-<</if>>
+<<set $slaves[$i] = $activeSlave>>
 
-<<if $activeSlave.ID is $HeadGirl.ID>>
-	<<set $HeadGirl to 0>>
-<</if>>
-<<if $activeSlave.ID is $Recruiter.ID>>
-	<<set $Recruiter to 0>>
-<</if>>
-<<if $activeSlave.ID is $Bodyguard.ID>>
-	<<set $Bodyguard to 0>>
-<</if>>
-
-<<for $i to 0; $i < $slaves.length; $i++>>
-<<if $activeSlave.ID == $slaves[$i].ID>>
-<<set $slaves[$i] to $activeSlave>>
-<<if $slaves[$i].choosesOwnClothes == 1>><<include "SA chooses own clothes">><</if>>
-<<break>>
-<</if>>
-<</for>>
-
-<<if ($showAssignToScenes != 1)>>
+<<if ($showAssignToScenes != 1) || ($activeSlave.fetish == "mindbroken")>>
 	<<goto $returnTo>>
-<<elseif ($activeSlave.fetish is "mindbroken")>>
-	<<goto $returnTo>>
-<<elseif ($returnTo is "Dairy") && (($dairyStimulatorsSetting >= 2) || ($dairyFeedersSetting >= 2) || ($dairyPregSetting >= 2))>>
+<<elseif ($returnTo == "Dairy") && (($dairyStimulatorsSetting >= 2) || ($dairyFeedersSetting >= 2) || ($dairyPregSetting >= 2))>>
 	<<goto "Industrial Dairy Assignment Scene">>
-<<elseif ($returnTo is "Dairy") && ($dairyRestraintsSetting == 0 && $activeSlave.devotion > 0)>>
+<<elseif ($returnTo == "Dairy") && ($dairyRestraintsSetting == 0 && $activeSlave.devotion > 0)>>
 	<<goto "Free Range Dairy Assignment Scene">>
-<<elseif ($returnTo is "Brothel")>>
+<<elseif ($returnTo == "Brothel")>>
 	<<goto "Brothel Assignment Scene">>
 <<else>>
 	<<goto $returnTo>>
-<</if>>
-
 <</if>>
 <</if>>

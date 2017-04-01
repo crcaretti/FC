@@ -1,0 +1,192 @@
+:: Assign Widgets [widget nobr]
+
+/%
+	Call as <<assginJob slaveObject $returnto | _currentRule.facilityRemove | "serve in the master suite"
+	$args[0] slave object. *MUST be present*
+	$args[1] Job to assign slave to. Will accept the $returnto vars and the _currentRule.assignFacility vars and the actual job assignments "serve in the master suite" etc.
+
+	This is basically a Widget version of assign but will work anywhere, and saves to the slaves[..] array, and changes your $args[0] var sent.
+%/
+<<widget assginJob>>
+<<if ($args[1] != "Pit") && ($args[1] != "Coursing Association")>>
+<<set _wID = $args[0].ID, _SL = $slaves.length>>
+
+/% Get slaves[_wi] index # %/
+<<if _wID == $slaves[$i].ID>>
+	<<set _wi = $i>>
+<<else>>
+	<<for _wi = 0; _wi < _SL; _wi++>>
+	<<if _wID == $slaves[_wi].ID>>
+		<<break>>
+	<</if>>
+	<</for>>
+<</if>>
+
+<<removeJob $args[0] $args[0].assignment>>
+/% use .toLowerCase() to get rid of a few dupe conditions. %/
+<<switch $args[1].toLowerCase()>>
+<<case "clinic" "get treatment in the clinic">>
+	<<set $args[0].assignment = "get treatment in the clinic", $clinicSlaves++, $CliniciIds.push({ID: _wID, Index: _wi})>>
+<<case "schoolroom" "learn in the schoolroom">>
+	<<set $args[0].assignment = "learn in the schoolroom", $schoolroomSlaves++, $SchlRiIDs.push({ID: _wID, Index: _wi})>>
+<<case "spa" "rest in the spa">>
+	<<set $args[0].assignment = "rest in the spa", $spaSlaves++, $SpaiIDs.push({ID: _wID, Index: _wi})>>
+<<case "cellblock" "be confined in the cellblock">>
+	<<set $args[0].assignment = "be confined in the cellblock", $cellblockSlaves++, $CellBiIDs.push({ID: _wID, Index: _wi})>>
+<<case "arcade" "be confined in the arcade">>
+	<<set $args[0].assignment = "be confined in the arcade", $arcadeSlaves++, $ArcadeiIDs.push({ID: _wID, Index: _wi})>>
+<<case "brothel" "work in the brothel">>
+	<<set $args[0].assignment = "work in the brothel", $brothelSlaves++, $BrothiIDs.push({ID: _wID, Index: _wi})>>
+<<case "club" "serve in the club">>
+	<<set $args[0].assignment = "serve in the club", $clubSlaves++, $ClubiIDs.push({ID: _wID, Index: _wi})>>
+<<case "dairy" "work in the dairy">>
+	<<set $args[0].assignment = "work in the dairy", $dairySlaves++, $DairyiIDs.push({ID: _wID, Index: _wi})>>
+<<case "hgsuite" "head girl suite" "live with your head girl">>
+	<<set $args[0].assignment = "live with your Head Girl", $HGSuiteSlaves++, $HGSuiteiIDs.push({ID: _wID, Index: _wi})>>
+<<case "servantsquarters" "servants' quarters" "work as a servant">>
+	<<set $args[0].assignment = "work as a servant", $servantsQuartersSlaves++, $ServQiIDs.push({ID: _wID, Index: _wi})>>
+<<case "mastersuite" "master suite" "serve in the master suite">>
+	<<set $args[0].assignment = "serve in the master suite", $masterSuiteSlaves++, $MastSiIDs.push({ID: _wID, Index: _wi})>>
+<</switch>>
+
+<<set $args[0].assignmentVisible = 0, $args[0].choosesOwnAssignment = 0>>
+<<if _wID == $personalAttention>>
+	<<if $PC.career == "escort">>
+		<<set $personalAttention = "whoring">>
+	<<elseif $PC.career == "servant">>
+		<<set $personalAttention = "upkeep">>
+	<<else>>
+		<<set $personalAttention = "business">>
+	<</if>>
+<</if>>
+<<if _wID == $HeadGirl.ID>>
+	<<set $HeadGirl = 0>>
+<</if>>
+<<if _wID == $Recruiter.ID>>
+	<<set $Recruiter = 0>>
+<</if>>
+<<if _wID == $Bodyguard.ID>>
+	<<set $Bodyguard = 0>>
+<</if>>
+
+<<set $slaves[_wi] = $args[0], $i = _wi>>
+<<if $slaves[_wi].choosesOwnClothes == 1>><<include "SA chooses own clothes">><</if>>
+<</if>>
+<</widget>>
+
+/%
+	Call as <<removeJob slaveObject $returnto | _currentRule.facilityRemove | "serve in the master suite" ["rest"]
+	$args[0] slave object. *MUST be present*
+	$args[1] Job to remove slave from. Will accept the $returnto vars and the _currentRule.assignFacility vars and the actual job assignments "serve in the master suite" etc.
+
+	This is basically a Widget version of Retrieve but will work anywhere, And it changes the assignment to "rest", and saves to the slaves[..] array, and changes your $args[0] var sent.
+	Retrieve overrides the 'rest' in most cases.
+%/
+<<widget removeJob>>
+<<if ($args[1] != "Pit") && ($args[1] != "Coursing Association")>>
+<<set _wID = $args[0].ID, _SL = $slaves.length>>
+
+/% use .toLowerCase() to get rid of a few dupe conditions. %/
+<<switch $args[1].toLowerCase()>>
+<<case "clinic" "get treatment in the clinic">>
+	<<set _Tcount = $CliniciIds.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $CliniciIds[_wi].ID>>
+			<<set _dump = $CliniciIds.deleteAt(_wi), $clinicSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "schoolroom" "learn in the schoolroom">>
+	<<set _Tcount = $SchlRiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $SchlRiIDs[_wi].ID>>
+			<<set _dump = $SchlRiIDs.deleteAt(_wi), $schoolroomSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "spa" "rest in the spa">>
+	<<set _Tcount = $SpaiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $SpaiIDs[_wi].ID>>
+			<<set _dump = $SpaiIDs.deleteAt(_wi), $spaSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "cellblock" "be confined in the cellblock">>
+	<<set _Tcount = $CellBiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $CellBiIDs[_wi].ID>>
+			<<set _dump = $CellBiIDs.deleteAt(_wi), $cellblockSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "arcade" "be confined in the arcade">>
+	<<set _Tcount = $ArcadeiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $ArcadeiIDs[_wi].ID>>
+			<<set _dump = $ArcadeiIDs.deleteAt(_wi), $arcadeSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "brothel" "work in the brothel">>
+	<<set _Tcount = $BrothiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $BrothiIDs[_wi].ID>>
+			<<set _dump = $BrothiIDs.deleteAt(_wi), $brothelSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "club" "serve in the club">>
+	<<set _Tcount = $ClubiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $ClubiIDs[_wi].ID>>
+			<<set _dump = $ClubiIDs.deleteAt(_wi), $clubSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "dairy" "work in the dairy">>
+	<<set _Tcount = $DairyiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $DairyiIDs[_wi].ID>>
+			<<set _dump = $DairyiIDs.deleteAt(_wi), $dairySlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "hgsuite" "head girl suite" "live with your head girl">>
+	<<set _Tcount = $HGSuiteiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $HGSuiteiIDs[_wi].ID>>
+			<<set _dump = $HGSuiteiIDs.deleteAt(_wi), $HGSuiteSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "servantsquarters" "servants' quarters" "work as a servant">>
+	<<set _Tcount = $ServQiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $ServQiIDs[_wi].ID>>
+			<<set _dump = $ServQiIDs.deleteAt(_wi), $servantsQuartersSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<<case "mastersuite" "master suite" "serve in the master suite">>
+	<<set _Tcount = $MastSiIDs.length>>
+	<<for _wi = 0; _wi < _Tcount; _wi++>>
+		<<if _wID == $MastSiIDs[_wi].ID>>
+			<<set _dump = $MastSiIDs.deleteAt(_wi), $masterSuiteSlaves-->>
+			<<break>>
+		<</if>>
+	<</for>>
+<</switch>>
+
+<<set $args[0].assignmentVisible = 1, $args[0].assignment = "rest", $args[0].choosesOwnAssignment = 0>>
+<<if $slaves[$i].ID == _wID>>
+	<<set $slaves[$i] = $args[0]>>
+<<else>>
+	<<for _wi = 0; _wi < _SL; _wi++>>
+	<<if _wID == $slaves[_wi]>>
+		<<set $slaves[_wi] = $args[0]>>
+	<</if>>
+	<</for>>
+<</if>>
+<</if>>
+<</widget>>
