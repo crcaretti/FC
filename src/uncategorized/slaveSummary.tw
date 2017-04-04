@@ -1,6 +1,6 @@
 :: Slave Summary [nobr]
 
-<<set _Pass = passage(), _DairyM = $dairySlaves+$bioreactorsXY+$bioreactorsXX+$bioreactorsHerm+$bioreactorsBarren, _SL = $slaves.length>>
+<<set _Pass = passage(), _SL = $slaves.length>>
 <<for _i = 0;_i < _SL;_i++>>
 <<set _Slave = $slaves[_i]>>
 <<switch _Pass>>
@@ -296,7 +296,7 @@
 <<case "Servants' Quarters">>
 <<if _Slave.fuckdoll > 0>><<continue>><</if>>
 <<if $Flag == 0>>
-	<<if ($slaves[_i].assignmentVisible != 1) || ($servantsQuarters <= $servantsQuartersSlaves)>><<continue>><</if>>
+	<<if _Slave.assignment == "work as a servant">><<continue>><</if>>
 	<<if (_Slave.devotion >= -20) || ((_Slave.devotion >= -50) && (_Slave.trust <= 20)) || (_Slave.trust < -20)>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if $seeImages == 1>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>><<print "[[_Slave.slaveName|Slave Interact][$activeSlave = $slaves["+_i+"]]]">>
 	<<else>>
@@ -326,7 +326,7 @@
 <<if $Flag == 0>>
 	<<if _Slave.assignment == "serve in the master suite">><<continue>><</if>>
 	<<if (_Slave.devotion > 20) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50)>>
-		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if $seeImages == 1>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>><<print "[[_Slave.slaveName|Slave Interact][$activeSlave = $slaves["+_i+"]]]">>
+		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if $seeImages == 1>><div class="imageRef smlImg"><<SlaveArt $slaves[_i] 1>></div><</if>><<print "[[_Slave.slaveName|Slave Interact][$activeSlave = $slaves[" + _i + "]]]">>
 	<<else>>
 		<br>//_Slave.slaveName is not sufficiently broken for the master suite//
 		<<continue>>
@@ -353,8 +353,7 @@
 <</if>>
 <<case "Cellblock">>
 <<if $Flag == 0>>
-	<<if _Slave.assignment == "be confined in the cellblock">><<continue>><</if>>
-	<<if ((_Slave.devotion < -20) && (_Slave.trust >= -20)) || ((_Slave.devotion < -50) && (_Slave.trust >= -50))>>
+	<<if (_Slave.assignment != "be confined in the cellblock") && ((_Slave.devotion < -20) && (_Slave.trust >= -20)) || ((_Slave.devotion < -50) && (_Slave.trust >= -50))>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if $seeImages == 1>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>><<print "[[_Slave.slaveName|Slave Interact][$activeSlave = $slaves["+_i+"]]]">>
 	<<else>>
 		<<continue>>
@@ -2730,7 +2729,7 @@ _Slave.faceShape face.
 <<if $abbreviateMental == 1>>
 @@color:lightgreen;
 <<if $familyTesting == 1>>
-	<<for _j = 0; _j < _SL; _j++>>
+	<<for _j = 0; _j < $slaves.length; _j++>>
 		<<if _Slave.mother == $slaves[_j].ID>>
 			$slaves[_j].slaveName's daughter<<if _Slave.relationshipTarget == $slaves[_j].ID>><<if _Slave.relationship == 1>> & friend<<elseif _Slave.relationship == 2>> & BFF<<elseif _Slave.relationship == 3>> & FWB<<elseif _Slave.relationship == 4>> & lover<<else>> & wife<</if>><<set _relationshipHandled = 1>><</if>>
 		<</if>>
@@ -2753,7 +2752,7 @@ _Slave.faceShape face.
 		multiple daughters
 	<</if>>
 	<<if _Slave.sisters == 1>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j = 0; _j < $slaves.length; _j++>>
 			<<if areSisters($slaves[_j], _Slave.ID) > 0>>
 				$slaves[_j].slaveName's sister<<if _Slave.relationshipTarget == $slaves[_j].ID>><<if _Slave.relationship == 1>> & friend<<elseif _Slave.relationship == 2>> & BFF<<elseif _Slave.relationship == 3>> & FWB<<elseif _Slave.relationship == 4>> & lover<<else>> & wife<</if>><<set _relationshipHandled = 1>><</if>>
 				<<break>>
@@ -2763,7 +2762,7 @@ _Slave.faceShape face.
 		multiple sisters
 	<</if>>
 	<<if _Slave.relationship > 0 && _relationshipHandled != 1>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j = 0; _j < $slaves.length; _j++>>
 			<<if _Slave.relationshipTarget == $slaves[_j].ID>>
 				<<switch _Slave.relationship>>
 				<<case 1>>
@@ -2793,7 +2792,7 @@ _Slave.faceShape face.
 	<</if>>
 <<else>>
 	<<if _Slave.relation != 0>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j = 0; _j < $slaves.length; _j++>>
 			<<if _Slave.relationTarget == $slaves[_j].ID>>
 				$slaves[_j].slaveName's _Slave.relation
 				<<if _Slave.relationship <= 0>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
@@ -2802,7 +2801,7 @@ _Slave.faceShape face.
 		<</for>>
 	<</if>>
 	<<if _Slave.relationship > 0>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j = 0; _j < $slaves.length; _j++>>
 			<<if _Slave.relationshipTarget == $slaves[_j].ID>>
 				<<switch _Slave.relationship>>
 				<<case 1>>
@@ -2834,8 +2833,8 @@ _Slave.faceShape face.
 @@
 <<set _relationshipHandled = 0>>
 <<if _Slave.rivalry != 0>>
-<<for _j = 0; _j < _SL; _j++>>
-<<if _Slave.rivalryTarget == $slaves[_j].ID>>
+<<for _j to 0; _j < $slaves.length; _j++>>
+<<if _Slave.rivalryTarget is $slaves[_j].ID>>
 @@color:lightsalmon;
 <<if _Slave.rivalry <= 1>>
 	Disl $slaves[_j].slaveName
@@ -2852,7 +2851,7 @@ _Slave.faceShape face.
 <</if>>
 <<elseif $abbreviateMental == 2>>
 <<if $familyTesting == 1>>
-	<<for _j = 0; _j < _SL; _j++>>
+	<<for _j to 0; _j < $slaves.length; _j++>>
 		<<if _Slave.mother == $slaves[_j].ID>>
 			$slaves[_j].slaveName's @@color:lightgreen;daughter<<if _Slave.relationshipTarget == $slaves[_j].ID>><<if _Slave.relationship == 1>> and friend<<elseif _Slave.relationship == 2>> and best friend<<elseif _Slave.relationship == 3>> and FWB<<elseif _Slave.relationship == 4>> and lover<<else>> and wife<</if>><<set _relationshipHandled = 1>><</if>>.@@
 		<</if>>
@@ -2861,7 +2860,7 @@ _Slave.faceShape face.
 		<</if>>
 	<</for>>
 	<<if _Slave.daughters == 1>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j = 0; _j < $slaves.length; _j++>>
 			<<if $slaves[_j].mother == _Slave.ID>>
 				$slaves[_j].slaveName's @@color:lightgreen;mother<<if _Slave.relationshipTarget == $slaves[_j].ID>><<if _Slave.relationship == 1>> and friend<<elseif _Slave.relationship == 2>> and best friend<<elseif _Slave.relationship == 3>> and FWB<<elseif _Slave.relationship == 4>> and lover<<else>> and wife<</if>><<set _relationshipHandled = 1>><</if>>.@@
 				<<break>>
@@ -2881,7 +2880,7 @@ _Slave.faceShape face.
 		<</if>>
 	<</if>>
 	<<if _Slave.sisters == 1>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j = 0; _j < $slaves.length; _j++>>
 			<<if areSisters($slaves[_j], _Slave) > 0>>
 				$slaves[_j].slaveName's @@color:lightgreen;sister<<if _Slave.relationshipTarget == $slaves[_j].ID>><<if _Slave.relationship == 1>> and friend<<elseif _Slave.relationship == 2>> and best friend<<elseif _Slave.relationship == 3>> and FWB<<elseif _Slave.relationship == 4>> and lover<<else>> and wife<</if>><<set _relationshipHandled = 1>><</if>>.@@
 				<<break>>
@@ -2897,7 +2896,7 @@ _Slave.faceShape face.
 		<</if>>
 	<</if>>
 	<<if _Slave.relationship > 0 && _relationshipHandled != 1>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j = 0; _j < $slaves.length; _j++>>
 			<<if _Slave.relationshipTarget == $slaves[_j].ID>>
 				<<switch _Slave.relationship>>
 				<<case 1>>
@@ -2927,7 +2926,7 @@ _Slave.faceShape face.
 	<</if>>
 <<else>>
 	<<if _Slave.relation != 0>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j = 0; _j < $slaves.length; _j++>>
 			<<if _Slave.relationTarget == $slaves[_j].ID>>
 				$slaves[_j].slaveName's 
 				<<if _Slave.relationshipTarget != _Slave.relationTarget>>
@@ -2941,7 +2940,7 @@ _Slave.faceShape face.
 		<</for>>
 	<</if>>
 	<<if _Slave.relationship > 0>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j = 0; _j < $slaves.length; _j++>>
 			<<if _Slave.relationshipTarget == $slaves[_j].ID>>
 				<<switch _Slave.relationship>>
 				<<case 1>>
@@ -2972,7 +2971,7 @@ _Slave.faceShape face.
 <</if>>
 <<set _relationshipHandled = 0>>
 <<if _Slave.rivalry != 0>>
-<<for _j = 0; _j < _SL; _j++>>
+<<for _j = 0; _j < $slaves.length; _j++>>
 <<if _Slave.rivalryTarget == $slaves[_j].ID>>
 <<if _Slave.rivalry <= 1>>
 	@@color:lightsalmon;Dislikes@@ $slaves[_j].slaveName.

@@ -289,7 +289,7 @@
 		''__@@color:pink;$slaves[_i].slaveName@@__'' is no longer independently mobile @@color:yellow;and cannot fight any more.@@ She has been removed from $pitName roster<br>.
 		<<for _k = 0; _k < $fighterIDs.length; _k++>>
 		<<if $slaves[_i].ID == $fighterIDs[_k]>>
-			<<set _dump = $fighterIDs.pluck([_k],[_k])>>
+			<<set _dump = $fighterIDs.deleteAt(_k)>>
 			<<set _k-->>
 		<</if>>
 		<</for>>
@@ -356,8 +356,8 @@
  *       StoryInit also?
  * @todo Figure out why we're not using ndef/-1 for a bunch of these story variables. Leaky conditionals
  * @todo Figure out why we're using variable space with capitalized facility names when we can parse it from true name
- */ 
- 
+ */
+
 <<set _facListArr = [
     ["Brothel Report", $brothelNameCaps, $brothel, $brothelSlaves, $Madam, "Madam"],
     ["Club Report", $clubNameCaps, $club, $clubSlaves, $DJ, "DJ"],
@@ -372,38 +372,36 @@
     ["Master Suite Report", $masterSuiteNameCaps, $masterSuite, $masterSuiteSlaves, $Concubine, "Concubine"]
 ]>>
 
+<<if $useAccordion > 0>><<set _accText = " accordion">><</if>>	/** Quick settings check - static or pretty tops? */
 <<for _ii = 0; _ii < _facListArr.length; _ii++>>
-    <<set _facSubArr = _facListArr[_ii], _accText = "", _disTxt = " disabled='disabled'">> /** Chunk the row from our array we're working on to make reading code easier, null some text vars we'll need */
-    <<set _str = _facSubArr[0].replace(/\W+/g, '-').toLowerCase()>> /** Normalize the passage name to use as an element ID */
-    <<if _facSubArr[2] > 0>> /** Do we have one of these facilities? */
-        <<if $useAccordion > 0>> <<set _accText = " accordion", _disTxt = "">> <</if>> /** Is Accordion turned on? */
-        <<if (_facSubArr[3] == 0) && (_facSubArr[4] == 0)>> /** Is there anyone inside the facility? */
-            <<= '<div id="button-' + _str + '" class="unStaffed">' + _facSubArr[1] + ' is currently unstaffed</div>'>> /** No, so we display the Unstaffed bar */
-        <<else>>
-            <<= '<button type="button"' + _disTxt + ' id="button-' + _str + '" class="buttonBar' + _accText + '" data-after="' + _facSubArr[3] + ' slaves in ' + _facSubArr[1] + '">' + _facSubArr[1] + ' Report</button>'>> /** Yes, display the bar with information */
-        <</if>>
-    <<include `_facSubArr[0]` "div">> /** OK, we're done with the pretty stuff, go get the guts */
-    <</if>>
-    <<unset _facSubArr>>
+	<<set _facSubArr = _facListArr[_ii]>>
+	<<if _facSubArr[2] > 0>>							/** Do we have one of these? */
+		<<if (_facSubArr[3] == 0) && (_facSubArr[4] <= 0)>>		/** Do we have anyone inside? */
+			<<= '<div class="unStaffed">' + _facSubArr[1] + ' is currently unstaffed</div>'>>	/** Display the "Unstaffed" facility header bar */
+		<<else>>
+			<<= '<button id="passage-' + _res + '" class="' + _accText + '" data-after="' + _facSubArr[3] + ' slaves in ' + _facSubArr[1] + '">' + _facSubArr[1] + ' Report</button>'>>
+		<</if>>
+		<<include `_facSubArr[0]` "div">>		/** OK, we're done with the pretty stuff, go get the guts */
+	<</if>>
 <</for>>
 
 /* IMPORTANT FOR REASONS!!! */
-<<unset _ii>>
+<<unset _ii, _facSubArr>>
 /** /Accordion */
 
 <<if $slavesVisible > 0>>
-__''Penthouse Report''__<br>
+<br>__''Penthouse Report''__<br>
 <<for $i = 0; $i < $slaves.length; $i++>>
 <<if $slaves[$i].assignmentVisible == 1>>
 	<<include "Full Report">>
 	<<if ($slaves[$i].assignment == "be your Head Girl") && ($HGSuiteSlaves > 0)>>
-		<<set _iTemp = $i, $i = $HGSuiteiIDs[0].Index>>
-		<<if $HGSuiteiIDs[0].ID != $slaves[$i].ID>>
+		<<set _iTemp = $i, $i = $HGSuiteiIDs[0].Index, _ID = $HGSuiteiIDs[0].ID>>
+		<<if _ID != $slaves[$i].ID>>
 			/% Slaves.ID and $HGSuiteiIDs.ID's don't match-up so let's find her %/
-			<<for _x = 0; _x < $slaves.length; _x++>>
-			<<if ($HGSuiteiIDs[0].ID == $slaves[_x].ID)>>
+			<<for $i = 0; $i < $slaves.length; $i++>>
+			<<if _ID == $slaves[$i].ID>>
 				/% Correct the Index %/
-				<<set $HGSuiteiIDs[0].Index = _x, $i = _x>>
+				<<set $HGSuiteiIDs[0].Index = $i>>
 				<<break>>
 			<</if>>
 			<</for>>

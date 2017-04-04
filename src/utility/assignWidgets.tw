@@ -1,14 +1,15 @@
 :: Assign Widgets [widget nobr]
 
 /%
-	Call as <<assginJob slaveObject $returnto | _currentRule.facilityRemove | "serve in the master suite"
+	Call as <<assignJob slaveObject $returnto | _currentRule.facilityRemove | "serve in the master suite"
 	$args[0] slave object. *MUST be present*
 	$args[1] Job to assign slave to. Will accept the $returnto vars and the _currentRule.assignFacility vars and the actual job assignments "serve in the master suite" etc.
 
 	This is basically a Widget version of assign but will work anywhere, and saves to the slaves[..] array, and changes your $args[0] var sent.
 %/
-<<widget assginJob>>
+<<widget assignJob>>
 <<if ($args[1] != "Pit") && ($args[1] != "Coursing Association")>>
+<<removeJob $args[0] $args[0].assignment>>
 <<set _wID = $args[0].ID, _SL = $slaves.length>>
 
 /% Get slaves[_wi] index # %/
@@ -22,11 +23,10 @@
 	<</for>>
 <</if>>
 
-<<removeJob $args[0] $args[0].assignment>>
 /% use .toLowerCase() to get rid of a few dupe conditions. %/
 <<switch $args[1].toLowerCase()>>
 <<case "clinic" "get treatment in the clinic">>
-	<<set $args[0].assignment = "get treatment in the clinic", $clinicSlaves++, $CliniciIds.push({ID: _wID, Index: _wi})>>
+	<<set $args[0].assignment = "get treatment in the clinic", $clinicSlaves++, $CliniciDSs.push({ID: _wID, Index: _wi})>>
 <<case "schoolroom" "learn in the schoolroom">>
 	<<set $args[0].assignment = "learn in the schoolroom", $schoolroomSlaves++, $SchlRiIDs.push({ID: _wID, Index: _wi})>>
 <<case "spa" "rest in the spa">>
@@ -59,15 +59,6 @@
 		<<set $personalAttention = "business">>
 	<</if>>
 <</if>>
-<<if _wID == $HeadGirl.ID>>
-	<<set $HeadGirl = 0>>
-<</if>>
-<<if _wID == $Recruiter.ID>>
-	<<set $Recruiter = 0>>
-<</if>>
-<<if _wID == $Bodyguard.ID>>
-	<<set $Bodyguard = 0>>
-<</if>>
 
 <<set $slaves[_wi] = $args[0], $i = _wi>>
 <<if $slaves[_wi].choosesOwnClothes == 1>><<include "SA chooses own clothes">><</if>>
@@ -89,10 +80,10 @@
 /% use .toLowerCase() to get rid of a few dupe conditions. %/
 <<switch $args[1].toLowerCase()>>
 <<case "clinic" "get treatment in the clinic">>
-	<<set _Tcount = $CliniciIds.length>>
+	<<set _Tcount = $CliniciIDs.length>>
 	<<for _wi = 0; _wi < _Tcount; _wi++>>
-		<<if _wID == $CliniciIds[_wi].ID>>
-			<<set _dump = $CliniciIds.deleteAt(_wi), $clinicSlaves-->>
+		<<if _wID == $CliniciIDs[_wi].ID>>
+			<<set _dump = $CliniciIDs.deleteAt(_wi), $clinicSlaves-->>
 			<<break>>
 		<</if>>
 	<</for>>
