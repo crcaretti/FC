@@ -26,7 +26,7 @@
 /% use .toLowerCase() to get rid of a few dupe conditions. %/
 <<switch $args[1].toLowerCase()>>
 <<case "clinic" "get treatment in the clinic">>
-	<<set $args[0].assignment = "get treatment in the clinic", $clinicSlaves++, $CliniciDSs.push({ID: _wID, Index: _wi})>>
+	<<set $args[0].assignment = "get treatment in the clinic", $clinicSlaves++, $CliniciIDs.push({ID: _wID, Index: _wi})>>
 <<case "schoolroom" "learn in the schoolroom">>
 	<<set $args[0].assignment = "learn in the schoolroom", $schoolroomSlaves++, $SchlRiIDs.push({ID: _wID, Index: _wi})>>
 <<case "spa" "rest in the spa">>
@@ -50,6 +50,10 @@
 <</switch>>
 
 <<set $args[0].assignmentVisible = 0, $args[0].choosesOwnAssignment = 0>>
+
+/% Stop creating Starving/overweight deaths?, Endless drug supply etc. %/
+<<set $args[0].diet = "healthy", $args[0].drugs = "no drugs", $args[0].curatives = 0, $args[0].hormones = 0, $args[0].aphrodisiacs = 0>>
+
 <<if _wID == $personalAttention>>
 	<<if $PC.career == "escort">>
 		<<set $personalAttention = "whoring">>
@@ -61,12 +65,12 @@
 <</if>>
 
 <<set $slaves[_wi] = $args[0], $i = _wi>>
-<<if $slaves[_wi].choosesOwnClothes == 1>><<include "SA chooses own clothes">><</if>>
+<<if $slaves[_wi].choosesOwnClothes == 1>><<include "SA chooses own clothes">><<set $args[0] = $slaves[_wi]>><</if>>
 <</if>>
 <</widget>>
 
 /%
-	Call as <<removeJob slaveObject $returnto | _currentRule.facilityRemove | "serve in the master suite" ["rest"]
+	Call as <<removeJob slaveObject $returnto | _currentRule.facilityRemove | "serve in the master suite"
 	$args[0] slave object. *MUST be present*
 	$args[1] Job to remove slave from. Will accept the $returnto vars and the _currentRule.assignFacility vars and the actual job assignments "serve in the master suite" etc.
 
@@ -174,7 +178,7 @@
 	<<set $slaves[$i] = $args[0]>>
 <<else>>
 	<<for _wi = 0; _wi < _SL; _wi++>>
-	<<if _wID == $slaves[_wi]>>
+	<<if _wID == $slaves[_wi].ID>>
 		<<set $slaves[_wi] = $args[0]>>
 	<</if>>
 	<</for>>
