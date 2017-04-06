@@ -2,30 +2,30 @@
 
 <<set $legendaryAbolitionistID = 0, $masterSuiteAverageEnergy = 0, _masterSuiteAverageCum = 0, _masterSuiteAverageDick = 0, _masterSuiteAverageDom = 0, _masterSuiteAverageMilk = 0, _masterSuiteAveragePreg = 0, _masterSuiteAverageSadism = 0, _masterSuitePregnantSlaves = 0, _masterSuitePregnantSlavesMultiple = 0, _DL = $MastSiIDs.length, $masterSuiteSlaves = _DL, _SL = $slaves.length, _FLs = -1>>
 
-
+<<for _dI = 0; _dI < _DL; _dI++>>
+	<<set _i = $MastSiIDs[_dI].Index, _ID = $MastSiIDs[_dI].ID>>
+	<<if _ID != $slaves[_i].ID>>
+		/% Slaves.ID and $MastSiIDs.ID's don't match-up so let's find her %/
+		<<for _i = 0; _i < _SL; _i++>>
+		<<if _ID == $slaves[_i].ID>>
+			/% Correct the Index %/
+			<<set $MastSiIDs[_dI].Index = _i>>
+		<</if>>
+		<</for>>
+	<</if>>
+<</for>>
 <<SlaveSort $MastSiIDs>>
 <<if $Concubine != 0>>
 <<for _FLs = 0; _FLs < _SL; _FLs++>>
 <<if $slaves[_FLs].ID == $Concubine.ID>>
-	<<set $MastSiIDs.push({ID: $Concubine.ID, Index: _FLs}), _DL++, $masterSuiteSlaves = _DL>>
+	/% Add the Concubine to the $MastSiIDs list at the front of the array, so that she displays first. %/
+	<<set $MastSiIDs.unshift({ID: $Concubine.ID, Index: _FLs}), _DL++, $masterSuiteSlaves++>>
 	<<break>>
 <</if>>
 <</for>>
 <</if>>
 
 <<if $masterSuiteSlaves > 0>>
-	<<for _dI = 0; _dI < _DL; _dI++>>
-		<<set _i = $MastSiIDs[_dI].Index, _ID = $MastSiIDs[_dI].ID>>
-		<<if _ID != $slaves[_i].ID>>
-			/% Slaves.ID and $MastSiIDs.ID's don't match-up so let's find her %/
-			<<for _i = 0; _i < _SL; _i++>>
-			<<if _ID == $slaves[_i].ID>>
-				/% Correct the Index %/
-				<<set $MastSiIDs[_dI].Index = _i>>
-			<</if>>
-			<</for>>
-		<</if>>
-	<</for>>
 <<for _dI = 0; _dI < _DL; _dI++>>
 	<<set _i = $MastSiIDs[_dI].Index, $i = _i>>
 	<<set $masterSuiteAverageEnergy += $slaves[_i].energy>>
@@ -45,7 +45,7 @@
 		<<set _masterSuiteAverageSadism -= $slaves[_i].fetishStrength>>
 	<</switch>>
 	<</if>>
-	<<if ($legendaryAbolitionistID == 0) && ($slaves[_i].devotion > 95) && ($slaves[_i].prestige == 0) && (($slaves[_i].origin is "You sentenced her to enslavement as a punishment for attempted theft of a slave.") || ($slaves[_i].origin is "She is an enslaved Daughter of Liberty."))>>
+	<<if ($legendaryAbolitionistID == 0) && ($slaves[_i].devotion > 95) && ($slaves[_i].prestige == 0) && (($slaves[_i].origin == "You sentenced her to enslavement as a punishment for attempted theft of a slave.") || ($slaves[_i].origin == "She is an enslaved Daughter of Liberty."))>>
 		<<set $legendaryAbolitionistID = $slaves[_i].ID>>
 	<</if>>
 <</for>>
@@ -60,8 +60,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp;''There <<if ($masterSuiteSlaves == 1)>>is one slave<<else>>are $masterSuiteSlaves slaves<</if>>
 seeing to your pleasure in the master suite.'' Such sexual opulence @@color:green;improves@@ your reputation.
 <<if ($arcologies[0].FSEgyptianRevivalist > 0) && ($masterSuiteSlaves >= 5)>>
-	Society @@color:green;approves@@ of your keeping a large number of women, which advances the Egyptian revivalist ideal of multiple concubinage.
-	<<set $repGain += 0.2*$masterSuiteSlaves*$FSSingleSlaveRep*($arcologies[0].FSEgyptianRevivalist/$FSLockinLevel), $arcologies[0].FSEgyptianRevivalist += 0.01*$masterSuiteSlaves*$FSSingleSlaveRep>>
+	Society @@color:green;approves@@ of your keeping a large number of women. This advances the Egyptian revivalist ideal of multiple concubinage.
+	<<FSChange "EgyptianRevivalist" 2>>
 <</if>>
 <<if (_masterSuitePregnantSlaves >= 1)>>
 	The suite is supporting the pregnancies of the slaves
@@ -108,8 +108,6 @@ The level of sexual energy in the suite is
 <<for _dI = 0; _dI < _DL; _dI++>>
 	<<set _i = $MastSiIDs[_dI].Index, $i = _i>>
 <br><br>
-<<if ($slaves[_i].assignment != "be your Concubine")>>
-	<<if $verboseDescriptions == 1>>''__@@color:pink;$slaves[_i].slaveName@@__'' sees to your pleasure in the master suite.<</if>>
 	/* 000-250-006 */
 	<<if $seeImages == 1 && $imageChoice == 0>>
 	<div class="imageRef tinyImg">
@@ -117,6 +115,8 @@ The level of sexual energy in the suite is
 	</div>
 	<</if>>
 	/* 000-250-006 */
+<<if ($slaves[_i].assignment != "be your Concubine")>>
+	<<if $verboseDescriptions == 1>>''__@@color:pink;$slaves[_i].slaveName@@__'' sees to your pleasure in the master suite.<</if>>
 	<<if ($masterSuiteUpgradeLuxury == 1)>>
 	<<if ($slaves[_i].devotion <= 95)>>
 		<<set $slaves[_i].devotion += 2>>
@@ -158,13 +158,7 @@ The level of sexual energy in the suite is
 <<else>>
 	<<set $Concubine = $slaves[_FLs]>>
 	<<if $verboseDescriptions == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>''Your concubine $Concubine.slaveName is serving you in $masterSuiteName.'' More than any other slave, her sexual brilliance and physical appeal are @@color:green;critical@@ to your reputation.
-	/* 000-250-006 */
-	<<if $seeImages == 1 && $imageChoice == 0>>
-		<div class="imageRef tinyImg">
-			<<SlaveArt $slaves[_FLs] 0 0>>
-		</div>
-	<</if>>
-	/* 000-250-006 */
+
 	<<if ($Concubine.career == "an arcology owner")>>
 		She was once your rival, and your relationship is widely thought to be @@color:green;the perfect modern romance.@@
 		<<set $repGain += 250>>
@@ -298,7 +292,7 @@ The level of sexual energy in the suite is
 
 <<if $verboseDescriptions == 1>>
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA please you">>
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;
+	<br>&nbsp;&nbsp;&nbsp;
 	<<if $slaves[_i].choosesOwnClothes == 1>>
 	<<include "SA chooses own clothes">>
 	<<if ($slaves[_i].devotion <= 20)>>
@@ -342,12 +336,12 @@ The level of sexual energy in the suite is
 
 <<if $masterSuiteUpgradePregnancy == 1>>
 	/* If they're not on fertility drugs and the toggle is active, stick them on (if they can take them). Otherwise take them off. */
-	<<if $slaves[_i].assignment is "serve in the master suite" || $slaves[_i].assignment == "be your Concubine">>
+	<<if $slaves[_i].assignment == "serve in the master suite" || $slaves[_i].assignment == "be your Concubine">>
 	<<if ($masterSuitePregnancyFertilityDrugs == 1) && ($slaves[_i].drugs != "fertility drugs") && canGetPregnant($slaves[_i])>>
 		<<set $slaves[_i].drugs = "fertility drugs">>
 	<<elseif ($masterSuiteHyperPregnancy == 1) && ($slaves[_i].drugs != "super fertility drugs") && canGetPregnant($slaves[_i])>>
 		<<set $slaves[_i].drugs = "super fertility drugs">>
-	<<elseif ((($masterSuitePregnancyFertilityDrugs == 0) && ($slaves[_i].drugs == "fertility drugs")) || (($masterSuiteHyperPregnancy == 0) && ($slaves[_i].drugs == "super fertility drugs")))>>
+	<<elseif ((($masterSuitePregnancyFertilityDrugs == 0) && ($slaves[_i].drugs == "fertility drugs")) || (($masterSuiteHyperPregnancy == 0) && ($slaves[_i].drugs == "super fertility drugs"))) || !canGetPregnant($slaves[_i])>>
 		<<set $slaves[_i].drugs = "no drugs">>
 	<</if>>
 	<</if>>
@@ -388,8 +382,9 @@ The level of sexual energy in the suite is
 
 <</for>>
 
-<<if _FLs > -1>>
-	<<set $Concubine = $slaves[_FLs], _dump = $MastSiIDs.pluck([_DL], [_DL]), _DL--, $masterSuiteSlaves = _DL>>
+<<if $Concubine>>
+	/% Remove the Concubine from the $MastSiIDs list %/
+	<<set $Concubine = $slaves[_FLs], _dump = $MastSiIDs.deleteAt(0), _DL--, $masterSuiteSlaves-->>
 <</if>>
 
 <<if $arcologies[0].FSRestart != "unset">>
@@ -404,8 +399,7 @@ The level of sexual energy in the suite is
 <<if $masterSuiteDecoration != "standard">>
 	$masterSuiteNameCaps's $masterSuiteDecoration atmosphere @@color:hotpink;has a minor impact on your fucktoys.@@
 <</if>>
-
-<<else>>
-	''The Master Suite is empty.''
 <</if>>
-<br><br>
+<<if $masterSuiteSlaves || $Concubine>>
+	<br><br>
+<</if>>
