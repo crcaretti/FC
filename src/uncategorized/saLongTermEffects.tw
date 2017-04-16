@@ -6110,16 +6110,31 @@ and ($slaves[$i].clothes != "a slutty qipao") and ($slaves[$i].clothes != "restr
 
 /*
 <<if $slaves[$i].burst != 1>>
-	<<set _deathSeed = 0>>
-	<<if $slaves[$i].health <= -100 && random(1,100) > 800>>
-		<<set $slaves[$i].death = "health">>
-	<</if>>
-	<<if $slaves[$i].health <= -100 && ($slaves[$i].aphrodisiacs > 0 || $slaves[$i].inflationType == "aphrodisiac")>>
-		<<set $slaves[$i].death = "OD">>
+	<<if $slaves[$i].health <= -100>>
+		<<set _deathSeed = ($slaves[$i].health-$slaves[$i].physicalAge-($slaves[$i].chem*2)-($slaves[$i].addict*2))>>
+		<<if $slaves[$i].weight < -50 || $slaves[$i].weight >= 95>>
+			<<set _deathSeed -= 100>>
+		<</if>>
+		<<if ($slaves[$i].aphrodisiacs > 0 || $slaves[$i].inflationType == "aphrodisiac")>>
+			<<set _deathSeed -= 100>>
+		<</if>>
+		<<if ($slaves[$i].curatives == 1>>
+			<<set _deathSeed += 200>>
+		<</if>>
+		<<if random(1,1000) > (600+_deathSeed)>>
+			<<set $slaves[$i].death = "health">>
+			<<set $slaveDeath = 1>>
+		<</if>>
+		<<if $slaves[$i].health <= -100 && ($slaves[$i].aphrodisiacs > 0 || $slaves[$i].inflationType == "aphrodisiac")>>
+			<<set $slaves[$i].death = "OD">>
+			<<set $slaveDeath = 1>>
+		<</if>>
 	<</if>>
 	<<if $seeAge == 1>>
-		<<if $slaves[$i].physicalAge >= 90 && random(1,100) > 800>>
-			<<set $slaves[$i].death = "OD">>
+		<<set _deathSeed = (($slaves[$i].health*2)-($slaves[$i].physicalAge*2)-($slaves[$i].chem*4)-($slaves[$i].addict*3))>>
+		<<if $slaves[$i].physicalAge >= 90 && random(1,1000) > 800+_deathSeed>>
+			<<set $slaves[$i].death = "old">>
+			<<set $slaveDeath = 1>>
 		<</if>>
 	<</if>>
 <</if>>
