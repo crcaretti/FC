@@ -2,7 +2,7 @@
 
 <<if $slaves[$i].fuckdoll == 0>>
 	<<set _SL = $slaves.length, _SlaveI = $slaves[$i], _SlaveJ = null, _J = -1, _K = -1, _drop = 0>>
-	<<if _SlaveI.relationship == 0>>
+	<<if _SlaveI.relationship == 0 && _SlaveI.fetish != "mindbroken">>
 		<<if (_SlaveI.devotion + _SlaveI.trust > 175) && (random(1,3) == 1)>>
 			_SlaveI.slaveName is quite devoted to you, and trusts both you and her place as a slave. Since she does not have a strong relationship with another slave,
 			<<if (_SlaveI.sexualQuirk == "romantic")>>
@@ -11,7 +11,7 @@
 			<<elseif (_SlaveI.assignment == "be your concubine")>>
 				and is your concubine, she almost inevitably comes to view you as much as a lover as an owner. @@color:lightgreen;She's become emotionally bonded to you!@@
 				<<set _SlaveI.relationship = -2>>
-			<<elseif (_SlaveI.assignment == "serve in the master suite") && ($masterSuiteUpgradeLuxury == 2)>>
+			<<elseif ($masterSuiteUpgradeLuxury == 2) && (_SlaveI.assignment == "serve in the master suite")>>
 				and does nothing but eat, sleep, and make love to your other fucktoys, she slowly loses sight of any distinction between emotional attachment and sexual congress. @@color:lightgreen;She's become an emotional slut!@@
 				<<set _SlaveI.relationship = -1>>
 			<<elseif (_SlaveI.assignment == "please you") || (_SlaveI.assignment == "serve in the master suite")>>
@@ -27,206 +27,178 @@
 				and loves you, she begins to think of you as a woman might think of her lover - or <<if $PC.title != 0>>husband<<else>>wife<</if>>. She knows she cannot hope for more of a relationship with you than she has, but she finds emotional support in serving you nonetheless. @@color:lightgreen;She's become emotionally bonded to you!@@
 				<<set _SlaveI.relationship = -2>>
 			<</if>>
-		<<elseif _SlaveI.fetish != "mindbroken">>
-			<<if _SlaveI.career == "a Futanari Sister">>
-				<<if _SlaveI.relationshipRules == "permissive">>
-				<<for _j = 0; _j < _SL; _j++>>
-					<<set _SlaveJ = $slaves[_j]>>
-					<<if (_SlaveJ.career == "a Futanari Sister")>>
-					<<if _SlaveJ.relationshipRules == "permissive">>
-					<<if (_SlaveJ.relationship == 0)>>
-					<<if (_SlaveI.rivalryTarget != _SlaveJ.ID)>>
-					<<if (_SlaveJ.ID != _SlaveI.ID)>>
-					<<if _SlaveJ.fetish != "mindbroken">>
-						_SlaveI.slaveName greets _SlaveJ.slaveName with joy. It's not clear whether they ever knew each other during their lives as Futanari Sisters, but it seems that they believe themselves to be in a relationship by simple virtue of having been Sisters. In any case, _SlaveI.slaveName and _SlaveJ.slaveName @@color:lightgreen;become inseparable lovers@@ instantly, as though there's no possibility they would do anything else. They're even surprised when other slaves ask them about it; it's as though they're unaware that other possibilities even exist.
-						<<set _SlaveJ.relationship = 4, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 4, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+		<<elseif _SlaveI.career == "a Futanari Sister" && _SlaveI.relationshipRules == "permissive">>
+			<<for _j = 0; _j < _SL; _j++>>
+				<<set _SlaveJ = $slaves[_j]>>
+				<<if (_SlaveJ.career == "a Futanari Sister") && _SlaveJ.relationshipRules == "permissive" && (_SlaveJ.relationship == 0) && (_SlaveI.rivalryTarget != _SlaveJ.ID) && (_SlaveJ.ID != _SlaveI.ID) && _SlaveJ.fetish != "mindbroken">>
+					_SlaveI.slaveName greets _SlaveJ.slaveName with joy. It's not clear whether they ever knew each other during their lives as Futanari Sisters, but it seems that they believe themselves to be in a relationship by simple virtue of having been Sisters. In any case, _SlaveI.slaveName and _SlaveJ.slaveName @@color:lightgreen;become inseparable lovers@@ instantly, as though there's no possibility they would do anything else. They're even surprised when other slaves ask them about it; it's as though they're unaware that other possibilities even exist.
+					<<set _SlaveJ.relationship = 4, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 4, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+					<<break>>
+				<</if>>
+			<</for>>
+		<<elseif (_SlaveI.origin == "You were acquainted with her before you were an arcology owner; your rival tried to use her to manipulate you, but you rescued her.") && ($rivalryDuration > 20) && (($rivalryFS != "Racial Supremacism") || ($rivalryFS != "Paternalism"))>>
+			<<for _j = 0; _j < _SL; _j++>>
+				<<set _SlaveJ = $slaves[_j]>>
+				<<if _SlaveJ.fetish != "mindbroken" && _SlaveJ.prestigeDesc == "You bankrupted and enslaved her in revenge for her part in the attack on your arcology by the Daughters of Liberty.">>
+					_SlaveI.slaveName greets _SlaveJ.slaveName with joy, happy to see her former owner again. Without any regard to you, they continue their prior relationship.
+					<<if _SlaveJ.relationship > 0>>
+					<<for _k = 0; _k < _SL; _k++>>
+						<<if _SlaveJ.relationshipTarget == $slaves[_k].ID>>
+							<<set $slaves[_k].relationshipTarget = 0, $slaves[_k].relationship = 0>>
+							<<break>>
+						<</if>>
+					<</for>>
+					<</if>>
+					<<set _SlaveJ.relationship = 4, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 4, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+					<<break>>
+				<</if>>
+			<</for>>
+		<<elseif _SlaveI.relationshipRules != "restrictive">>
+			<<if _SlaveI.devotion > -90>>
+			<<if _SlaveI.behavioralFlaw == "none">>
+				<<set _seed = random(1, 100)>>
+			<<else>>
+				<<set _seed = random(1, 80)>>
+			<</if>>
+			<<if _seed > 75>>
+			<<set $resentment = 0>>
+			<<for _j = 0; _j < _SL; _j++>>
+				<<set _SlaveJ = $slaves[_j]>>
+				<<if (_SlaveJ.ID != _SlaveI.ID) && (_SlaveJ.relationship == 0) && (_SlaveI.rivalryTarget != _SlaveJ.ID) && (_SlaveJ.assignment != "stay confined") && (_SlaveJ.fetish != "mindbroken")>>
+				<<if (_SlaveJ.ID == $Madam.ID) && (_SlaveI.assignment == "work in the brothel")>>
+					<<if _SlaveJ.relationshipRules != "restrictive">>
+						_SlaveI.slaveName manages to ingratiate herself with the Madam, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
 						<<break>>
-					<</if>>
-					<</if>>
-					<</if>>
-					<</if>>
-					<</if>>
-					<</if>>
-				<</for>>
-				<</if>>
-			<<elseif ($rivalryDuration > 20) && ($rivalryFS != "Racial Supremacism") && ($rivalryFS != "Paternalism") && _SlaveI.origin == "You were acquainted with her before you were an arcology owner; your rival tried to use her to manipulate you, but you rescued her.">>
-				<<for _j = 0; _j < _SL; _j++>>
-					<<set _SlaveJ = $slaves[_j]>>
-					<<if _SlaveJ.fetish != "mindbroken">>
-					<<if _SlaveJ.prestigeDesc == "You bankrupted and enslaved her in revenge for her part in the attack on your arcology by the Daughters of Liberty.">>
-						_SlaveI.slaveName greets _SlaveJ.slaveName with joy, happy to see her former owner again. Without any regard to you, they continue their prior relationship.
-						<<if _SlaveJ.relationship > 0>>
-						<<for _k = 0; _k < _SL; _k++>>
-							<<if _SlaveJ.relationshipTarget == $slaves[_k].ID>>
-								<<set $slaves[_k].relationshipTarget = 0, $slaves[_k].relationship = 0>>
-								<<break>>
-							<</if>>
-						<</for>>
+					<<else>>
+						<<if _SlaveI.devotion < -20>>
+							_SlaveI.slaveName tries to strike up a friendship with the Madam, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
+							<<set _SlaveI.trust -= 4>>
 						<</if>>
-						<<set _SlaveJ.relationship = 4, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 4, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+					<</if>>
+				<<elseif (_SlaveJ.ID is $DJ.ID) && (_SlaveI.assignment == "serve in the club")>>
+					<<if _SlaveJ.relationshipRules != "restrictive">>
+						_SlaveI.slaveName manages to ingratiate herself with the DJ, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
 						<<break>>
+					<<else>>
+						<<if _SlaveI.devotion < -20>>
+							_SlaveI.slaveName tries to strike up a friendship with the DJ, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
+							<<set _SlaveI.trust -= 4>>
+						<</if>>
 					<</if>>
+				<<elseif (_SlaveJ.ID == $Milkmaid.ID) && (_SlaveI.assignment == "work in the dairy")>>
+					<<if _SlaveJ.relationshipRules != "restrictive">>
+						_SlaveI.slaveName manages to ingratiate herself with the Milkmaid, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+						<<break>>
+					<<else>>
+						<<if _SlaveI.devotion < -20>>
+							_SlaveI.slaveName tries to strike up a friendship with the Milkmaid, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
+							<<set _SlaveI.trust -= 4>>
+						<</if>>
 					<</if>>
-				<</for>>
-			<<elseif _SlaveI.relationshipRules != "restrictive">>
-				<<if _SlaveI.devotion > -90>>
-				<<if _SlaveI.behavioralFlaw == "none">>
-					<<set _seed = random(1, 100)>>
-				<<else>>
-					<<set _seed = random(1, 80)>>
-				<</if>>
-				<<if _seed > 75>>
-				<<set $resentment = 0>>
-				<<for _j = 0; _j < _SL; _j++>>
-					<<set _SlaveJ = $slaves[_j]>>
-					<<if _SlaveJ.ID != _SlaveI.ID>>
-					<<if _SlaveJ.assignment != "stay confined">>
-					<<if (_SlaveJ.relationship == 0)>>
-					<<if (_SlaveI.rivalryTarget != _SlaveJ.ID)>>
-					<<if _SlaveJ.fetish != "mindbroken">>
-					<<if (_SlaveI.assignment == "work in the brothel") && (_SlaveJ.ID == $Madam.ID)>>
-						<<if _SlaveJ.relationshipRules != "restrictive">>
-							_SlaveI.slaveName manages to ingratiate herself with the Madam, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
-							<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-							<<break>>
-						<<else>>
-							<<if _SlaveI.devotion < -20>>
-								_SlaveI.slaveName tries to strike up a friendship with the Madam, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
-								<<set _SlaveI.trust -= 4>>
-							<</if>>
+				<<elseif (_SlaveJ.ID == $Schoolteacher.ID) && (_SlaveI.assignment == "learn in the schoolroom")>>
+					<<if _SlaveJ.relationshipRules != "restrictive">>
+						_SlaveI.slaveName manages to ingratiate herself with the Schoolteacher, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+						<<break>>
+					<<else>>
+						<<if _SlaveI.devotion < -20>>
+							_SlaveI.slaveName tries to strike up a friendship with the Schoolteacher, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
+							<<set _SlaveI.trust -= 4>>
 						<</if>>
-					<<elseif (_SlaveI.assignment == "serve in the club") && (_SlaveJ.ID == $DJ.ID)>>
-						<<if _SlaveJ.relationshipRules != "restrictive">>
-							_SlaveI.slaveName manages to ingratiate herself with the DJ, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
-							<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-							<<break>>
-						<<else>>
-							<<if _SlaveI.devotion < -20>>
-								_SlaveI.slaveName tries to strike up a friendship with the DJ, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
-								<<set _SlaveI.trust -= 4>>
-							<</if>>
+					<</if>>
+				<<elseif (_SlaveJ.ID == $Attendant.ID) && (_SlaveI.assignment == "rest in the spa")>>
+					<<if _SlaveJ.relationshipRules != "restrictive">>
+						_SlaveI.slaveName basks in the affection and care of the spa attendant, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+						<<break>>
+					<<else>>
+						<<if _SlaveI.devotion < -20>>
+							_SlaveI.slaveName tries to strike up a friendship with the spa attendant, _SlaveJ.slaveName. _SlaveJ.slaveName gently @@color:hotpink;counsels@@ her to obey the rules.
+							<<set _SlaveI.devotion += 1>>
 						<</if>>
-					<<elseif (_SlaveI.assignment == "work in the dairy") && (_SlaveJ.ID == $Milkmaid.ID)>>
-						<<if _SlaveJ.relationshipRules != "restrictive">>
-							_SlaveI.slaveName manages to ingratiate herself with the Milkmaid, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
-							<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-							<<break>>
-						<<else>>
-							<<if _SlaveI.devotion < -20>>
-								_SlaveI.slaveName tries to strike up a friendship with the Milkmaid, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
-								<<set _SlaveI.trust -= 4>>
-							<</if>>
+					<</if>>
+				<<elseif (_SlaveJ.ID == $Stewardess.ID) && (_SlaveI.assignment == "work as a servant")>>
+					<<if _SlaveJ.relationshipRules != "restrictive">>
+						_SlaveI.slaveName manages to ingratiate herself with the Stewardess, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+						<<break>>
+					<<else>>
+						<<if _SlaveI.devotion < -20>>
+							_SlaveI.slaveName tries to strike up a friendship with the Stewardess, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
+							<<set _SlaveI.trust -= 4>>
 						<</if>>
-					<<elseif (_SlaveI.assignment == "learn in the schoolroom") && (_SlaveJ.ID == $Schoolteacher.ID)>>
-						<<if _SlaveJ.relationshipRules != "restrictive">>
-							_SlaveI.slaveName manages to ingratiate herself with the Schoolteacher, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
-							<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-							<<break>>
-						<<else>>
-							<<if _SlaveI.devotion < -20>>
-								_SlaveI.slaveName tries to strike up a friendship with the Schoolteacher, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
-								<<set _SlaveI.trust -= 4>>
-							<</if>>
+					<</if>>
+				<<elseif (_SlaveJ.ID == $Wardeness.ID) && (_SlaveI.assignment == "be confined in the cellblock")>>
+					<<if _SlaveJ.relationshipRules != "restrictive">>
+						_SlaveI.slaveName manages to earn the respect of the Wardeness, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+						<<break>>
+					<<else>>
+						<<if _SlaveI.devotion < -20>>
+							_SlaveI.slaveName tries to strike up a friendship with the Wardeness, _SlaveJ.slaveName and is @@color:gold;beaten@@ by _SlaveJ.slaveName for her trouble.
+							<<set _SlaveI.trust -= 5>>
 						<</if>>
-					<<elseif (_SlaveI.assignment == "rest in the spa") && (_SlaveJ.ID == $Attendant.ID)>>
-						<<if _SlaveJ.relationshipRules != "restrictive">>
-							_SlaveI.slaveName basks in the affection and care of the spa attendant, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
-							<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-							<<break>>
-						<<else>>
-							<<if _SlaveI.devotion < -20>>
-								_SlaveI.slaveName tries to strike up a friendship with the spa attendant, _SlaveJ.slaveName. _SlaveJ.slaveName gently @@color:hotpink;counsels@@ her to obey the rules.
-								<<set _SlaveI.devotion += 1>>
-							<</if>>
+					<</if>>
+				<<elseif (_SlaveJ.ID == $Concubine.ID) && (_SlaveI.assignment == "serve in the master suite")>>
+					<<if _SlaveJ.relationshipRules != "restrictive">>
+						_SlaveI.slaveName becomes especially close to the Concubine, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+						<<break>>
+					<<else>>
+						<<if _SlaveI.devotion < -20>>
+							_SlaveI.slaveName tries to strike up a friendship with the Concubine, _SlaveJ.slaveName and is gently @@color:hotpink;counseled@@ by _SlaveJ.slaveName that such things are against the rules.
+							<<set _SlaveI.devotion += 1>>
 						<</if>>
-					<<elseif (_SlaveI.assignment == "work as a servant") && (_SlaveJ.ID == $Stewardess.ID)>>
-						<<if _SlaveJ.relationshipRules != "restrictive">>
-							_SlaveI.slaveName manages to ingratiate herself with the Stewardess, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
-							<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-							<<break>>
-						<<else>>
-							<<if _SlaveI.devotion < -20>>
-								_SlaveI.slaveName tries to strike up a friendship with the Stewardess, _SlaveJ.slaveName and is @@color:gold;punished@@ by _SlaveJ.slaveName for disrespect.
-								<<set _SlaveI.trust -= 4>>
-							<</if>>
-						<</if>>
-					<<elseif (_SlaveI.assignment == "be confined in the cellblock") && (_SlaveJ.ID == $Wardeness.ID)>>
-						<<if _SlaveJ.relationshipRules != "restrictive">>
-							_SlaveI.slaveName manages to earn the respect of the Wardeness, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
-							<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-							<<break>>
-						<<else>>
-							<<if _SlaveI.devotion < -20>>
-								_SlaveI.slaveName tries to strike up a friendship with the Wardeness, _SlaveJ.slaveName and is @@color:gold;beaten@@ by _SlaveJ.slaveName for her trouble.
-								<<set _SlaveI.trust -= 5>>
-							<</if>>
-						<</if>>
-					<<elseif (_SlaveI.assignment == "serve in the master suite") && (_SlaveJ.ID == $Concubine.ID)>>
-						<<if _SlaveJ.relationshipRules != "restrictive">>
-							_SlaveI.slaveName becomes especially close to the Concubine, _SlaveJ.slaveName. The two slaves have @@color:lightgreen;struck up a friendship.@@
-							<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-							<<break>>
-						<<else>>
-							<<if _SlaveI.devotion < -20>>
-								_SlaveI.slaveName tries to strike up a friendship with the Concubine, _SlaveJ.slaveName and is gently @@color:hotpink;counseled@@ by _SlaveJ.slaveName that such things are against the rules.
-								<<set _SlaveI.devotion += 1>>
-							<</if>>
-						<</if>>
-					<<elseif _SlaveJ.assignment == _SlaveI.assignment>>
-						<<if random(1, 100) > 50>>
-						<<if _SlaveJ.relationshipRules != "restrictive">>
-							_SlaveI.slaveName and _SlaveJ.slaveName see a lot of each other at work and @@color:lightgreen;strike up a friendship.@@
-							<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-							<<break>>
-						<<else>>
-							<<if $resentment == 0>>
-								_SlaveI.slaveName tries to strike up a friendship with _SlaveJ.slaveName and is @@color:gold;punished@@ for breaking the rules against such things; she @@color:mediumorchid;resents@@ being castigated for simple sociability.
-								<<set _SlaveI.devotion -= 2, _SlaveI.trust -= 2, $resentment++>>
-							<</if>>
-						<</if>>
-						<</if>>
-					<<elseif mutualChildren(_SlaveI, _SlaveJ, $slaves) > 0>>
-						<<if (_SlaveI.releaseRules != "restrictive")>>
-							<<if _SlaveJ.relationshipRules == "permissive">>
-								_SlaveI.slaveName and _SlaveJ.slaveName have <<if mutualChildren(_SlaveI, _SlaveJ, $slaves) == 0>>a child<<else>>children<</if>> living in your penthouse, so it's not surprising that their offsrping brings them together. They have @@color:lightgreen;become friends@@ for their child's sake.
-								<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-								<<break>>
-							<<else>>
-								_SlaveI.slaveName tries to strike up a sexual relationship with _SlaveJ.slaveName and is @@color:gold;punished@@ for breaking the rules against such things; she @@color:mediumorchid;resents@@ being prevented from pursuing her.
-								<<set _SlaveI.devotion -= 2, _SlaveI.trust -= 2>>
-							<</if>>
-						<</if>>
-					<<elseif _SlaveJ.fetish == _SlaveI.fetish>>
-						<<if (_SlaveI.fetish != "none")>>
-						<<if (_SlaveI.releaseRules != "restrictive")>>
-							<<if _SlaveJ.relationshipRules == "permissive">>
-								_SlaveI.slaveName and _SlaveJ.slaveName share sexual inclinations, so it's only natural that they @@color:lightgreen;become friends with benefits.@@
-								<<set _SlaveJ.relationship = 3, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 3, _SlaveI.relationshipTarget = _SlaveJ.ID>>
-								<<break>>
-							<<else>>
-								_SlaveI.slaveName tries to strike up a sexual relationship with _SlaveJ.slaveName and is @@color:gold;punished@@ for breaking the rules against such things; she @@color:mediumorchid;resents@@ being prevented from pursuing her.
-								<<set _SlaveI.devotion -= 2, _SlaveI.trust -= 2>>
-							<</if>>
-						<</if>>
+					<</if>>
+				<<elseif _SlaveJ.assignment == _SlaveI.assignment>>
+					<<if random(1, 100) > 50>>
+					<<if _SlaveJ.relationshipRules != "restrictive">>
+						_SlaveI.slaveName and _SlaveJ.slaveName see a lot of each other at work and @@color:lightgreen;strike up a friendship.@@
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+						<<break>>
+					<<else>>
+						<<if $resentment == 0>>
+							_SlaveI.slaveName tries to strike up a friendship with _SlaveJ.slaveName and is @@color:gold;punished@@ for breaking the rules against such things; she @@color:mediumorchid;resents@@ being castigated for simple sociability.
+							<<set _SlaveI.devotion -= 2, _SlaveI.trust -= 2, $resentment++>>
 						<</if>>
 					<</if>>
 					<</if>>
+				<<elseif mutualChildren(_SlaveI, _SlaveJ, $slaves) > 0>>
+					<<if (_SlaveI.releaseRules != "restrictive") && _SlaveJ.relationshipRules == "permissive">>
+						_SlaveI.slaveName and _SlaveJ.slaveName have <<if mutualChildren(_SlaveI, _SlaveJ, $slaves) == 0>>a child<<else>>children<</if>> living in your penthouse, so it's not surprising that their offsrping brings them together. They have @@color:lightgreen;become friends@@ for their child's sake.
+						<<set _SlaveJ.relationship = 1, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 1, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+						<<break>>
+					<<else>>
+						_SlaveI.slaveName tries to strike up a sexual relationship with _SlaveJ.slaveName and is @@color:gold;punished@@ for breaking the rules against such things; she @@color:mediumorchid;resents@@ being prevented from pursuing her.
+						<<set _SlaveI.devotion -= 2, _SlaveI.trust -= 2>>
 					<</if>>
+				<<elseif _SlaveJ.fetish == _SlaveI.fetish>>
+					<<if (_SlaveI.fetish != "none") && (_SlaveI.releaseRules != "restrictive")>>
+						<<if _SlaveJ.relationshipRules == "permissive">>
+							_SlaveI.slaveName and _SlaveJ.slaveName share sexual inclinations, so it's only natural that they @@color:lightgreen;become friends with benefits.@@
+							<<set _SlaveJ.relationship = 3, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 3, _SlaveI.relationshipTarget = _SlaveJ.ID>>
+							<<break>>
+						<<else>>
+							_SlaveI.slaveName tries to strike up a sexual relationship with _SlaveJ.slaveName and is @@color:gold;punished@@ for breaking the rules against such things; she @@color:mediumorchid;resents@@ being prevented from pursuing her.
+							<<set _SlaveI.devotion -= 2, _SlaveI.trust -= 2>>
+						<</if>>
 					<</if>>
-					<</if>>
-					<</if>>
-				<</for>>
-				<<if _SlaveI.relationshipTarget != _SlaveJ.ID>>
-					<<set _SlaveJ = null>>
 				<</if>>
 				<</if>>
-				<</if>>
+			<</for>>
+			<<if _SlaveI.relationshipTarget != _SlaveJ.ID>>
+				<<set _SlaveJ = null>>
+			<</if>>
+			<</if>>
 			<</if>>
 		<</if>>
 		<<set _drop = 1>>
 	<</if>>
 	<<if (_SlaveI.relationship > 0) || (_SlaveI.relation > 0)>>
-		<<for _j = 0; _j < _SL; _j++>>
+		<<for _j to 0; _j < _SL; _j++>>
 			<<if _SlaveI.relationshipTarget == $slaves[_j].ID>>
 				<<set _SlaveJ = $slaves[_j], _J = _j , _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveJ.relationship = _SlaveI.relationship>>
 			<</if>>
@@ -238,28 +210,11 @@
 		<</for>>
 	<</if>>
 	<<if (_SlaveI.relationship != 0) && (_drop == 0)>>	/% RELATIONSHIP IS NOT 0; NOW ON TO ONGOING RELATIONSHIPS %/
-		/% Game change due to possible bug clears rivalry only if between SlaveI and SlaveJ if they are the rivals. So delete this one or the other one just below %/
 		<<if (_SlaveI.rivalry != 0 && _SlaveJ != null)>>
 			<<if _SlaveI.rivalryTarget == _SlaveI.relationshipTarget>>
 				<<set _SlaveJ.rivalry = 0, _SlaveJ.rivalryTarget = 0, _SlaveI.rivalry = 0, _SlaveI.rivalryTarget = 0>>
 			<</if>>
 		<</if>>
-		/% End of Game change code %/
-
-		/% This one functions same as before, just without the for loop %/
-		<<if (_SlaveI.rivalry != 0)>>
-			<<if _SlaveI.rivalryTarget != _SlaveI.relationshipTarget>>
-				<<if _SlaveJ != null>>
-				<<if _SlaveJ.ID == _SlaveI.relationshipTarget>>
-					<<set _SlaveJ.rivalry = 0, _SlaveJ.rivalryTarget = 0>>
-				<</if>>
-				<</if>>
-				/% This will leave _SlaveI.rivalryTarget .rivalry and .rivalryTarget hanging if it's not SlaveJ %/
-				<<set _SlaveI.rivalry = 0, _SlaveI.rivalryTarget = 0>>
-			<</if>>
-		<</if>>
-		/% End of Orig. %/
-
 		<<if _SlaveI.fetish == "mindbroken">>
 			Since she is mindbroken, she @@color:lightsalmon;can't really maintain@@ any meaningful relationship with
 			<<if _SlaveJ != null>>
@@ -583,18 +538,16 @@
 				<</if>>
 			<</if>>
 		<<elseif _SlaveI.relationshipRules == "just friends">>
-			<<if _SlaveI.relationship > 2>>
-				<<if _SlaveJ.relationshipRules == "restrictive">>
-					Since the sexual relationship between _SlaveI.slaveName and _SlaveJ.slaveName is against the rules, they are @@color:lightsalmon;forced to keep their hands to themselves.@@
-					<<set _SlaveJ.relationship = 2, _SlaveI.relationship = 2>>
-					<<if _SlaveI.devotion <= 50>>
-						_SlaveI.slaveName @@color:mediumorchid;resents@@ this.
-						<<set _SlaveI.devotion -= 2>>
-					<</if>>
-					<<if _SlaveJ.devotion <= 50>>
-						_SlaveJ.slaveName @@color:mediumorchid;resents@@ this.
-						<<set _SlaveJ.devotion -= 2>>
-					<</if>>
+			<<if _SlaveI.relationship > 2 && _SlaveJ.relationshipRules == "restrictive">>
+				Since the sexual relationship between _SlaveI.slaveName and _SlaveJ.slaveName is against the rules, they are @@color:lightsalmon;forced to keep their hands to themselves.@@
+				<<set _SlaveJ.relationship = 2, _SlaveI.relationship = 2>>
+				<<if _SlaveI.devotion <= 50>>
+					_SlaveI.slaveName @@color:mediumorchid;resents@@ this.
+					<<set _SlaveI.devotion -= 2>>
+				<</if>>
+				<<if _SlaveJ.devotion <= 50>>
+					_SlaveJ.slaveName @@color:mediumorchid;resents@@ this.
+					<<set _SlaveJ.devotion -= 2>>
 				<</if>>
 			<</if>>
 		<<else>>
@@ -720,7 +673,7 @@
 				keeps up a sexual friendship with _SlaveJ.slaveName.
 				<<if _SlaveI.sexualQuirk == "romantic">>
 					Her romantic bent drives her to do her best to advance her relationship to an emotional level.
-					<<set $seed = 10>>
+					<<set _seed = 10>>
 				<</if>>
 				<<if $familyTesting == 1 && _SlaveI.energy > 95 && (_SlaveI.mother == _SlaveJ.ID || _SlaveI.father == _SlaveJ.ID || _SlaveJ.mother == _SlaveI.ID || _SlaveJ.father == _SlaveI.ID || areSisters(_SlaveI, _SlaveJ) > 0) && (random(1,100) > (90-$seed))>>
 					She's such a desperate nympho that constant incest is nothing to her. She develops real feelings for _SlaveJ.slaveName as a romantic partner. Their relationship becomes @@color:lightgreen;romantically emotional@@ as well as physical and familial.
@@ -807,10 +760,8 @@
 					<</if>>
 					<<set _SlaveI.trust += _SlaveI.relationship>>
 				<</if>>
-			<<elseif _SlaveI.devotion > 95>>
-				<<if _SlaveI.relationship > 4>>
-					She feels <<if $arcologies[0].FSChattelReligionist != "unset">>blessed with<<else>>she has<</if>> a truly good life as your slave.
-				<</if>>
+			<<elseif _SlaveI.devotion > 95 && _SlaveI.relationship > 4>>
+				She feels <<if $arcologies[0].FSChattelReligionist != "unset">>blessed with<<else>>she has<</if>> a truly good life as your slave.
 			<</if>>
 		<</if>>
 	<</if>>
@@ -909,73 +860,68 @@
 				<<set $relation = 0>>
 				<<set $relationType = 0>>
 			<</if>>
-
 		<<else>>
-
-		<<if _SlaveI.relation != 0>>
-			<<if (_SlaveI.relationTarget == _SlaveI.relationshipTarget)>>
-				_SlaveI.slaveName is
+		<<if _SlaveI.relation != 0 && (_SlaveI.relationTarget == _SlaveI.relationshipTarget)>>
+			_SlaveI.slaveName is
+			<<if _SlaveI.origin == "She offered herself to you for enslavement hoping you would preserve her incestuous relationship with her sibling.">>
+				@@color:hotpink;grateful@@ and @@color:mediumaquamarine;trusting@@ towards you for protecting her in her long-standing incestuous relationship.
+				<<set _SlaveI.devotion += 2, _SlaveI.trust += 2>>
+			<<elseif _SlaveI.sexualQuirk == "perverted">>
+				such a pervert that she @@color:hotpink;enjoys@@ carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
+				<<set _SlaveI.devotion++>>
+			<<elseif _SlaveI.devotion > 95>>
+				so inured to the perversities of slavery that she @@color:hotpink;enjoys@@ carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
+				<<set _SlaveI.devotion++>>
+			<<elseif _SlaveI.behavioralQuirk == "sinful">>
+				torn between sinful delight and deep disgust that she's carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
+			<<elseif _SlaveI.devotion > 75>>
+				so devoted to you that she accepts carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
+			<<elseif _SlaveI.devotion > 50>>
+				somewhat @@color:mediumorchid;disturbed@@ that she's carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
+				<<set _SlaveI.devotion -= 2>>
+			<<elseif _SlaveI.devotion > 20>>
+				@@color:mediumorchid;disturbed@@ and @@color:gold;scared@@ that she's carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
+				<<set _SlaveI.devotion -= 2, _SlaveI.trust -= 2>>
+			<<else>>
+				@@color:mediumorchid;revolted@@ and @@color:gold;scared@@ that she's carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
+				<<set _SlaveI.devotion -= 4, _SlaveI.trust -= 4>>
+			<</if>>
+			<<if (_SlaveI.preg > 0) && (_SlaveI.pregSource == _SlaveI.relationTarget)>>
 				<<if _SlaveI.origin == "She offered herself to you for enslavement hoping you would preserve her incestuous relationship with her sibling.">>
-					@@color:hotpink;grateful@@ and @@color:mediumaquamarine;trusting@@ towards you for protecting her in her long-standing incestuous relationship.
-					<<set _SlaveI.devotion += 2, _SlaveI.trust += 2>>
+					She's @@color:hotpink;overjoyed@@ to be carrying her sister's child.
+					<<set _SlaveI.devotion += 2>>
 				<<elseif _SlaveI.sexualQuirk == "perverted">>
-					such a pervert that she @@color:hotpink;enjoys@@ carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
-					<<set _SlaveI.devotion++>>
-				<<elseif _SlaveI.devotion > 95>>
-					so inured to the perversities of slavery that she @@color:hotpink;enjoys@@ carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
+					She's even @@color:hotpink;aroused@@ by the constant awareness that her <<print relationTargetWord(_SlaveI)>> is the parent of the daughter she's carrying.
 					<<set _SlaveI.devotion++>>
 				<<elseif _SlaveI.behavioralQuirk == "sinful">>
-					torn between sinful delight and deep disgust that she's carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
-				<<elseif _SlaveI.devotion > 75>>
-					so devoted to you that she accepts carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
+					Her feelings about carrying her <<print relationTargetWord(_SlaveI)>>'s child are @@color:hotpink;secretly less mixed,@@ though.
+					<<set _SlaveI.devotion++>>
+				<<elseif _SlaveI.devotion > 95>>
+					She occasionally remembers that she's carrying her <<print relationTargetWord(_SlaveI)>>'s child, but does her best to accept it by not thinking about it.
 				<<elseif _SlaveI.devotion > 50>>
-					somewhat @@color:mediumorchid;disturbed@@ that she's carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
-					<<set _SlaveI.devotion -= 2>>
+					She's @@color:mediumorchid;disgusted@@ that the baby she's carrying is her <<print relationTargetWord(_SlaveI)>>'s, though she tries her best not to think about it.
+					<<set _SlaveI.devotion-->>
 				<<elseif _SlaveI.devotion > 20>>
-					@@color:mediumorchid;disturbed@@ and @@color:gold;scared@@ that she's carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
-					<<set _SlaveI.devotion -= 2, _SlaveI.trust -= 2>>
+					She's so @@color:mediumorchid;disgusted@@ that the baby she's carrying is her <<print relationTargetWord(_SlaveI)>>'s that she often wakes up crying about it.
+					<<set _SlaveI.devotion -= 2>>
 				<<else>>
-					@@color:mediumorchid;revolted@@ and @@color:gold;scared@@ that she's carrying on an incestuous relationship with her own <<print relationTargetWord(_SlaveI)>>.
-					<<set _SlaveI.devotion -= 4, _SlaveI.trust -= 4>>
+					She's @@color:mediumorchid;passionately hateful@@ of you for making her carry an incestuous pregnancy.
+					<<set _SlaveI.devotion -= 4>>
 				<</if>>
+			<</if>>
+			<<if $arcologies[0].FSEgyptianRevivalist != "unset">>
+				Society @@color:green;strongly approves@@ of their incestuous relationship, which advances the Egyptian revivalist ideal of slave incest.
+				<<set $repGain += 2 * $FSSingleSlaveRep * ($arcologies[0].FSEgyptianRevivalist / $FSLockinLevel), $arcologies[0].FSEgyptianRevivalist += 0.1 * $FSSingleSlaveRep>>
 				<<if (_SlaveI.preg > 0) && (_SlaveI.pregSource == _SlaveI.relationTarget)>>
-					<<if _SlaveI.origin == "She offered herself to you for enslavement hoping you would preserve her incestuous relationship with her sibling.">>
-						She's @@color:hotpink;overjoyed@@ to be carrying her sister's child.
-						<<set _SlaveI.devotion += 2>>
-					<<elseif _SlaveI.sexualQuirk == "perverted">>
-						She's even @@color:hotpink;aroused@@ by the constant awareness that her <<print relationTargetWord(_SlaveI)>> is the parent of the daughter she's carrying.
-						<<set _SlaveI.devotion++>>
-					<<elseif _SlaveI.behavioralQuirk == "sinful">>
-						Her feelings about carrying her <<print relationTargetWord(_SlaveI)>>'s child are @@color:hotpink;secretly less mixed,@@ though.
-						<<set _SlaveI.devotion++>>
-					<<elseif _SlaveI.devotion > 95>>
-						She occasionally remembers that she's carrying her <<print relationTargetWord(_SlaveI)>>'s child, but does her best to accept it by not thinking about it.
-					<<elseif _SlaveI.devotion > 50>>
-						She's @@color:mediumorchid;disgusted@@ that the baby she's carrying is her <<print relationTargetWord(_SlaveI)>>'s, though she tries her best not to think about it.
-						<<set _SlaveI.devotion-->>
-					<<elseif _SlaveI.devotion > 20>>
-						She's so @@color:mediumorchid;disgusted@@ that the baby she's carrying is her <<print relationTargetWord(_SlaveI)>>'s that she often wakes up crying about it.
-						<<set _SlaveI.devotion -= 2>>
-					<<else>>
-						She's @@color:mediumorchid;passionately hateful@@ of you for making her carry an incestuous pregnancy.
-						<<set _SlaveI.devotion -= 4>>
-					<</if>>
-				<</if>>
-				<<if $arcologies[0].FSEgyptianRevivalist != "unset">>
-					Society @@color:green;strongly approves@@ of their incestuous relationship, which advances the Egyptian revivalist ideal of slave incest.
-					<<set $repGain += 2 * $FSSingleSlaveRep * ($arcologies[0].FSEgyptianRevivalist / $FSLockinLevel), $arcologies[0].FSEgyptianRevivalist += 0.1 * $FSSingleSlaveRep>>
-					<<if (_SlaveI.preg > 0) && (_SlaveI.pregSource == _SlaveI.relationTarget)>>
-						@@color:green;The effect is greatly enhanced@@ by _SlaveI.slaveName's pureblooded pregnancy.
-						<<set $repGain += $FSSingleSlaveRep * ($arcologies[0].FSEgyptianRevivalist / $FSLockinLevel), $arcologies[0].FSEgyptianRevivalist += 0.05 * $FSSingleSlaveRep * $pornFameBonus>>
-					<</if>>
+					@@color:green;The effect is greatly enhanced@@ by _SlaveI.slaveName's pureblooded pregnancy.
+					<<set $repGain += $FSSingleSlaveRep * ($arcologies[0].FSEgyptianRevivalist / $FSLockinLevel), $arcologies[0].FSEgyptianRevivalist += 0.05 * $FSSingleSlaveRep * $pornFameBonus>>
 				<</if>>
 			<</if>>
 		<</if>>
-
 		<</if>> /* closes extended family mode */
 
 		<<if _SlaveI.releaseRules != "restrictive">>
-			<<if (_SlaveI.sexualQuirk == "size queen") && (canAchieveErection(_SlaveJ))>>
+			<<if (_SlaveI.sexualQuirk == "size queen") && (canPenetrate(_SlaveJ))>>
 			<<if _SlaveJ.dick > 5>>
 				She's @@color:hotpink;very happy@@ with her romantic status, since it means she gets monster cock.
 				<<if ((_SlaveI.anus > 0) && (_SlaveI.anus < 3))>>
@@ -1064,9 +1010,8 @@
 			<</if>>
 		<</if>>
 
-		<<if (_SlaveI.relationship >= 4)>>
-			<<if (_SlaveI.devotion > 20) || ((_SlaveI.devotion >= -20) && (_SlaveI.trust < -20)) || (_SlaveI.trust > -10) && (_SlaveJ.devotion > 75) && (_SlaveJ.trust > 50) && (_SlaveJ.intelligence > 0) && (_SlaveJ.intelligenceImplant > 0) && (_SlaveJ.actualAge - _SlaveI.actualAge > 10)>>
-			<<if random(1, 50) > (_SlaveI.intelligence * 5) + (_SlaveJ.intelligence * 10)>>
+		<<if (_SlaveJ.actualAge - _SlaveI.actualAge > 10) && (_SlaveI.relationship >= 4) && (random(1, 50) > (_SlaveI.intelligence * 5) + (_SlaveJ.intelligence * 10)) && (_SlaveJ.devotion > 75) && (_SlaveJ.trust > 50) && (_SlaveJ.intelligence > 0) && (_SlaveJ.intelligenceImplant > 0) && ((_SlaveI.devotion > 20) || ((_SlaveI.devotion >= -20) && (_SlaveI.trust < -20)) || (_SlaveI.trust > -10))>>
+			<<if (_SlaveJ.oralSkill > _SlaveI.oralSkill) || ((_SlaveJ.analSkill > _SlaveI.analSkill) && (_SlaveI.anus > 0)) || ((_SlaveJ.vaginalSkill > _SlaveI.vaginalSkill) && (_SlaveI.vagina > 0) && (_SlaveJ.vagina > 0)) || (_SlaveJ.trust > _SlaveI.trust)>>
 				_SlaveI.slaveName's <<if _SlaveI.relationship >= 5>>wife<<else>>lover<</if>> is older, more experienced, and
 				<<if (_SlaveJ.oralSkill > _SlaveI.oralSkill)>>
 					better at blowjobs than she is. They are such good slaves that the senior girl serves as a mentor to the junior, improving her oral skills.
@@ -1085,10 +1030,9 @@
 					<<set _SlaveI.devotion += 2>>
 				<</if>>
 			<</if>>
-			<</if>>
 		<</if>>
-	<</if>> /* CLOSES RELATIONSHIP CHECK FOR LONG TERM RELATIONSHIP EFFECTS */
-	/* FAMILY FEELINGS */
+	<</if>>	/% CLOSES RELATIONSHIP CHECK FOR LONG TERM RELATIONSHIP EFFECTS %/
+	/% FAMILY FEELINGS %/
 
 	<<if $familyTesting == 1>>
 
@@ -1205,8 +1149,7 @@
 
 	<<else>>
 
-	<<if _K != -1>>
-	<<if _SlaveI.trust <= 95>>
+	<<if _K != -1 && _SlaveI.trust <= 95>>
 		_SlaveI.slaveName
 		<<if _SlaveI.trust < -20>>
 			<<if _SlaveI.relation == "mother">>
@@ -1228,7 +1171,6 @@
 				<<set _SlaveI.trust -= 2>>
 			<</if>>
 		<</if>>
-	<</if>>
 	<</if>>
 
 	<</if>> /* closes family mod */
