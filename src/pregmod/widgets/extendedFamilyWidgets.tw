@@ -535,209 +535,111 @@
 <<set $children = []>> 
 */
 
-/*testtest PC twin passages - determines how many twins you have but not implemented yet*/
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].ID != $activeSlave.ID>>
-	<<if areSisters($activeSlave, $PC) == 1 && areSisters($slaves[$i], $activeSlave) == 1>>
-		<<set $children.push($slaves[$i])>>
+<<set _twins = [], _sisters = [], _brothers = [], _halfsisters = [], _halfbrothers = []>>
+<<for _i = 0; _i < $slaves.length; _i++>>
+	<<set _sisterCheck = areSisters($slaves[_i], $activeSlave)>>
+	<<if _sisterCheck == 1>>
+		<<run _twins.push($slaves[_i])>>
 	<</if>>
+	<<if _sisterCheck < 3 && _sisterCheck > 0>>
+		<<run ($slaves[_i].genes == 'XX' ? _sisters : _brothers).push($slaves[_i])>>
+	<</if>>
+	<<if _sisterCheck == 3>>
+		<<run ($slaves[_i].genes == 'XX' ? _halfsisters : _halfbrothers).push($slaves[_i])>>
 	<</if>>
 <</for>>
-<<if $children.length > 2>>
-	$pronounCap @@color:lightgreen;shared a cramped womb with you
-	<<for $j = 0; $j < $children.length; $j++>>
-		<<if $j < $children.length-1>>
-			, $children[$j].slaveName
-		<<else>>
-			and $children[$j].slaveName.@@
-		<</if>>
-	<</for>>	
-<<elseif $children.length > 1>>
-	$pronounCap is @@color:lightgreen;your twin along with $children[0].slaveName.@@
-<<elseif $children.length > 0>>
-	$pronounCap is @@color:lightgreen;your twin <<if $activeSlave.genes == "XX">>sister<<else>>brother<</if>>.@@
+
+/*testtest PC twin passages - determines how many twins you have but not implemented yet*/
+<<if areSisters($activeSlave, $PC) == 1>>
+	$pronounCap 
+	<<if _twins.length > 1>>
+		@@color:lightgreen;shared a cramped womb with you, <<print _twins.reduce(function(res, ch, i, arr) { return (res.slaveName || res) + (i == arr.length - 1 ? ' and ' : ', ') + ch.slaveName; })>>.@@
+	<<elseif _twins.length > 0>>
+		is @@color:lightgreen;your twin along with _twins[0].slaveName.@@	
+	<<else>>
+		is @@color:lightgreen;your twin <<if $activeSlave.genes == "XX">>sister<<else>>brother<</if>>.@@
+	<</if>>
 <</if>>
-<<set $children = []>>
 
 /*testtest PC sister passages - determines how many sisters you have*/
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].ID != $activeSlave.ID>>
-	<<if areSisters($activeSlave, $PC) == 2 && areSisters($slaves[$i], $activeSlave) < 3 && areSisters($slaves[$i], $activeSlave) > 0 && $slaves[$i].genes == "XX">>
-		<<set $children.push($slaves[$i])>>
-	<</if>>
-	<</if>>
-<</for>>
-<<if $activeSlave.genes == "XX" && $children.length > 0>>
+<<if areSisters($activeSlave, $PC) < 3 && areSisters($activeSlave, $PC) > 0 && $activeSlave.genes == "XX">>
 	$pronounCap 
-<<if $children.length > 2>>
-	@@color:lightgreen;is your sister along with
-	<<for $j = 0; $j < $children.length; $j++>>
-		<<if $j < $children.length-1>>
-			$children[$j].slaveName,
-		<<else>>
-			and $children[$j].slaveName.@@
-		<</if>>
-	<</for>>	
-<<elseif $children.length > 1>>
-	is @@color:lightgreen;your sister along with $children[0].slaveName.@@	
-<<elseif $children.length > 0>>
-	is @@color:lightgreen;your sister.@@
+	<<if _sisters.length > 1>>
+		@@color:lightgreen;is your sister along with <<print _sisters.reduce(function(res, ch, i, arr) { return (res.slaveName || res) + (i == arr.length - 1 ? ' and ' : ', ') + ch.slaveName; })>>.@@
+	<<elseif _sisters.length > 0>>
+		is @@color:lightgreen;your sister along with _sisters[0].slaveName.@@	
+	<<else>>
+		is @@color:lightgreen;your sister.@@
+	<</if>>
 <</if>>
-<</if>>
-<<set $children = []>>
 
 /*testtest PC brother passages - determines how many brothers you have*/
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].ID != $activeSlave.ID>>
-	<<if areSisters($activeSlave, $PC) == 2 && areSisters($slaves[$i], $activeSlave) < 2 && areSisters($slaves[$i], $activeSlave) > 0 && $slaves[$i].genes == "XY">>
-		<<set $children.push($slaves[$i])>>
-	<</if>>
-	<</if>>
-<</for>>
-<<if $activeSlave.genes == "XY" && $children.length > 0>>
+<<if areSisters($activeSlave, $PC) < 3 && areSisters($activeSlave, $PC) > 0 && $activeSlave.genes == "XY">>
 	$pronounCap 
-<<if $children.length > 2>>
-	@@color:lightgreen;is your brother along with
-	<<for $j = 0; $j < $children.length; $j++>>
-		<<if $j < $children.length-1>>
-			$children[$j].slaveName,
-		<<else>>
-			and $children[$j].slaveName.@@
-		<</if>>
-	<</for>>	
-<<elseif $children.length > 1>>
-	is @@color:lightgreen;your brother along with $children[0].slaveName.@@
-<<elseif $children.length > 0>>
-	is @@color:lightgreen;your brother.@@
+	<<if _brothers.length > 1>>
+		@@color:lightgreen;is your brother along with <<print _brothers.reduce(function(res, ch, i, arr) { return (res.slaveName || res) + (i == arr.length - 1 ? ' and ' : ', ') + ch.slaveName; })>>.@@
+	<<elseif _brothers.length > 0>>
+		is @@color:lightgreen;your brother along with _brothers[0].slaveName.@@
+	<<else>>
+		is @@color:lightgreen;your brother.@@
+	<</if>>
 <</if>>
-<</if>>
-<<set $children = []>>
 
 /*testtest PC half-sister passages - determines how many half-sisters you have*/
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].ID != $activeSlave.ID>>
-	<<if areSisters($activeSlave, $PC) == 3 && areSisters($slaves[$i], $PC) == 3 && $slaves[$i].genes == "XX">>
-		<<set $children.push($slaves[$i])>>
-	<</if>>
-	<</if>>
-<</for>>
-<<if $activeSlave.genes == "XX" && $children.length > 0>>
+<<if areSisters($activeSlave, $PC) == 3 && $activeSlave.genes == "XX">>
 	$pronounCap 
-<<if $children.length > 2>>
-	is @@color:lightgreen;your half-sister along with
-	<<for $j = 0; $j < $children.length; $j++>>
-		<<if $j < $children.length-1>>
-			$children[$j].slaveName,
-		<<else>>
-			and $children[$j].slaveName.@@
-		<</if>>
-	<</for>>
-<<elseif $children.length > 1>>
-	is @@color:lightgreen;your half-sister along with $children[0].slaveName.@@	
-<<elseif $children.length > 0>>
-	is @@color:lightgreen;your half-sister.@@
+	<<if _halfsisters.length > 1>>
+		@@color:lightgreen;is your half-sister along with <<print _halfsisters.reduce(function(res, ch, i, arr) { return (res.slaveName || res) + (i == arr.length - 1 ? ' and ' : ', ') + ch.slaveName; })>>.@@
+	<<elseif _halfsisters.length > 0>>
+		is @@color:lightgreen;your half-sister along with _halfsisters[0].slaveName.@@	
+	<<else>>
+		is @@color:lightgreen;your half-sister.@@
+	<</if>>
 <</if>>
-<</if>>
-<<set $children = []>>
 
 /*testtest PC half-brother passages - determines how many half-brothers you have*/
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].ID != $activeSlave.ID>>
-	<<if areSisters($activeSlave, $PC) == 3 && areSisters($slaves[$i], $PC) == 3 && $slaves[$i].genes == "XY">>
-		<<set $children.push($slaves[$i])>>
-	<</if>>
-	<</if>>
-<</for>>
-<<if $activeSlave.genes == "XY" && $children.length > 0>>
+<<if areSisters($activeSlave, $PC) == 3 && $activeSlave.genes == "XY">>
 	$pronounCap 
-<<if $children.length > 2>>
-	is @@color:lightgreen;your half-brother along with
-	<<for $j = 0; $j < $children.length; $j++>>
-		<<if $j < $children.length-1>>
-			$children[$j].slaveName,
-		<<else>>
-			and $children[$j].slaveName.@@
-		<</if>>
-	<</for>>
-<<elseif $children.length > 1>>
-	is @@color:lightgreen;your half-brother along with $children[0].slaveName.@@
-<<elseif $children.length > 0>>
-	is @@color:lightgreen;your half-brother.@@
+	<<if _halfbrothers.length > 1>>
+		@@color:lightgreen;is your half-brother along with <<print _halfbrothers.reduce(function(res, ch, i, arr) { return (res.slaveName || res) + (i == arr.length - 1 ? ' and ' : ', ') + ch.slaveName; })>>.@@
+	<<elseif _halfbrothers.length > 0>>
+		is @@color:lightgreen;your half-brother along with _halfbrothers[0].slaveName.@@	
+	<<else>>
+		is @@color:lightgreen;your half-brother.@@
+	<</if>>
 <</if>>
-<</if>>
-<<set $children = []>>
 
 /*testtest twins? - determines how many twins a slave has*/
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].ID != $activeSlave.ID>>
-		<<if areSisters($activeSlave, $slaves[$i]) == 1>>
-			<<set $children.push($slaves[$i])>>
-		<</if>>
+<<if _twins.length > 0>>
+	$pronounCap
+	<<if _twins.length > 2>>
+		@@color:lightgreen;shared a cramped womb with <<print _twins.reduce(function(res, ch, i, arr) { return (res.slaveName || res) + (i == arr.length - 1 ? ' and ' : ', ') + ch.slaveName; })>>.@@
+	<<elseif _twins.length > 1>>
+		is a @@color:lightgreen;one of a set of triplets; _twins[0].slaveName, and _twins[1].slaveName@@ complete the trio.	
+	<<else>>
+		is @@color:lightgreen;twins with _twins[0].slaveName.@@
 	<</if>>
-<</for>>
-<<if $children.length > 2>>
-	$pronounCap @@color:lightgreen;shared a cramped womb with
-	<<for $j = 0; $j < $children.length; $j++>>
-		<<if $j < $children.length-1>>
-			$children[$j].slaveName,
-		<<else>>
-			and $children[$j].slaveName.@@
-		<</if>>
-	<</for>>
-<<elseif $children.length > 1>>
-	$pronounCap is a @@color:lightgreen;one of a set of triplets; $children[0].slaveName, and $children[1].slaveName@@ complete the trio.	
-<<elseif $children.length > 0>>
-	$pronounCap is @@color:lightgreen;twins with $children[0].slaveName.@@
 <</if>>
-<<set $children = []>>
 
 /*testtest sister - determines how many sisters a slave has*/
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].ID != $activeSlave.ID>>
-		<<if areSisters($activeSlave, $slaves[$i]) == 2 && $slaves[$i].genes == "XX">>
-			<<set $children.push($slaves[$i])>>
-		<</if>>
+<<if _sisters.length > 0>>
+	$pronounCap
+	<<if _sisters.length > 1>>
+		is @@color:lightgreen;sisters with <<print _sisters.reduce(function(res, ch, i, arr) { return (res.slaveName || res) + (i == arr.length - 1 ? ' and ' : ', ') + ch.slaveName; })>>.@@
+	<<else>>
+		$pronounCap is @@color:lightgreen;sisters with _sisters[0].slaveName.@@
 	<</if>>
-<</for>>
-<<if $children.length > 2>>
-	$pronounCap is @@color:lightgreen;sisters with
-	<<for $j = 0; $j < $children.length; $j++>>
-		<<if $j < $children.length-1>>
-			$children[$j].slaveName,
-		<<else>>
-			and $children[$j].slaveName.@@
-		<</if>>
-	<</for>>
-<<elseif $children.length > 1>>
-	$pronounCap is @@color:lightgreen;sisters with $children[0].slaveName and $children[1].slaveName.@@	
-<<elseif $children.length > 0>>
-	$pronounCap is @@color:lightgreen;sisters with $children[0].slaveName.@@
 <</if>>
-<<set $children = []>>
 
 /*testtest brother - determines how many brothers a slave has*/
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].ID != $activeSlave.ID>>
-		<<if areSisters($activeSlave, $slaves[$i]) == 2 && $slaves[$i].genes == "XY">>
-			<<set $children.push($slaves[$i])>>
-		<</if>>
+<<if _brothers.length > 0>>
+	$pronounCap
+	<<if _brothers.length > 1>>
+		is @@color:lightgreen;sisters with <<print _brothers.reduce(function(res, ch, i, arr) { return (res.slaveName || res) + (i == arr.length - 1 ? ' and ' : ', ') + ch.slaveName; })>>.@@
+	<<else>>
+		$pronounCap is @@color:lightgreen;sisters with _brothers[0].slaveName.@@
 	<</if>>
-<</for>>
-<<if $children.length > 2>>
-	$pronounCap is @@color:lightgreen;brothers with
-	<<for $j = 0; $j < $children.length; $j++>>
-		<<if $j < $children.length-1>>
-			$children[$j].slaveName,
-		<<else>>
-			and $children[$j].slaveName.@@
-		<</if>>
-	<</for>>
-<<elseif $children.length > 1>>
-	$pronounCap is @@color:lightgreen;brothers with $children[0].slaveName and $children[1].slaveName.@@
-<<elseif $children.length > 0>>
-	$pronounCap is @@color:lightgreen;brothers with $children[0].slaveName.@@
 <</if>>
-<<set $children = []>>
 
 /*testtest half-sister - determines how many half-sisters a slave has*/
 <<for $i = 0; $i < $slaves.length; $i++>>
