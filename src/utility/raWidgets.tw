@@ -3405,44 +3405,52 @@ Your brand design is ''$brandDesign.''
 	<</if>>
 <</if>>
 <</if>>
-<<if ($args[0].ovaries == 1)>>
-<<if ($args[0].preg > -2)>>
-<<if ($args[0].preg < 1)>>
+<<if canGetPregant($args[0])>>
 <<if (_currentRule.preg !== "no default setting")>>
 <<if (_currentRule.preg == -1)>>
-	<<set $args[0].preg = -1>>
-	<<if $args[0].drugs == "fertility drugs">>
+	<<if $args[0].preg !== -1>>
+		<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate contraceptive regime.
+		<<set $args[0].preg = -1>>
+	<</if>>
+	<<if $args[0].drugs == "fertility drugs" || $args[0].drugs == "super fertility drugs">>
 		<<set $args[0].drugs = "no drugs">>
 	<</if>>
-	<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate contraceptive regime.
 <<elseif (_currentRule.preg == 0)>>
-	<<set $args[0].preg = 0>>
-	<<if $args[0].drugs == "fertility drugs">>
+	<<if $args[0].preg !== 0>>
+		<br>$args[0].slaveName is a fertile female, so she has been taken off contraceptives.
+		<<set $args[0].preg = 0>>
+	<</if>>
+	<<if $args[0].drugs == "fertility drugs" || $args[0].drugs == "super fertility drugs">>
 		<<set $args[0].drugs = "no drugs">>
 	<</if>>
-	<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate contraceptive regime.
 <<elseif (_currentRule.preg == 1)>>
-	<<set $args[0].preg = 0>>
-	<<set $args[0].drugs = "fertility drugs">>
-	<<set $args[0].hormones = 0>>
-	<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate contraceptive regime.
+	<<if $args[0].preg !== 0 || $args[0].drugs !== "fertility drugs" || $args[0].hormones !== 0>>
+		<<set $args[0].preg = 0>>
+		<<set $args[0].drugs = "fertility drugs">>
+		<<set $args[0].hormones = 0>>
+		<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate fertility regime.
+	<</if>>
 <<elseif (_currentRule.preg == 2)>>
-	<<set $args[0].drugs = "fertility drugs">>
-	<<set $args[0].hormones = 2>>
-	<<set $args[0].preg = 0>>
-	<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate contraceptive regime.
+	<<if $args[0].preg !== 0 || $args[0].drugs !== "fertility drugs" || $args[0].hormones !== 2>>
+		<<set $args[0].preg = 0>>
+		<<set $args[0].drugs = "fertility drugs">>
+		<<set $args[0].hormones = 2>>
+		<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate fertility regime.
+	<</if>>
 <<elseif (_currentRule.preg == 3) and $args[0].indentureRestrictions < 1>>
-	<<set $args[0].drugs = "super fertility drugs">>
-	<<set $args[0].hormones = 0>>
-	<<set $args[0].preg = 0>>
-	<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate contraceptive regime.
+	<<if $args[0].preg !== 0 || $args[0].drugs !== "super fertility drugs" || $args[0].hormones !== 0>>
+		<<set $args[0].preg = 0>>
+		<<set $args[0].drugs = "super fertility drugs">>
+		<<set $args[0].hormones = 0>>
+		<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate fertility regime.
+	<</if>>
 <<elseif (_currentRule.preg == 4) and $args[0].indentureRestrictions < 1>>
-	<<set $args[0].drugs = "super fertility drugs">>
-	<<set $args[0].hormones = 2>>
-	<<set $args[0].preg = 0>>
-	<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate contraceptive regime.
-<</if>>
-<</if>>
+	<<if $args[0].preg !== 0 || $args[0].drugs !== "super fertility drugs" || $args[0].hormones !== 2>>
+		<<set $args[0].preg = 0>>
+		<<set $args[0].drugs = "super fertility drugs">>
+		<<set $args[0].hormones = 2>>
+		<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate fertility regime.
+	<</if>>
 <</if>>
 <</if>>
 <</if>>
@@ -3546,10 +3554,18 @@ Your brand design is ''$brandDesign.''
 					<<set $args[0].diet = "restricted">>
 					<br>$args[0].slaveName is too fat so her diet has been set to restricted.
 				<</if>>
+				<<if ($arcologies[0].FSSlimnessEnthusiastResearch == 1 && $args[0].drugs == "none")>>
+					<<set $args[0].drugs = "appetite suppressors">>
+					<br>$args[0].slaveName is too fat so she will be given weight loss pills.
+				<</if>>
 			<<elseif ($args[0].weight < -10)>>
 				<<if ($args[0].diet !== "fattening")>>
 					<<set $args[0].diet = "fattening">>
 					<br>$args[0].slaveName is too skinny so her diet has been set to fattening.
+				<</if>>
+				<<if ($args[0].drugs == "appetite suppressors")>>
+					<<set $args[0].drugs = "none">>
+					<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
 				<</if>>
 			<<elseif (_currentRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
 				<<if ($args[0].muscles >= _currentRule.muscles+5)>>
@@ -3580,10 +3596,18 @@ Your brand design is ''$brandDesign.''
 					<<set $args[0].diet = "restricted">>
 					<br>$args[0].slaveName is too fat so her diet has been set to restricted.
 				<</if>>
+				<<if ($arcologies[0].FSSlimnessEnthusiastResearch == 1 && $args[0].drugs == "none")>>
+					<<set $args[0].drugs = "appetite suppressors">>
+					<br>$args[0].slaveName is too fat so she will be given weight loss pills.
+				<</if>>
 			<<elseif ($args[0].weight < 20)>>
 				<<if ($args[0].diet !== "fattening")>>
 					<<set $args[0].diet = "fattening">>
 					<br>$args[0].slaveName is too skinny so her diet has been set to fattening.
+				<</if>>
+				<<if ($args[0].drugs == "appetite suppressors")>>
+					<<set $args[0].drugs = "none">>
+					<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
 				<</if>>
 			<<elseif (_currentRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
 				<<if ($args[0].muscles >= _currentRule.muscles+5)>>
@@ -3601,24 +3625,40 @@ Your brand design is ''$brandDesign.''
 						<<set $args[0].diet = "healthy">>
 						<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
 					<</if>>
+					<<if ($args[0].drugs == "appetite suppressors")>>
+						<<set $args[0].drugs = "none">>
+						<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
+					<</if>>
 				<</if>>
 			<<else>>
 				<<if ($args[0].diet !== "healthy")>>
 					<<set $args[0].diet = "healthy">>
 					<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
 				<</if>>
+				<<if ($args[0].drugs == "appetite suppressors")>>
+					<<set $args[0].drugs = "none">>
+					<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
+				<</if>>
 			<</if>>
 		<<elseif (_currentRule.diet == -30)>>
-			<<if ($args[0].weight > -20)>>
+			<<if ($args[0].weight > -15)>>
 				<<if ($args[0].diet !== "restricted")>>
 					<<set $args[0].diet = "restricted">>
 					<br>$args[0].slaveName is too fat so her diet has been set to restricted.
+				<</if>>
+				<<if ($arcologies[0].FSSlimnessEnthusiastResearch == 1 && $args[0].drugs == "none")>>
+					<<set $args[0].drugs = "appetite suppressors">>
+					<br>$args[0].slaveName is too fat so she will be given weight loss pills.
 				<</if>>
 			<<elseif ($args[0].weight < -30)>>
 				<<if ($args[0].diet !== "fattening")>>
 					<<set $args[0].diet = "fattening">>
 					<br>$args[0].slaveName is too skinny so her diet has been set to fattening.
 				<</if>>
+				<<if ($args[0].drugs == "appetite suppressors")>>
+					<<set $args[0].drugs = "none">>
+					<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
+				<</if>>
 			<<elseif (_currentRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
 				<<if ($args[0].muscles >= _currentRule.muscles+5)>>
 					<<if ($args[0].diet !== "slimming")>>
@@ -3635,11 +3675,19 @@ Your brand design is ''$brandDesign.''
 						<<set $args[0].diet = "healthy">>
 						<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
 					<</if>>
+					<<if ($args[0].drugs == "appetite suppressors")>>
+						<<set $args[0].drugs = "none">>
+						<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
+					<</if>>
 				<</if>>
 			<<else>>
 				<<if ($args[0].diet !== "healthy")>>
 					<<set $args[0].diet = "healthy">>
 					<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
+				<</if>>
+				<<if ($args[0].drugs == "appetite suppressors")>>
+					<<set $args[0].drugs = "none">>
+					<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
 				<</if>>
 			<</if>>
 		<<elseif (_currentRule.diet == "attractive")>>
@@ -3648,10 +3696,18 @@ Your brand design is ''$brandDesign.''
 					<<set $args[0].diet = "restricted">>
 					<br>$args[0].slaveName is too fat so her diet has been set to restricted.
 				<</if>>
+				<<if ($arcologies[0].FSSlimnessEnthusiastResearch == 1 && $args[0].drugs == "none")>>
+					<<set $args[0].drugs = "appetite suppressors">>
+					<br>$args[0].slaveName is too fat so she will be given weight loss pills.
+				<</if>>
 			<<elseif (($args[0].weight < -95) || (($args[0].weight < -30) && ($args[0].hips > -2)))>>
 				<<if ($args[0].diet !== "fattening")>>
 					<<set $args[0].diet = "fattening">>
 					<br>$args[0].slaveName is too skinny so her diet has been set to fattening.
+				<</if>>
+				<<if ($args[0].drugs == "appetite suppressors")>>
+					<<set $args[0].drugs = "none">>
+					<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
 				<</if>>
 			<<elseif (_currentRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
 				<<if ($args[0].muscles >= _currentRule.muscles+5)>>
@@ -3669,11 +3725,19 @@ Your brand design is ''$brandDesign.''
 						<<set $args[0].diet = "healthy">>
 						<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
 					<</if>>
+					<<if ($args[0].drugs == "appetite suppressors")>>
+						<<set $args[0].drugs = "none">>
+						<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
+					<</if>>
 				<</if>>
 			<<else>>
 				<<if ($args[0].diet !== "healthy")>>
 					<<set $args[0].diet = "healthy">>
 					<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
+				<</if>>
+				<<if ($args[0].drugs == "appetite suppressors")>>
+					<<set $args[0].drugs = "none">>
+					<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
 				<</if>>
 			<</if>>
 		<<elseif (_currentRule.diet == "XX")>>
@@ -4026,13 +4090,27 @@ is now _currentRule.hLength cm long.
 	<</if>>
 	<</if>>
 	<<if _used == 0>>
+		<<set _tmp = lastClitSettingEnergyRule($args[0], $defaultRules)>>
+		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
+		<<if _currentRule.clitSettingEnergy !== "no default setting">>
+		<<if $args[0].energy < _currentRule.clitSettingEnergy && $args[0].clitSetting !== "all">>
+			<<set $args[0].clitSetting = "all", _used = 1>>
+			<br>$args[0].slaveName's smart piercing has been set to enhance libido.
+		<<elseif $args[0].energy >= _currentRule.clitSettingEnergy + 10 && $args[0].clitSetting !== "none">>
+			<<set $args[0].clitSetting = "none", _used = 1>>
+			<br>$args[0].slaveName's smart piercing has been set to suppress libido.
+		<</if>>
+		<</if>>
+		<</if>>
+	<</if>>
+	<<if _used == 0>>
 		<<set _tmp = lastClitSettingXYRule($args[0], $defaultRules)>>
 		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
 		<<if _currentRule.clitSettingXY !== "no default setting">>
-		<<if $args[0].attrXY < _currentRule.clitSettingXY>>
+		<<if $args[0].attrXY < _currentRule.clitSettingXY && $args[0].clitSetting !== "men">>
 			<<set $args[0].clitSetting = "men", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to encourage attraction to men.
-		<<elseif $args[0].attrXY >= _currentRule.clitSettingXY + 10>>
+		<<elseif $args[0].attrXY >= _currentRule.clitSettingXY + 10 && $args[0].clitSetting !== "anti-men">>
 			<<set $args[0].clitSetting = "anti-men", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to discourage attraction to men.
 		<</if>>
@@ -4043,26 +4121,12 @@ is now _currentRule.hLength cm long.
 		<<set _tmp = lastClitSettingXXRule($args[0], $defaultRules)>>
 		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
 		<<if _currentRule.clitSettingXX !== "no default setting">>
-		<<if $args[0].attrXX < _currentRule.clitSettingXX>>
+		<<if $args[0].attrXX < _currentRule.clitSettingXX && $args[0].clitSetting !== "women">>
 			<<set $args[0].clitSetting = "women", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to encourage attraction to women.
-		<<elseif $args[0].attrXX >= _currentRule.clitSettingXX + 10>>
+		<<elseif $args[0].attrXX >= _currentRule.clitSettingXX + 10 && $args[0].clitSetting !== "anti-women">>
 			<<set $args[0].clitSetting = "anti-women", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to discourage attraction to women.
-		<</if>>
-		<</if>>
-		<</if>>
-	<</if>>
-	<<if _used == 0>>
-		<<set _tmp = lastClitSettingEnergyRule($args[0], $defaultRules)>>
-		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-		<<if _currentRule.clitSettingEnergy !== "no default setting">>
-		<<if $args[0].energy < _currentRule.clitSettingEnergy>>
-			<<set $args[0].clitSetting = "all", _used = 1>>
-			<br>$args[0].slaveName's smart piercing has been set to enhance libido.
-		<<elseif $args[0].energy >= _currentRule.clitSettingEnergy + 10>>
-			<<set $args[0].clitSetting = "none", _used = 1>>
-			<br>$args[0].slaveName's smart piercing has been set to suppress libido.
 		<</if>>
 		<</if>>
 		<</if>>
