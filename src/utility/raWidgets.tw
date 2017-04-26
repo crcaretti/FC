@@ -179,14 +179,14 @@ Apply to assignments:
 <</for>>
 
 <<if _rest || _fucktoy || _servant || _confined || _whore || _public || _milked || _subordinate || _gloryhole>>
-	<<link "None">>
+	<<link "All">>
 		<<set $currentRule.assignment = []>>
 		<<RAChangeApplyAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>> |
 <<else>>
-	''None'' |
+	''All'' |
 <</if>>
 
 <<if !_rest>>
@@ -606,14 +606,14 @@ Exclude assignments:
 Apply to facilities:
 <br>
 <<if (_facility.length > 0)>>
-	<<link "None">>
+	<<link "All">>
 		<<set _facility = []>>
 		<<RAChangeApplyFacility>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''None''
+	''All''
 <</if>>
 <<if ($HGSuite > 0)>>
 |
@@ -2984,7 +2984,7 @@ Your brand design is ''$brandDesign.''
 <<widget "DefaultRules">>
 <<for _r = 0; _r < $defaultRules.length; _r++>>
 <<set _currentRule = $defaultRules[_r]>>
-<<if (!ruleApplied($args[0], _currentRule.ID)) || ((def _currentRule.facility) && (_currentRule.facility.length > 1) && !ruleAppliedToSlaveFacility(_currentRule, $args[0]))>><<continue>><</if>>
+<<if !ruleApplied($args[0], _currentRule.ID) || (def _currentRule.facility && _currentRule.facility.length > 0 && !ruleAppliedToSlaveFacility(_currentRule, $args[0]))>><<continue>><</if>>
 
 <<if $args[0].fuckdoll == 0>>
 
@@ -3405,7 +3405,7 @@ Your brand design is ''$brandDesign.''
 	<</if>>
 <</if>>
 <</if>>
-<<if canGetPregant($args[0])>>
+<<if canGetPregnant($args[0])>>
 <<if (_currentRule.preg !== "no default setting")>>
 <<if (_currentRule.preg == -1)>>
 	<<if $args[0].preg !== -1>>
@@ -4618,56 +4618,42 @@ consequences.
 <<set _currentRule = $defaultRules[_r]>>
 <<set _rule = _r+1>>
 
-<<if (def _currentRule.excludedSlaves) && (_currentRule.excludedSlaves.length > 0)>>
-	<<if ruleSlaveExcluded($args[0], _currentRule)>>
-		<<if ruleApplied($args[0], _currentRule.ID)>>
-			<<RARemoveRule $args[0]>>
-		<</if>>
+<<if ruleApplied($args[0], _currentRule.ID)>>
+	<<if (def _currentRule.excludedSlaves) && (_currentRule.excludedSlaves.length > 0) && ruleSlaveExcluded($args[0], _currentRule)>>
+		<<RARemoveRule $args[0]>>
 		<<continue>>
 	<</if>>
-<</if>>
 
-<<if (def _currentRule.selectedSlaves) && (_currentRule.selectedSlaves.length > 0)>>
-	<<if !ruleSlaveSelected($args[0], _currentRule)>>
-		<<if ruleApplied($args[0], _currentRule.ID)>>
-			<<RARemoveRule $args[0]>>
-		<</if>>
+	<<if (def _currentRule.selectedSlaves) && (_currentRule.selectedSlaves.length > 0) && !ruleSlaveSelected($args[0], _currentRule)>>
+		<<RARemoveRule $args[0]>>
 		<<continue>>
 	<</if>>
-<</if>>
 
-<<if (def _currentRule.facility) && (_currentRule.facility.length > 0)>>
-	<<if !ruleAppliedToSlaveFacility(_currentRule, $args[0])>>
-		<<if ruleApplied($args[0], _currentRule.ID)>>
-			<<RARemoveRule $args[0]>>
-		<</if>>
-		<<continue>>
-	<</if>>
-<</if>>
+	<<if $args[0].assignmentVisible == 0>>
 
-<<if (def _currentRule.excludeFacility) && (_currentRule.excludeFacility.length > 0)>>
-	<<if ruleExcludeSlaveFacility(_currentRule, $args[0])>>
-		<<if ruleApplied($args[0], _currentRule.ID)>>
+		<<if (def _currentRule.excludeFacility) && (_currentRule.excludeFacility.length > 0) && ruleExcludeSlaveFacility(_currentRule, $args[0])>>
 			<<RARemoveRule $args[0]>>
+			<<continue>>
 		<</if>>
-		<<continue>>
-	<</if>>
-<</if>>
+		
+		<<if (def _currentRule.facility) && (_currentRule.facility.length > 0) && !ruleAppliedToSlaveFacility(_currentRule, $args[0])>>
+			<<RARemoveRule $args[0]>>
+			<<continue>>
+		<</if>>
+		
+	<<else>>
 
-<<if (def _currentRule.assignment) && (_currentRule.assignment.length > 0)>>
-	<<if !ruleAssignment(_currentRule.assignment, $args[0].assignment)>>
-		<<if ruleApplied($args[0], _currentRule.ID)>>
+		<<if (def _currentRule.excludeAssignment) && (_currentRule.excludeAssignment.length > 0) && ruleAssignment(_currentRule.excludeAssignment, $args[0].assignment)>>
 			<<RARemoveRule $args[0]>>
+			<<continue>>
 		<</if>>
-		<<continue>>
-	<</if>>
-<</if>>
-<<if (def _currentRule.excludeAssignment) && (_currentRule.excludeAssignment.length > 0)>>
-	<<if ruleAssignment(_currentRule.excludeAssignment, $args[0].assignment)>>
-		<<if ruleApplied($args[0], _currentRule.ID)>>
+
+		<<if (def _currentRule.assignment) && (_currentRule.assignment.length > 0) && !ruleAssignment(_currentRule.assignment, $args[0].assignment)>>
 			<<RARemoveRule $args[0]>>
+			<<continue>>
 		<</if>>
-		<<continue>>
+
+		
 	<</if>>
 <</if>>
 
