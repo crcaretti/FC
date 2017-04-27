@@ -192,7 +192,7 @@
 	<<if areSisters($slaves[$i], $activeSlave) == 1 ||  areSisters($slaves[$i], $activeSlave) == 2>>
 	<<if $slaves[$i].ID == $PC.mother || $slaves[$i].ID == $PC.father>>
 		<<for $j to 0; $j < $slaves.length; $j++>>
-			<<if $slaves[$i].ID != $slaves[$j].ID >>
+			<<if $slaves[$i].ID != $slaves[$j].ID>>
 			<<if $slaves[$j].genes == "XX">>
 			<<if areSisters($slaves[$j], $activeSlave) == 1 ||  areSisters($slaves[$j], $activeSlave) == 2>>
 				<<set $children.push($slaves[$j])>>
@@ -894,14 +894,17 @@
 <</widget>>
 
 <<widget "editFamily">>
+<div id="editFamily"><div id="familyTable">
 <br>''Mother:'' <span id="motherName"><<parentName "mother">></span>.
 <<link "Reset">>
 <<set $activeSlave.mother = 0>>
 <<replace '#motherName'>><</replace>>
 <<replace '#sameMotherNames'>><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
-<<if $PC.vagina == 1>> | <<link "You">><<set $activeSlave.mother = $PC.ID>><<replace '#motherName'>>You<</replace>><<replace '#familySummary'>><<Family>><</replace>><</link>><</if>>
+<<if $PC.vagina == 1>> | <<link "You">><<set $activeSlave.mother = $PC.ID>><<replace '#motherName'>>You<</replace>><<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>><</link>><</if>>
 <<for _i = 0; _i < $slaves.length; _i++>>
 <<if $slaves[_i].vagina > 0>>
  |
@@ -913,6 +916,7 @@
 <<replace '#motherName'>>_slaveName<</replace>>
 <<replace '#sameMotherNames'>><<listOfSlavesWithSameParent 'mother'>><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
 ">>
 <</if>>
@@ -923,8 +927,9 @@
 <<replace '#fatherName'>><</replace>>
 <<replace '#sameFatherNames'>><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
-<<if ($PC.dick == 1) and (($PC.actualAge - $activeSlave.actualAge) >= $fertilityAge) >> | <<link "You">><<set $activeSlave.father = $PC.ID>><<replace '#fatherName'>>You<</replace>><<replace '#familySummary'>><<Family>><</replace>><</link>><</if>>
+<<if ($PC.dick == 1) and (($PC.actualAge - $activeSlave.actualAge) >= $fertilityAge)>> | <<link "You">><<set $activeSlave.father = $PC.ID>><<replace '#fatherName'>>You<</replace>><<replace '#familySummary'>><<Family>><</replace>><<run updateFamilyTree($activeSlave, $slaves, $PC)>><</link>><</if>>
 <<for _i = 0; _i < $slaves.length; _i++>>
 <<if ($slaves[_i].dick > 0) and ((($slaves[_i].actualAge - $activeSlave.actualAge) >= $fertilityAge))>>
  |
@@ -936,6 +941,7 @@
 <<replace '#fatherName'>>_slaveName<</replace>>
 <<replace '#sameFatherNames'>><<listOfSlavesWithSameParent 'father'>><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
 ">>
 <</if>>
@@ -947,6 +953,7 @@
 <<replace '#motherName'>><</replace>>
 <<replace '#sameMotherNames'>><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
  | <<link "You">>
 <<if $PC.mother != 0>>
@@ -954,12 +961,13 @@
 <<elseif $activeSlave.mother != 0>>
 <<set $PC.mother = $activeSlave.mother>>
 <<else>>
-<<set $activeSlave.mother = -5 - 2*$activeSlave.ID >>
+<<set $activeSlave.mother = -5 - 2*$activeSlave.ID>>
 <<set $PC.mother = $activeSlave.mother>>
 <</if>>
 <<replace '#motherName'>><<parentName "mother">><</replace>>
 <<replace '#sameMotherNames'>><<listOfSlavesWithSameParent "mother">><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
 <<for _i = 0; _i < $slaves.length; _i++>>
  |
@@ -972,12 +980,13 @@
 <<elseif $activeSlave.mother != 0>>
 <<set _slave.mother = $activeSlave.mother>>
 <<else>>
-<<set $activeSlave.mother = -5 - 2*$activeSlave.ID >>
+<<set $activeSlave.mother = -5 - 2*$activeSlave.ID>>
 <<set _slave.mother = $activeSlave.mother>>
 <</if>>
 <<replace '#motherName'>><<parentName "mother">><</replace>>
 <<replace '#sameMotherNames'>><<listOfSlavesWithSameParent 'mother'>><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
 
 <</for>>
@@ -988,6 +997,7 @@
 <<replace '#fatherName'>><</replace>>
 <<replace '#sameFatherNames'>><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
 | <<link "You">>
 <<if $PC.father != 0>>
@@ -1001,6 +1011,7 @@
 <<replace '#fatherName'>><<parentName "father">><</replace>>
 <<replace '#sameFatherNames'>><<listOfSlavesWithSameParent "father">><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
 
 <<for _i = 0; _i < $slaves.length; _i++>>
@@ -1014,17 +1025,23 @@
 <<elseif $activeSlave.father != 0>>
 <<set _slave.father = $activeSlave.father>>
 <<else>>
-<<set $activeSlave.father = -5 - 2*$activeSlave.ID -1 >>
+<<set $activeSlave.father = -5 - 2*$activeSlave.ID -1>>
 <<set _slave.father = $activeSlave.father>>
 <</if>>
 <<replace '#fatherName'>><<parentName "father">><</replace>>
 <<replace '#sameFatherNames'>><<listOfSlavesWithSameParent 'father'>><</replace>>
 <<replace '#familySummary'>><<Family>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <</link>>
 
 <</for>>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span id="familySummary"><<Family>></span>
 <br>
+</div>
+<div id="graph"></div>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<script>updateFamilyTree()</script>
+</div>
 
 <</widget>>
