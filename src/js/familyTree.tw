@@ -1,0 +1,128 @@
+:: FamilyTreeJS [script]
+
+var lastActiveSlave, lastSlaves, lastPC;
+
+window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastSlaves, PC = lastPC) {
+  lastActiveSlave = activeSlave;
+  lastSlaves = slaves;
+  lastPC = PC;
+  var treeDepth = 0;
+  var numTreeNodes = 0;
+
+  var graphElement = document.getElementById("graph");
+  if(!graphElement)
+    return;
+  graphElement.innerHTML = "";
+
+  function getSlave(id, expectedGenes) {
+    if(id == -1) {
+      return {"slaveName":"YOU", "ID":id, "genes":PC.genes, father:PC.father, mother:PC.mother};
+    }
+    if(id == 0) {
+      return {"slaveName":"-", "ID":id, "genes":expectedGenes};
+    }
+    if(id == activeSlave.ID) {
+      return activeSlave;
+    }
+    for(var i = 0; i < slaves.length; ++i) {
+      if(slaves[i].ID == id)
+        return slaves[i];
+    }
+    return {"slaveName":"-", "ID":id, "genes":expectedGenes};
+  }
+
+  function slaveInfo(slave, activeSlaveId, recursionProtectSlaveId = {}) {
+    numTreeNodes = 0;
+    treeDepth = 0;
+    if(recursionProtectSlaveId[slave.ID]) {
+      console.log("Recursion protection");
+      return slaveInfo_(slave, activeSlaveId);
+    }
+    recursionProtectSlaveId[slave.ID] = true;
+
+    if(typeof slave.father == "undefined" || typeof slave.mother == "undefined")
+       return slaveInfo_(slave, activeSlaveId);
+
+    if(slave.father == -1 || slave.mother == -1) {
+      return slaveInfo(getSlave(-1), activeSlaveId, recursionProtectSlaveId);
+    }
+    if(slave.father != 0) {
+      return slaveInfo(getSlave(slave.father, "unknownXY"), activeSlaveId, recursionProtectSlaveId);
+    }
+
+    if(slave.mother != 0) {
+      return slaveInfo(getSlave(slave.mother, "unknownXX"), activeSlaveId, recursionProtectSlaveId);
+    }
+    return slaveInfo_(slave, activeSlaveId);
+  }
+  function slaveInfo_(slave, activeSlaveId, slavesAdded={}, depth = 1) {
+    numTreeNodes += 1;
+    treeDepth = Math.max(treeDepth, depth);
+    var shouldAddChildren = false;
+    if(!slavesAdded[slave.ID]) {
+      shouldAddChildren = true;
+      slavesAdded[slave.ID] = true;
+    }
+    var data = {
+      "name": slave.slaveName,
+      "class" : slave.genes,
+      "textClass": (activeSlaveId == slave.ID)?"emphasis":"",
+      "marriages": [],
+    };
+
+    var spouseToChild = {};
+
+    function maybeAddSpouseToChild(child) {
+      if(child.ID == slave.ID)
+        return;
+      if (child.father == slave.ID) {
+        if(!spouseToChild[child.mother]) {
+          spouseToChild[child.mother] = []
+        }
+        spouseToChild[child.mother].push(child);
+      }
+      if (child.mother == slave.ID) {
+        if(!spouseToChild[child.father]) {
+          spouseToChild[child.father] = []
+        }
+        spouseToChild[child.father].push(child);
+      }
+    }
+    maybeAddSpouseToChild(activeSlave);
+    maybeAddSpouseToChild(getSlave(-1));
+
+    for(var i = 0; i < slaves.length; ++i) {
+      var child = slaves[i];
+      maybeAddSpouseToChild(child);
+    }
+
+    for(var key in spouseToChild) {
+      if(spouseToChild.hasOwnProperty(key)) {
+        var children = shouldAddChildren?spouseToChild[key]:[];
+        var spouse = getSlave(key, (slaves.genes=="XX")?"unknownXY":(slaves.genes=="XY")?"unknownXX":"unknown")
+        var marriage = {
+          "spouse": {"name": spouse.slaveName, "class": spouse.genes},
+          "children": children.map(function(x) slaveInfo_(x, activeSlaveId, slavesAdded, depth+1) ),
+        };
+        data.marriages.push(marriage);
+      }
+    }
+    return data;
+  }
+
+  const treeData = [slaveInfo(activeSlave, activeSlave.ID)];
+  console.log("Family tree is", treeData);
+
+  dTree.init(treeData, {
+	target: "#graph",
+	debug: true,
+	height: 50 + 50*treeDepth, /* very rough heuristics */
+	width: Math.max(300 + 40*numTreeNodes,
+                  document.getElementById('editFamily').offsetWidth-200) + 200,
+	callbacks: {
+		nodeClick: function(name, extra) {
+		}
+	}
+	});
+
+};

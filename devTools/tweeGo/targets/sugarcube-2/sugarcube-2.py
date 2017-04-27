@@ -2,8 +2,8 @@
 #
 # sugarcube-2.py
 #
-# Copyright (c) 2013-2017 Thomas Michael Edwards <tmedwards@motoslave.net>. All rights reserved.
-# Use of this source code is governed by a Simplified BSD License which can be found in the LICENSE file.
+# Copyright (c) 2013-2017 Thomas Michael Edwards <thomasmedwards@gmail.com>. All rights reserved.
+# Use of this source code is governed by a BSD 2-clause "Simplified" License, which may be found in the LICENSE file.
 #
 ########################################################################################################################
 
@@ -61,6 +61,7 @@ class Header (header.Header):
 				'PassageReady',
 				'StoryBanner',
 				'StoryCaption',
+				'StoryInterface',
 				'StoryShare'
 			]
 		if passage.isStylesheet():
