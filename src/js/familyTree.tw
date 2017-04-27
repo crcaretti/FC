@@ -16,7 +16,7 @@ window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastS
 
   function getSlave(id, expectedGenes) {
     if(id == -1) {
-      return {"slaveName":"YOU", "ID":id, "genes":PC.genes, father:PC.father, mother:PC.mother};
+      return {"slaveName":"YOU", "ID":id, "physicalAge":PC.physicalAge, "genes":PC.genes, father:PC.father, mother:PC.mother};
     }
     if(id == 0) {
       return {"slaveName":"-", "ID":id, "genes":expectedGenes};
@@ -64,7 +64,7 @@ window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastS
       slavesAdded[slave.ID] = true;
     }
     var data = {
-      "name": slave.slaveName,
+      "name": slave.slaveName + (slave.physicalAge?("&nbsp;(" + slave.physicalAge + ")"):""),
       "class" : slave.genes,
       "textClass": (activeSlaveId == slave.ID)?"emphasis":"",
       "marriages": [],
@@ -80,8 +80,7 @@ window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastS
           spouseToChild[child.mother] = []
         }
         spouseToChild[child.mother].push(child);
-      }
-      if (child.mother == slave.ID) {
+      } else if (child.mother == slave.ID) {
         if(!spouseToChild[child.father]) {
           spouseToChild[child.father] = []
         }
@@ -99,9 +98,15 @@ window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastS
     for(var key in spouseToChild) {
       if(spouseToChild.hasOwnProperty(key)) {
         var children = shouldAddChildren?spouseToChild[key]:[];
-        var spouse = getSlave(key, (slaves.genes=="XX")?"unknownXY":(slaves.genes=="XY")?"unknownXX":"unknown")
+        var spouse = getSlave(key, (slaves.genes=="XX")?"unknownXY":(slaves.genes=="XY")?"unknownXX":"unknown");
+        var spouseName;
+        if (spouse.ID != slave.ID){
+          spouseName = spouse.slaveName + (spouse.physicalAge?("&nbsp;(" + spouse.physicalAge + ")"):"")
+        } else {
+          spouseName = (spouse.ID==-1)?"(yourself)":"(themselves)";
+        }
         var marriage = {
-          "spouse": {"name": spouse.slaveName, "class": spouse.genes},
+          "spouse": {"name": spouseName, "class": spouse.genes},
           "children": children.map(function(x) slaveInfo_(x, activeSlaveId, slavesAdded, depth+1) ),
         };
         data.marriages.push(marriage);
@@ -111,14 +116,22 @@ window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastS
   }
 
   const treeData = [slaveInfo(activeSlave, activeSlave.ID)];
-  console.log("Family tree is", treeData);
+  console.log("Family tree is", treeData, 'and has:', numTreeNodes);
+
+  var parentWidth = document.getElementById('editFamily').offsetWidth;
+
+  console.log(parentWidth, document.getElementById('passages').offsetWidth);
+  if(!parentWidth)
+    parentWidth = document.body.offsetWidth - 483;
+
+  console.log(parentWidth, Math.min(200 + 40*numTreeNodes,parentWidth-200) + 200);
 
   dTree.init(treeData, {
 	target: "#graph",
 	debug: true,
 	height: 50 + 50*treeDepth, /* very rough heuristics */
-	width: Math.max(300 + 40*numTreeNodes,
-                  document.getElementById('editFamily').offsetWidth-200) + 200,
+	width: Math.min(200 + 40*numTreeNodes,
+                  parentWidth-200) + 200,
 	callbacks: {
 		nodeClick: function(name, extra) {
 		}

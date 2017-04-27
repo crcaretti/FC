@@ -893,18 +893,33 @@
 <</if>>
 <</widget>>
 
+<<widget "redisplayFamily">>
+<<replace '#fatheredNames'>><<listOfSlavesWithParent "father" $activeSlave.ID>><</replace>>
+<<replace '#motheredNames'>><<listOfSlavesWithParent "mother" $activeSlave.ID>><</replace>>
+<<replace '#familySummary'>><<Family>><</replace>>
+<<replace '#motherName'>><<parentName "mother">><</replace>>
+<<replace '#fatherName'>><<parentName "father">><</replace>>
+<<replace '#sameMotherNames'>><<listOfSlavesWithSameParent 'mother'>><</replace>>
+<<replace '#sameFatherNames'>><<listOfSlavesWithSameParent 'father'>><</replace>>
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<</widget>>
+
+/* First parameter is e.g. "father" or "mother"   and second parameter is the ID to match */
+<<widget "listOfSlavesWithParent">>
+<<if $args[1] != 0>>
+<<set _printSeperator = false>>
+<<if $args[1] == $PC[$args[0]]>>You<<set _printSeperator = true>><</if>><<for _j = 0; _j < $slaves.length; _j++>><<if $slaves[_j][$args[0]] == $args[1]>><<if _printSeperator>> | <</if>><<set _printSeperator to true>><<print $slaves[_j].slaveName>><</if>><</for>>
+<</if>>
+<</widget>>
+
 <<widget "editFamily">>
 <div id="editFamily"><div id="familyTable">
 <br>''Mother:'' <span id="motherName"><<parentName "mother">></span>.
 <<link "Reset">>
 <<set $activeSlave.mother = 0>>
-<<replace '#motherName'>><</replace>>
-<<replace '#sameMotherNames'>><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
-<<if $PC.vagina == 1>> | <<link "You">><<set $activeSlave.mother = $PC.ID>><<replace '#motherName'>>You<</replace>><<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>><</link>><</if>>
+<<if $PC.vagina == 1>> | <<link "You">><<set $activeSlave.mother = $PC.ID>><<redisplayFamily>><</link>><</if>>
 <<for _i = 0; _i < $slaves.length; _i++>>
 <<if $slaves[_i].vagina > 0>>
  |
@@ -913,10 +928,7 @@
 <<print "
 <<link _slaveName>>
 <<set $activeSlave.mother = _id>>
-<<replace '#motherName'>>_slaveName<</replace>>
-<<replace '#sameMotherNames'>><<listOfSlavesWithSameParent 'mother'>><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
 ">>
 <</if>>
@@ -924,12 +936,9 @@
 <br>''Father:'' <span id="fatherName"><<parentName "father">></span>.
 <<link "Reset">>
 <<set $activeSlave.father = 0>>
-<<replace '#fatherName'>><</replace>>
-<<replace '#sameFatherNames'>><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
-<<if ($PC.dick == 1) and (($PC.actualAge - $activeSlave.actualAge) >= $fertilityAge)>> | <<link "You">><<set $activeSlave.father = $PC.ID>><<replace '#fatherName'>>You<</replace>><<replace '#familySummary'>><<Family>><</replace>><<run updateFamilyTree($activeSlave, $slaves, $PC)>><</link>><</if>>
+<<if ($PC.dick == 1) and (($PC.actualAge - $activeSlave.actualAge) >= $fertilityAge) >> | <<link "You">><<set $activeSlave.father = $PC.ID>><<redisplayFamily>><</link>><</if>>
 <<for _i = 0; _i < $slaves.length; _i++>>
 <<if ($slaves[_i].dick > 0) and ((($slaves[_i].actualAge - $activeSlave.actualAge) >= $fertilityAge))>>
  |
@@ -938,22 +947,16 @@
 <<print "
 <<link _slaveName>>
 <<set $activeSlave.father = _id>>
-<<replace '#fatherName'>>_slaveName<</replace>>
-<<replace '#sameFatherNames'>><<listOfSlavesWithSameParent 'father'>><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
 ">>
 <</if>>
 <</for>>
 
-<br>''Same mother as:'' <span id="sameMotherNames"><<listOfSlavesWithSameParent "mother">></span>.
+<br>''Same mother as:'' <span id="sameMotherNames"><<listOfSlavesWithSameParent 'mother'>></span>.
 <<link "Reset">>
 <<set $activeSlave.mother = 0>>
-<<replace '#motherName'>><</replace>>
-<<replace '#sameMotherNames'>><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
  | <<link "You">>
 <<if $PC.mother != 0>>
@@ -964,10 +967,7 @@
 <<set $activeSlave.mother = -5 - 2*$activeSlave.ID>>
 <<set $PC.mother = $activeSlave.mother>>
 <</if>>
-<<replace '#motherName'>><<parentName "mother">><</replace>>
-<<replace '#sameMotherNames'>><<listOfSlavesWithSameParent "mother">><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
 <<for _i = 0; _i < $slaves.length; _i++>>
  |
@@ -983,21 +983,17 @@
 <<set $activeSlave.mother = -5 - 2*$activeSlave.ID>>
 <<set _slave.mother = $activeSlave.mother>>
 <</if>>
-<<replace '#motherName'>><<parentName "mother">><</replace>>
-<<replace '#sameMotherNames'>><<listOfSlavesWithSameParent 'mother'>><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
 
 <</for>>
 
-<br>''Same father as:'' <span id="sameFatherNames"><<listOfSlavesWithSameParent "father">></span>.
+<br>''Same father as:'' <span id="sameFatherNames"><<listOfSlavesWithSameParent 'father'>></span>.
 <<link "Reset">>
 <<set $activeSlave.father = 0>>
 <<replace '#fatherName'>><</replace>>
 <<replace '#sameFatherNames'>><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
 | <<link "You">>
 <<if $PC.father != 0>>
@@ -1008,10 +1004,7 @@
 <<set $activeSlave.father = -5 - 2*$activeSlave.ID -1>>
 <<set $PC.father = $activeSlave.father>>
 <</if>>
-<<replace '#fatherName'>><<parentName "father">><</replace>>
-<<replace '#sameFatherNames'>><<listOfSlavesWithSameParent "father">><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
 
 <<for _i = 0; _i < $slaves.length; _i++>>
@@ -1028,13 +1021,69 @@
 <<set $activeSlave.father = -5 - 2*$activeSlave.ID -1>>
 <<set _slave.father = $activeSlave.father>>
 <</if>>
-<<replace '#fatherName'>><<parentName "father">><</replace>>
-<<replace '#sameFatherNames'>><<listOfSlavesWithSameParent 'father'>><</replace>>
-<<replace '#familySummary'>><<Family>><</replace>>
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<<redisplayFamily>>
 <</link>>
 
 <</for>>
+
+<br>''Mother of the children:'' <span id="motheredNames"><<listOfSlavesWithParent "mother" $activeSlave.ID>></span>.
+<<link "Reset">>
+<<for _i = 0; _i < $slaves.length; _i++>>
+<<if $slaves[_i].mother == $activeSlave.ID>><<set $slaves[_i].mother = 0>><</if>>
+<</for>>
+<<redisplayFamily>>
+<</link>>
+<<if $activeSlave.vagina >= 0>>
+<<if ($activeSlave.actualAge - $PC.actualAge) >= $fertilityAge>>
+| <<link "You">>
+<<set $PC.mother = $activeSlave.ID>>
+<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina = 1>><</if>>
+<<redisplayFamily>>
+<</link>>
+<</if>>
+
+<<for _i = 0; _i < $slaves.length; _i++>>
+ |
+<<set _slaveName = $slaves[_i].slaveName>>
+<<set _slave = $slaves[_i]>>
+<<if ($activeSlave.actualAge - _slave.actualAge) >= $fertilityAge>>
+<<link _slaveName>>
+<<set _slave.mother = $activeSlave.ID>>
+<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina = 1>><</if>>
+<<redisplayFamily>>
+<</link>>
+<</if>>
+<</for>>
+<</if>>
+
+<br>''Father of the children:'' <span id="fatheredNames"><<listOfSlavesWithParent "father" $activeSlave.ID>></span>.
+<<link "Reset">>
+<<for _i = 0; _i < $slaves.length; _i++>>
+<<if $slaves[_i].father == $activeSlave.ID>><<set $slaves[_i].father = 0>><</if>>
+<</for>>
+<<redisplayFamily>>
+<</link>>
+<<if $activeSlave.dick > 0>>
+<<if ($activeSlave.actualAge - $PC.actualAge) >= $fertilityAge>>
+| <<link "You">>
+<<set $PC.father = $activeSlave.ID>>
+<<redisplayFamily>>
+<</link>>
+<</if>>
+
+<<for _i = 0; _i < $slaves.length; _i++>>
+ |
+<<set _slaveName = $slaves[_i].slaveName>>
+<<set _slave = $slaves[_i]>>
+<<if ($activeSlave.actualAge - _slave.actualAge) >= $fertilityAge>>
+<<link _slaveName>>
+<<set _slave.father = $activeSlave.ID>>
+<<redisplayFamily>>
+<</link>>
+<</if>>
+<</for>>
+<</if>>
+
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span id="familySummary"><<Family>></span>
 <br>
