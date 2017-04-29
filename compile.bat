@@ -2,7 +2,6 @@
 :: Free Cities Basic Compiler - Windows
 
 :: Will add all *.tw files to StoryIncludes.
-./sanityCheck
 del src\config\start.tw
 copy src\config\start.tw.proto start.tw.tmp >nul
 >>start.tw.tmp (for /r "src" %%F in (*.tw) do echo %%F)
