@@ -3457,7 +3457,7 @@
 			<<elseif $slaves[$i].weight <= -30>>
 				$pronoun's so skinny that natural lactation is unlikely.
 			<<elseif $slaves[$i].preg > random(18,30)>>
-				Pregnancy @@.lime;causes $object = begin lactating.@@
+				Pregnancy @@.lime;causes $object to begin lactating.@@
 				<<set $slaves[$i].lactation = 1>>
 			<</if>>
 		<</if>>
@@ -3523,22 +3523,19 @@
 <</if>>
 <</if>>
 
-<<if canGetPregnant($slaves[$i])>>
-<<if $universalRulesImpregnation == "HG">>
-<<if $HeadGirl != 0>>
-<<if canBreed($slaves[$i], $HeadGirl)>>
-<<if $slaves[$i].HGExclude == 0>>
-<<if $HGCum == 0>>
-	It's $HeadGirl.slaveName's responsibility to impregnate fertile slaves, but your Head Girl can only fuck a limited number of slaves enough to ensure impregnation each week.
+
+<<if isFertile($slaves[$i]) && $universalRulesImpregnation == "HG" && $HeadGirl != 0 && $HeadGirl.dick > 0>>
+	<<if $slaves[$i].HGExclude == 0>>
+		It's $HeadGirl.slaveName's responsibility to impregnate fertile slaves, but your Head Girl is forbidden from impregnating $slaves[$i].slaveName.
+	<<elseif !canBreed($slaves[$i], $HeadGirl)>>
+		It's $HeadGirl.slaveName's responsibility to impregnate fertile slaves, but $HeadGirl.slaveName's sperm is unable to fertilize $slaves[$i].slaveName's ova, so she doesn't waste her seed trying.
+	<<elseif $HGCum == 0>>
+		It's $HeadGirl.slaveName's responsibility to impregnate fertile slaves, but your Head Girl can only fuck a limited number of slaves enough to ensure impregnation each week.
+	<</if>>
 <</if>>
-<<else>>
-	It's $HeadGirl.slaveName's responsibility to impregnate fertile slaves, but your Head Girl is forbidden from impregnating $slaves[$i].slaveName.
-<</if>>
-<<else>>
-	$HeadGirl.slaveName's sperm is unable to fertilize $slaves[$i].slaveName's ova, so she doesn't waste her seed trying.
-<</if>>
-<</if>>
-<</if>>
+
+<<if canGetPregnant($slaves[$i])>>/* CAN GET PREGNANT (fertile, not on contraceptives and not wearing chastity) */
+
 <<if ($universalRulesImpregnation == "PC" && $slaves[$i].eggType == "human")>>
 	$slaves[$i].slaveName is ripe for breeding, so you ejaculate inside $object often. When you bore of $possessive fertile <<if $slaves[$i].mpreg == 1>>ass<<else>>cunt<</if>>, you keep $object around as you fuck other slaves so you can pull out of them, shove your cock into $object, and fill $object with your seed anyway.
 	<<if $slaves[$i].fuckdoll == 0>>
@@ -3572,13 +3569,13 @@
 	<<set $activeSlave to $slaves[$i]>><<if $slaves[$i].mpreg == 1>><<AnalVCheck 10>><<else>><<VaginalVCheck 10>><</if>><<set $slaves[$i] to $activeSlave>>
 	<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = -1>>
 	<<for $j = 0; $j < $slaves.length; $j++>>
-	<<if $HeadGirl.ID == $slaves[$j].ID>>
-		<<set $slaves[$j] = $HeadGirl>>
-		<<break>>
-	<</if>>
+		<<if $HeadGirl.ID == $slaves[$j].ID>>
+			<<set $slaves[$j] = $HeadGirl>>
+			<<break>>
+		<</if>>
 	<</for>>
 <<elseif (($slaves[$i].vagina <= 0) || (($slaves[$i].ass <= 0) && ($slaves[$i].mpreg > 0)))>>
-<<elseif ($universalRulesImpregnation == "HG") && ($slaves[$i].HGExclude == 0) && ($HGCum > 0) && ($slaves[$i].ID != $HeadGirl.ID) && canBreed($slaves[$i], $HeadGirl)>>
+<<elseif ($universalRulesImpregnation == "HG") && ($slaves[$i].HGExclude == 0) && ($HGCum > 0) && ($slaves[$i].ID != $HeadGirl.ID) && canImpreg($slaves[$i], $HeadGirl)>>
 	It's $HeadGirl.slaveName's responsibility to get $object pregnant, a task your
 	<<if ($HeadGirl.fetish == "pregnancy") && ($HeadGirl.fetishKnown == 1) && ($HeadGirl.fetishStrength > 60)>>
 	pregnancy fetishist Head Girl is @@.hotpink;extremely pleased@@ to take on.
@@ -3647,7 +3644,7 @@
 			<<set $slaves[$i].fetishStrength += 4>>
 			<</if>>
 		<<else>>
-			$slaves[$i].slaveName is @@.hotpink;quite willing to be bred@@ by the Head Girl, who she respects, and submissively takes her superior's cock bareback until @@.lime;conception@@ is verified.
+			$slaves[$i].slaveName is @@.hotpink;quite willing to be bred@@ by the Head Girl, whom she respects, and submissively takes her superior's cock bareback until @@.lime;conception@@ is verified.
 			<<set $slaves[$i].devotion += 1>>
 		<</if>>
 		<</if>>
@@ -3684,22 +3681,21 @@
 	<</if>>
 <<elseif ($slaves[$i].assignment == "serve in the master suite")>>
 	<<if ($PC.dick == 1) && (random(1,100) > 50) && ($slaves[$i].eggType == "human")>>
-		You frequently avail yourself to her fertile <<if $slaves[$i].mpreg == 1>>ass<<else>>pussy<</if>>. It's no surprise when @@.lime;she has ends up pregnant with your child.@@
+		You frequently avail yourself to her fertile <<if $slaves[$i].mpreg == 1>>ass<<else>>pussy<</if>>. It's no surprise when @@.lime;she ends up pregnant with your child.@@
 		<<set $slaves[$i].preg = 1>>
 		<<set $slaves[$i].pregSource = -1>>
 	<<else>>
 		<<for $j = 0; $j < $MastSiIDs.length; $j++>>
-			<<if $MastSiIDs[$j].dick > 0 && $MastSiIDs[$j].balls > 0 && $MastSiIDs[$j].dickAccessory != "chastity" && $MastSiIDs.pubertyXY == 1 && canBreed($slaves[$i], $MastSiIDs[$j])>>
-				<<if $slaves[$i].ID == $MastSiIDs[$j].ID>>
+			<<if canImpreg($slaves[$i], $MastSiIDs[$j])>>
 				/* catch for self-impregnation */
-					<<if random(1,100) > 95>>
-					<<set $slaves[$i].pregSource = $slaves[$j].ID>>
-					<<break>>
+				<<if $slaves[$i].ID == $MastSiIDs[$j].ID>>
+					<<if random(1,100) <= 95>>
+						<<continue>> /* failed 5% chance; keep looking */
 					<</if>>
-				<<else>>
-					<<set $slaves[$i].pregSource = $MastSiIDs[$j].ID>>
-					<<break>>
 				<</if>>
+				/* found eligible father */
+				<<set $slaves[$i].pregSource = $MastSiIDs[$j].ID>>
+				<<break>>
 			<</if>>
 		<</for>>
 	<</if>>
@@ -3713,87 +3709,57 @@
 		Due to all the customers cumming in $possessive fertile, restrained <<if $slaves[$i].mpreg == 1>>ass<<else>>pussy<</if>>, @@.lime;$pronoun has gotten pregnant.@@
 		<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = -2>>
 <<elseif (random(1,100) > 80)>>
-	<<if ($slaves[$i].vaginalCount > 0) || (($slaves[$i].analCount > 0) && ($slaves[$i].mpreg > 0))>>
-	<<if ($slaves[$i].assignment != "rest")>>
-	<<if ($slaves[$i].assignment != "stay confined")>>
-		@@.lime;$pronounCap has gotten pregnant.@@
-		<<set $slaves[$i].preg = 1>>
-		<<for $m = 0; $m < $slaves.length; $m++>>
-			<<if $slaves[$i].relationshipTarget == $slaves[$m].ID>>
-				<<set $tempLover = $slaves[$m]>>
-			<<elseif $slaves[$i].rivalryTarget == $slaves[$m].ID>>
-				<<set $tempRival = $slaves[$m]>>
-			<<elseif $slaves[$i].subTarget == $slaves[$m].ID>>
-				<<set $tempSub = $slaves[$m]>>
-			<</if>>
-		<</for>>
-		<<set $seed = random(1,100)>>
-		<<if ($slaves[$i].relationship == -3 || $slaves[$i].relationship == -2) && $PC.dick == 1 && $slaves[$i].eggType == "human">>
-			<<set $slaves[$i].pregSource = -1>>
-		<<elseif $slaves[$i].relationship > 2 && canAchieveErection($tempLover) && $tempLover.dickAccessory != "chastity" && $tempLover.pubertyXY == 1 && canBreed($slaves[$i], $tempLover)>>
-			<<set $slaves[$i].pregSource = $tempLover.ID>>
-		<<elseif $slaves[$i].rivalry > 2 && canAchieveErection($tempRival) && $tempRival.dickAccessory != "chastity" && $tempRival.pubertyXY == 1 && canBreed($slaves[$i], $tempRival) && $seed > 95>>/* raped and knocked up by rival */
-			<<set $slaves[$i].pregSource = $tempRival.ID>>
-		<<elseif $slaves[$i].subTarget != 0 && $slaves[$i].assignment == "be a subordinate slave">>
-			<<if canAchieveErection($tempSub) && $slaves[$m].dickAccessory != "chastity" && $tempSub.pubertyXY == 1 && canBreed($slaves[$i], $tempSub)>>
-			<<set $slaves[$i].pregSource = $tempSub.ID>>
-			<</if>>
-		<<elseif $seed > 60 && $PC.dick == 1 && $slaves[$i].eggType == "human">>
-			<<set $slaves[$i].pregSource = -1>>
-		<<elseif $seed <= 10 && $slaves[$i].eggType == "human">>
-			<<if $slaves[$i].assignment == "please you" && $PC.dick == 1>>
+	<<if ($slaves[$i].vaginalCount > 0) || (($slaves[$i].analCount > 0) && ($slaves[$i].mpreg > 0))>> /* TODO: compare to previous week totals? */
+		<<if ($slaves[$i].assignment != "rest) && ($slaves[$i].assignment != "stay confined") && ($slaves[$i].assignment != "be confined in the cellblock")>>
+			<<for $m = 0; $m < $slaves.length; $m++>>
+				<<if $slaves[$i].relationshipTarget == $slaves[$m].ID>>
+					<<set $tempLover = $slaves[$m]>>
+				<<elseif $slaves[$i].rivalryTarget == $slaves[$m].ID>>
+					<<set $tempRival = $slaves[$m]>>
+				<<elseif $slaves[$i].subTarget == $slaves[$m].ID>>
+					<<set $tempSub = $slaves[$m]>>
+				<</if>>
+			<</for>>
+			<<set $seed = random(1,100)>>
+			<<if ($slaves[$i].relationship == -3 || $slaves[$i].relationship == -2) && $PC.dick == 1 && $slaves[$i].eggType == "human">>
 				<<set $slaves[$i].pregSource = -1>>
-			<<else>>
+			<<elseif $slaves[$i].relationship > 2 && canImpreg($slaves[$i], $tempLover)>> /* erection not needed for impregnation via consensual sex play (FWB or better) */
+				<<set $slaves[$i].pregSource = $tempLover.ID>>
+			<<elseif $slaves[$i].rivalry > 2 && $seed > 95 && canAchieveErection($tempRival) && canImpreg($slaves[$i], $tempRival)>> /* 4% chance to be raped and knocked up by bitter rival - erection needed */
+				/* TODO: implement a scene for this event */
+				<<set $slaves[$i].pregSource = $tempRival.ID>>
+			<<elseif $slaves[$i].subTarget != 0 && $slaves[$i].assignment == "be a subordinate slave" && canAchieveErection($tempSub) && canImpreg($slaves[$i], $tempSub)>> /* slave acting as top must have erection to impregnate - but gets first dibs (after relationships) if so */
+				<<set $slaves[$i].pregSource = $tempSub.ID>>
+			<<elseif $PC.dick == 1 && $slaves[$i].eggType == "human" && ($seed > 60 || ($slaves[$i].assignment == "please you" && ($slaves[$i].toyHole == "all her holes" || $slaves[$i].toyHole == "pussy" || ($slaves[$i].mpreg == 1 && $slaves[$i].toyHole == "ass")) ))>>
+				<<set $slaves[$i].pregSource = -1>>
+			<<elseif $seed <= 10 && $slaves[$i].eggType == "human">> /* TODO: make this optional for players who want random fathers from among their own slaves only */
 				<<set $slaves[$i].pregSource = -2>>
-			<</if>>
-		<<elseif $slaves[$i].eggType != "human">>
-			<<for $j = 0; $j < $slaves.length; $j++>>
-				<<if $slaves[$j].dick > 0 && $slaves[$j].balls > 0 && $slaves[$j].dickAccessory != "chastity" && $slaves[$j].dickAccessory != "combined chastity" && $slaves[$j].pubertyXY == 1 && canBreed($slaves[$i], $slaves[$j])>>
-					<<if $slaves[$i].ID is $slaves[$j].ID>>
-					/* catch for self-impregnation */
-						<<if random(1,100) > 95>>
-						<<set $slaves[$i].pregSource = $slaves[$j].ID>>
-						<<break>>
+			<<else>>
+				/* default pregSource to a random citizen in case no eligible father is found below */
+				<<set $slaves[$i].pregSource = -2>>
+				/* pick a random starting point in the slave array and iterate (wrapping around) until finding eligible father or coming back to starting point */
+				<<set $sourceSeed = random(0,$slaves.length-1)>>
+				<<for $m = $sourceSeed + 1; $m != $sourceSeed; $m++>>
+					<<if $m == $slaves.length>><<set $m = 0>><</if>> /* wrap around */
+					<<if canImpreg($slaves[$m], $slaves[$i])>>
+						/* self-impregnation check */
+						<<if $slaves[$m].ID == $slaves[$i].ID && random(1,100) < 95>>
+							<<continue>> /* 95% chance not to self-impregnate */
 						<</if>>
-					<<else>>
-						<<set $slaves[$i].pregSource = $slaves[$j].ID>>
+						<<set $slaves[$i].pregSource = $slaves[$m].ID>> /* passed the checks above, so this is an eligible father */
 						<<break>>
 					<</if>>
-				<</if>>
-			<</for>>
-			<<if $slaves[$i].pregSource < 1>>
-				<<set $slaves[$i].preg = 0>>
-				<<set $slaves[$i].pregType = 0>>
+				<</for>>
+			<</if>>
+			/* pregmod: random citizens cannot father non-human children */
+			<<if $slaves[$i].pregSource == -2 && $slaves[$i].eggType != "human">> 
 				<<set $slaves[$i].pregSource = 0>>
+			<<else>>
+				<<set $slaves[$i].preg = 1>>
+				@@.lime;$pronounCap has gotten pregnant.@@
 			<</if>>
-		<<else>>
-			<<set $sourceSeed = random(0,$slaves.length-1)>>
-			/* random starting point in the slave array */
-			<<set $slaves[$i].pregSource = -2>>
-			/* temp .pregSource incase no matches are found */
-/*starts one above starting point and advances until it reaches starting point again or finds a suitable slave. */
-			<<for $m = $sourceSeed+1; $m != $sourceSeed; $m++>>
-				<<if $m >= $slaves.length>> /* oob catch */
-					<<set $m = -1>>
-				<<elseif $slaves[$m].dick > 0 && $slaves[$m].balls > 0 && $slaves[$m].dickAccessory != "chastity" && $slaves[$j].dickAccessory != "combined chastity" && $slaves[$m].pubertyXY == 1 && canBreed($slaves[$i], $slaves[$j])>>
-					<<if $slaves[$i].ID == $slaves[$m].ID>>
-					/* catch for self-impregnation */
-						<<if random(1,100) > 95>>
-						<<set $slaves[$i].pregSource = $slaves[$m].ID>>
-						<<set $m = $sourceSeed-1>>
-						<</if>>
-					<<else>>
-					<<set $slaves[$i].pregSource = $slaves[$m].ID>>
-					<<set $m = $sourceSeed-1>>
-					<</if>>
-				<<elseif $m >= $slaves.length-1>>
-					<<set $m = -1>>
-				<</if>>
-			<</for>>
-		<</if>>
-	<</if>>
-	<</if>>
-	<</if>>
+		<</if>> /* closes invalid assignments check */
+	<</if>> /* closes non-zero sex acts check */
 <</if>>
 <</if>> /* CLOSES CAN GET PREGNANT */
 <<if $slaves[$i].preg < 1>>
@@ -4284,7 +4250,7 @@
 	<<elseif $fakeBellies.includes($bellyAccessory)>>
 		Society is @@.green;placated@@ by $slaves[$i].slaveName's fake belly.
 		<<set $repGain += 0.01*$FSSingleSlaveRep>>
-	<<elseif !isFertile($slaves[$i]) && ($slaves[$i].preg == 0 || $slaves[$i].preg == -1)>>
+	<<elseif ($slaves[$i].ovaries == 0 && $slaves[$i].mpreg == 0) || ($slaves[$i].preg < -1) || ($slaves[$i].pubertyXX == 0)>>
 		Society is @@.red;mildly disappointed@@ that $slaves[$i].slaveName is unable to become pregnant.
 		<<FSChangePorn "Repopulationist" -1>>
 	<<else>>
@@ -6200,7 +6166,7 @@
 <<if $slaves[$i].breedingMark == 1>>
 	<<if $slaves[$i].preg > 5>>
 		<<if $slaves[$i].pregSource != -1>>
-			$slaves[$i].slaveName's weekly health checkup revealed she is pregnant with an unacceptable child. @@.red;Its life has been terminated, you have been fined ¤100000, and your rep amoung the Elite has been severely damaged.@@
+			$slaves[$i].slaveName's weekly health checkup revealed she is pregnant with an unacceptable child. @@.red;Its life has been terminated, you have been fined ¤100000, and your rep among the Elite has been severely damaged.@@
 			<<set $slaves[$i].preg = 0>>
 			<<set $slaves[$i].pregType = 0>>
 			<<set $slaves[$i].pregSource = 0>>
