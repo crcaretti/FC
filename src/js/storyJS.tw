@@ -174,7 +174,7 @@ if (typeof SlaveStatsChecker == "undefined") {
 	var SlaveStatsChecker = {
 		checkForLisp: function (slave) {
 				/* Begin mod section: toggle whether slaves lisp. */
-				if (SugarCube.State.variables.disableLisping == 1) {
+				if (SugarCube.State && SugarCube.State.variables.disableLisping == 1) {
 					return false;
 				}
 				/* End mod section: toggle whether slaves lisp. */
@@ -200,34 +200,15 @@ if (typeof FertilityAge == "undefined") {
 	window.FertilityAge = FertilityAge;
 };
 
-window.canGetPregnant = function(slave) {
-	if (!slave) {
-		return null;
-	} else if (slave.pubertyXX == 0){
-		return false;
-	} else if (slave.physicalAge >= 47) {
-		return false;
-	} else if (slave.inflation != 0) {
-		return false;
-	} else if (slave.bellyImplant != 0) {
-		return false;
-	} else if (slave.preg != 0) {
-		return false;
-	} else if ((slave.mpreg == 1) && (canDoAnal(slave) == true)) {
-		return true;
-	} else if (slave.ovaries != 1) {
-		return false;
-	} else if (canDoVaginal(slave) == false) {
-		return false;
-	} else {
-		return true;
-	}
-};
-
+/* contraceptives (.preg == -1) do not negate this function */
 window.isFertile = function(slave) {
 	if (!slave) {
 		return null;
-	} else if (slave.pubertyXX == 0) {
+	} else if (slave.preg > 0) { /* currently pregnant */
+		return false;
+	} else if (slave.preg < -1) { /* sterile */
+		return false;
+	} else if (slave.pubertyXX == 0) { /* pregmod start */
 		return false;
 	} else if (slave.physicalAge >= 47) {
 		return false;
@@ -235,24 +216,62 @@ window.isFertile = function(slave) {
 		return false;
 	} else if (slave.bellyImplant != 0) {
 		return false;
-	} else if (slave.preg > 0) {
-		return false;
-	} else if (slave.preg < -1) {
-		return false;
 	} else if (slave.mpreg == 1) {
+		return true;                   /* pregmod end */
+	} else if (slave.ovaries == 1) {
 		return true;
-	} else if (slave.ovaries != 1) {
-		return false;
 	} else {
-		return true;
+		return false;
 	}
 };
 
-window.canBreed = function(slave1, slave2) {
-	if (slave1.eggType == slave2.ballType) {
+window.canGetPregnant = function(slave) {
+	if (!slave) {
+		return null;
+	} else if (slave.preg == -1) { /* contraceptives check */
+		return false;
+	} else if (isFertile(slave) == false) { /* check other fertility factors */
+		return false;
+	} else if ((slave.ovaries == 1) && (canDoVaginal(slave) == true)) {
+		return true;
+	} else if ((slave.mpreg == 1) && (canDoAnal(slave) == true)) { /* pregmod */
 		return true;
 	} else {
 		return false;
+	}
+};
+
+/* pregmod: are slave2's sperm compatible with slave1's eggs? */
+window.canBreed = function(slave1, slave2) {
+	if (!slave1 || !slave2) {
+		return null;
+	} else if (slave1.eggType == slave2.ballType) {
+		return true;
+	} else {
+		return false;
+	}
+};
+
+/* assuming slave1 is fertile, could slave2 impregnate slave1? slave2 must have dick and balls with compatible sperm; both slaves must not be in chastity; slave2 need not achieve erection */
+window.canImpreg = function(slave1, slave2) {
+	if (!slave1 || !slave2) {
+		return null;
+	} else if (slave2.dick < 1) {
+		return false;
+	} else if (slave2.balls < 1) {
+		return false;
+	} else if (slave2.dickAccessory == "chastity") {
+		return false;
+	} else if (slave2.dickAccessory == "combined chastity") {
+		return false;
+	} else if (slave2.pubertyXY == 0) { /* pregmod start */
+		return false;
+	} else if (canBreed(slave1, slave2) == false) {
+		return false;                   /* pregmod end */
+	} else if (canGetPregnant(slave1) == false) { /* includes chastity checks */
+		return false;
+	} else {
+		return true;
 	}
 };
 
