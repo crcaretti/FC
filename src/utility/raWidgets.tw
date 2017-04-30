@@ -2971,7 +2971,7 @@ Your brand design is ''$brandDesign.''
 <<widget "RARemoveRule">>
 	<<for _s = 0; _s < $args[0].currentRules.length; _s++>>
 		<<if _currentRule.ID == $args[0].currentRules[_s]>>
-			<<set $dump = $args[0].currentRules.pluck([_s],[_s])>>
+			<<set _dump = $args[0].currentRules.deleteAt(_s)>>
 		<</if>>
 	<</for>>
 	<br>Rule _rule (_currentRule.name) is no longer applying to $args[0].slaveName.
@@ -4094,20 +4094,6 @@ is now _currentRule.hLength cm long.
 	<</if>>
 	<</if>>
 	<<if _used == 0>>
-		<<set _tmp = lastClitSettingEnergyRule($args[0], $defaultRules)>>
-		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-		<<if _currentRule.clitSettingEnergy !== "no default setting">>
-		<<if $args[0].energy < _currentRule.clitSettingEnergy && $args[0].clitSetting !== "all">>
-			<<set $args[0].clitSetting = "all", _used = 1>>
-			<br>$args[0].slaveName's smart piercing has been set to enhance libido.
-		<<elseif $args[0].energy >= _currentRule.clitSettingEnergy + 10 && $args[0].clitSetting !== "none">>
-			<<set $args[0].clitSetting = "none", _used = 1>>
-			<br>$args[0].slaveName's smart piercing has been set to suppress libido.
-		<</if>>
-		<</if>>
-		<</if>>
-	<</if>>
-	<<if _used == 0>>
 		<<set _tmp = lastClitSettingXYRule($args[0], $defaultRules)>>
 		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
 		<<if _currentRule.clitSettingXY !== "no default setting">>
@@ -4131,6 +4117,20 @@ is now _currentRule.hLength cm long.
 		<<elseif $args[0].attrXX >= _currentRule.clitSettingXX + 10 && $args[0].clitSetting !== "anti-women">>
 			<<set $args[0].clitSetting = "anti-women", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to discourage attraction to women.
+		<</if>>
+		<</if>>
+		<</if>>
+	<</if>>
+	<<if _used == 0>>
+		<<set _tmp = lastClitSettingEnergyRule($args[0], $defaultRules)>>
+		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
+		<<if _currentRule.clitSettingEnergy !== "no default setting">>
+		<<if $args[0].energy < _currentRule.clitSettingEnergy && $args[0].clitSetting !== "all">>
+			<<set $args[0].clitSetting = "all", _used = 1>>
+			<br>$args[0].slaveName's smart piercing has been set to enhance libido.
+		<<elseif $args[0].energy >= _currentRule.clitSettingEnergy + 10 && $args[0].clitSetting !== "none">>
+			<<set $args[0].clitSetting = "none", _used = 1>>
+			<br>$args[0].slaveName's smart piercing has been set to suppress libido.
 		<</if>>
 		<</if>>
 		<</if>>
@@ -4454,7 +4454,7 @@ consequences.
 		<</if>>
 	<</if>>
 <<case "clinic">>
-	<<if ($clinic > $clinicSlaves) && ($args[0].health < 20) || (($args[0].chem > 15) && ($clinicUpgradeFilters == 1)) || (($args[0].bellyImplant > 100) && ($bellyImplants == 1)) || $args[0].preg > 1>>
+	<<if ($clinic > $clinicSlaves) && ($args[0].health < 20) || (($Nurse != 0) && ($args[0].chem > 15) && ($clinicUpgradeFilters == 1)) || (($args[0].bellyImplant > 100) && ($bellyImplants == 1)) || $args[0].preg > 1>>
 	<<if ($args[0].assignment != "get treatment in the clinic")>>
 		<br>$args[0].slaveName has automatically been assigned to $args[0].assignment.
 		<<if ($personalAttention == $args[0].ID)>>
@@ -4562,7 +4562,7 @@ consequences.
 		<</if>>
 	<</if>>
 <<case "schoolroom">>
-	<<if ($schoolroom > $schoolroomSlaves) && ($args[0].devotion >= -20) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50)>>
+	<<if ($schoolroom > $schoolroomSlaves) && ($args[0].fetish != "mindbroken") && ($args[0].devotion >= -20 || ($args[0].devotion >= -50 && $args[0].trust < -20) || $args[0].trust < -50)>>
 	<<if ($args[0].intelligenceImplant < 1) || ($args[0].voice != 0 && $args[0].accent+$schoolroomUpgradeLanguage > 2) || ($args[0].oralSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].whoreSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].entertainSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].analSkill < 10+$schoolroomUpgradeSkills*20) || (($args[0].vagina >= 0) && ($args[0].vaginalSkill < 10+$schoolroomUpgradeSkills*20))>>
 	<<if ($args[0].assignment != "learn in the schoolroom")>>
 		<br>$args[0].slaveName has automatically been assigned to $args[0].assignment.
@@ -4626,38 +4626,26 @@ consequences.
 	<<if (def _currentRule.excludedSlaves) && (_currentRule.excludedSlaves.length > 0) && ruleSlaveExcluded($args[0], _currentRule)>>
 		<<RARemoveRule $args[0]>>
 		<<continue>>
-	<</if>>
-
-	<<if (def _currentRule.selectedSlaves) && (_currentRule.selectedSlaves.length > 0) && !ruleSlaveSelected($args[0], _currentRule)>>
+	<<elseif (def _currentRule.selectedSlaves) && (_currentRule.selectedSlaves.length > 0) && !ruleSlaveSelected($args[0], _currentRule)>>
 		<<RARemoveRule $args[0]>>
 		<<continue>>
 	<</if>>
-
 	<<if $args[0].assignmentVisible == 0>>
-
 		<<if (def _currentRule.excludeFacility) && (_currentRule.excludeFacility.length > 0) && ruleExcludeSlaveFacility(_currentRule, $args[0])>>
 			<<RARemoveRule $args[0]>>
 			<<continue>>
-		<</if>>
-		
-		<<if (def _currentRule.facility) && (_currentRule.facility.length > 0) && !ruleAppliedToSlaveFacility(_currentRule, $args[0])>>
+		<<elseif (def _currentRule.facility) && (_currentRule.facility.length > 0) && !ruleAppliedToSlaveFacility(_currentRule, $args[0])>>
 			<<RARemoveRule $args[0]>>
 			<<continue>>
 		<</if>>
-		
 	<<else>>
-
 		<<if (def _currentRule.excludeAssignment) && (_currentRule.excludeAssignment.length > 0) && ruleAssignment(_currentRule.excludeAssignment, $args[0].assignment)>>
 			<<RARemoveRule $args[0]>>
 			<<continue>>
-		<</if>>
-
-		<<if (def _currentRule.assignment) && (_currentRule.assignment.length > 0) && !ruleAssignment(_currentRule.assignment, $args[0].assignment)>>
+		<<elseif (def _currentRule.assignment) && (_currentRule.assignment.length > 0) && !ruleAssignment(_currentRule.assignment, $args[0].assignment)>>
 			<<RARemoveRule $args[0]>>
 			<<continue>>
 		<</if>>
-
-		
 	<</if>>
 <</if>>
 
