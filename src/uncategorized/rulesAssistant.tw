@@ -1,151 +1,150 @@
 :: Rules Assistant [nobr]
 
-<<set $nextButton = "Back to Main">>
-<<set $nextLink = "Main">>
-<<set $returnTo = "Main">>
+<<set $nextButton = "Back to Main", $nextLink = "Main", $returnTo = "Main">>
 <<set $showEncyclopedia = 1, $encyclopedia = "Personal Assistant">>
 
 <<if $defaultRules.length > 0>>
 
-<<for _r = 0; _r < $defaultRules.length; _r++>>
-<<if $currentRule.ID == $defaultRules[_r].ID >>
-<<set $r = _r+1>>
-<<break>>
-<</if>>
-<</for>>
-<center>
-<<if $r > 1>>
-	@@.cyan;[Shift+←,Shift+Q] @@<span id="firstRule">
-	<strong>
-	<<link "First">>
-		<<set $currentRule.facility = _facility>>
-		<<set $currentRule.excludeFacility = _excludeFacility>>
-		<<set $currentRule = $defaultRules[0]>>
-		<<goto "Rules Assistant">>
-	<</link>>
-	</strong>
-	</span>  |  
+	<<for _r = 0; _r < $defaultRules.length; _r++>>
+		<<if $currentRule.ID == $defaultRules[_r].ID>>
+			<<set $r = _r+1>>
+			<<break>>
+		<</if>>
+	<</for>>
+	
+	/* backwards compatibility */
+	<<if ndef $currentRule.assignment>>			<<set $currentRule.assignment = []>>		<</if>>
+	<<if ndef $currentRule.excludeAssignment>>	<<set $currentRule.excludeAssignment = []>>	<</if>>
+	<<if ndef $currentRule.excludedSlaves>>		<<set $currentRule.excludedSlaves = []>>	<</if>>
+	<<if ndef $currentRule.selectedSlaves>>		<<set $currentRule.selectedSlaves = []>>	<</if>>
+	<<if ndef $currentRule.facility>>			<<set $currentRule.facility = []>>			<</if>>
+	<<if ndef $currentRule.excludeFacility>>	<<set $currentRule.excludeFacility = []>>	<</if>>
+	
+	<center>
+		<<if $r > 1>>
+			@@.cyan;[Shift+←,Shift+Q] @@<span id="firstRule">
+			<strong>
+			<<link "First">>
+				<<set $currentRule.facility = _facility>>
+				<<set $currentRule.excludeFacility = _excludeFacility>>
+				<<set $currentRule = $defaultRules[0]>>
+				<<goto "Rules Assistant">>
+			<</link>>
+			</strong>
+			</span>
+				|	
+			@@.cyan;[←,Q] @@<span id="prevRule">
+			<strong>
+			<<link "Prev">>
+				<<set $currentRule.facility = _facility>>
+				<<set $currentRule.excludeFacility = _excludeFacility>>
+				<<set $currentRule = $defaultRules[_r-1]>>
+				<<goto "Rules Assistant">>
+			<</link>>
+			</strong>
+			</span>
+		<<else>>
+			[Shift+←,Shift+Q] First  |  [←,Q] Prev
+		<</if>>
 
-	@@.cyan;[←,Q] @@<span id="prevRule">
-	<strong>
-	<<link "Prev">>
-		<<set $currentRule.facility = _facility>>
-		<<set $currentRule.excludeFacility = _excludeFacility>>
-		<<set $currentRule = $defaultRules[_r-1]>>
-		<<goto "Rules Assistant">>
-	<</link>>
-	</strong>
-	</span>
-<<else>>
-[Shift+←,Shift+Q] First  |  [←,Q] Prev
-<</if>>
-&nbsp;&nbsp;&nbsp;&nbsp;''Viewing Rule $r of $defaultRules.length''&nbsp;&nbsp;&nbsp;&nbsp;
-<<if _r+1 < $defaultRules.length>>
-	<span id="nextRule">
-	<strong>
-	<<link "Next">>
-		<<set $currentRule.facility = _facility>>
-		<<set $currentRule.excludeFacility = _excludeFacility>>
-		<<set $currentRule = $defaultRules[_r+1]>>
-		<<goto "Rules Assistant">>
-	<</link>>
-	</strong>
-	</span>@@.cyan; [E,→]@@  |  
-<<else>>
-Next [E,→]  |  
-<</if>>
+		&nbsp;&nbsp;&nbsp;&nbsp;''Viewing Rule $r of $defaultRules.length''&nbsp;&nbsp;&nbsp;&nbsp;
 
-<<if $r != $defaultRules.length && $defaultRules[$defaultRules.length-1]>>
-<span id="lastRule">
-	<strong>
-	<<link "Last">>
-		<<set $currentRule.facility = _facility>>
-		<<set $currentRule.excludeFacility = _excludeFacility>>
-		<<set $currentRule = $defaultRules[$defaultRules.length-1]>>
-		<<goto "Rules Assistant">>
-	<</link>>
-	</strong>
-	</span>@@.cyan; [Shift+E,Shift+→]@@
-<<else>>
-Last [Shift+E,Shift+→]
-<</if>>
-</center>
+		<<if _r+1 < $defaultRules.length>>
+			<span id="nextRule">
+			<strong>
+			<<link "Next">>
+				<<set $currentRule.facility = _facility>>
+				<<set $currentRule.excludeFacility = _excludeFacility>>
+				<<set $currentRule = $defaultRules[_r+1]>>
+				<<goto "Rules Assistant">>
+			<</link>>
+			</strong>
+			</span>@@.cyan; [E,→]@@  |  
+		<<else>>
+			Next [E,→]  |  
+		<</if>>
+
+		<<if $r != $defaultRules.length && $defaultRules[$defaultRules.length-1]>>
+			<span id="lastRule">
+			<strong>
+			<<link "Last">>
+				<<set $currentRule = $defaultRules[$defaultRules.length-1]>>
+				<<goto "Rules Assistant">>
+			<</link>>
+			</strong>
+			</span>@@.cyan; [Shift+E,Shift+→]@@
+		<<else>>
+			Last [Shift+E,Shift+→]
+		<</if>>
+	</center>
+
+	<center>
+		<<if _r > 0>>
+			<<print $defaultRules[_r-1].name+" &emsp; <- &emsp;&emsp;">>
+		<<else>>
+			<<print "&emsp;&emsp;&emsp;&emsp;&emsp;">>
+		<</if>>
+
+		<span id="rulename">
+		<<if ndef $currentRule.name>>
+			<<set $currentRule.name = "Rule " + $r>>
+		<</if>>
+		@@.yellow;$currentRule.name@@
+		</span>
+
+		<<if _r < $defaultRules.length-1>>
+			<<print "&emsp;&emsp; -> &emsp; "+$defaultRules[_r+1].name>>
+		<<else>>
+			<<print "&emsp;&emsp;&emsp;&emsp;&emsp;">>
+		<</if>>
+	</center>
+
+	<center>
+		<span id="ruleDown">
+			<<if _r > 0>>
+			<<link "Lower Priority">>
+			<<set _tmpRule = $defaultRules[_r]>>
+			<<set $defaultRules[_r] = $defaultRules[_r-1]>>
+			<<set $defaultRules[_r-1] = _tmpRule>>
+			<<goto "Rules Assistant">>
+			<</link>>
+			<<else>>
+			Lower Priority
+			<</if>>
+		</span>
+			|
+		<<link "Rename">>
+			<<replace "#rulename">>
+				<<textbox "$currentRule.name" $currentRule.name "Rules Assistant">>
+			<</replace>>
+		<</link>>
+			|
+		<span id="ruleUp">
+			<<if _r < $defaultRules.length-1>>
+				<<link "Higher Priority">>
+					<<set _tmpRule = $defaultRules[_r]>>
+					<<set $defaultRules[_r] = $defaultRules[_r+1]>>
+					<<set $defaultRules[_r+1] = _tmpRule>>
+					<<goto "Rules Assistant">>
+				<</link>> 
+			<<else>>
+				Higher Priority
+			<</if>>
+		</span>
+	</center>
+<</if>> /* closes if $defaultRules.length > 0 */
+
 <br>
-<center>
-<<if _r > 0>>
-	<<print $defaultRules[_r-1].name+" <- ">>
-<</if>>
-  <strong>$currentRule.name</strong> 
-<<if _r < $defaultRules.length-1>>
-	<<print " -> "+$defaultRules[_r+1].name>>
-<</if>>
-</center>
-<center>
 
-<span id="ruleDown">
-    <<if _r > 0>>
-	<<link "Lower Priority">>
-	<<set _tmpRule = $defaultRules[_r]>>
-	<<set $defaultRules[_r] = $defaultRules[_r-1]>>
-	<<set $defaultRules[_r-1] = _tmpRule>>
-	<<goto "Rules Assistant">>
-	<</link>>
-    <<else>>
-	Lower Priority
-    <</if>>
-</span>
-
- | <span id="rulename">
-<<if ndef $currentRule.name>>
-	<<set $currentRule.name = "Rule " + $r>>
-<</if>>
-</span>
-<<link "Rename">>
-<<replace "#rulename">>
-	<<textbox "$currentRule.name" $currentRule.name "Rules Assistant">>
-<</replace>>
-<</link>> 
- | 
-<span id="ruleUp">
-    <<if _r < $defaultRules.length-1>>
-	<<link "Higher Priority">>
-	<<set _tmpRule = $defaultRules[_r]>>
-	<<set $defaultRules[_r] = $defaultRules[_r+1]>>
-	<<set $defaultRules[_r+1] = _tmpRule>>
-	<<goto "Rules Assistant">>
-	<</link>> 
-    <<else>>
-	Higher Priority    
-    <</if>>
-</span>
-</center>
-
-<center>
-	<br><span id="rulename">
-	<<if ndef $currentRule.name>>
-		<<set $currentRule.name = "Rule " + $r>>
-	<</if>>
-	$currentRule.name |
-	</span>
-	<<link "Rename">>
-	<<replace "#rulename">>
-		<<textbox "$currentRule.name" $currentRule.name "Rules Assistant">>
-	<</replace>>
-	<</link>>
-</center>
-<</if>>
-
-<br>
 //<<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Sir<<else>>Ma'am<</if>>, I will review your slaves and make changes that will have a beneficial effect. Apologies, sir, but this function is... not fully complete. It may have some serious limitations. Please use the 'no default setting' option to identify areas I should not address.//
 
 <br><br>
 
 <<if $defaultRules.length < 1>>
 ''No rules.''
+
 <<else>>
 
-<<set _facility = $currentRule.facility>>
-<<set _excludeFacility = $currentRule.excludeFacility>>
 __Rule $r Automatic Activation__
 <span id ="activation">
 </span>
@@ -255,19 +254,11 @@ __Rule $r Automatic Activation__
 <<RAChangeApplyAssignment>>
 <</timed>>
 
-<br>
-
 <span id = "excludeassignment">
 </span>
 <<timed 50ms>>
 <<RAChangeExcludeAssignment>>
 <</timed>>
-
-<<set _facility = $currentRule.facility>>
-
-<<if (ndef _facility)>>
-	<<set _facility = []>>
-<</if>>
 
 <span id = "applyfacility">
 </span>
@@ -275,22 +266,28 @@ __Rule $r Automatic Activation__
 <<RAChangeApplyFacility>>
 <</timed>>
 
-<<set _excludeFacility = $currentRule.excludeFacility>>
-
-<<if (ndef _excludeFacility)>>
-	<<set _excludeFacility = []>>
-<</if>>
-
 <span id = "excludefacility">
 </span>
 <<timed 50ms>>
 <<RAChangeExcludeFacility>>
 <</timed>>
 
-<br><br>
+<span id="specialslaves"></span>
+<<timed 50ms>>
+<<RASpecialSlaves>>
+<</timed>>
 
-<<if ndef $currentRule.setAssignment>>
-	<<set $currentRule.setAssignment = "none">>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<<if $currentRule.selectedSlaves.length < 1 && $currentRule.excludedSlaves.length < 1>>
+  @@.gray;Specific slaves:@@
+	''Not limited to nor excluding any specific slaves'' | [[Choose specific slaves|Rules Slave Select][$currentRule.excludedSlaves = []]] | [[Exclude specific slaves|Rules Slave Exclude][$currentRule.selectedSlaves = []]]
+<<elseif $currentRule.selectedSlaves.length < 1 && $currentRule.excludedSlaves.length > 0>>
+  Exclude specific slaves:
+	[[Currently excluding specific slaves|Rules Slave Exclude]] | [[Don't exclude specific slaves|Rules Assistant][$currentRule.excludedSlaves = []]]
+<<else>>
+  Apply to specific slaves:
+	[[Currently limited to specific slaves|Rules Slave Select]] | [[Don't limit to specific slaves|Rules Assistant][$currentRule.selectedSlaves = [], $currentRule.excludedSlaves = []]]
 <</if>>
 
 <span id = "setassignment">
@@ -304,25 +301,6 @@ __Rule $r Automatic Activation__
 <<timed 50ms>>
 <<RAChangeAssignFacility>>
 <</timed>>
-
-<br><br>
-Apply to slaves:<br>
-<<if ((ndef $currentRule.selectedSlaves) || ($currentRule.selectedSlaves.length < 1)) && ((ndef $currentRule.excludedSlaves) || ($currentRule.excludedSlaves.length < 1))>>
-''Currently applied to all slaves'' | [[Choose specific slaves|Rules Slave Select]]
-<<elseif ((ndef $currentRule.selectedSlaves) || ($currentRule.selectedSlaves.length < 1)) && (def $currentRule.excludedSlaves) && ($currentRule.excludedSlaves.length > 0)>>
-''Currently applied to all slaves except excluded slaves'' | [[Choose specific slaves|Rules Slave Select]] | [[Apply to all slaves|Rules Assistant][$currentRule.selectedSlaves = [],$currentRule.excludedSlaves = []]]
-<<else>>
-[[Currently applied to specific slaves|Rules Slave Select]] | [[Apply to all slaves|Rules Assistant][$currentRule.selectedSlaves = [], $currentRule.excludedSlaves = []]]
-<</if>>
-<br>
-Exclude slaves:<br>
-<<if ndef $currentRule.excludedSlaves || $currentRule.excludedSlaves.length < 1>>
-''Not excluding any slaves'' |
-
-[[Exclude specific slaves|Rules Slave Exclude]]
-<<else>>
-[[Currently excluding specific slaves|Rules Slave Exclude]] | [[Don't exclude slaves|Rules Assistant][$currentRule.excludedSlaves = []]]
-<</if>>
 
 <br><br>
 
@@ -1094,7 +1072,7 @@ Vaginal accessories for other slaves: ''$currentRule.vaginalAccessory.''
 	<<RAChangeApply>>
 <</link>>
 
-<<if $seeDicks != 0>>
+
 <br>
 <span id = "avdaccessory">
 Dick accessories for anal virgins: ''$currentRule.aVirginDickAccessory.''
@@ -1173,7 +1151,7 @@ Dick accessories for other slaves: ''$currentRule.dickAccessory.''
 	<<RAChangeSave>>
 	<<RAChangeApply>>
 <</link>>
-<</if>>
+
 
 <br>
 
@@ -1260,11 +1238,7 @@ Buttplugs for other slaves: ''$currentRule.buttplug.''
 //Will permanently gape assholes//
 
 <br><br>
-[[Cosmetic Rules Assistant Settings]]
-<br>
-[[Body Mod Rules Assistant Settings]]
-<br>
-[[Autosurgery Settings]]
+[[Cosmetic Rules Assistant Settings]] | [[Body Mod Rules Assistant Settings]] | [[Autosurgery Settings]]
 
 <br><br>
 
@@ -2530,7 +2504,7 @@ Relationship rules: ''$currentRule.relationshipRules.''
 
 <</if>>
 
-<br>
+
 <span id="saveresult">
 </span>
 <<timed 50ms>>
@@ -2824,79 +2798,51 @@ Relationship rules: ''$currentRule.relationshipRules.''
 
 <br>
 
-<span id="applied">
-</span>
 <<if $defaultRules.length < 10>>
-<br>
+	<br>
+
 	<<link "Add a new rule">>
 
-	<<set _activeRule = {aphrodisiacs: "no default setting", activation: "none", thresholdLower: 4, thresholdUpper: "none", eqLower: true, eqUpper: true, releaseRules: "no default setting", clitSetting: "no default setting", clitSettingXY: "no default setting", clitSettingXX: "no default setting", clitSettingEnergy: "no default setting", speechRules: "no default setting", clothes: "no default setting", fuckdoll: 0, choosesOwnClothes: 0, collar: "no default setting", shoes: "no default setting", virginAccessory: "no default setting", aVirginAccessory: "no default setting", vaginalAccessory: "no default setting", aVirginDickAccessory: "no default setting", dickAccessory: "no default setting", cSec: 0, bellyAccessory: "no default setting", aVirginButtplug: "no default setting", buttplug: "no default setting", markings: "none", eyeColor: "no default setting", makeup: "no default setting", nails: "no default setting", hColor: "no default setting", hLength: "no default setting", hStyle: "no default setting", pubicHColor: "no default setting", pubicHStyle: "no default setting", nipplesPiercing: "no default setting", areolaePiercing: "no default setting", clitPiercing: "no default setting", vaginaLube: "no default setting", vaginaPiercing: "no default setting", analArea: 1, dickPiercing: "no default setting", anusPiercing: "no default setting", lipsPiercing: "no default setting", tonguePiercing: "no default setting", earPiercing: "no default setting", nosePiercing: "no default setting", eyebrowPiercing: "no default setting", navelPiercing: "no default setting", corsetPiercing: "no default setting", boobsTat: "no default setting", buttTat: "no default setting", vaginaTat: "no default setting", dickTat: "no default setting", lipsTat: "no default setting", anusTat: "no default setting", shouldersTat: "no default setting", armsTat: "no default setting", legsTat: "no default setting", backTat: "no default setting", stampTat: "no default setting", curatives: "no default setting", livingRules: "no default setting", relationshipRules: "no default setting", standardPunishment: "no default setting", standardReward: "no default setting", useRulesAssistant: 1, diet: "no default setting", dietCum: "no default setting", dietMilk: "no default setting", muscles: "no default setting", XY: "no default setting", XX: "no default setting", gelding: "no default setting", preg: "no default setting", growth: "no default setting", autoSurgery: 0, choosesOwnAssignment: 0, lactation: 0, autoBrand: 0, pornFameSpending: "no default setting", dietGrowthSupport: 0, eyewear: "no default setting", assignment: [], excludeAssignment: [], setAssignment: "none", facility: [], excludeFacility: [], assignFacility: "none", excludeSpecialSlaves: true, facilityRemove: false, removalAssignment: "rest", selectedSlaves: [], excludedSlaves: [], surgery: {lactation: "no default setting", cosmetic: 0, accent: "no default setting", shoulders: "no default setting", shouldersImplant: "no default setting", boobs: "no default setting", hips: "no default setting", hipsImplant: "no default setting", butt: "no default setting", faceShape: "no default setting", lips: "no default setting", holes: 0}, underArmHColor: "no default setting", underArmHStyle: "no default setting" }>>
+		<<set _activeRule = {aphrodisiacs: "no default setting", activation: "none", thresholdLower: 4, thresholdUpper: "none", eqLower: true, eqUpper: true, releaseRules: "no default setting", clitSetting: "no default setting", clitSettingXY: "no default setting", clitSettingXX: "no default setting", clitSettingEnergy: "no default setting", speechRules: "no default setting", clothes: "no default setting", fuckdoll: 0, choosesOwnClothes: 0, collar: "no default setting", shoes: "no default setting", virginAccessory: "no default setting", aVirginAccessory: "no default setting", vaginalAccessory: "no default setting", aVirginDickAccessory: "no default setting", dickAccessory: "no default setting", cSec: 0, bellyAccessory: "no default setting", aVirginButtplug: "no default setting", buttplug: "no default setting", markings: "none", eyeColor: "no default setting", makeup: "no default setting", nails: "no default setting", hColor: "no default setting", hLength: "no default setting", hStyle: "no default setting", pubicHColor: "no default setting", pubicHStyle: "no default setting", nipplesPiercing: "no default setting", areolaePiercing: "no default setting", clitPiercing: "no default setting", vaginaLube: "no default setting", vaginaPiercing: "no default setting", analArea: 1, dickPiercing: "no default setting", anusPiercing: "no default setting", lipsPiercing: "no default setting", tonguePiercing: "no default setting", earPiercing: "no default setting", nosePiercing: "no default setting", eyebrowPiercing: "no default setting", navelPiercing: "no default setting", corsetPiercing: "no default setting", boobsTat: "no default setting", buttTat: "no default setting", vaginaTat: "no default setting", dickTat: "no default setting", lipsTat: "no default setting", anusTat: "no default setting", shouldersTat: "no default setting", armsTat: "no default setting", legsTat: "no default setting", backTat: "no default setting", stampTat: "no default setting", curatives: "no default setting", livingRules: "no default setting", relationshipRules: "no default setting", standardPunishment: "no default setting", standardReward: "no default setting", useRulesAssistant: 1, diet: "no default setting", dietCum: "no default setting", dietMilk: "no default setting", muscles: "no default setting", XY: "no default setting", XX: "no default setting", gelding: "no default setting", preg: "no default setting", growth: "no default setting", autoSurgery: 0, choosesOwnAssignment: 0, lactation: 0, autoBrand: 0, pornFameSpending: "no default setting", dietGrowthSupport: 0, eyewear: "no default setting", assignment: [], excludeAssignment: [], setAssignment: "none", facility: [], excludeFacility: [], assignFacility: "none", excludeSpecialSlaves: true, facilityRemove: false, removalAssignment: "rest", selectedSlaves: [], excludedSlaves: [], surgery: {lactation: "no default setting", cosmetic: 0, accent: "no default setting", shoulders: "no default setting", shouldersImplant: "no default setting", boobs: "no default setting", hips: "no default setting", hipsImplant: "no default setting", butt: "no default setting", faceShape: "no default setting", lips: "no default setting", holes: 0}, underArmHColor: "no default setting", underArmHStyle: "no default setting" }>>
 
-	<<if ndef _r>>
-		<<set _r = 0>>
-		<<set $r = 1>>
-	<</if>>
+		<<if ndef _r>>
+			<<set _r = 0>>
+			<<set $r = 1>>
+		<</if>>
 
-	<<if $defaultRules.length > 0>>
-		<<set _length to ($defaultRules.length+1)>>
-		<<set $RulesID to $RulesID+1>>
-	<<else>>
-		<<set _length to 1>>
-		<<set $RulesID to 1>>
-	<</if>>
+		<<if $defaultRules.length > 0>>
+			<<set _length to ($defaultRules.length+1)>>
+			<<set $RulesID to $RulesID+1>>
+		<<else>>
+			<<set _length to 1>>
+			<<set $RulesID to 1>>
+		<</if>>
 
-	<<set _activeRule.name = "Rule " + _length>>
-	<<set _activeRule.ID = $RulesID>>
+		<<set _activeRule.name = "Rule " + _length>>
+		<<set _activeRule.ID = $RulesID>>
 
-	<<set $defaultRules.push(_activeRule)>>
+		<<set $defaultRules.push(_activeRule)>>
 
-	<<set $currentRule = $defaultRules[$defaultRules.length-1]>>
-	<<goto "Rules Assistant">>
+		<<set $currentRule = $defaultRules[$defaultRules.length-1]>>
+		<<goto "Rules Assistant">>
+		
 	<</link>>
 
 <</if>>
+
 <<if $defaultRules.length > 0>>
-|
-<span id="apply">
-<span id="applyresult">
-<<link "Apply rules">>
-	<<replace "#applyresult">>
-	//Rules applied.//
-	<</replace>>
-	<<replace "#applied">>
-	<<for _t = 0; _t < $defaultRules.length; _t++>>
-		<<if $currentRule.ID == $defaultRules[_t].ID>>
-			<<set $currentRule.facility = _facility>>
-			<<set $currentRule.excludeFacility = _excludeFacility>>
-			<<if $currentRule.thresholdLower != "none">>
-				<<set $currentRule.thresholdLower = Number($currentRule.thresholdLower)>>
-			<</if>>
-			<<if $currentRule.thresholdUpper != "none">>
-				<<set $currentRule.thresholdUpper = Number($currentRule.thresholdUpper)>>
-			<</if>>
-			<<set $defaultRules[_t] = $currentRule>>
-		<</if>>
-	<</for>>
-	<<for $s = 0; $s < $slaves.length; $s++>>
-		<<if $slaves[$s].useRulesAssistant == 1>>
-			<<CheckAutoRulesActivate $slaves[$s]>>
-			<<DefaultRules $slaves[$s]>>
-		<</if>>
-	<</for>>
-	<<for _t = 0; _t < $defaultRules.length; _t++>>
-		<<set _r = $r-1>>
-		<<if $defaultRules[_t].ID == $defaultRules[_r].ID>>
-			<<set $currentRule = $defaultRules[_t]>>
-			<<set _facility = $currentRule.facility>>
-			<<set _excludeFacility = $currentRule.excludeFacility>>
-			<<break>>
-		<</if>>
-	<</for>>
-	<</replace>>
-<</link>>
-</span>
-</span>
-<br><br>
-[[Export this rule|Export Rule]]
+	| <span id="apply">
+		<span id="applied"></span>
+		<span id="applyresult"></span>
+	</span>
+	<<timed 50ms>>
+	<<RAChangeApply>>
+	<</timed>>
+
+	<br><br>
+
+	[[Export this rule|Export Rule]]
 <</if>>
+
 | [[Import a rule|Import Rule]]
+
