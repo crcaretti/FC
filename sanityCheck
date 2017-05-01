@@ -4,45 +4,50 @@ if [ ! -d ".git" ]; then
 	echo "No .git repo found - skipping sanity checks"
 	exit 0
 fi
+GREP="git grep -n --color"
 # Check for missing right angle bracket: <</if>
-git grep "<</[^>]*>[^>]" -- 'src/*'
-git grep "<<[^>]*>[^<>"$'\r]*\r'"\?$" -- 'src/*'
+$GREP "<</[^>]*>[^>]" -- 'src/*'  | sed 's/^/[Rule1] /'
+$GREP "<<[^>()]*>[^()<>"$'\r]*\r'"\?$" -- 'src/*' | sed 's/^/[Rule2] /'
 # Check for missing left angle bracket: </if>>
-git grep "[^<]</[^<>]*>>" -- 'src/*'
+$GREP "[^<]</[^<>]*>>" -- 'src/*' | sed 's/^/[Rule3] /'
 # Check for accidental assignment.  e.g.:   <<if $foo = "hello">>
-git grep "<<[ ]*if[^>=]*[^><\!=]=[^=][^>]*>>" -- 'src/*'
+$GREP "<<[ ]*if[^>=]*[^><\!=]=[^=][^>]*>>" -- 'src/*' | sed 's/^/[Rule4] /'
 # Check for missing ".  e.g.:   <<if $foo = "hello>>
-git grep "<<[^\"<>]*\"[^\"<>]*>>" -- 'src/*'
+$GREP "<<[^\"<>]*\"[^\"<>]*>>" -- 'src/*' | sed 's/^/[Rule5] /'
 # Check for missing ".  e.g.:   <<if $foo = "hello)
-git grep "<<[^\"<>]*\([^\"<>]*\"[^><\"]*\"\| [<>] \)*\"\([^\"<>]*\"[^><\"]*\"\| [<>] \)*\([^\"<>]\| [<>] \)*>>" -- 'src/*'
+$GREP "<<[^\"<>]*\([^\"<>]*\"[^><\"]*\"\| [<>] \)*\"\([^\"<>]*\"[^><\"]*\"\| [<>] \)*\([^\"<>]\| [<>] \)*>>" -- 'src/*' | sed 's/^/[Rule6] /'
 # Check for colors like: @@color:red   - should be @@.red
-git grep -e "@@color:" --and --not -e  "@@color:rgb([0-9 ]\+,[0-9 ]\+,[0-9 ]\+)" -- "src/*"
+$GREP -e "@@color:" --and --not -e  "@@color:rgb([0-9 ]\+,[0-9 ]\+,[0-9 ]\+)" -- "src/*" | sed 's/^/[Rule7] /'
 # Check for missing $ in activeSlave or PC
-git grep "<<[ ]*[^\$><_\[]*\(activeSlave\|PC\)[.]"  -- "src/*"
+$GREP "<<[ ]*[^\$><_\[]*\(activeSlave\|PC\)[.]"  -- "src/*" | sed 's/^/[Rule8] /'
 # Check for closing bracket without opening bracket.  e.g.:  <<if foo)>>      (but  <<case "foo")>>   is valid, so ignore those
-git grep -e "<<[ a-zA-Z]\+[^()<>]*)" --and --not -e "<< *case"  -- "src/*"
+$GREP -e "<<[ a-zA-Z]\+[^()<>]*)" --and --not -e "<< *case"  -- "src/*" | sed 's/^/[Rule9] /'
 # Check for opening bracket without closing bracket.  e.g.:  <<if (foo>>
-git grep -e "<<[ a-zA-Z]\+([^()<>]*>>" -- "src/*"
+$GREP -e "<<[ a-zA-Z]\+([^()<>]*>>" -- "src/*" | sed 's/^/[Rule10] /'
 # Check for two closing brackets but one opening bracket.  e.g.:  <<if (foo))>>
-git grep -e "<<[ a-zA-Z]\+[^()<>]*([^()]*)[^()]*)[^()<>]*>>"  -- "src/*"
+$GREP -e "<<[ a-zA-Z]\+[^()<>]*([^()]*)[^()]*)[^()<>]*>>"  -- "src/*" | sed 's/^/[Rule11] /'
 # Check for one closing bracket but two opening brackets.  e.g.:  <<if ((foo)>>
-git grep -e "<<[ a-zA-Z]\+[^()<>]*([^()]*([^()]*)[^()<>]*>>"  -- "src/*"
+$GREP -e "<<[ a-zA-Z]\+[^()<>]*([^()]*([^()]*)[^()<>]*>>"  -- "src/*" | sed 's/^/[Rule12] /'
 # Check for missing >>.  e.g.:   <<if $foo
-git grep "<<[^<>]*[^,\"\[{"$'\r]\r'"\?$" -- 'src/*'
+$GREP "<<[^<>]*[^,\"\[{"$'\r]\r'"\?$" -- 'src/*' | sed 's/^/[Rule13] /'
 # Check for too many >>>.  e.g.: <</if>>> 
-git grep "<<[^<>]*[<>]\?[^<>]*>>>" -- "src/*.tw"
+$GREP "<<[^<>]*[<>]\?[^<>]*>>>" -- "src/*.tw" | sed 's/^/[Rule14] /'
 # Check for wrong capitilization on 'activeslave' and other common typos
-git grep -e "\$act" --and --not -e "\$\(activeSlave\|activeArcology\|activeStandard\|activeOrgan\|activeLimbs\)" -- "src/*"
-git grep  "\(csae\|[a-z] She \|attepmts\|youreslf\|advnaces\)" -- 'src/*'
-git grep "\$slave\[" -- 'src/*'
+$GREP -e "\$act" --and --not -e "\$\(activeSlave\|activeArcology\|activeStandard\|activeOrgan\|activeLimbs\)" -- "src/*" | sed 's/^/[Rule15a] /'
+$GREP  "\(csae\|[a-z] She \|attepmts\|youreslf\|advnaces\)" -- 'src/*' | sed 's/^/[Rule15b] /'
+$GREP "\$slave\[" -- 'src/*' | sed 's/^/[Rule15c] /'
 # Check for strange spaces e.g.  $slaves[$i]. lips
-git grep "\$slaves\[\$i\]\. " -- 'src/*'
+$GREP "\$slaves\[\$i\]\. " -- 'src/*' | sed 's/^/[Rule16] /'
 # Check using refreshmentType instead of refreshment
-git grep "\$PC.refreshmentType[^ =]" -- 'src/*'
+$GREP "\$PC.refreshmentType[^ =]" -- 'src/*' | sed 's/^/[Rule17] /'
 # Check, e.g., <<//if>>
-git grep "<</[a-zA-Z]*[^a-zA-Z<>]\+[a-zA-Z]*>>" -- 'src/*'
+$GREP "<</[a-zA-Z]*[^a-zA-Z<>]\+[a-zA-Z]*>>" -- 'src/*' | sed 's/^/[Rule18] /'
 # Check, e.g., =to
-git grep "=to" -- 'src/*'
+$GREP "=to" -- 'src/*' | sed 's/^/[Rule19] /'
+# Check doing  $slaves.foo instead of $slaves[i].foo
+$GREP -e "[$]slaves[.]"  --and --not -e '[$]slaves[.]\(length\|random\|map\|filter\|deleteAt\|push\)' -- 'src/*' | sed 's/^/[Rule20] /'
+# Try to check for accidentally mixing slaves[] and activeSlave.  This can have a lot of false matches, but catches some good matches too
+$GREP -e "activeSlave[.]" --and -e "slaves\[..\?\][.]" --and --not -e '[.]ID' --and --not -e 'slaves\[..\?\][.]\(slaveName\|actualAge\|relation\|assignment\|devotion\|trust\|vagina\)' -- 'src/*' | sed 's/^/[Rule21] /'
 
 # Check that all the tags are properly opened and closed
 git ls-files "src/*.tw" | xargs -d '\n' ./devTools/check.py
