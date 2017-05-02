@@ -4,50 +4,68 @@ if [ ! -d ".git" ]; then
 	echo "No .git repo found - skipping sanity checks"
 	exit 0
 fi
+
+WARNING='\033[93m'
+WARNING='\033[93m'
+ENDC='\033[0m'
+
+myprint() {
+	while read data; do
+		echo -e "[$1]$WARNING" $data
+	done
+}
+
 GREP="git grep -n --color"
 # Check for missing right angle bracket: <</if>
-$GREP "<</[^>]*>[^>]" -- 'src/*'  | sed 's/^/[Rule1] /'
-$GREP "<<[^>()]*>[^()<>"$'\r]*\r'"\?$" -- 'src/*' | sed 's/^/[Rule2] /'
+$GREP "<</[^>]*>[^>]" -- 'src/*'  | myprint "MissingClosingAngleBracket"
+$GREP "<<[^>()]*>[^()<>"$'\r]*\r'"\?$" -- 'src/*' | myprint "MissingClosingAngleBracket"
 # Check for missing left angle bracket: </if>>
-$GREP "[^<]</[^<>]*>>" -- 'src/*' | sed 's/^/[Rule3] /'
+$GREP "[^<]</[^<>]*>>" -- 'src/*' | myprint "MissingOpeningAngleBracket2"
 # Check for accidental assignment.  e.g.:   <<if $foo = "hello">>
-$GREP "<<[ ]*if[^>=]*[^><\!=]=[^=][^>]*>>" -- 'src/*' | sed 's/^/[Rule4] /'
+$GREP "<<[ ]*if[^>=]*[^><\!=]=[^=][^>]*>>" -- 'src/*' | myprint "AccidentalAssignmentInIf"
 # Check for missing ".  e.g.:   <<if $foo = "hello>>
-$GREP "<<[^\"<>]*\"[^\"<>]*>>" -- 'src/*' | sed 's/^/[Rule5] /'
+$GREP "<<[^\"<>]*\"[^\"<>]*>>" -- 'src/*' | myprint "MissingSpeachMark"
 # Check for missing ".  e.g.:   <<if $foo = "hello)
-$GREP "<<[^\"<>]*\([^\"<>]*\"[^><\"]*\"\| [<>] \)*\"\([^\"<>]*\"[^><\"]*\"\| [<>] \)*\([^\"<>]\| [<>] \)*>>" -- 'src/*' | sed 's/^/[Rule6] /'
+$GREP "<<[^\"<>]*\([^\"<>]*\"[^><\"]*\"\| [<>] \)*\"\([^\"<>]*\"[^><\"]*\"\| [<>] \)*\([^\"<>]\| [<>] \)*>>" -- 'src/*' | myprint "MissingSpeachMark2"
 # Check for colors like: @@color:red   - should be @@.red
-$GREP -e "@@color:" --and --not -e  "@@color:rgb([0-9 ]\+,[0-9 ]\+,[0-9 ]\+)" -- "src/*" | sed 's/^/[Rule7] /'
+$GREP -e "@@color:" --and --not -e  "@@color:rgb([0-9 ]\+,[0-9 ]\+,[0-9 ]\+)" -- "src/*" | myprint "UseCssColors"
 # Check for missing $ in activeSlave or PC
-$GREP "<<[ ]*[^\$><_\[]*\(activeSlave\|PC\)[.]"  -- "src/*" | sed 's/^/[Rule8] /'
+$GREP "<<[ ]*[^\$><_\[]*\(activeSlave\|PC\)[.]"  -- "src/*" | myprint "MissingDollar"
 # Check for closing bracket without opening bracket.  e.g.:  <<if foo)>>      (but  <<case "foo")>>   is valid, so ignore those
-$GREP -e "<<[ a-zA-Z]\+[^()<>]*)" --and --not -e "<< *case"  -- "src/*" | sed 's/^/[Rule9] /'
+$GREP -e "<<[ a-zA-Z]\+[^()<>]*)" --and --not -e "<< *case"  -- "src/*" | myprint "MissingOpeningBracket"
 # Check for opening bracket without closing bracket.  e.g.:  <<if (foo>>
-$GREP -e "<<[ a-zA-Z]\+([^()<>]*>>" -- "src/*" | sed 's/^/[Rule10] /'
+$GREP -e "<<[ a-zA-Z]\+([^()<>]*>>" -- "src/*" | myprint "MissingClosingBracket"
 # Check for two closing brackets but one opening bracket.  e.g.:  <<if (foo))>>
-$GREP -e "<<[ a-zA-Z]\+[^()<>]*([^()]*)[^()]*)[^()<>]*>>"  -- "src/*" | sed 's/^/[Rule11] /'
+$GREP -e "<<[ a-zA-Z]\+[^()<>]*([^()]*)[^()]*)[^()<>]*>>"  -- "src/*" | myprint "MissingOpeningBracket2"
 # Check for one closing bracket but two opening brackets.  e.g.:  <<if ((foo)>>
-$GREP -e "<<[ a-zA-Z]\+[^()<>]*([^()]*([^()]*)[^()<>]*>>"  -- "src/*" | sed 's/^/[Rule12] /'
+$GREP -e "<<[ a-zA-Z]\+[^()<>]*([^()]*([^()]*)[^()<>]*>>"  -- "src/*" | myprint "MissingClosingBracket2"
 # Check for missing >>.  e.g.:   <<if $foo
-$GREP "<<[^<>]*[^,\"\[{"$'\r]\r'"\?$" -- 'src/*' | sed 's/^/[Rule13] /'
+$GREP "<<[^<>]*[^,\"\[{"$'\r]\r'"\?$" -- 'src/*' | myprint "MissingClosingAngleBrackets"
 # Check for too many >>>.  e.g.: <</if>>> 
-$GREP "<<[^<>]*[<>]\?[^<>]*>>>" -- "src/*.tw" | sed 's/^/[Rule14] /'
+$GREP "<<[^<>]*[<>]\?[^<>]*>>>" -- "src/*.tw" | myprint "TooManyAngleBrackets"
 # Check for wrong capitilization on 'activeslave' and other common typos
-$GREP -e "\$act" --and --not -e "\$\(activeSlave\|activeArcology\|activeStandard\|activeOrgan\|activeLimbs\)" -- "src/*" | sed 's/^/[Rule15a] /'
-$GREP  "\(csae\|[a-z] She \|attepmts\|youreslf\|advnaces\)" -- 'src/*' | sed 's/^/[Rule15b] /'
-$GREP "\$slave\[" -- 'src/*' | sed 's/^/[Rule15c] /'
+$GREP -e "\$act" --and --not -e "\$\(activeSlave\|activeArcology\|activeStandard\|activeOrgan\|activeLimbs\)" -- "src/*" | myprint "WrongCapitilization"
+$GREP  "\(csae\|[a-z] She \|attepmts\|youreslf\|advnaces\)" -- 'src/*' | myprint "SpellCheck"
+$GREP "\$slave\[" -- 'src/*' | myprint "ShouldBeSlaves"
 # Check for strange spaces e.g.  $slaves[$i]. lips
-$GREP "\$slaves\[\$i\]\. " -- 'src/*' | sed 's/^/[Rule16] /'
+$GREP "\$slaves\[\$i\]\. " -- 'src/*' | myprint "MissingPropertyAfterSlaves"
 # Check using refreshmentType instead of refreshment
-$GREP "\$PC.refreshmentType[^ =]" -- 'src/*' | sed 's/^/[Rule17] /'
+$GREP "\$PC.refreshmentType[^ =]" -- 'src/*' | myprint "ShouldBeRefreshment"
 # Check, e.g., <<//if>>
-$GREP "<</[a-zA-Z]*[^a-zA-Z<>]\+[a-zA-Z]*>>" -- 'src/*' | sed 's/^/[Rule18] /'
+$GREP "<</[a-zA-Z]*[^a-zA-Z<>]\+[a-zA-Z]*>>" -- 'src/*' | myprint "DoubleSlash"
 # Check, e.g., =to
-$GREP "=to" -- 'src/*' | sed 's/^/[Rule19] /'
+$GREP "=to" -- 'src/*' | myprint "EqualAndTo"
 # Check doing  $slaves.foo instead of $slaves[i].foo
-$GREP -e "[$]slaves[.]"  --and --not -e '[$]slaves[.]\(length\|random\|map\|filter\|deleteAt\|push\)' -- 'src/*' | sed 's/^/[Rule20] /'
-# Try to check for accidentally mixing slaves[] and activeSlave.  This can have a lot of false matches, but catches some good matches too
-$GREP -e "activeSlave[.]" --and -e "slaves\[..\?\][.]" --and --not -e '[.]ID' --and --not -e 'slaves\[..\?\][.]\(slaveName\|actualAge\|relation\|assignment\|devotion\|trust\|vagina\)' -- 'src/*' | sed 's/^/[Rule21] /'
+$GREP -e "[$]slaves[.]"  --and --not -e '[$]slaves[.]\(length\|random\|map\|filter\|deleteAt\|push\)' -- 'src/*' | myprint "MissingSlavesIndex"
+# Try to check for accidentally mixing slaves[] and activeSlave.  This can have a lot of false matches, but has caught a lot of bugs so it's worth the pain
+$GREP -e "activeSlave[.]" --and -e "slaves\[..\?\][.]" --and --not -e '[.]ID' --and --not -e 'slaves\[..\?\][.]\(slaveName\|actualAge\|relation\|assignment\|age\|devotion\|trust\|vagina\)' -- 'src/*' | myprint "MaybeAccidentalMixingOfSlavesAndActiveSlave"
+
+# Check that we do not have any variables that we use only once.   e.g.     $onlyUsedOnce
+(
+cd src/
+strings $(find . -name "*.tw" ) | tr -c '$a-zA-Z' '\n'  | sed -n '/^[$]/p' | sort | uniq -c | grep ' 1 ' | sed 's/^ *1 [$]/-e[$]/' | sed 's/$/\\\\W/' | xargs -r  git grep -n --color | myprint "OnlyUsedOnce"
+)
+
 
 # Check that all the tags are properly opened and closed
 git ls-files "src/*.tw" | xargs -d '\n' ./devTools/check.py
