@@ -35,7 +35,7 @@
 			<</link>>
 			</strong>
 			</span>
-				|	
+				|
 			@@.cyan;[←,Q] @@<span id="prevRule">
 			<strong>
 			<<link "Prev">>
@@ -58,9 +58,9 @@
 				<<goto "Rules Assistant">>
 			<</link>>
 			</strong>
-			</span>@@.cyan; [E,→]@@  |  
+			</span>@@.cyan; [E,→]@@  |
 		<<else>>
-			Next [E,→]  |  
+			Next [E,→]  |
 		<</if>>
 
 		<<if $r < _length>>
@@ -125,7 +125,7 @@
 					<<set $defaultRules[$r-1] = $defaultRules[$r]>>
 					<<set $defaultRules[$r] = _tmpRule>>
 					<<goto "Rules Assistant">>
-				<</link>> 
+				<</link>>
 			<<else>>
 				Higher Priority
 			<</if>>
@@ -300,6 +300,49 @@ __Rule $r Automatic Activation__
 <<timed 50ms>>
 <<RAChangeAssignFacility>>
 <</timed>>
+
+<br><br>
+
+Apply to slaves:<br>
+<<if ((ndef $currentRule.selectedSlaves) || ($currentRule.selectedSlaves.length < 1)) && ((ndef $currentRule.excludedSlaves) || ($currentRule.excludedSlaves.length < 1))>>
+''Currently applied to all slaves'' | [[Choose specific slaves|Rules Slave Select]]
+<<elseif ((ndef $currentRule.selectedSlaves) || ($currentRule.selectedSlaves.length < 1)) && (def $currentRule.excludedSlaves) && ($currentRule.excludedSlaves.length > 0)>>
+''Currently applied to all slaves except excluded slaves'' | [[Choose specific slaves|Rules Slave Select]] | [[Apply to all slaves|Rules Assistant][$currentRule.selectedSlaves = [],$currentRule.excludedSlaves = []]]
+<<else>>
+	<ul>
+	<<for $i = 0; $i < $currentRule.selectedSlaves.length; $i++ >>
+	  <<for $j = 0; $j < $slaves.length; $j++ >>
+			<<if $slaves[$j].ID == $currentRule.selectedSlaves[$i]>>
+					<li>
+						$slaves[$j].slaveName
+					</li>
+			<</if>>
+		<</for>>
+	<</for>>
+	</ul>
+[[Change which slaves this rule applies to|Rules Slave Select]] | [[Apply to all slaves|Rules Assistant][$currentRule.selectedSlaves = [], $currentRule.excludedSlaves = []]]
+<</if>>
+
+<br>
+Exclude slaves:<br>
+<<if ndef $currentRule.excludedSlaves || $currentRule.excludedSlaves.length < 1>>
+''Not excluding any slaves'' |
+
+[[Exclude specific slaves|Rules Slave Exclude]]
+<<else>>
+	<ul>
+	<<for $i = 0; $i < $currentRule.excludedSlaves.length; $i++ >>
+	  <<for $j = 0; $j < $slaves.length; $j++ >>
+			<<if $slaves[$j].ID == $currentRule.excludedSlaves[$i]>>
+					<li>
+						$slaves[$j].slaveName
+					</li>
+			<</if>>
+		<</for>>
+	<</for>>
+	</ul>
+[[Change which slaves are excluded from this rule|Rules Slave Exclude]] | [[Don't exclude slaves|Rules Assistant][$currentRule.excludedSlaves = []]]
+<</if>>
 
 <br><br>
 
@@ -2811,7 +2854,7 @@ Relationship rules: ''$currentRule.relationshipRules.''
 
 		<<set $currentRule = $defaultRules[_length]>>
 		<<goto "Rules Assistant">>
-		
+
 	<</link>> |
 
 <</if>>
