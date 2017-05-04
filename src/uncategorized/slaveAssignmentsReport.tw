@@ -77,7 +77,7 @@
 			<<set $HGCum = 2+Math.trunc(($HeadGirl.balls/5)+($HeadGirl.energy/95)+($HeadGirl.health/95)+($HeadGirl.devotion/95))>>
 		<</if>>
 	<<else>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "be your Head Girl">>
 	<</if>>
 <<case "live with your Head Girl">>
 	<<if random(-30,20) <= $slaves[_i].devotion>>
@@ -104,7 +104,7 @@
 		<<set $Recruiter = 0>>
 	<</if>>
 	<<if $Recruiter == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "recruit girls">>
 	<</if>>
 <<case "be the Madam">>
 	<<set $Madam = $slaves[_i]>>
@@ -125,7 +125,7 @@
 		<<set $Madam = 0>>
 	<</if>>
 	<<if $Madam == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "be the Madam">>
 	<</if>>
 <<case "be the DJ">>
 	<<set $DJ = $slaves[_i]>>
@@ -143,7 +143,7 @@
 		<<set $DJ = 0>>
 	<</if>>
 	<<if $DJ == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "be the DJ">>
 	<</if>>
 <<case "be the Milkmaid">>
 	<<set $Milkmaid = $slaves[_i]>>
@@ -161,7 +161,7 @@
 		<<set $Milkmaid = 0>>
 	<</if>>
 	<<if $Milkmaid == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "be the Milkmaid">>
 	<</if>>
 <<case "be the Stewardess">>
 	<<set $Stewardess = $slaves[_i]>>
@@ -182,7 +182,7 @@
 		<<set $Stewardess = 0>>
 	<</if>>
 	<<if $Stewardess == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "be the Stewardess">>
 	<</if>>
 <<case "be the Schoolteacher">>
 	<<set $Schoolteacher = $slaves[_i]>>
@@ -200,7 +200,7 @@
 		<<set $Schoolteacher = 0>>
 	<</if>>
 	<<if $Schoolteacher == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "be the Schoolteacher">>
 	<</if>>
 <<case "be the Wardeness">>
 	<<set $Wardeness = $slaves[_i]>>
@@ -215,7 +215,7 @@
 		<<set $Wardeness = 0>>
 	<</if>>
 	<<if $Wardeness == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "be the Wardeness">>
 	<</if>>
 <<case "be the Attendant">>
 	<<set $Attendant = $slaves[_i]>>
@@ -230,7 +230,7 @@
 		<<set $Attendant = 0>>
 	<</if>>
 	<<if $Attendant == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "be the Attendant">>
 	<</if>>
 <<case "be the Nurse">>
 	<<set $Nurse = $slaves[_i]>>
@@ -248,7 +248,7 @@
 		<<set $Nurse = 0>>
 	<</if>>
 	<<if $Nurse == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "be the Nurse">>
 	<</if>>
 <<case "guard you">>
 	<<set $Bodyguard = $slaves[_i]>>
@@ -263,7 +263,7 @@
 		<<set $Bodyguard = 0>>
 	<</if>>
 	<<if $Bodyguard == 0>>
-		<<set $slaves[_i].assignment = "rest", $slaves[_i].assignmentVisible = 1>>
+		<<removeJob $slaves[_i] "guard you">>
 	<</if>>
 <<case "be your Concubine">>
 	<<set $Concubine = $slaves[_i], $fuckSlaves++>>
@@ -287,12 +287,7 @@
 <<if $fighterIDs.includes($slaves[_i])>>
 	<<if canWalk($slaves[_i]) != true>>
 		''__@@.pink;$slaves[_i].slaveName@@__'' is no longer independently mobile @@.yellow;and cannot fight any more.@@ She has been removed from $pitName roster<br>.
-		<<for _k = 0; _k < $fighterIDs.length; _k++>>
-		<<if $slaves[_i].ID == $fighterIDs[_k]>>
-			<<set _dump = $fighterIDs.deleteAt(_k)>>
-			<<set _k-->>
-		<</if>>
-		<</for>>
+		<<set $fighterIDs.delete($slaves[_i].ID)>>
 	<</if>>
 <</if>>
 
@@ -398,21 +393,25 @@
 
 <<if $slavesVisible > 0>>
 <br>__''Penthouse Report''__<br>
-<<for $i = 0; $i < $slaves.length; $i++>>
+<<for $i = 0; $i < _SL; $i++>>
 <<if $slaves[$i].assignmentVisible == 1>>
 	<br>
 	<<include "Full Report">>
 	<<if ($slaves[$i].assignment == "be your Head Girl") && ($HGSuiteSlaves > 0)>>
 		<<set _iTemp = $i, $i = $HGSuiteiIDs[0].Index, _ID = $HGSuiteiIDs[0].ID>>
-		<<if _ID != $slaves[$i].ID>>
+		<<if $i >= _SL || _ID != $slaves[$i].ID>>
 			/% Slaves.ID and $HGSuiteiIDs.ID's don't match-up so let's find her %/
-			<<for $i = 0; $i < $slaves.length; $i++>>
+			<<for $i = 0; $i < _SL; $i++>>
 			<<if _ID == $slaves[$i].ID>>
 				/% Correct the Index %/
 				<<set $HGSuiteiIDs[0].Index = $i>>
 				<<break>>
 			<</if>>
 			<</for>>
+		<</if>>
+		<<if $i < _SL && $slaves[$i].assignment != "live with your head girl">>
+			<br>@@.red;$slaves[$i].slaveName had been assigned to live with your Head Girl, but this week she was assigned to $slaves[$i].assignment. She has been released to your penthouse for reassignment.@@
+			<<removeJob $slaves[$i] "live with your head girl">>
 		<</if>>
 		/% Onward bound as normal %/
 		<<set $HGRelease = 1>>
