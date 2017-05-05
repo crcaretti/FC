@@ -5,7 +5,10 @@ var lastActiveSlave, lastSlaves, lastPC;
 /*
   To use, add something like:
 
-<div id="graph"></div>
+<div id="editFamily">
+  <div id="graph"></div>
+</div>
+
 <<run updateFamilyTree($activeSlave, $slaves, $PC)>>
 <script>updateFamilyTree()</script>
 
@@ -19,8 +22,6 @@ If there's no active slave, you can do:
 
 window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastSlaves, PC = lastPC) {
   lastActiveSlave = activeSlave;
-  if(activeSlave == null)
-    activeSlave = PC;
   lastSlaves = slaves;
   lastPC = PC;
   var treeDepth = 0;
@@ -30,6 +31,11 @@ window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastS
   if(!graphElement)
     return;
   graphElement.innerHTML = "";
+
+  /* The way this code works is that we start with the activeSlave then we call
+     slaveInfo() recursively to work our way up the tree finding their parents.
+
+   */
 
   function getSlave(id, expectedGenes) {
     if(id == -1) {
@@ -104,13 +110,15 @@ window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastS
         spouseToChild[child.father].push(child);
       }
     }
-    if(activeSlave != PC)
+
+    if(activeSlave.ID != PC.ID)
       maybeAddSpouseToChild(activeSlave);
     maybeAddSpouseToChild(getSlave(-1));
 
     for(var i = 0; i < slaves.length; ++i) {
       var child = slaves[i];
-      maybeAddSpouseToChild(child);
+      if(child.ID != activeSlave.ID)
+        maybeAddSpouseToChild(child);
     }
 
     for(var key in spouseToChild) {
@@ -133,6 +141,8 @@ window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastS
     return data;
   }
 
+  if(activeSlave == PC || activeSlave == null)
+    activeSlave = getSlave(-1)
   const treeData = [slaveInfo(activeSlave, activeSlave.ID)];
   console.log("Family tree is", treeData, 'and has:', numTreeNodes);
 
