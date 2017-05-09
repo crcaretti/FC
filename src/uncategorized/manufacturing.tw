@@ -2,16 +2,55 @@
 
 <<set $nextButton = "Back", $nextLink = "Main">>
 
-This is a space in the arcology's service areas, rented to a variety of tenants for manufacturing purposes. You control this part of the arcology and all these producers pay you rent.
+This is a space in the arcology's service areas,
+<<switch $sectors[$AS].type>>
+<<case "Manufacturing">>
+	rented to a variety of tenants for manufacturing purposes. You control this part of the arcology and all these producers pay you rent.
+<<case "Sweatshops">>
+	designed for labor intensive manufacturing by menial slaves.
+<<default>>ERROR: bad sector type
+<</switch>>
 <<SectorSell>>
 <br>
 
+<<if $sectors[$AS].type = "Sweatshops">>
+<<if $helots > 0>>
+	<br><br>
+	You own $helots menial slaves. This facility
+	<<if $helots > $Sweatshops*500>>
+		only needs the labor of 500 of them, and all your sweatshops together only need <<print $Sweatshops*500>>.
+	<<else>>
+		could use the labor of 500<<if $Sweatshops > 1>>, but only has access to <<print Math.trunc($helots/($Sweatshops*500))>><</if>>.		
+	<</if>>
+<</if>>
+<</if>>
+
 <<if $dairy == 0>>
 	<br>
-	[[Construct a dairy to milk slaves on an industrial scale|Manage Arcology][$cash -= Math.trunc(5000*$upgradeMultiplierArcology), $dairy = 5, $sectors[$AS].type = "Dairy"]]
-	//Costs ¤<<print Math.trunc(5000*$upgradeMultiplierArcology)>> and will incur upkeep costs//
+	[[Construct a dairy to milk slaves on an industrial scale|Main][$cash -= Math.trunc(10000*$upgradeMultiplierArcology), $dairy = 5, $sectors[$AS].type = "Dairy"]]
+	//Costs ¤<<print Math.trunc(10000*$upgradeMultiplierArcology)>> and will incur upkeep costs//
+<</if>>
+
+<<if $mercenaries>>
+<<if $barracks != 1>>
+<br>
+	[[Build a barracks to properly house your mercenaries|Main][$cash -= Math.trunc(10000*$upgradeMultiplierArcology), $barracks = 1, $sectors[$AS].type = "Barracks"]]
+	//Costs ¤<<print Math.trunc(10000*$upgradeMultiplierArcology)>> but will reduce mercenary upkeep//
+<</if>>
 <</if>>
 
 <br>
-[[Build pens to increase the number of menial slaves you can house|Manage Arcology][$cash -= Math.trunc(5000*$upgradeMultiplierArcology), $sectors[$AS].type = "Pens"]]
-//Costs ¤<<print Math.trunc(5000*$upgradeMultiplierArcology)>>//
+[[Convert to pens to increase the number of menial slaves you can house|Main][$cash -= Math.trunc(10000*$upgradeMultiplierArcology), $sectors[$AS].type = "Pens"]]
+//Costs ¤<<print Math.trunc(10000*$upgradeMultiplierArcology)>>//
+
+<<if $sectors[$AS].type != "Sweatshops">>
+	<br>
+	[[Convert these facilities to use the labor of menial slaves|Main][$cash -= Math.trunc(10000*$upgradeMultiplierArcology), $sectors[$AS].type = "Sweatshops"]]
+	//Costs ¤<<print Math.trunc(10000*$upgradeMultiplierArcology)>>//
+<</if>>
+
+<<if $sectors[$AS].type != "Manufacturing">>
+	<br>
+	[[Return this sector to standard manufacturing|Main][$cash -= Math.trunc(10000*$upgradeMultiplierArcology), $sectors[$AS].type = "Manufacturing"]]
+	//Costs ¤<<print Math.trunc(10000*$upgradeMultiplierArcology)>>//
+<</if>>
