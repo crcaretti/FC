@@ -100,6 +100,53 @@
 <</if>>
 
 <<for _i = 0; _i < $defaultRules.length; _i++>>
+
+    <<if ndef $defaultRules[_i].condition>>
+        <<set _activation = $defaultRules[_i].activation>>
+        <<if _activation == "sex drive">>
+            <<set _activation = "sexDrive">>
+        <</if>>
+
+        <<if _activation == "none">>
+            <<set $defaultRules[_i].condition = {id: "false"}>>
+        <<elseif _activation == "always">>
+            <<set $defaultRules[_i].condition = {id: "true"}>>
+
+        <<elseif $defaultRules[_i].thresholdLower != "none" && $defaultRules[_i].thresholdUpper != "none">>
+            <<set $defaultRules[_i].condition = {
+                id: "&&",
+                first: {
+                    id: $defaultRules[_i].eqUpper ? "<=" : "<",
+                    first: {id: "(name)", name: _activation},
+                    second: {id: "(number)", value: $defaultRules[_i].thresholdUpper}
+                },
+                second: {
+                    id: $defaultRules[_i].eqLower ? ">=" : ">",
+                    first: {id: "(name)", name: _activation},
+                    second: {id: "(number)", value: $defaultRules[_i].thresholdLower},
+                },
+            }>>
+
+        <<elseif $defaultRules[_i].thresholdLower != "none">>
+            <<set $defaultRules[_i].condition = {
+                id: $defaultRules[_i].eqLower ? ">=" : ">",
+                first: {id: "(name)", name: _activation},
+                second: {id: "(number)", value: $defaultRules[_i].thresholdLower},
+            }>>
+
+        <<elseif $defaultRules[_i].thresholdUpper != "none">>
+            <<set $defaultRules[_i].condition = {
+                id: $defaultRules[_i].eqUpper ? "<=" : "<",
+                first: {id: "(name)", name: _activation},
+                second: {id: "(number)", value: $defaultRules[_i].thresholdUpper},
+            }>>
+
+        <<else>>
+            /% both thresholds are "none", same as activation being none
+            <<set $defaultRules[_i].condition = {id: "false"}>>
+        <</if>>
+    <</if>>
+
 	<<if ndef $defaultRules[_i].standardReward>>
 		<<set $defaultRules[_i].standardReward = "no default setting">>
 	<</if>>
@@ -1145,7 +1192,7 @@ Setting missing global variables:
 <</if>>
 
 <<if ndef $fakeBellies>>
-<<set $fakeBellies to ["a small empathy belly", "a medium empathy belly", "a large empathy belly", "a huge empathy belly"]>> /* lets fake bellies be seperated from other .bellyAccessory */
+<<set $fakeBellies to ["a small empathy belly", "a medium empathy belly", "a large empathy belly", "a huge empathy belly"]>> /* lets fake bellies be separated from other .bellyAccessory */
 <</if>>
 
 <<if ($ver.includes("0.6") == true) || ($ver.includes("0.7") == true) || ($ver.includes("0.8") == true) || ($ver == "0.9")>>
