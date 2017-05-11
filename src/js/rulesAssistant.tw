@@ -1,4 +1,4 @@
-:: rulesAssistant [script]
+:: rulesAssistant.tw [script]
 
 function panic(message) {
     message = message || "panic";
@@ -293,6 +293,40 @@ window.evalExpr = function(expr, env) {
     }
 }
 
+
+window.optimizeExpr = function(expr) {
+    switch (expr.id) {
+    case "true": case "false":
+    case "(number)": case "(string)":
+    case "(name)":
+        return expr;
+
+    case "-":
+        // The only "optimization" we are doing.  Obviously, this is not done
+        // for the sake of speed, rather, to make the UI and isSimpleCondition
+        // simpler, since they don't have to explicitly check for negative
+        // numbers.
+        if (expr.second === undefined && expr.first.id === "(number)")
+            return {id: "(number)", value: evalExpr(expr)};
+        // fallthrough, if the minus was not unary
+
+    case "&&": case "||":
+    case "<": case "<=": case ">": case ">=":
+    case "=": case "!=":
+    case "+": case "*": case "/": case "^":
+        return {
+            id: expr.id,
+            first: optimizeExpr(expr.first),
+            second: optimizeExpr(expr.second)
+        };
+
+    case "!": case "(":
+        return {
+            id: expr.id,
+            first: optimizeExpr(expr.first)
+        };
+    }
+}
 
 window.printError = function(exprStr, error) {
     var result = [],
