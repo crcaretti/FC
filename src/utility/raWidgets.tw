@@ -1,148 +1,143 @@
 :: RA widgets [widget nobr]
 
 /%
- Call as <<RAChangeActivation>>
-%/
+ % Call as <<RAChangeActivation>>
+ %/
 <<widget "RAChangeActivation">>
-
 <<replace #activation>>
-	<<print "($currentRule.activation):">>
-	<br>
-	<<if $currentRule.activation == "custom" >>
-		<<textarea "$currentRule.customActivationText" $currentRule.customActivationText>>
-		<<link "Test custom rule">>
-			<<set State.variables._parseFailed = true>>
-			<<replace #customsave>>
-				<<script>>
-					try {
-						parseAndEvaluate(State.variables.currentRule.customActivationText, State.variables.slaves[0]);
-						State.variables._parseFailed = false;
-					} catch (e) { throwError("Failed to parse custom rule. Please check syntax and try again."); }
-				<</script>>
-				<<if State.variables._parseFailed == false>>
-					//Rule parsed successfully. Remember to save your changes using Save rule or Apply rules.//
-					<<RAChangeSave>>
-					<<RAChangeApply>>
-				<</if>>
-			<</replace>>
-		<</link>>
-		<span id="customsave"></span>
-	<<elseif ($currentRule.activation != "none") && ($currentRule.activation != "always")>>
-		<span id="lower">
-			<<if ($currentRule.thresholdLower == "none")>>
-			(no lower limit)
-			<<else>>
-				<<if $currentRule.eqLower>>
-					When ''$currentRule.activation'' is
-					<<textbox "$currentRule.thresholdLower" $currentRule.thresholdLower>> ''or more''
-				<<else>>
-					When ''$currentRule.activation'' is ''more than''
-					<<textbox "$currentRule.thresholdLower" $currentRule.thresholdLower>>
-				<</if>>
-			<</if>>
-		</span>
 
-		<<link ">">>
-			<<set $currentRule.eqLower = false>>
-			<<replace "#lower">>
-				When ''$currentRule.activation'' is ''more than''
-				<<textbox "$currentRule.thresholdLower" $currentRule.thresholdLower>>
-			<</replace>>
-		<</link>>
-	 |
-		<<link ">=">>
-			<<set $currentRule.eqLower = true>>
-			<<replace "#lower">>
-				When ''$currentRule.activation'' is
-				<<textbox "$currentRule.thresholdLower" $currentRule.thresholdLower>> ''or more''
-			<</replace>>
-		<</link>>
-	 |
-		<<link "No lower limit">>
-			<<set $currentRule.thresholdLower = "none">>
-			<<replace "#lower">>
-				(no lower limit)
-			<</replace>>
-		<</link>>
+    <<if ($currentRule.condition.id === "true")>>
+        (always): <br> ''always.''
 
-		<br>and<br>
+    <<elseif ($currentRule.condition.id === "false")>>
+        (never): <br> ''never''
 
-		<span id="upper">
-			<<if ($currentRule.thresholdUpper == "none")>>
-				(no upper limit)
-			<<else>>
-				<<if $currentRule.eqUpper>>
-					When ''$currentRule.activation'' is
-					<<textbox "$currentRule.thresholdUpper" $currentRule.thresholdUpper>> ''or less''
-				<<else>>
-					When ''$currentRule.activation'' is ''less than''
-					<<textbox "$currentRule.thresholdUpper" $currentRule.thresholdUpper>>
-				<</if>>
-			<</if>>
-		</span>
+    <<else>>
+        <<set _activation = getVariable($currentRule.condition)>>
 
-		<<link "<">>
-			<<set $currentRule.eqUpper = false>>
-			<<replace "#upper">>
-				When ''$currentRule.activation'' is ''less than''
-				<<textbox "$currentRule.thresholdUpper" $currentRule.thresholdUpper>>
-			<</replace>>
-		<</link>>
-	 |
-		<<link "<=">>
-			<<set $currentRule.eqUpper = true>>
-			<<replace "#upper">>
-				When ''$currentRule.activation'' is
-				<<textbox "$currentRule.thresholdUpper" $currentRule.thresholdUpper>> ''or less''
-			<</replace>>
-		<</link>>
-	 |
-		<<link "No upper limit">>
-			<<set $currentRule.thresholdUpper = "none">>
-			<<replace "#upper">>
-				(no upper limit)
-			<</replace>>
-		<</link>>
+        (_activation): <br>
 
-		<<if ($currentRule.thresholdLower == "none") && ($currentRule.thresholdUpper == "none")>>
-			<<set $currentRule.activation = "always">>
-		<<elseif ($currentRule.thresholdLower != "none") && ($currentRule.thresholdUpper != "none")>>
-			<<if (def $currentRule.thresholdLower) && ($currentRule.thresholdLower > $currentRule.thresholdUpper)>>
-				<<set $currentRule.thresholdLower = $currentRule.thresholdUpper>>
-			<</if>>
-			<<if (def $currentRule.thresholdUpper) && ($currentRule.thresholdUpper < $currentRule.thresholdLower)>>
-				<<set $currentRule.thresholdUpper = $currentRule.thresholdLower>>
-			<</if>>
-		<</if>>
-	<</if>>
-	<<switch $currentRule.activation>>
-		<<case "none">>
-		''None.''
-		<<case "always">>
-		''Always.''
-		<<case "devotion">>
-		<br>@@.darkviolet;Very hateful@@: under -95, @@.darkviolet;Hateful@@: -95 to under -50, @@.mediumorchid;Resistant@@: -50 to under -20,
-		<br>@@.yellow;Ambivalent@@: -20 to 20, @@.hotpink;Accepting@@: over 20 to 50, @@.deeppink;Devoted@@: over 50 to 95, @@.magenta;Worshipful@@: over 95
-		<<case "trust">>
-		<br>@@.goldenrod;Extremely terrified@@: under -95, @@.goldenrod;Terrified@@: -95 to under -50, @@.gold;Frightened@@: -50 to under -20,
-		<br>@@.yellow;Fearful@@: -20 to 20, @@.mediumaquamarine;Careful@@: over 40 to 50, @@.mediumseagreen;Trusting@@: 50 to 95, @@.seagreen;Total trust@@: over 95
-		<<case "health">>
-		<br>@@.red;Death@@: under -100, @@.red;Near death@@: -100 to less than -90, @@.red;Extremely unhealthy@@: -90 to less than -50, @@.red;Unhealthy@@: -50 to less than -20 @@.green;Healthy@@: -20 to 20, @@.green;Very healthy@@: 20 to 50, @@.green;Extremely healthy@@: over 50 to 90, @@.green;Unnaturally healthy@@: over 90
-		<<case "sex drive">>
-		<br>@@.red;Frigid@@: 20 or under, @@.red;Poor@@: 21 to 40, @@.yellow;Average@@: 41 to 60, @@.green;Powerful@@: 61 to 80, @@.green;Sex addict@@: 81 to 99, @@.green;Nympho@@: 100
-		<<case "weight">>
-		<br>@@.red;Emaciated@@: under -95, @@.red;Skinny@@: -95 to less than -30, Thin: -30 to less than -10 Average weight: -10 to 10, Plush: over 10 to 30, @@.red;Fat@@: over 30 to 95, @@.red;Overweight@@: over 95
-		<<case "lactation">>
-		<br>// 0 - none, 1 - natural, 2 - lactation implant. //
+        <<switch $currentRule.condition.id>>
+        <<case "<">>
+            When ''_activation'' is ''less than''
+            <<textbox "$currentRule.condition.second.value" $currentRule.condition.second.value>>
+        <<case "<=">>
+            When ''_activation'' is
+            <<textbox "$currentRule.condition.second.value" $currentRule.condition.second.value>> ''or less''
+
+        <<case ">" ">=">>
+            (no upper limit)
+
+        <<case "&&" "||">>
+            <<if $currentRule.condition.first.id == "<">>
+                When ''_activation'' is ''less than''
+                <<textbox "$currentRule.condition.first.second.value" $currentRule.condition.first.second.value>>
+            <<else>>
+                When ''_activation'' is
+                <<textbox "$currentRule.condition.first.second.value" $currentRule.condition.first.second.value>> ''or less''
+            <</if>>
+        <</switch>>
+
+        <<link "<">>
+            <<set $currentRule.condition = changeComparison($currentRule.condition, "<")>>
+            <<RAChangeActivation>>
+        <</link>>
+        |
+        <<link "&le;">>
+            <<set $currentRule.condition = changeComparison($currentRule.condition, "<=")>>
+            <<RAChangeActivation>>
+        <</link>>
+        |
+        <<link "no upper limit">>
+            <<set $currentRule.condition = removeComparison($currentRule.condition, "upper")>>
+            <<RAChangeActivation>>
+        <</link>>
+
+        <br>
+        <<switch $currentRule.condition.id>>
+        <<case "<" "<=" ">" ">=">>
+            and
+        <<case "&&">>
+            ''and''
+            |
+            <<link "or">>
+                <<set $currentRule.condition = changeConnective($currentRule.condition, "||")>>
+                <<RAChangeActivation>>
+            <</link>>
+        <<case "||">>
+            <<link "and">>
+                <<set $currentRule.condition = changeConnective($currentRule.condition, "&&")>>
+                <<RAChangeActivation>>
+            <</link>>
+            |
+            ''or''
+        <</switch>>
+        <br>
+
+        <<switch $currentRule.condition.id>>
+        <<case "<" "<=">>
+            (no lower limit)
+
+        <<case ">">>
+            When ''_activation'' is ''more than''
+            <<textbox "$currentRule.condition.second.value" $currentRule.condition.second.value>>
+        <<case ">=">>
+            When ''_activation'' is
+            <<textbox "$currentRule.condition.second.value" $currentRule.condition.second.value>> ''or more''
+
+        <<case "&&" "||">>
+            <<if ($currentRule.condition.second.id == ">")>>
+                When ''_activation'' is ''more than''
+                <<textbox "$currentRule.condition.second.second.value" $currentRule.condition.second.second.value>>
+            <<else>>
+                When ''_activation'' is
+                <<textbox "$currentRule.condition.second.second.value" $currentRule.condition.second.second.value>> ''or more''
+            <</if>>
+        <</switch>>
+
+        <<link ">">>
+            <<set $currentRule.condition = changeComparison($currentRule.condition, ">")>>
+            <<RAChangeActivation>>
+        <</link>>
+        |
+        <<link "&ge;">>
+            <<set $currentRule.condition = changeComparison($currentRule.condition, ">=")>>
+            <<RAChangeActivation>>
+        <</link>>
+        |
+        <<link "no lower limit">>
+            <<set $currentRule.condition = removeComparison($currentRule.condition, "lower")>>
+            <<RAChangeActivation>>
+        <</link>>
+
+        <<switch _activation>>
+        <<case "devotion">>
+            <br>@@.darkviolet;Very hateful@@: under -95, @@.darkviolet;Hateful@@: -95 to under -50, @@.mediumorchid;Resistant@@: -50 to under -20,
+            <br>@@.yellow;Ambivalent@@: -20 to 20, @@.hotpink;Accepting@@: over 20 to 50, @@.deeppink;Devoted@@: over 50 to 95, @@.magenta;Worshipful@@: over 95
+        <<case "trust">>
+            <br>@@.goldenrod;Extremely terrified@@: under -95, @@.goldenrod;Terrified@@: -95 to under -50, @@.gold;Frightened@@: -50 to under -20,
+            <br>@@.yellow;Fearful@@: -20 to 20, @@.mediumaquamarine;Careful@@: over 40 to 50, @@.mediumseagreen;Trusting@@: 50 to 95, @@.seagreen;Total trust@@: over 95
+        <<case "health">>
+            <br>@@.red;Death@@: under -100, @@.red;Near death@@: -100 to less than -90, @@.red;Extremely unhealthy@@: -90 to less than -50, @@.red;Unhealthy@@: -50 to less than -20
+            <br>@@.green;Healthy@@: -20 to 20, @@.green;Very healthy@@: 20 to 50, @@.green;Extremely healthy@@: over 50 to 90, @@.green;Unnaturally healthy@@: over 90
+        <<case "sex drive">>
+            <br>@@.red;Frigid@@: 20 or under, @@.red;Poor@@: 21 to 40, @@.yellow;Average@@: 41 to 60, @@.green;Powerful@@: 61 to 80, @@.green;Sex addict@@: 81 to 99, @@.green;Nympho@@: 100
+        <<case "weight">>
+            <br>@@.red;Emaciated@@: under -95, @@.red;Skinny@@: -95 to less than -30,
+            <br>Thin: -30 to less than -10 Average weight: -10 to 10, Plush: over 10 to 30,
+            <br>@@.red;Fat@@: over 30 to 95, @@.red;Overweight@@: over 95
+        <<case "lactation">>
+            <br>// 0 - none, 1 - natural, 2 - lactation implant. //
 		<<case "pregnancy week">>
-		<br>// >1 - pregnancy week(s), 0 - not pregnant, -1 - on contraceptives, -2 - barren. //
+			<br>// >1 - pregnancy week(s), 0 - not pregnant, -1 - on contraceptives, -2 - barren. //
 		<<case "pregnancy foetuses">>
-		<br>// Fetus count, rule can be applied only after week 10 of pregnancy. //
+			<br>// Fetus count, rule can be applied only after week 10 of pregnancy. //
 		<<case "belly implant volume">>
-		<br>// Volume of belly implant in ccs. 0 - none. //
+			<br>// Volume of belly implant in ccs. 0 - none. //
 		<<case "custom">>
-		<br>// Enter custom condition. //
-	<</switch>>
+			<br>// Enter custom condition. //
+        <</switch>>
+    <</if>>
 <</replace>>
 <</widget>>
 
@@ -714,7 +709,7 @@
 <br><br>
 <<if (def $currentRule.facility) && ($currentRule.facility.length > 0)>>
   Apply to facilities:
-	<<link "None">>
+	<<link "All">>
 		<<set $currentRule.facility = []>>
 		<<set $currentRule.excludeFacility = []>>
 		<<set $currentRule.assignFacility = "none">>
@@ -1508,6 +1503,20 @@
 <<else>>
 	''Gloryhole''
 <</if>>
+|
+<<if ($currentRule.setAssignment != "choose her own job")>>
+	<<link "Let her choose herself">>
+		<<set $currentRule.setAssignment = "choose her own job">>
+		<<set $currentRule.assignFacility = "none">>
+		<<set $currentRule.facilityRemove = false>>
+		<<RAChangeSetAssignment>>
+		<<RAChangeAssignFacility>>
+		<<RAChangeSave>>
+		<<RAChangeApply>>
+	<</link>>
+<<else>>
+	''Let her choose herself''
+<</if>>
 <</replace>>
 <</widget>>
 
@@ -1538,19 +1547,20 @@
 	<<link $HGSuiteNameCaps>>
 		<<set $currentRule.assignFacility = "hgsuite">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("hgsuite")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("hgsuite")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("hgsuite")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("hgsuite")>>
+			<<set $currentRule.facility.push("hgsuite")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$HGSuiteNameCaps''
+	''$HGSuiteNameCaps''<<if $HGSuiteSlaves >= $HGSuite>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($brothel > 0)>>
@@ -1559,19 +1569,20 @@
 	<<link $brothelNameCaps>>
 		<<set $currentRule.assignFacility = "brothel">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("brothel")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("brothel")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("brothel")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("brothel")>>
+			<<set $currentRule.facility.push("brothel")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$brothelNameCaps''
+	''$brothelNameCaps''<<if $brothelSlaves >= $brothel>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($club > 0)>>
@@ -1580,19 +1591,20 @@
 	<<link $clubNameCaps>>
 		<<set $currentRule.assignFacility = "club">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("club")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("club")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("club")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("club")>>
+			<<set $currentRule.facility.push("club")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$clubNameCaps''
+	''$clubNameCaps''<<if $clubSlaves >= $club>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($arcade > 0)>>
@@ -1601,19 +1613,20 @@
 	<<link $arcadeNameCaps>>
 		<<set $currentRule.assignFacility = "arcade">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("arcade")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("arcade")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("arcade")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("arcade")>>
+			<<set $currentRule.facility.push("arcade")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$arcadeNameCaps''
+	''$arcadeNameCaps''<<if $arcadeSlaves >= $arcade>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($dairy > 0)>>
@@ -1622,19 +1635,20 @@
 	<<link $dairyNameCaps>>
 		<<set $currentRule.assignFacility = "dairy">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("dairy")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("dairy")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("dairy")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("dairy")>>
+			<<set $currentRule.facility.push("dairy")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$dairyNameCaps''
+	''$dairyNameCaps''<<if $dairySlaves >= $dairy>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($servantsQuarters > 0)>>
@@ -1643,19 +1657,20 @@
 	<<link $servantsQuartersNameCaps>>
 		<<set $currentRule.assignFacility = "servantsquarters">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("servantsquarters")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("servantsquarters")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("servantsquarters")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("servantsquarters")>>
+			<<set $currentRule.facility.push("servantsquarters")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$servantsQuartersNameCaps''
+	''$servantsQuartersNameCaps''<<if $servantsQuartersSlaves >= $servantsQuarters>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($masterSuite > 0)>>
@@ -1664,19 +1679,20 @@
 	<<link $masterSuiteNameCaps>>
 		<<set $currentRule.assignFacility = "mastersuite">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("mastersuite")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("mastersuite")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("mastersuite")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("mastersuite")>>
+			<<set $currentRule.facility.push("mastersuite")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$masterSuiteNameCaps''
+	''$masterSuiteNameCaps''<<if $masterSuiteSlaves >= $masterSuite>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($schoolroom > 0)>>
@@ -1685,19 +1701,20 @@
 	<<link $schoolroomNameCaps>>
 		<<set $currentRule.assignFacility = "schoolroom">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("schoolroom")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("schoolroom")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("schoolroom")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("schoolroom")>>
+			<<set $currentRule.facility.push("schoolroom")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$schoolroomNameCaps''
+	''$schoolroomNameCaps''<<if $schoolroomSlaves >= $schoolroom>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($spa > 0)>>
@@ -1706,19 +1723,20 @@
 	<<link $spaNameCaps>>
 		<<set $currentRule.assignFacility = "spa">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("spa")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("spa")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("spa")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("spa")>>
+			<<set $currentRule.facility.push("spa")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$spaNameCaps''
+	''$spaNameCaps''<<if $spaSlaves >= $spa>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($clinic > 0)>>
@@ -1727,19 +1745,20 @@
 	<<link $clinicNameCaps>>
 		<<set $currentRule.assignFacility = "clinic">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("clinic")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("clinic")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("clinic")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("clinic")>>
+			<<set $currentRule.facility.push("clinic")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$clinicNameCaps''
+	''$clinicNameCaps''<<if $clinicSlaves >= $clinic>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if ($cellblock > 0)>>
@@ -1748,19 +1767,20 @@
 	<<link $cellblockNameCaps>>
 		<<set $currentRule.assignFacility = "cellblock">>
 		<<set $currentRule.setAssignment = "none">>
-		<<set $currentRule.facility.delete("cellblock")>>
-		<<if $currentRule.facility.length == 0>>
-			<<set $currentRule.excludeFacility.push("cellblock")>>
+		<<if $currentRule.excludeFacility.length > 0>>
+			<<set $currentRule.excludeFacility.delete("cellblock")>>
 			<<RAChangeExcludeFacility>>
+		<<elseif $currentRule.facility.length > 0 && !$currentRule.facility.includes("cellblock")>>
+			<<set $currentRule.facility.push("cellblock")>>
+			<<RAChangeApplyFacility>>
 		<</if>>
-		<<RAChangeApplyFacility>>
 		<<RAChangeAssignFacility>>
 		<<RAChangeSetAssignment>>
 		<<RAChangeSave>>
 		<<RAChangeApply>>
 	<</link>>
 <<else>>
-	''$cellblockNameCaps''
+	''$cellblockNameCaps''<<if $cellblockSlaves >= $cellblock>> @@.red;(full)@@<</if>>
 <</if>>
 <</if>>
 <<if $currentRule.assignFacility != "none">>
@@ -1879,9 +1899,8 @@ Assignment on removal: $currentRule.removalAssignment |
 %/
 <<widget "RAChangeClothes">>
 <<replace #clothes>>
-<<if $currentRule.choosesOwnClothes == 1>>
+<<if ($currentRule.clothes == "choosing her own clothes")>>
 	''slave's choice.''
-	<<set $currentRule.clothes = "choosing her own clothes">>
 <<else>>
 	''$currentRule.clothes.''
 <</if>>
@@ -2251,30 +2270,6 @@ Assistant-applied implants:
 <</widget>>
 
 /%
- Call as <<RAChangeAssignment>>
-%/
-<<widget "RAChangeAssignment">>
-<<replace #chooseassignment>>
-Assignments:
-
-<<if $currentRule.choosesOwnAssignment == 0>>
-  ''selected by the player.''
-
-<<link "Slave's choice">>
-	<<set $currentRule.choosesOwnAssignment = 1>>
-	<<RAChangeAssignment>>
-<</link>>
-<<else>>
-  ''selected by the slave.''
-<<link "Player control">>
-	<<set $currentRule.choosesOwnAssignment = 0>>
-	<<RAChangeAssignment>>
-<</link>>
-<</if>>
-<</replace>>
-<</widget>>
-
-/%
  Call as <<RAChangeLiving>>
 %/
 <<widget "RAChangeLiving">>
@@ -2428,90 +2423,76 @@ Relationship rules: ''$currentRule.relationshipRules.''
 <</replace>>
 <</widget>>
 
+
 /%
- Call as <<RAChangeSave>>
-%/
-<<widget "RAChangeSave">>
+ % Call as <<RASaveRule ruleID>>
+ %/
+<<widget "RASaveRule">>
 <<replace #saveresult>>
-	<br><br>
-	<<link _text>>
-		<<replace "#saveresult">>
-			<br><br>
-			<<set State.variables._parseFailed = false>>
-			<<if $currentRule.activation == "custom">>
-				<<script>>
-					try { parseAndEvaluate(State.variables.currentRule.customActivationText, State.variables.slaves[0]); 
-						} catch (e) { State.variables._parseFailed = true; throwError("Failed to parse custom rule. Please check syntax and try again."); }
-				<</script>>
-			<</if>>
-			<<if State.variables._parseFailed == false>>
-				<<for _t = 0; _t < $defaultRules.length; _t++>>
-					<<if $currentRule.ID == $defaultRules[_t].ID>>
-						<<if $currentRule.thresholdLower != "none">>
-							<<set $currentRule.thresholdLower = Number($currentRule.thresholdLower)>>
-						<</if>>
-						<<if $currentRule.thresholdUpper != "none">>
-							<<set $currentRule.thresholdUpper = Number($currentRule.thresholdUpper)>>
-						<</if>>
-						<<set $defaultRules[_t] = $currentRule>>
-						//Rule $r saved//
-						<<break>>
-					<</if>>
-				<</for>>
-			<</if>>
-		<</replace>>
-	<</link>>
+    <br><br>
+    <<for _t = 0; _t < $defaultRules.length; _t++>>
+        <<if ($args[0] == $defaultRules[_t].ID)>>
+            <<if (def _customCondition)>>
+                <<set _parsedCondition = parseCondition(_customCondition)>>
+                <<if (_parsedCondition.error)>>
+                    //There seems to be something wrong with the condition that you have given me sir,
+                    <br> <<print printError(_customCondition, _parsedCondition.error)>>
+                    <br> _parsedCondition.error.message//
+                    <br>
+                    <<break>>
+                <<else>>
+                    <<set $currentRule.condition = _parsedCondition.expr>>
+                <</if>>
+            <</if>>
+
+            <<set $defaultRules[_t] = $currentRule>>
+            //Rule $r saved//
+            <<break>>
+        <</if>>
+    <</for>>
 <</replace>>
 <</widget>>
+
+
 /%
- Call as <<RAChangeApply>>
-%/
+ % Call as <<RAChangeSave>>
+ %/
+<<widget "RAChangeSave">>
+<<replace #saveresult>>
+    <br><br>
+    <<link _text>>
+        <<RASaveRule $currentRule.ID>>
+    <</link>>
+<</replace>>
+<</widget>>
+
+
+/%
+ % Call as <<RAChangeApply>>
+ %/
 <<widget "RAChangeApply">>
-<<replace #apply>>
-	<span id="applyresult">
-	<<link "Apply rules">>
-		<<set State.variables._parseFailed = false>>
-		<<replace "#saveresult">>
-			<br><br>
-			<<if $currentRule.activation == "custom">>
-				<<script>>
-					try { parseAndEvaluate(State.variables.currentRule.customActivationText, State.variables.slaves[0]); 
-						} catch (e) { State.variables._parseFailed = true; throwError("Failed to parse custom rule. Please check syntax and try again."); }
-				<</script>>
-			<</if>>
-			<<if State.variables._parseFailed == false>>
-				<<for _t = 0; _t < $defaultRules.length; _t++>>
-					<<if $currentRule.ID == $defaultRules[_t].ID>>
-						<<if $currentRule.thresholdLower != "none">>
-							<<set $currentRule.thresholdLower = Number($currentRule.thresholdLower)>>
-						<</if>>
-						<<if $currentRule.thresholdUpper != "none">>
-							<<set $currentRule.thresholdUpper = Number($currentRule.thresholdUpper)>>
-						<</if>>
-						<<set $defaultRules[_t] = $currentRule>>
-						//Rule $r saved//
-						<<break>>
-					<</if>>
-				<</for>>
-			<</if>>
-		<</replace>>
-		<<if State.variables._parseFailed == false>>
-			<<replace "#applied">>
-				<<for $i = 0; $i < $slaves.length; $i++>>
-					<<if $slaves[$i].useRulesAssistant == 1>> /* skip RA-exempt slaves */
-					  <<set $activeSlave = $slaves[$i]>>
-					  <<CheckAutoRulesActivate $activeSlave>> /* does not use or modify $currentRule */
-					  <<DefaultRules $activeSlave>> /* does not use or modify $currentRule */
-					<</if>>
-				<</for>>
-			<</replace>>
-			<<replace "#applyresult">>
-				//Rules applied.//<br>
-			<</replace>>
-		<</if>>
-	<</link>>
-	</span>
-	<span id="applied"></span>
+<<replace "#apply">>
+    <span id="applyresult">
+    <<link "Apply rules">>
+        <<RASaveRule $currentRule.ID>>
+        <<replace "#applied">>
+            <<for $i = 0; $i < $slaves.length; $i++>>
+                <<if (!$slaves[$i].useRulesAssistant)>> /* skip RA-exempt slaves */
+                    <<continue>>
+                <</if>>
+
+                <<set $activeSlave = $slaves[$i]>>
+                <<CheckAutoRulesActivate $activeSlave>> /* does not use or modify $currentRule */
+                <<DefaultRules $activeSlave>>           /* does not use or modify $currentRule */
+            <</for>>
+        <</replace>>
+
+        <<replace "#applyresult">>
+            //Rules applied.//<br>
+        <</replace>>
+    <</link>>
+    </span>
+    <span id="applied"></span>
 <</replace>>
 <</widget>>
 
@@ -3236,6 +3217,7 @@ Your brand design is ''$brandDesign.''
 			<<set _dump = $args[0].currentRules.deleteAt(_s)>>
 			<br>//@@.tan;Rule _rule (_currentRule.name) is no longer applying to $args[0].slaveName, who is assigned to $args[0].assignment.@@//
 			<<if $args[0].assignmentVisible == 0>>
+				<<set _combinedRule = _currentRule>>
 				<<include "Rules Facility Remove">>
 			<</if>>
 			<<break>>
@@ -3244,49 +3226,204 @@ Your brand design is ''$brandDesign.''
 <</widget>>
 
 /%
-	Call as <<DefaultRules SlaveObject>>
-	Does not use or modify $currentRule
-%/
+ % Call as <<DefaultRules SlaveObject>>
+ % Does not use or modify $currentRule
+ %/
 <<widget "DefaultRules">>
+<<set _combinedRule = {}>>
 <<for _r = 0; _r < $defaultRules.length; _r++>>
-<<set _currentRule = $defaultRules[_r]>>
-<<if !ruleApplied($args[0], _currentRule.ID)>><<continue>><</if>>
+	/% skip inapplicable rules %/
+	<<if !ruleApplied($args[0], $defaultRules[_r].ID)>>
+		<<continue>>
+	<</if>>
+
+	<<set _combinedRule = mergeRules([_combinedRule, $defaultRules[_r]])>>
+	
+	<<switch _combinedRule.assignFacility>>
+	<<case "hgsuite">>
+		<<if ($HGSuiteSlaves == 0) && ($args[0].indentureRestrictions <= 0) && ($args[0].assignment != "live with your Head Girl")>>
+			<br>$args[0].slaveName has been automatically assigned to live in your Head Girl's private suite.
+			<<assignJob $args[0] _combinedRule.assignFacility>>
+		<</if>>
+
+	<<case "arcade">>
+		<<if ($arcade > $arcadeSlaves) && ($args[0].indentureRestrictions <= 0) && ($args[0].assignment != "be confined in the arcade") && $args[0].breedingMark != 1>>
+			<br>$args[0].slaveName has been automatically assigned to be confined in $arcadeName.
+			<<assignJob $args[0] _combinedRule.assignFacility>>
+		<</if>>
+
+	<<case "mastersuite">>
+		<<if ($masterSuite > $masterSuiteSlaves) && ($args[0].devotion > 20) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50)>>
+			<<if ($args[0].assignment != "serve in the master suite")>>
+				<br>$args[0].slaveName has been automatically assigned to $masterSuiteName.
+				<<assignJob $args[0] _combinedRule.assignFacility>>
+			<</if>>
+		<<else>>
+			<<if ($args[0].assignment == "serve in the master suite")>>
+				<<include "Rules Facility Remove">>
+			<</if>>
+		<</if>>
+
+	<<case "clinic">>
+		<<if ($clinic > $clinicSlaves) && ($args[0].health < 20) || (($Nurse != 0) && ($args[0].chem > 15) && ($clinicUpgradeFilters == 1)) || (($args[0].bellyImplant > 100) && ($bellyImplants == 1)) || $args[0].preg > 1>>
+			<<if ($args[0].assignment != "get treatment in the clinic")>>
+				<br>$args[0].slaveName has been automatically assigned to get treatment in $clinicName.
+				<<assignJob $args[0] _combinedRule.assignFacility>>
+			<</if>>
+		<<else>>
+			<<if ($args[0].assignment == "get treatment in the clinic")>>
+				<<include "Rules Facility Remove">>
+			<</if>>
+		<</if>>
+
+	<<case "spa">>
+		<<if ($spa > $spaSlaves) && ($args[0].health < 20) || ($args[0].trust < 60) || ($args[0].devotion <= 60) || ($args[0].fetish == "mindbroken") && ($args[0].devotion >= -20)>>
+			<<if ($args[0].assignment != "rest in the spa")>>
+				<br>$args[0].slaveName has been automatically assigned to rest in $spaName.
+				<<assignJob $args[0] _combinedRule.assignFacility>>
+			<</if>>
+		<<else>>
+			<<if ($args[0].assignment == "rest in the spa")>>
+				<<include "Rules Facility Remove">>
+			<</if>>
+		<</if>>
+
+	<<case "brothel">>
+		<<if ($brothel > $brothelSlaves) && (($args[0].devotion > 50) || ($args[0].trust > 50) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50)) && $args[0].breedingMark != 1>>
+			<<if ($args[0].assignment != "work in the brothel")>>
+				<br>$args[0].slaveName has been automatically assigned to work in $brothelName.
+				<<assignJob $args[0] _combinedRule.assignFacility>>
+			<</if>>
+		<<else>>
+			<<if ($args[0].assignment == "work in the brothel")>>
+				<<include "Rules Facility Remove">>
+			<</if>>
+		<</if>>
+
+	<<case "club">>
+		<<if ($club > $clubSlaves) && (($args[0].devotion > 50) || ($args[0].trust > 50) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50)) && $args[0].breedingMark != 1>>
+			<<if ($args[0].assignment != "serve in the club")>>
+				<br>$args[0].slaveName has been automatically assigned to serve in $clubName.
+				<<assignJob $args[0] _combinedRule.assignFacility>>
+			<</if>>
+		<<else>>
+			<<if ($args[0].assignment == "serve in the club")>>
+				<<include "Rules Facility Remove">>
+			<</if>>
+		<</if>>
+
+	<<case "dairy">>
+		<<if ($dairy > $dairySlaves+$bioreactorsXY+$bioreactorsXX+$bioreactorsHerm+$bioreactorsBarren)>>
+			<<if ($args[0].indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)>>
+			<<elseif (($args[0].indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || ($args[0].breedingMark == 1 && $dairyRestriantsSettings > 0) || (($dairyPregSetting > 0) && ((_Slave.bellyImplant != 0) || (_Slave.pregType >= 50)))>>
+			<<else>>
+				<<if ($args[0].lactation > 0) || ($args[0].balls > 0) || (($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0))>>
+					<<if ($args[0].devotion > 20) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50) || ($args[0].amp == 1) || ($dairyRestraintsUpgrade == 1)>>
+						<<if ($dairyStimulatorsSetting < 2) || ($args[0].anus > 2) || ($dairyPrepUpgrade == 1)>>
+							<<if ($dairyPregSetting < 2) || ($args[0].vagina > 2) || ($args[0].ovaries == 0) || ($dairyPrepUpgrade == 1)>>
+								<<if ($args[0].assignment != "work in the dairy")>>
+									<br>$args[0].slaveName has been automatically assigned to be milked in $dairyName.
+									<<assignJob $args[0] _combinedRule.assignFacility>>
+								<</if>>
+							<<else>>
+								<<if ($args[0].assignment == "work in the dairy")>>
+									<<include "Rules Facility Remove">>
+								<</if>>
+							<</if>>
+						<<else>>
+							<<if ($args[0].assignment == "work in the dairy")>>
+								<<include "Rules Facility Remove">>
+							<</if>>
+						<</if>>
+					<<else>>
+						<<if ($args[0].assignment == "work in the dairy")>>
+							<<include "Rules Facility Remove">>
+						<</if>>
+					<</if>>
+				<<else>>
+					<<if ($args[0].assignment == "work in the dairy")>>
+						<<include "Rules Facility Remove">>
+					<</if>>
+				<</if>>
+			<</if>>
+		<</if>>
+
+	<<case "servantsquarters">>
+		<<if ($servantsQuarters > $servantsQuartersSlaves) && (($args[0].devotion >= -20) || (($args[0].devotion >= -50) && ($args[0].trust <= 20)) || ($args[0].trust < -20)) && canSee($args[0]) && canWalk($args[0])>>
+			<<if ($args[0].assignment != "work as a servant")>>
+				<br>$args[0].slaveName has been automatically assigned to work in $servantsQuartersName.
+				<<assignJob $args[0] _combinedRule.assignFacility>>
+			<</if>>
+		<<else>>
+			<<if ($args[0].assignment == "work as a servant")>>
+				<<include "Rules Facility Remove">>
+			<</if>>
+		<</if>>
+
+	<<case "schoolroom">>
+		<<if ($schoolroom > $schoolroomSlaves) && ($args[0].fetish != "mindbroken") && ($args[0].devotion >= -20 || ($args[0].devotion >= -50 && $args[0].trust < -20) || $args[0].trust < -50)>>
+			<<if ($args[0].intelligenceImplant < 1) || ($args[0].voice != 0 && $args[0].accent+$schoolroomUpgradeLanguage > 2) || ($args[0].oralSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].whoreSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].entertainSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].analSkill < 10+$schoolroomUpgradeSkills*20) || (($args[0].vagina >= 0) && ($args[0].vaginalSkill < 10+$schoolroomUpgradeSkills*20))>>
+				<<if ($args[0].assignment != "learn in the schoolroom")>>
+					<br>$args[0].slaveName has been automatically assigned to study in $schoolroomName.
+					<<assignJob $args[0] _combinedRule.assignFacility>>
+				<</if>>
+			<<else>>
+				<<if ($args[0].assignment == "learn in the schoolroom")>>
+					<<include "Rules Facility Remove">>
+				<</if>>
+			<</if>>
+		<<else>>
+			<<if ($args[0].assignment == "learn in the schoolroom")>>
+				<<include "Rules Facility Remove">>
+			<</if>>
+		<</if>>
+
+	<<case "cellblock">>
+		<<if ($cellblock > $cellblockSlaves) && (($args[0].devotion < -20) && ($args[0].trust >= -20)) || (($args[0].devotion < -50) && ($args[0].trust >= -50))>>
+			<<if ($args[0].assignment != "be confined in the cellblock")>>
+				<br>$args[0].slaveName has been automatically assigned to be confined in $cellblockName.
+				<<assignJob $args[0] _combinedRule.assignFacility>>
+			<</if>>
+		<<else>>
+			<<if ($args[0].assignment == "be confined in the cellblock")>>
+				<<include "Rules Facility Remove">>
+			<</if>>
+		<</if>>
+	<</switch>>
+
+	<<if (_combinedRule.setAssignment !== "none")>>
+	<<if (_combinedRule.setAssignment == "choose her own job")>>
+		<<if ($args[0].choosesOwnAssignment == 0)>>
+			<br>$args[0].slaveName is now allowed to select her own assignments.
+			<<assignJob $args[0] _combinedRule.setAssignment>>
+		<</if>>
+	<<elseif ($args[0].assignment !== _combinedRule.setAssignment)>>
+		<br>$args[0].slaveName has been automatically assigned to _combinedRule.setAssignment.
+		<<assignJob $args[0] _combinedRule.setAssignment>>
+	<</if>>
+	<</if>>
+
+<</for>>
 
 <<if $args[0].fuckdoll == 0>>
 
-<<if (_currentRule.choosesOwnAssignment == 1)>>
-<<if ($args[0].choosesOwnAssignment == 0)>>
-<<if ($args[0].assignmentVisible == 1)>>
-<<if ($args[0].assignment != "recruit girls")>>
-<<if ($args[0].assignment != "be your Head Girl")>>
-<<if ($args[0].assignment != "guard you")>>
-	<br>$args[0].slaveName is now allowed to select her own assignments.
-	<<set $args[0].choosesOwnAssignment = 1>>
-	<<set $args[0].assignment = "choose her own job">>
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<if (_currentRule.clothes !== "no default setting")>>
-<<if (_currentRule.choosesOwnClothes == 1)>>
- <<if ($args[0].choosesOwnClothes == 0)>>
-	<br>$args[0].slaveName is now allowed to choose her own clothes.
-	<<set $args[0].choosesOwnClothes = 1>>
+<<if (_combinedRule.clothes !== "no default setting")>>
+<<if (_combinedRule.clothes == "choosing her own clothes")>>
+<<if ($args[0].choosesOwnClothes == 0)>>
 	<<set $args[0].clothes = "choosing her own clothes">>
-  <</if>>
-<<elseif ($args[0].clothes !== _currentRule.clothes)>>
-	<<set $args[0].clothes = _currentRule.clothes>>
-	<br>$args[0].slaveName is now wearing $args[0].clothes.
+	<<set $args[0].choosesOwnClothes = 1>>
+	<br>$args[0].slaveName is now allowed to choose her own clothes.
+<</if>>
+<<elseif ($args[0].clothes !== _combinedRule.clothes)>>
+	<<set $args[0].clothes = _combinedRule.clothes>>
 	<<set $args[0].choosesOwnClothes = 0>>
+	<br>$args[0].slaveName is now wearing $args[0].clothes.
 <</if>>
 <</if>>
 
-<<if (_currentRule.collar !== "no default setting")>>
-<<if ($args[0].collar !== _currentRule.collar)>>
-	<<set $args[0].collar = _currentRule.collar>>
+<<if (_combinedRule.collar !== "no default setting")>>
+<<if ($args[0].collar !== _combinedRule.collar)>>
+	<<set $args[0].collar = _combinedRule.collar>>
 	<<if ($args[0].collar == "none")>>
 		<br>$args[0].slaveName has been given no collar.
 	<<else>>
@@ -3295,90 +3432,93 @@ Your brand design is ''$brandDesign.''
 <</if>>
 <</if>>
 
-<<set _tmp = lastEyeWearRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.eyewear !== "no default setting")>>
-	<<if _currentRule.eyewear == "correct with glasses">>
-	<<if $args[0].eyes <= -1>>
-		<<if $args[0].eyewear != "corrective glasses">>
-		<<set $args[0].eyewear = "corrective glasses">>
-		<<set $cash -= $modCost>>
-		<br>$args[0].slaveName has been given corrective glasses.
-		<</if>>
-	<<else>>
-		<<if $args[0].eyewear != "none">>
-		<<set $args[0].eyewear = "none">>
-		<br>$args[0].slaveName's eyewear has been removed.
-		<</if>>
-	<</if>>
-	<<elseif _currentRule.eyewear == "correct with contacts">>
-	<<if $args[0].eyes <= -1>>
-		<<if $args[0].eyewear != "corrective contacts">>
-		<<set $args[0].eyewear = "corrective contacts">>
-		<<set $cash -= $modCost>>
-		<br>$args[0].slaveName has been given corrective contacts.
-	  <</if>>
-	<<else>>
-		<<if $args[0].eyewear != "none">>
-		<<set $args[0].eyewear = "none">>
-		<br>$args[0].slaveName's eyewear has been removed.
-	  <</if>>
-	<</if>>
-	<<elseif _currentRule.eyewear == "blur with glasses">>
-	<<if $args[0].eyes > -1>>
-		<<if $args[0].eyewear != "blurring glasses">>
-		<<set $args[0].eyewear = "blurring glasses">>
-		<<set $cash -= $modCost>>
-		<br>$args[0].slaveName has been given blurring glasses.
-	  <</if>>
-	<<else>>
-		<<if $args[0].eyewear != "none">>
-		<<set $args[0].eyewear = "none">>
-		<br>$args[0].slaveName's eyewear has been removed.
-		<</if>>
-	<</if>>
-	<<elseif _currentRule.eyewear == "blur with contacts">>
-	<<if $args[0].eyes > -1>>
-	  <<if $args[0].eyewear != "blurring contacts">>
-		<<set $args[0].eyewear = "blurring contacts">>
-		<<set $cash -= $modCost>>
-		<br>$args[0].slaveName has been given blurring contacts.
-	  <</if>>
-	<<else>>
-	  <<if $args[0].eyewear != "none">>
-		<<set $args[0].eyewear = "none">>
-		<br>Since $args[0].slaveName's eyewear has been removed.
-	  <</if>>
-	<</if>>
-	<<elseif _currentRule.eyewear == "universal glasses">>
-	<<if $args[0].eyes <= -1>>
-	  <<if $args[0].eyewear != "corrective glasses">>
-		<<set $args[0].eyewear = "corrective glasses">>
-		<<set $cash -= $modCost>>
-		<br>$args[0].slaveName has been given corrective glasses.
-	  <</if>>
-	<<else>>
-	  <<if $args[0].eyewear != "glasses">>
-		<<set $args[0].eyewear = "glasses">>
-		<<set $cash -= $modCost>>
-		<br>$args[0].slaveName has been given decorative glasses.
-	  <</if>>
-	<</if>>
-  <<else>>
-	  <<if $args[0].eyewear != "none">>
-		<<set $args[0].eyewear = "none">>
-		<br>$args[0].slaveName's eyewear has been removed.
-	  <</if>>
-  <</if>>
-<</if>>
+<<if (_combinedRule.eyewear !== "no default setting")>>
+    <<switch _combinedRule.eyewear>>
+    <<case "correct with glasses">>
+        <<if $args[0].eyes <= -1>>
+            <<if $args[0].eyewear != "corrective glasses">>
+                <<set $args[0].eyewear = "corrective glasses">>
+                <<set $cash -= $modCost>>
+                <br>$args[0].slaveName has been given corrective glasses.
+            <</if>>
+        <<else>>
+            <<if $args[0].eyewear != "none">>
+                <<set $args[0].eyewear = "none">>
+                <br>$args[0].slaveName's eyewear has been removed.
+            <</if>>
+        <</if>>
+
+    <<case "correct with contacts">>
+        <<if $args[0].eyes <= -1>>
+            <<if $args[0].eyewear != "corrective contacts">>
+                <<set $args[0].eyewear = "corrective contacts">>
+                <<set $cash -= $modCost>>
+                <br>$args[0].slaveName has been given corrective contacts.
+            <</if>>
+        <<else>>
+            <<if $args[0].eyewear != "none">>
+                <<set $args[0].eyewear = "none">>
+                <br>$args[0].slaveName's eyewear has been removed.
+            <</if>>
+        <</if>>
+
+    <<case "blur with glasses">>
+        <<if $args[0].eyes > -1>>
+            <<if $args[0].eyewear != "blurring glasses">>
+                <<set $args[0].eyewear = "blurring glasses">>
+                <<set $cash -= $modCost>>
+                <br>$args[0].slaveName has been given blurring glasses.
+            <</if>>
+        <<else>>
+            <<if $args[0].eyewear != "none">>
+                <<set $args[0].eyewear = "none">>
+                <br>$args[0].slaveName's eyewear has been removed.
+            <</if>>
+        <</if>>
+
+    <<case "blur with contacts">>
+        <<if $args[0].eyes > -1>>
+            <<if $args[0].eyewear != "blurring contacts">>
+                <<set $args[0].eyewear = "blurring contacts">>
+                <<set $cash -= $modCost>>
+                <br>$args[0].slaveName has been given blurring contacts.
+            <</if>>
+        <<else>>
+            <<if $args[0].eyewear != "none">>
+                <<set $args[0].eyewear = "none">>
+                <br>Since $args[0].slaveName's eyewear has been removed.
+            <</if>>
+        <</if>>
+
+    <<case "universal glasses">>
+        <<if $args[0].eyes <= -1>>
+            <<if $args[0].eyewear != "corrective glasses">>
+                <<set $args[0].eyewear = "corrective glasses">>
+                <<set $cash -= $modCost>>
+                <br>$args[0].slaveName has been given corrective glasses.
+            <</if>>
+        <<else>>
+            <<if $args[0].eyewear != "glasses">>
+                <<set $args[0].eyewear = "glasses">>
+                <<set $cash -= $modCost>>
+                <br>$args[0].slaveName has been given decorative glasses.
+            <</if>>
+        <</if>>
+
+    <<default>>
+        <<if $args[0].eyewear != "none">>
+            <<set $args[0].eyewear = "none">>
+            <br>$args[0].slaveName's eyewear has been removed.
+        <</if>>
+    <</switch>>
 <</if>>
 
 <<if $args[0].vagina == 0>>
-<<if _currentRule.virginAccessory !== "no default setting">>
-<<if $args[0].vaginalAccessory !== _currentRule.virginAccessory>>
-	<<set $args[0].vaginalAccessory = _currentRule.virginAccessory>>
+<<if _combinedRule.virginAccessory !== "no default setting">>
+<<if $args[0].vaginalAccessory !== _combinedRule.virginAccessory>>
+	<<set $args[0].vaginalAccessory = _combinedRule.virginAccessory>>
 	<<if $args[0].vaginalAccessory == "huge dildo">>
-		<br>$args[0].slaveName has been given a
+		<br>$args[0].slaveName is a virgin and has been given a
 		<<if $args[0].vagina >= 3>>
 			massive dildo to permanently gape her cunt,
 		<<else>>
@@ -3386,18 +3526,18 @@ Your brand design is ''$brandDesign.''
 			<<set $args[0].vaginalAccessory = "large dildo">>
 		<</if>>
 	<<elseif $args[0].vaginalAccessory == "none">>
-		<br>$args[0].slaveName's item for her pussy has been changed to be nothing.
+		<br>$args[0].slaveName is a virgin and has been instructed not to use a vaginal accessory.
 	<<else>>
-		<br>$args[0].slaveName has been given a $args[0].vaginalAccessory for her pussy.
+		<br>$args[0].slaveName is a virgin and has been given a $args[0].vaginalAccessory for her pussy.
 	<</if>>
 <</if>>
 <</if>>
 <<elseif ($args[0].vagina > 0) && ($args[0].anus == 0)>>
-<<if _currentRule.aVirginAccessory !== "no default setting">>
-<<if $args[0].vaginalAccessory !== _currentRule.aVirginAccessory>>
-	<<set $args[0].vaginalAccessory = _currentRule.aVirginAccessory>>
+<<if _combinedRule.aVirginAccessory !== "no default setting">>
+<<if $args[0].vaginalAccessory !== _combinedRule.aVirginAccessory>>
+	<<set $args[0].vaginalAccessory = _combinedRule.aVirginAccessory>>
 	<<if $args[0].vaginalAccessory == "huge dildo">>
-		<br>$args[0].slaveName has been given a
+		<br>$args[0].slaveName is a virgin and has been given a
 		<<if $args[0].vagina >= 3>>
 			massive dildo to permanently gape her cunt.
 		<<else>>
@@ -3405,16 +3545,16 @@ Your brand design is ''$brandDesign.''
 			<<set $args[0].vaginalAccessory = "large dildo">>
 		<</if>>
 	<<elseif $args[0].vaginalAccessory == "none">>
-		<br>$args[0].slaveName's item for her pussy has been changed to be nothing.
+		<br>$args[0].slaveName is a virgin and has been instructed not to use a vaginal accessory.
 	<<else>>
-		<br>$args[0].slaveName has been given a $args[0].vaginalAccessory for her pussy.
+		<br>$args[0].slaveName is a virgin and has been given a $args[0].vaginalAccessory for her pussy.
 	<</if>>
 <</if>>
 <</if>>
 <<elseif $args[0].vagina > 0>>
-<<if _currentRule.vaginalAccessory !== "no default setting">>
-<<if $args[0].vaginalAccessory !== _currentRule.vaginalAccessory>>
-	<<set $args[0].vaginalAccessory = _currentRule.vaginalAccessory>>
+<<if _combinedRule.vaginalAccessory !== "no default setting">>
+<<if $args[0].vaginalAccessory !== _combinedRule.vaginalAccessory>>
+	<<set $args[0].vaginalAccessory = _combinedRule.vaginalAccessory>>
 	<<if $args[0].vaginalAccessory == "huge dildo">>
 		<br>$args[0].slaveName has been given a
 		<<if $args[0].vagina >= 3>>
@@ -3424,7 +3564,7 @@ Your brand design is ''$brandDesign.''
 			<<set $args[0].vaginalAccessory = "large dildo">>
 		<</if>>
 	<<elseif $args[0].vaginalAccessory == "none">>
-		<br>$args[0].slaveName's item for her pussy has been changed to be nothing.
+		<br>$args[0].slaveName has been instructed not to use a vaginal accessory.
 	<<else>>
 		<br>$args[0].slaveName has been given a $args[0].vaginalAccessory for her pussy.
 	<</if>>
@@ -3434,22 +3574,22 @@ Your brand design is ''$brandDesign.''
 
 <<if ($args[0].dick > 0)>>
 <<if $args[0].anus == 0>>
-<<if (_currentRule.aVirginDickAccessory !== "no default setting")>>
-<<if ($args[0].dickAccessory !== _currentRule.aVirginDickAccessory)>>
-	<<set $args[0].dickAccessory = _currentRule.aVirginDickAccessory>>
+<<if (_combinedRule.aVirginDickAccessory !== "no default setting")>>
+<<if ($args[0].dickAccessory !== _combinedRule.aVirginDickAccessory)>>
+	<<set $args[0].dickAccessory = _combinedRule.aVirginDickAccessory>>
 	<<if $args[0].dickAccessory == "none">>
-		<br>$args[0].slaveName's dick accessory has been changed to be nothing.
+		<br>$args[0].slaveName is a virgin and has been instructed not to wear a dick accessory.
 	<<else>>
-		<br>$args[0].slaveName has been given a $args[0].dickAccessory accessory for her cock.
+		<br>$args[0].slaveName is a virgin and has been given a $args[0].dickAccessory accessory for her cock.
 	<</if>>
 <</if>>
 <</if>>
 <<else>>
-<<if (_currentRule.dickAccessory !== "no default setting")>>
-<<if ($args[0].dickAccessory !== _currentRule.dickAccessory)>>
-	<<set $args[0].dickAccessory = _currentRule.dickAccessory>>
+<<if (_combinedRule.dickAccessory !== "no default setting")>>
+<<if ($args[0].dickAccessory !== _combinedRule.dickAccessory)>>
+	<<set $args[0].dickAccessory = _combinedRule.dickAccessory>>
 	<<if $args[0].dickAccessory == "none">>
-		<br>$args[0].slaveName's dick accessory has been changed to be nothing.
+		<br>$args[0].slaveName has been instructed not to wear a dick accessory.
 	<<else>>
 		<br>$args[0].slaveName has been given a $args[0].dickAccessory accessory for her cock.
 	<</if>>
@@ -3460,11 +3600,11 @@ Your brand design is ''$brandDesign.''
 
 <<if ($args[0].vaginalAccessory !== "anal chastity") && ($args[0].vaginalAccessory !== "combined chastity") && ($args[0].dickAccessory !== "anal chastity") && ($args[0].dickAccessory !== "combined chastity")>>
 <<if $args[0].anus == 0>>
-<<if (_currentRule.aVirginButtplug !== "no default setting")>>
-<<if ($args[0].buttplug !== _currentRule.aVirginButtplug)>>
-	<<set $args[0].buttplug = _currentRule.aVirginButtplug>>
+<<if (_combinedRule.aVirginButtplug !== "no default setting")>>
+<<if ($args[0].buttplug !== _combinedRule.aVirginButtplug)>>
+	<<set $args[0].buttplug = _combinedRule.aVirginButtplug>>
 	<<if ($args[0].buttplug == "huge plug")>>
-		<br>$args[0].slaveName has been given a
+		<br>$args[0].slaveName is an anal virgin and has been given a
 		<<if ($args[0].anus >= 3)>>
 			massive plug to permanently gape her asshole.
 		<<else>>
@@ -3472,16 +3612,16 @@ Your brand design is ''$brandDesign.''
 			large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.
 		<</if>>
 	<<elseif $args[0].buttplug == "none">>
-		<br>$args[0].slaveName's item for her pussy has been changed to be nothing.
+		<br>$args[0].slaveName is an anal virgin and has been instructed not to use an anal accessory.
 	<<else>>
-		<br>$args[0].slaveName has been given a $args[0].buttplug for her asshole.
+		<br>$args[0].slaveName is an anal virgin and has been given a $args[0].buttplug for her asshole.
 	<</if>>
 <</if>>
 <</if>>
 <<else>>
-<<if (_currentRule.buttplug !== "no default setting")>>
-<<if ($args[0].buttplug !== _currentRule.buttplug)>>
-	<<set $args[0].buttplug = _currentRule.buttplug>>
+<<if (_combinedRule.buttplug !== "no default setting")>>
+<<if ($args[0].buttplug !== _combinedRule.buttplug)>>
+	<<set $args[0].buttplug = _combinedRule.buttplug>>
 	<<if ($args[0].buttplug == "huge plug")>>
 		<br>$args[0].slaveName has been given a
 		<<if ($args[0].anus >= 3)>>
@@ -3491,7 +3631,7 @@ Your brand design is ''$brandDesign.''
 			large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.
 		<</if>>
 	<<elseif $args[0].buttplug == "none">>
-		<br>$args[0].slaveName's item for her pussy has been changed to be nothing.
+		<br>$args[0].slaveName has been instructed not to use an anal accessory.
 	<<else>>
 		<br>$args[0].slaveName has been given a $args[0].buttplug for her asshole.
 	<</if>>
@@ -3500,25 +3640,25 @@ Your brand design is ''$brandDesign.''
 <</if>>
 <</if>>
 
-<<if (_currentRule.shoes !== "no default setting")>>
-<<if ($args[0].shoes !== _currentRule.shoes)>>
+<<if (_combinedRule.shoes !== "no default setting")>>
+<<if ($args[0].shoes !== _combinedRule.shoes)>>
 <<if ($args[0].amp != 1)>>
-	<<set $args[0].shoes = _currentRule.shoes>>
+	<<set $args[0].shoes = _combinedRule.shoes>>
 	<br>$args[0].slaveName's shoes have been set to $args[0].shoes.
 <</if>>
 <</if>>
 <</if>>
 
-<<if (_currentRule.bellyAccessory !== "no default setting")>>
-<<if ($args[0].bellyAccessory !== _currentRule.bellyAccessory)>>
-	<<if visibleBelly($args[0]) && $fakeBellies.contains(_currentRule.bellyAccessory)>>	
+<<if (_combinedRule.bellyAccessory !== "no default setting")>>
+<<if ($args[0].bellyAccessory !== _combinedRule.bellyAccessory)>>
+	<<if visibleBelly($args[0]) && $fakeBellies.contains(_combinedRule.bellyAccessory)>>
 		<br>$args[0].slaveName's natural belly is too big to properly wear an empathy belly.
 	<<else>>
-		<<set $args[0].bellyAccessory = _currentRule.bellyAccessory>>
+		<<set $args[0].bellyAccessory = _combinedRule.bellyAccessory>>
 		<<if $args[0].bellyAccessory == "none">>
-			<br>$args[0].slaveName's belly accessory has been removed.
+			<br>$args[0].slaveName has been instructed not to wear a chest accessory.
 		<<else>>
-			<br>$args[0].slaveName has been given the proper belly accessory to wear: $args[0].bellyAccessory.
+			<br>$args[0].slaveName has been given a $args[0].bellyAccessory to wear.
 		<</if>>
 	<</if>>
 <</if>>
@@ -3526,9 +3666,9 @@ Your brand design is ''$brandDesign.''
 
 <</if>> /* CLOSES FUCKDOLL CHECK */
 
-<<if (_currentRule.growth !== "no default setting")>>
+<<if (_combinedRule.growth !== "no default setting")>>
 <<if ($args[0].indentureRestrictions < 2)>>
-<<if (_currentRule.growth == "girlish")>>
+<<if (_combinedRule.growth == "girlish")>>
 	<<if ($args[0].butt < 2)>>
 		<<set $args[0].drugs = "butt injections">>
 		<br>$args[0].slaveName's butt is tiny, so she's been put on buttock growth drugs.
@@ -3542,7 +3682,7 @@ Your brand design is ''$brandDesign.''
 		<<set $args[0].drugs = "no drugs">>
 		<br>$args[0].slaveName has reached growth targets and has been taken off growth injections.
 	<</if>>
-<<elseif (_currentRule.growth == "stacked")>>
+<<elseif (_combinedRule.growth == "stacked")>>
 	<<if ($args[0].butt < 2)>>
 		<<set $args[0].drugs = "butt injections">>
 		<br>$args[0].slaveName's butt is tiny, so she's been put on buttock growth drugs.
@@ -3593,10 +3733,10 @@ Your brand design is ''$brandDesign.''
 	<<elseif ($args[0].boobs <= 9000)>>
 		<<set $args[0].drugs = "breast injections">>
 		<br>$args[0].slaveName could handle bigger tits, so she's been put on breast injections.
-	<<elseif ($args[0].dick > 0) && ($args[0].dick < 10) && (_currentRule.growth == "unlimited")>>
+	<<elseif ($args[0].dick > 0) && ($args[0].dick < 10) && (_combinedRule.growth == "unlimited")>>
 		<<set $args[0].drugs = "penis enhancement">>
 		<br>$args[0].slaveName's dick could be bigger, so she's been put on penis enhancement.
-	<<elseif ($args[0].boobs < 24000) && (_currentRule.growth == "unlimited")>>
+	<<elseif ($args[0].boobs < 24000) && (_combinedRule.growth == "unlimited")>>
 		<<set $args[0].drugs = "breast injections">>
 		<br>$args[0].slaveName's boobs could be bigger, so she's been put on breast injections.
 	<<elseif $args[0].drugs != "no drugs">>
@@ -3607,35 +3747,35 @@ Your brand design is ''$brandDesign.''
 <</if>>
 <</if>>
 
-<<if (_currentRule.curatives != "no default setting")>>
-<<if $args[0].curatives != _currentRule.curatives>>
-	<<if _currentRule.curatives == 2>>
+<<if (_combinedRule.curatives != "no default setting")>>
+<<if $args[0].curatives != _combinedRule.curatives>>
+	<<if _combinedRule.curatives == 2>>
 		<<if $args[0].health > 100>>
 			<br>$args[0].slaveName has been	put on preventatives, since curatives cannot improve her health further.
 			<<set $args[0].curatives = 1>>
 		<<else>>
 			<br>$args[0].slaveName has been	put on curatives.
-			<<set $args[0].curatives = _currentRule.curatives>>
+			<<set $args[0].curatives = _combinedRule.curatives>>
 		<</if>>
 	<<else>>
-		<br>$args[0].slaveName has been	<<if _currentRule.aphrodisiacs > 0>>put on preventatives<<else>>taken off health drugs<</if>>.
-		<<set $args[0].curatives = _currentRule.curatives>>
+		<br>$args[0].slaveName has been	<<if _combinedRule.curatives > 0>>put on preventatives<<else>>taken off health drugs<</if>>.
+		<<set $args[0].curatives = _combinedRule.curatives>>
 	<</if>>
 <</if>>
 <</if>>
 
-<<if (_currentRule.aphrodisiacs != "no default setting")>>
-<<if $args[0].aphrodisiacs != _currentRule.aphrodisiacs>>
-	<br>$args[0].slaveName has been	<<if _currentRule.aphrodisiacs > 0>>put on the proper<<else>>taken off<</if>> aphrodisiacs.
-	<<set $args[0].aphrodisiacs = _currentRule.aphrodisiacs>>
+<<if (_combinedRule.aphrodisiacs != "no default setting")>>
+<<if $args[0].aphrodisiacs != _combinedRule.aphrodisiacs>>
+	<br>$args[0].slaveName has been	<<if _combinedRule.aphrodisiacs > 0>>put on the proper<<else>>taken off<</if>> aphrodisiacs.
+	<<set $args[0].aphrodisiacs = _combinedRule.aphrodisiacs>>
 <</if>>
 <</if>>
 
 <<if ($args[0].dick > 0)>>
 <<if ($args[0].balls == 0)>>
-<<if (_currentRule.gelding !== "no default setting")>>
-<<if ($args[0].hormones !== _currentRule.gelding)>>
-	<<set $args[0].hormones = _currentRule.gelding>>
+<<if (_combinedRule.gelding !== "no default setting")>>
+<<if ($args[0].hormones !== _combinedRule.gelding)>>
+	<<set $args[0].hormones = _combinedRule.gelding>>
 	<<if $args[0].indentureRestrictions >= 2>>
 		<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
 	<</if>>
@@ -3643,13 +3783,13 @@ Your brand design is ''$brandDesign.''
 <</if>>
 <</if>>
 <<elseif ($args[0].balls > 0)>>
-<<if (_currentRule.XY !== "no default setting")>>
-<<if ($args[0].hormones !== _currentRule.XY)>>
+<<if (_combinedRule.XY !== "no default setting")>>
+<<if ($args[0].hormones !== _combinedRule.XY)>>
 <<if ($args[0].assignment != "recruit girls")>>
 <<if ($args[0].assignment != "be the Wardeness")>>
 <<if ($args[0].assignment != "be the Madam")>>
 <<if ($args[0].assignment != "be the Collectrix")>>
-	<<set $args[0].hormones = _currentRule.XY>>
+	<<set $args[0].hormones = _combinedRule.XY>>
 	<<if $args[0].indentureRestrictions >= 2>>
 		<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
 	<</if>>
@@ -3665,9 +3805,9 @@ Your brand design is ''$brandDesign.''
 
 <<if ($args[0].vagina > -1)>>
 <<if ($args[0].dick == 0)>>
-<<if (_currentRule.XX !== "no default setting")>>
-<<if ($args[0].hormones !== _currentRule.XX)>>
-	<<set $args[0].hormones = _currentRule.XX>>
+<<if (_combinedRule.XX !== "no default setting")>>
+<<if ($args[0].hormones !== _combinedRule.XX)>>
+	<<set $args[0].hormones = _combinedRule.XX>>
 	<<if $args[0].indentureRestrictions >= 2>>
 		<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
 	<</if>>
@@ -3676,8 +3816,8 @@ Your brand design is ''$brandDesign.''
 <</if>>
 <</if>>
 <<if canGetPregnant($args[0])>>
-<<if (_currentRule.preg !== "no default setting")>>
-<<if (_currentRule.preg == -1)>>
+<<if (_combinedRule.preg !== "no default setting")>>
+<<if (_combinedRule.preg == -1)>>
 	<<if $args[0].preg !== -1>>
 		<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate contraceptive regime.
 		<<set $args[0].preg = -1>>
@@ -3685,7 +3825,7 @@ Your brand design is ''$brandDesign.''
 	<<if $args[0].drugs == "fertility drugs" || $args[0].drugs == "super fertility drugs">>
 		<<set $args[0].drugs = "no drugs">>
 	<</if>>
-<<elseif (_currentRule.preg == 0)>>
+<<elseif (_combinedRule.preg == 0)>>
 	<<if $args[0].preg !== 0>>
 		<br>$args[0].slaveName is a fertile female, so she has been taken off contraceptives.
 		<<set $args[0].preg = 0>>
@@ -3693,28 +3833,28 @@ Your brand design is ''$brandDesign.''
 	<<if $args[0].drugs == "fertility drugs" || $args[0].drugs == "super fertility drugs">>
 		<<set $args[0].drugs = "no drugs">>
 	<</if>>
-<<elseif (_currentRule.preg == 1)>>
+<<elseif (_combinedRule.preg == 1)>>
 	<<if $args[0].preg !== 0 || $args[0].drugs !== "fertility drugs" || $args[0].hormones !== 0>>
 		<<set $args[0].preg = 0>>
 		<<set $args[0].drugs = "fertility drugs">>
 		<<set $args[0].hormones = 0>>
 		<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate fertility regime.
 	<</if>>
-<<elseif (_currentRule.preg == 2)>>
+<<elseif (_combinedRule.preg == 2)>>
 	<<if $args[0].preg !== 0 || $args[0].drugs !== "fertility drugs" || $args[0].hormones !== 2>>
 		<<set $args[0].preg = 0>>
 		<<set $args[0].drugs = "fertility drugs">>
 		<<set $args[0].hormones = 2>>
 		<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate fertility regime.
 	<</if>>
-<<elseif (_currentRule.preg == 3) and $args[0].indentureRestrictions < 1>>
+<<elseif (_combinedRule.preg == 3) and $args[0].indentureRestrictions < 1>>
 	<<if $args[0].preg !== 0 || $args[0].drugs !== "super fertility drugs" || $args[0].hormones !== 0>>
 		<<set $args[0].preg = 0>>
 		<<set $args[0].drugs = "super fertility drugs">>
 		<<set $args[0].hormones = 0>>
 		<br>$args[0].slaveName is a fertile female, so she has been put on the appropriate fertility regime.
 	<</if>>
-<<elseif (_currentRule.preg == 4) and $args[0].indentureRestrictions < 1>>
+<<elseif (_combinedRule.preg == 4) and $args[0].indentureRestrictions < 1>>
 	<<if $args[0].preg !== 0 || $args[0].drugs !== "super fertility drugs" || $args[0].hormones !== 2>>
 		<<set $args[0].preg = 0>>
 		<<set $args[0].drugs = "super fertility drugs">>
@@ -3728,52 +3868,52 @@ Your brand design is ''$brandDesign.''
 
 <<if $args[0].fuckdoll == 0>>
 
-<<if (_currentRule.livingRules !== "no default setting")>>
+<<if (_combinedRule.livingRules !== "no default setting")>>
 <<if ($args[0].fetish == "mindbroken")>>
 	<<if ($args[0].livingRules !== "spare")>>
 	<<set $args[0].livingRules = "spare">>
 	<br>Since $args[0].slaveName is mindbroken her living standard has been set to spare.
 	<</if>>
-<<elseif $args[0].livingRules !== _currentRule.livingRules>>
-	<<if _currentRule.livingRules !== "luxurious">>
+<<elseif $args[0].livingRules !== _combinedRule.livingRules>>
+	<<if _combinedRule.livingRules !== "luxurious">>
 		<<if $roomsPopulation <= $rooms-0.5>>
-			<<set $args[0].livingRules = _currentRule.livingRules>>
-			<br>$args[0].slaveName's living standard has been set to _currentRule.livingRules.
+			<<set $args[0].livingRules = _combinedRule.livingRules>>
+			<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
 			<<if $args[0].relationship >= 4>><<set $roomsPopulation += 0.5>><<else>><<set $roomsPopulation += 1>><</if>>
 		<<else>>
 			<<set $args[0].livingRules = "normal">>
 			<br>$args[0].slaveName's living standard has been set to normal, since there is no room for her to occupy.
 		<</if>>
 	<<else>>
-		<<set $args[0].livingRules = _currentRule.livingRules>>
-		<br>$args[0].slaveName's living standard has been set to _currentRule.livingRules.
+		<<set $args[0].livingRules = _combinedRule.livingRules>>
+		<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
 	<</if>>
 <</if>>
 <</if>>
 
-<<if (_currentRule.speechRules !== "no default setting")>>
+<<if (_combinedRule.speechRules !== "no default setting")>>
 <<if ($args[0].fetish == "mindbroken")>>
 	<<if ($args[0].speechRules !== "restrictive")>>
 	<<set $args[0].speechRules = "restrictive">>
 	<br>Since $args[0].slaveName is mindbroken her speech rules have been set to restrictive.
 	<</if>>
-<<elseif ($args[0].speechRules !== _currentRule.speechRules)>>
-	<<set $args[0].speechRules = _currentRule.speechRules>>
-	<br>$args[0].slaveName's speech rules have been set to _currentRule.speechRules.
+<<elseif ($args[0].speechRules !== _combinedRule.speechRules)>>
+	<<set $args[0].speechRules = _combinedRule.speechRules>>
+	<br>$args[0].slaveName's speech rules have been set to _combinedRule.speechRules.
 <</if>>
 <</if>>
 
 <<if ($args[0].fetish !== "mindbroken")>>
- <<if (_currentRule.relationshipRules !== "no default setting")>>
- <<if ($args[0].relationshipRules !== _currentRule.relationshipRules )>>
- 	<<set $args[0].relationshipRules = _currentRule.relationshipRules >>
- 	<br>$args[0].slaveName's relationship rules have been set to _currentRule.relationshipRules.
+ <<if (_combinedRule.relationshipRules !== "no default setting")>>
+ <<if ($args[0].relationshipRules !== _combinedRule.relationshipRules )>>
+ 	<<set $args[0].relationshipRules = _combinedRule.relationshipRules >>
+ 	<br>$args[0].slaveName's relationship rules have been set to _combinedRule.relationshipRules.
  <</if>>
  <</if>>
 <</if>>
 
-<<if (_currentRule.releaseRules !== "no default setting")>>
-	<<if (_currentRule.releaseRules == "restrictive")>>
+<<if (_combinedRule.releaseRules !== "no default setting")>>
+	<<if (_combinedRule.releaseRules == "restrictive")>>
 	<<SexualRelease $args[0]>>
 	<<else>>
 		<<set $release = 1>>
@@ -3781,44 +3921,44 @@ Your brand design is ''$brandDesign.''
 	<<if ($args[0].fetish == "mindbroken") && ($args[0].releaseRules !== "permissive")>>
 		<<set $args[0].releaseRules = "permissive">>
 		<br>Since $args[0].slaveName is mindbroken her masturbation rules have been set to permissive.
-	<<elseif ($release != 0) && ($args[0].releaseRules !== _currentRule.releaseRules)>>
-	  <<set $args[0].releaseRules = _currentRule.releaseRules>>
-	  <br>$args[0].slaveName's masturbation rules have been set to _currentRule.releaseRules.
+	<<elseif ($release != 0) && ($args[0].releaseRules !== _combinedRule.releaseRules)>>
+	  <<set $args[0].releaseRules = _combinedRule.releaseRules>>
+	  <br>$args[0].slaveName's masturbation rules have been set to _combinedRule.releaseRules.
 	<</if>>
 <</if>>
 
-<<if (_currentRule.standardPunishment !== "no default setting")>>
- <<if ($args[0].standardPunishment !== _currentRule.standardPunishment)>>
- 	<<set $args[0].standardPunishment = _currentRule.standardPunishment >>
- 	<br>$args[0].slaveName's typical punishment has been updated to _currentRule.standardPunishment.
+<<if (_combinedRule.standardPunishment !== "no default setting")>>
+ <<if ($args[0].standardPunishment !== _combinedRule.standardPunishment)>>
+ 	<<set $args[0].standardPunishment = _combinedRule.standardPunishment >>
+ 	<br>$args[0].slaveName's typical punishment has been updated to _combinedRule.standardPunishment.
  <</if>>
 <</if>>
 
-<<if (_currentRule.standardReward !== "no default setting")>>
- <<if ($args[0].standardReward !== _currentRule.standardReward)>>
- 	<<set $args[0].standardReward = _currentRule.standardReward >>
- 	<br>$args[0].slaveName's typical reward has been updated to _currentRule.standardReward.
+<<if (_combinedRule.standardReward !== "no default setting")>>
+ <<if ($args[0].standardReward !== _combinedRule.standardReward)>>
+ 	<<set $args[0].standardReward = _combinedRule.standardReward >>
+ 	<br>$args[0].slaveName's typical reward has been updated to _combinedRule.standardReward.
  <</if>>
 <</if>>
 
 <</if>> /* CLOSES FUCKDOLL CHECK */
 
-<<if (_currentRule.diet !== "no default setting")>>
-	<<if ($args[0].boobs >= 1600) && ($args[0].muscles <= 5) && ($args[0].amp != 1) && ((_currentRule.muscles == "no default setting") || (_currentRule.muscles == 0))>>
+<<if (_combinedRule.diet !== "no default setting")>>
+	<<if ($args[0].boobs >= 1600) && ($args[0].muscles <= 5) && ($args[0].amp != 1) && ((_combinedRule.muscles == "no default setting") || (_combinedRule.muscles == 0))>>
 		<<if ($args[0].diet !== "muscle building")>>
 			<<set $args[0].diet = "muscle building">>
 			<br>$args[0].slaveName has big tits and no back muscles, so she's been assigned to gain some.
 		<</if>>
-	<<elseif ($args[0].boobs >= 1600) && ($args[0].muscles > 5) && ($args[0].diet == "muscle building") && ((_currentRule.muscles == "no default setting") || (_currentRule.muscles == 0))>>
+	<<elseif ($args[0].boobs >= 1600) && ($args[0].muscles > 5) && ($args[0].diet == "muscle building") && ((_combinedRule.muscles == "no default setting") || (_combinedRule.muscles == 0))>>
 		<<set $args[0].diet = "healthy">>
 		<br>$args[0].slaveName has huge boobs, but she already has the back muscles to bear them, so she's been assigned to stop working out so hard.
-	<<elseif (_currentRule.dietGrowthSupport == 1) && (($args[0].drugs == "breast injections") || ($args[0].drugs == "butt injections")) && ($args[0].weight <= 95)>>
+	<<elseif (_combinedRule.dietGrowthSupport == 1) && (($args[0].drugs == "breast injections") || ($args[0].drugs == "butt injections")) && ($args[0].weight <= 95)>>
 		<<if $args[0].diet !== "fattening">>
 			<<set $args[0].diet = "fattening">>
 			<br>$args[0].slaveName is on drugs designed to expand major body parts, so she's been put on a fattening diet to provide her body as much fuel for growth as possible.
 		<</if>>
 	<<else>>
-		<<if (_currentRule.diet == 0)>>
+		<<if (_combinedRule.diet == 0)>>
 			<<if ($args[0].weight > 10)>>
 				<<if ($args[0].diet !== "restricted")>>
 					<<set $args[0].diet = "restricted">>
@@ -3837,13 +3977,13 @@ Your brand design is ''$brandDesign.''
 					<<set $args[0].drugs = "none">>
 					<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
 				<</if>>
-			<<elseif (_currentRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
-				<<if ($args[0].muscles >= _currentRule.muscles+5)>>
+			<<elseif (_combinedRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
+				<<if ($args[0].muscles >= _combinedRule.muscles+5)>>
 					<<if ($args[0].diet !== "slimming")>>
 						<<set $args[0].diet = "slimming">>
 						<br>$args[0].slaveName has been put on a slimming exercise regime.
 					<</if>>
-				<<elseif ($args[0].muscles <= _currentRule.muscles-5)>>
+				<<elseif ($args[0].muscles <= _combinedRule.muscles-5)>>
 					<<if ($args[0].diet !== "muscle building")>>
 						<<set $args[0].diet = "muscle building">>
 						<br>$args[0].slaveName has been put on a muscle building exercise regime.
@@ -3860,7 +4000,7 @@ Your brand design is ''$brandDesign.''
 					<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
 				<</if>>
 			<</if>>
-		<<elseif (_currentRule.diet == 30)>>
+		<<elseif (_combinedRule.diet == 30)>>
 			<<if ($args[0].weight > 30)>>
 				<<if ($args[0].diet !== "restricted")>>
 					<<set $args[0].diet = "restricted">>
@@ -3879,13 +4019,13 @@ Your brand design is ''$brandDesign.''
 					<<set $args[0].drugs = "none">>
 					<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
 				<</if>>
-			<<elseif (_currentRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
-				<<if ($args[0].muscles >= _currentRule.muscles+5)>>
+			<<elseif (_combinedRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
+				<<if ($args[0].muscles >= _combinedRule.muscles+5)>>
 					<<if ($args[0].diet !== "slimming")>>
 						<<set $args[0].diet = "slimming">>
 						<br>$args[0].slaveName has been put on a slimming exercise regime.
 					<</if>>
-				<<elseif ($args[0].muscles <= _currentRule.muscles-5)>>
+				<<elseif ($args[0].muscles <= _combinedRule.muscles-5)>>
 					<<if ($args[0].diet !== "muscle building")>>
 						<<set $args[0].diet = "muscle building">>
 						<br>$args[0].slaveName has been put on a muscle building exercise regime.
@@ -3910,7 +4050,7 @@ Your brand design is ''$brandDesign.''
 					<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
 				<</if>>
 			<</if>>
-		<<elseif (_currentRule.diet == -30)>>
+		<<elseif (_combinedRule.diet == -30)>>
 			<<if ($args[0].weight > -15)>>
 				<<if ($args[0].diet !== "restricted")>>
 					<<set $args[0].diet = "restricted">>
@@ -3929,13 +4069,13 @@ Your brand design is ''$brandDesign.''
 					<<set $args[0].drugs = "none">>
 					<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
 				<</if>>
-			<<elseif (_currentRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
-				<<if ($args[0].muscles >= _currentRule.muscles+5)>>
+			<<elseif (_combinedRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
+				<<if ($args[0].muscles >= _combinedRule.muscles+5)>>
 					<<if ($args[0].diet !== "slimming")>>
 						<<set $args[0].diet = "slimming">>
 						<br>$args[0].slaveName has been put on a slimming exercise regime.
 					<</if>>
-				<<elseif ($args[0].muscles <= _currentRule.muscles-5)>>
+				<<elseif ($args[0].muscles <= _combinedRule.muscles-5)>>
 					<<if ($args[0].diet !== "muscle building")>>
 						<<set $args[0].diet = "muscle building">>
 						<br>$args[0].slaveName has been put on a muscle building exercise regime.
@@ -3960,7 +4100,7 @@ Your brand design is ''$brandDesign.''
 					<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
 				<</if>>
 			<</if>>
-		<<elseif (_currentRule.diet == "attractive")>>
+		<<elseif (_combinedRule.diet == "attractive")>>
 			<<if (($args[0].weight > 95) || (($args[0].weight > 30) && ($args[0].hips < 2)))>>
 				<<if ($args[0].diet !== "restricted")>>
 					<<set $args[0].diet = "restricted">>
@@ -3979,13 +4119,13 @@ Your brand design is ''$brandDesign.''
 					<<set $args[0].drugs = "none">>
 					<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
 				<</if>>
-			<<elseif (_currentRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
-				<<if ($args[0].muscles >= _currentRule.muscles+5)>>
+			<<elseif (_combinedRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
+				<<if ($args[0].muscles >= _combinedRule.muscles+5)>>
 					<<if ($args[0].diet !== "slimming")>>
 						<<set $args[0].diet = "slimming">>
 						<br>$args[0].slaveName has been put on a slimming exercise regime.
 					<</if>>
-				<<elseif ($args[0].muscles <= _currentRule.muscles-5)>>
+				<<elseif ($args[0].muscles <= _combinedRule.muscles-5)>>
 					<<if ($args[0].diet !== "muscle building")>>
 						<<set $args[0].diet = "muscle building">>
 						<br>$args[0].slaveName has been put on a muscle building exercise regime.
@@ -4010,17 +4150,17 @@ Your brand design is ''$brandDesign.''
 					<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
 				<</if>>
 			<</if>>
-		<<elseif (_currentRule.diet == "XX")>>
+		<<elseif (_combinedRule.diet == "XX")>>
 			<<if ($args[0].diet !== "XX")>>
 				<<set $args[0].diet = "XX">>
 				<br>$args[0].slaveName has been put on a diet that favors feminine development.
 			<</if>>
-		<<elseif (_currentRule.diet == "XY")>>
+		<<elseif (_combinedRule.diet == "XY")>>
 			<<if ($args[0].diet !== "XY")>>
 				<<set $args[0].diet = "XY">>
 				<br>$args[0].slaveName has been put on a diet that favors masculine development.
 			<</if>>
-		<<elseif (_currentRule.diet == "XXY")>>
+		<<elseif (_combinedRule.diet == "XXY")>>
 			<<if ($args[0].diet !== "XXY")>>
 				<<set $args[0].diet = "XXY">>
 				<br>$args[0].slaveName has been put on a diet that enhances a herm's unique sexuality.
@@ -4029,9 +4169,9 @@ Your brand design is ''$brandDesign.''
 	<</if>>
 <</if>>
 
-<<if (_currentRule.dietCum !== "no default setting")>>
-	<<if $args[0].dietCum != _currentRule.dietCum>>
-		<<set $args[0].dietCum = _currentRule.dietCum>>
+<<if (_combinedRule.dietCum !== "no default setting")>>
+	<<if $args[0].dietCum != _combinedRule.dietCum>>
+		<<set $args[0].dietCum = _combinedRule.dietCum>>
 		<<if $args[0].dietCum == 2>>
 			<br>$args[0].slaveName has been put on a diet based on cum.
 			<<set $args[0].dietMilk = 0>>
@@ -4043,9 +4183,9 @@ Your brand design is ''$brandDesign.''
 	<</if>>
 <</if>>
 
-<<if (_currentRule.dietMilk !== "no default setting")>>
-	<<if $args[0].dietMilk != _currentRule.dietMilk>>
-		<<set $args[0].dietMilk = _currentRule.dietMilk>>
+<<if (_combinedRule.dietMilk !== "no default setting")>>
+	<<if $args[0].dietMilk != _combinedRule.dietMilk>>
+		<<set $args[0].dietMilk = _combinedRule.dietMilk>>
 		<<if $args[0].dietMilk == 2>>
 			<br>$args[0].slaveName has been put on a diet based on human milk.
 			<<set $args[0].dietCum = 0>>
@@ -4057,8 +4197,8 @@ Your brand design is ''$brandDesign.''
 	<</if>>
 <</if>>
 
-<<if (_currentRule.teeth !== "no default setting")>>
-  <<if (_currentRule.teeth == "universal")>>
+<<if (_combinedRule.teeth !== "no default setting")>>
+  <<if (_combinedRule.teeth == "universal")>>
 	<<if ($args[0].teeth == "crooked")>>
 		<<set $args[0].teeth = "straightening braces">>
 		<<set $cash -= $surgeryCost>>
@@ -4068,7 +4208,7 @@ Your brand design is ''$brandDesign.''
 		<<set $cash -= $surgeryCost>>
 		<br>$args[0].slaveName has been given cosmetic braces.
 	<</if>>
-  <<elseif (_currentRule.teeth == "straighten")>>
+  <<elseif (_combinedRule.teeth == "straighten")>>
 	<<if ($args[0].teeth == "crooked")>>
 		<<set $args[0].teeth = "straightening braces">>
 		<<set $cash -= $surgeryCost>>
@@ -4077,7 +4217,7 @@ Your brand design is ''$brandDesign.''
 		<<set $args[0].teeth = "normal">>
 		<br>$args[0].slaveName has gotten her braces off, since her teeth are straight.
 	<</if>>
-  <<elseif (_currentRule.teeth == "none")>>
+  <<elseif (_combinedRule.teeth == "none")>>
 	<<if ($args[0].teeth == "straightening braces")>>
 		<<set $args[0].teeth = "crooked">>
 		<br>$args[0].slaveName has gotten her braces off.
@@ -4088,581 +4228,426 @@ Your brand design is ''$brandDesign.''
 	<</if>>
 <</if>>
 
-<<set _tmp = lastEyeColorRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.eyeColor !== "no default setting")>>
-<<if ($args[0].eyeColor !== _currentRule.eyeColor)>>
-  <<set $args[0].eyeColor = _currentRule.eyeColor>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName has been given $args[0].eyeColor contact lenses.
-<</if>>
+<<if (_combinedRule.eyeColor !== "no default setting")>>
+<<if ($args[0].eyeColor !== _combinedRule.eyeColor)>>
+    <<set $args[0].eyeColor = _combinedRule.eyeColor>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName has been given $args[0].eyeColor contact lenses.
 <</if>>
 <</if>>
 
-<<set _tmp = lastMakeupRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.makeup !== "no default setting")>>
-<<if ($args[0].makeup !== _currentRule.makeup)>>
-  <<set $args[0].makeup = _currentRule.makeup>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName has been assigned the standard makeup.
-<</if>>
+<<if (_combinedRule.makeup !== "no default setting")>>
+<<if ($args[0].makeup !== _combinedRule.makeup)>>
+    <<set $args[0].makeup = _combinedRule.makeup>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName has been assigned the standard makeup.
 <</if>>
 <</if>>
 
-<<set _tmp = lastNailsRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
 <<if ($args[0].amp != 1)>>
-<<if (_currentRule.nails !== "no default setting")>>
-<<if ($args[0].nails !== _currentRule.nails)>>
-  <<set $args[0].nails = _currentRule.nails>>
-  <<set $cash -= $modCost>>
-	<br>$args[0].slaveName has been assigned the standard nails.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastHColorRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.hColor !== "no default setting")>>
-<<if ($args[0].hColor !== _currentRule.hColor)>>
-  <<set $args[0].hColor = _currentRule.hColor>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's hair has been dyed _currentRule.hColor.
+<<if (_combinedRule.nails !== "no default setting")>>
+<<if ($args[0].nails !== _combinedRule.nails)>>
+    <<set $args[0].nails = _combinedRule.nails>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName has been assigned the standard nails.
 <</if>>
 <</if>>
 <</if>>
 
-<<set _tmp = lastHStyleRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.hStyle !== "no default setting")>>
-<<if ($args[0].hStyle !== _currentRule.hStyle)>>
-<br>$args[0].slaveName's hair has been
-<<if (_currentRule.hStyle == "shaved")>>
-	<<set $args[0].hLength = 0>>
-	shaved.
-<<else>>
-	restyled.
-<</if>>
-<<set $args[0].hStyle = _currentRule.hStyle>>
-<<set $cash -= $modCost>>
-<</if>>
+<<if (_combinedRule.hColor !== "no default setting")>>
+<<if ($args[0].hColor !== _combinedRule.hColor)>>
+    <<set $args[0].hColor = _combinedRule.hColor>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's hair has been dyed _combinedRule.hColor.
 <</if>>
 <</if>>
 
-<<set _tmp = lastHLengthRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.hLength !== "no default setting")>>
-<<if ($args[0].hLength !== _currentRule.hLength)>>
-<<if ($args[0].hLength > _currentRule.hLength)>>
+<<if (_combinedRule.hStyle !== "no default setting")>>
+<<if ($args[0].hStyle !== _combinedRule.hStyle)>>
+    <<set $args[0].hStyle = _combinedRule.hStyle>>
+    <<set $cash -= $modCost>>
+    <<if (_combinedRule.hStyle == "shaved")>>
+        <<set $args[0].hLength = 0>>
+        <br>$args[0].slaveName's hair has been shaved.
+    <<else>>
+        <br>$args[0].slaveName's hair has been restyled.
+    <</if>>
+<</if>>
+<</if>>
+
+<<if (_combinedRule.hLength !== "no default setting")>>
+<<if ($args[0].hLength !== _combinedRule.hLength)>>
+<<if ($args[0].hLength > _combinedRule.hLength)>>
 	<<set $cash -= $modCost>>
 	<br>$args[0].slaveName's hair has been cut; it
 <<else>>
-	<<set $cash -= $modCost*Math.trunc((_currentRule.hLength-$args[0].hLength)/10)>>
+	<<set $cash -= $modCost*Math.trunc((_combinedRule.hLength-$args[0].hLength)/10)>>
 	<br>$args[0].slaveName has been given extensions; her hair
 <</if>>
-is now _currentRule.hLength cm long.
-<<set $args[0].hLength = _currentRule.hLength>>
-<</if>>
+is now _combinedRule.hLength cm long.
+<<set $args[0].hLength = _combinedRule.hLength>>
 <</if>>
 <</if>>
 
-<<set _tmp = lastPubicHColorRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.pubicHColor !== "no default setting")>>
-<<if ($args[0].pubicHColor !== _currentRule.pubicHColor)>>
-  <<set $args[0].pubicHColor = _currentRule.pubicHColor>>
+<<if (_combinedRule.pubicHColor !== "no default setting")>>
+<<if ($args[0].pubicHColor !== _combinedRule.pubicHColor)>>
+    <<set $args[0].pubicHColor = _combinedRule.pubicHColor>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's pubic hair, if present, has been dyed _combinedRule.pubicHColor.
+<</if>>
+<</if>>
+
+<<if (_combinedRule.pubicHStyle !== "no default setting")>>
+<<if ($args[0].pubicHStyle !== _combinedRule.pubicHStyle)>>
+    <<set $args[0].pubicHStyle = _combinedRule.pubicHStyle>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's pubic hair has been restyled; it is now _combinedRule.pubicHStyle.
+<</if>>
+<</if>>
+
+<<if (_combinedRule.underArmHColor !== "no default setting")>>
+<<if ($args[0].underArmHColor !== _combinedRule.underArmHColor)>>
+	<<set $args[0].underArmHColor = _combinedRule.underArmHColor>>
 	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's pubic hair, if present, has been dyed _currentRule.pubicHColor.
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastPubicHStyleRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.pubicHStyle !== "no default setting")>>
-<<if ($args[0].pubicHStyle !== _currentRule.pubicHStyle)>>
-  <<set $args[0].pubicHStyle = _currentRule.pubicHStyle>>
-  <<set $cash -= $modCost>>
-	<br>$args[0].slaveName's pubic hair has been restyled; it is now _currentRule.pubicHStyle.
-<</if>>
+	<br>$args[0].slaveName's underarm hair, if present, has been dyed _combinedRule.underArmHColor.
 <</if>>
 <</if>>
 
-<<set _tmp = lastUnderArmHColorRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.underArmHColor !== "no default setting")>>
-<<if ($args[0].underArmHColor !== _currentRule.underArmHColor)>>
-	<<set $args[0].underArmHColor = _currentRule.underArmHColor>>
+<<if (_combinedRule.underArmHStyle !== "no default setting")>>
+<<if ($args[0].underArmHStyle !== _combinedRule.underArmHStyle)>>
+	<<set $args[0].underArmHStyle = _combinedRule.underArmHStyle>>
 	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's underarm hair, if present, has been dyed _currentRule.underArmHColor.
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastUnderArmHStyleRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.underArmHStyle !== "no default setting")>>
-<<if ($args[0].underArmHStyle !== _currentRule.underArmHStyle)>>
-	<<set $args[0].underArmHStyle = _currentRule.underArmHStyle>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's underarm hair has been restyled; it is now _currentRule.underArmHStyle.
-<</if>>
+	<br>$args[0].slaveName's underarm hair has been restyled; it is now _combinedRule.underArmHStyle.
 <</if>>
 <</if>>
 
-<<if (_currentRule.nipplesPiercing == 0)>>
-<<if $args[0].nipplesPiercing != 0>>
-	<<set $args[0].nipplesPiercing = 0>>
-	<br>$args[0].slaveName's nipple piercings have been removed.
+<<if (_combinedRule.nipplesPiercing !== "no default setting")>>
+<<if ($args[0].nipplesPiercing !== _combinedRule.nipplesPiercing)>>
+    <<if (_combinedRule.nipplesPiercing == 0)>>
+        <<set $args[0].nipplesPiercing = 0>>
+        <br>$args[0].slaveName's nipple piercings have been removed.
+    <<else>>
+        <<set $args[0].nipplesPiercing = _combinedRule.nipplesPiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's nipples have been pierced.
+    <</if>>
 <</if>>
 <</if>>
-<<if (_currentRule.areolaePiercing == 0)>>
-<<if $args[0].areolaePiercing != 0>>
-	<<set $args[0].areolaePiercing = 0>>
-	<br>$args[0].slaveName's areolae piercings have been removed.
+
+<<if (_combinedRule.areolaePiercing !== "no default setting")>>
+<<if ($args[0].areolaePiercing !== _combinedRule.areolaePiercing)>>
+    <<if (_combinedRule.areolaePiercing == 0)>>
+        <<set $args[0].areolaePiercing = 0>>
+        <br>$args[0].slaveName's areolae piercings have been removed.
+    <<else>>
+        <<set $args[0].areolaePiercing = _combinedRule.areolaePiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's areolae have been given stud piercings.
+    <</if>>
 <</if>>
 <</if>>
-<<if (_currentRule.clitPiercing == 0)>>
-<<if $args[0].clitPiercing != 0>>
-	<<set $args[0].clitPiercing = 0>>
-	<<if $args[0].dick > 0>>
-		<br>$args[0].slaveName's frenulum piercing has been removed.
-	<<else>>
-		<br>$args[0].slaveName's clit piercing has been removed.
+
+<<if (_combinedRule.clitPiercing !== "no default setting")>>
+<<if ($args[0].clitPiercing !== _combinedRule.clitPiercing)>>
+    <<if (_combinedRule.clitPiercing == 0)>>
+        <<set $args[0].clitPiercing = 0>>
+        <<if $args[0].dick > 0>>
+            <br>$args[0].slaveName's frenulum piercing has been removed.
+        <<else>>
+            <br>$args[0].slaveName's clit piercing has been removed.
+        <</if>>
+
+    <<elseif ($args[0].vagina != -1) || ($args[0].dick != 0)>>
+        <<set $args[0].clitPiercing = _combinedRule.clitPiercing>>
+        <<if $args[0].dick > 0>>
+            <br>$args[0].slaveName's frenulum has been pierced.
+        <<else>>
+            <br>$args[0].slaveName's clit has been pierced.
 	<</if>>
-<</if>>
-<</if>>
-<<if (_currentRule.vaginaPiercing == 0)>>
-<<if $args[0].vaginaPiercing != 0>>
-	<<set $args[0].vaginaPiercing = 0>>
-	<br>$args[0].slaveName's labia piercings have been removed.
-<</if>>
-<</if>>
-<<if (_currentRule.dickPiercing == 0)>>
-<<if $args[0].dickPiercing != 0>>
-	<<set $args[0].dickPiercing = 0>>
-	<br>$args[0].slaveName's shaft piercings have been removed.
-<</if>>
-<</if>>
-<<if (_currentRule.anusPiercing == 0)>>
-<<if $args[0].anusPiercing != 0>>
-	<<set $args[0].anusPiercing = 0>>
-	<br>$args[0].slaveName's asshole piercings have been removed.
-<</if>>
-<</if>>
-<<if (_currentRule.lipsPiercing == 0)>>
-<<if $args[0].lipsPiercing != 0>>
-	<<set $args[0].lipsPiercing = 0>>
-	<br>$args[0].slaveName's lip piercings have been removed.
-<</if>>
-<</if>>
-<<if (_currentRule.tonguePiercing == 0)>>
-<<if $args[0].tonguePiercing != 0>>
-	<<set $args[0].tonguePiercing = 0>>
-	<br>$args[0].slaveName's tongue piercings have been removed.
-<</if>>
-<</if>>
-<<if (_currentRule.earPiercing == 0)>>
-<<if $args[0].earPiercing != 0>>
-	<<set $args[0].earPiercing = 0>>
-	<br>$args[0].slaveName's ear piercings have been removed.
-<</if>>
-<</if>>
-<<if (_currentRule.nosePiercing == 0)>>
-<<if $args[0].nosePiercing != 0>>
-	<<set $args[0].nosePiercing = 0>>
-	<br>$args[0].slaveName's nose piercing has been removed.
-<</if>>
-<</if>>
-<<if (_currentRule.eyebrowPiercing == 0)>>
-<<if $args[0].eyebrowPiercing != 0>>
-	<<set $args[0].eyebrowPiercing = 0>>
-	<br>$args[0].slaveName's eyebrow piercings have been removed.
-<</if>>
-<</if>>
-<<if (_currentRule.navelPiercing == 0)>>
-<<if $args[0].navelPiercing != 0>>
-	<<set $args[0].navelPiercing = 0>>
-	<br>$args[0].slaveName's navel piercing have been removed.
-<</if>>
-<</if>>
-<<if (_currentRule.corsetPiercing == 0)>>
-<<if $args[0].corsetPiercing != 0>>
-	<<set $args[0].corsetPiercing = 0>>
-	<br>$args[0].slaveName's corset piercings have been removed.
-<</if>>
-<</if>>
-
-<<set _tmp = lastNipplesPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.nipplesPiercing !== "no default setting")>>
-<<if (_currentRule.nipplesPiercing != 0)>>
-<<if $args[0].nipplesPiercing !== _currentRule.nipplesPiercing>>
-	<<set $args[0].nipplesPiercing = _currentRule.nipplesPiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's nipples have been pierced.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastAreolaePiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.areolaePiercing !== "no default setting")>>
-<<if (_currentRule.areolaePiercing != 0)>>
-<<if $args[0].areolaePiercing !== _currentRule.areolaePiercing>>
-	<<set $args[0].areolaePiercing = _currentRule.areolaePiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's areolae have been given stud piercings.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastClitPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.clitPiercing !== "no default setting")>>
-<<if ($args[0].clitPiercing != 3)>>
-<<if ($args[0].vagina != -1) || ($args[0].dick != 0)>>
-<<if (_currentRule.clitPiercing != 0)>>
-<<if $args[0].clitPiercing !== _currentRule.clitPiercing>>
-	<<set $args[0].clitPiercing = _currentRule.clitPiercing>>
-	<<if $args[0].dick > 0>>
-		<br>$args[0].slaveName's frenulum has been pierced.
-	<<else>>
-		<br>$args[0].slaveName's clit has been pierced.
-	<</if>>
-	<<if _currentRule.clitPiercing == 3>>
-	 <<set $cash -= 1000>>
-	<<else>>
-	 <<set $cash -= $modCost>>
-	<</if>>
-<</if>>
-<</if>>
-<</if>>
-<</if>>
+	<<if _combinedRule.clitPiercing == 3>>
+            <<set $cash -= 1000>>
+        <<else>>
+            <<set $cash -= $modCost>>
+        <</if>>
+    <</if>>
 <</if>>
 <</if>>
 
 <<if ($args[0].clitPiercing == 3)>>
 	<<set _used = 0>>
-	<<set _tmp = lastClitSettingRule($args[0], $defaultRules)>>
-	<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-	<<if (_currentRule.clitSetting !== "no default setting")>>
-	<<if $args[0].clitSetting !== _currentRule.clitSetting>>
-		<<set $args[0].clitSetting = _currentRule.clitSetting, _used = 1>>
+	<<if (_combinedRule.clitSetting !== "no default setting")>>
+	<<if $args[0].clitSetting !== _combinedRule.clitSetting>>
+		<<set $args[0].clitSetting = _combinedRule.clitSetting, _used = 1>>
 		<br>$args[0].slaveName's smart piercing has been set to $args[0].clitSetting.
 	<<else>>
 		<<if $args[0].fetishStrength < 100>><<set _used = 1>><</if>>
 	<</if>>
 	<</if>>
-	<</if>>
 	<<if _used == 0>>
-		<<set _tmp = lastClitSettingXYRule($args[0], $defaultRules)>>
-		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-		<<if _currentRule.clitSettingXY !== "no default setting">>
-		<<if $args[0].attrXY < _currentRule.clitSettingXY && $args[0].clitSetting !== "men">>
+		<<if _combinedRule.clitSettingXY !== "no default setting">>
+		<<if $args[0].attrXY < _combinedRule.clitSettingXY && $args[0].clitSetting !== "men">>
 			<<set $args[0].clitSetting = "men", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to encourage attraction to men.
-		<<elseif $args[0].attrXY >= _currentRule.clitSettingXY + 10 && $args[0].clitSetting !== "anti-men">>
+		<<elseif $args[0].attrXY >= _combinedRule.clitSettingXY + 10 && $args[0].clitSetting !== "anti-men">>
 			<<set $args[0].clitSetting = "anti-men", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to discourage attraction to men.
 		<</if>>
 		<</if>>
-		<</if>>
 	<</if>>
 	<<if _used == 0>>
-		<<set _tmp = lastClitSettingXXRule($args[0], $defaultRules)>>
-		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-		<<if _currentRule.clitSettingXX !== "no default setting">>
-		<<if $args[0].attrXX < _currentRule.clitSettingXX && $args[0].clitSetting !== "women">>
+		<<if _combinedRule.clitSettingXX !== "no default setting">>
+		<<if $args[0].attrXX < _combinedRule.clitSettingXX && $args[0].clitSetting !== "women">>
 			<<set $args[0].clitSetting = "women", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to encourage attraction to women.
-		<<elseif $args[0].attrXX >= _currentRule.clitSettingXX + 10 && $args[0].clitSetting !== "anti-women">>
+		<<elseif $args[0].attrXX >= _combinedRule.clitSettingXX + 10 && $args[0].clitSetting !== "anti-women">>
 			<<set $args[0].clitSetting = "anti-women", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to discourage attraction to women.
 		<</if>>
 		<</if>>
-		<</if>>
 	<</if>>
 	<<if _used == 0>>
-		<<set _tmp = lastClitSettingEnergyRule($args[0], $defaultRules)>>
-		<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-		<<if _currentRule.clitSettingEnergy !== "no default setting">>
-		<<if $args[0].energy < _currentRule.clitSettingEnergy && $args[0].clitSetting !== "all">>
+		<<if _combinedRule.clitSettingEnergy !== "no default setting">>
+		<<if $args[0].energy < _combinedRule.clitSettingEnergy && $args[0].clitSetting !== "all">>
 			<<set $args[0].clitSetting = "all", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to enhance libido.
-		<<elseif $args[0].energy >= _currentRule.clitSettingEnergy + 10 && $args[0].clitSetting !== "none">>
+		<<elseif $args[0].energy >= _combinedRule.clitSettingEnergy + 10 && $args[0].clitSetting !== "none">>
 			<<set $args[0].clitSetting = "none", _used = 1>>
 			<br>$args[0].slaveName's smart piercing has been set to suppress libido.
 		<</if>>
 		<</if>>
-		<</if>>
 	<</if>>
 <</if>>
 
-<<set _tmp = lastVaginaPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if $args[0].vagina != -1>>
-<<if (_currentRule.vaginaPiercing !== "no default setting")>>
-<<if (_currentRule.vaginaPiercing != 0)>>
-<<if $args[0].vaginaPiercing !== _currentRule.vaginaPiercing>>
-	<<set $args[0].vaginaPiercing = _currentRule.vaginaPiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's pussylips have been pierced.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastDickPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if $args[0].dick > 0>>
-<<if (_currentRule.dickPiercing !== "no default setting")>>
-<<if (_currentRule.dickPiercing != 0)>>
-<<if $args[0].dickPiercing !== _currentRule.dickPiercing>>
-	<<set $args[0].dickPiercing = _currentRule.dickPiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's shaft has been pierced.
-<</if>>
-<</if>>
+<<if ($args[0].vagina != -1)>>
+<<if (_combinedRule.vaginaPiercing !== "no default setting")>>
+<<if ($args[0].vaginaPiercing !== _combinedRule.vaginaPiercing)>>
+    <<if (_combinedRule.vaginaPiercing == 0)>>
+        <<set $args[0].vaginaPiercing = 0>>
+        <br>$args[0].slaveName's labia piercings have been removed.
+    <<else>>
+        <<set $args[0].vaginaPiercing = _combinedRule.vaginaPiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's pussylips have been pierced.
+    <</if>>
 <</if>>
 <</if>>
 <</if>>
 
-<<set _tmp = lastAnusPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.anusPiercing !== "no default setting")>>
-<<if (_currentRule.anusPiercing != 0)>>
-<<if $args[0].anusPiercing !== _currentRule.anusPiercing>>
-	<<set $args[0].anusPiercing = _currentRule.anusPiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's asshole has been pierced.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastLipsPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.lipsPiercing !== "no default setting")>>
-<<if (_currentRule.lipsPiercing != 0)>>
-<<if $args[0].lipsPiercing !== _currentRule.lipsPiercing>>
-	<<set $args[0].lipsPiercing = _currentRule.lipsPiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's lips have been pierced.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastTonguePiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.tonguePiercing !== "no default setting")>>
-<<if (_currentRule.tonguePiercing != 0)>>
-<<if $args[0].tonguePiercing !== _currentRule.tonguePiercing>>
-	<<set $args[0].tonguePiercing = _currentRule.tonguePiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's tongue has been pierced.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastEarPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.earPiercing !== "no default setting")>>
-<<if (_currentRule.earPiercing != 0)>>
-<<if $args[0].earPiercing !== _currentRule.earPiercing>>
-	<<set $args[0].earPiercing = _currentRule.earPiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's ears have been pierced.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastNosePiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.nosePiercing !== "no default setting")>>
-<<if (_currentRule.nosePiercing != 0)>>
-<<if $args[0].nosePiercing !== _currentRule.nosePiercing>>
-	<<set $args[0].nosePiercing = _currentRule.nosePiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's nose has been pierced.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastEyebrowPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.eyebrowPiercing !== "no default setting")>>
-<<if (_currentRule.eyebrowPiercing != 0)>>
-<<if $args[0].eyebrowPiercing !== _currentRule.eyebrowPiercing>>
-	<<set $args[0].eyebrowPiercing = _currentRule.eyebrowPiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's eyebrows have been pierced.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastNavelPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.navelPiercing !== "no default setting")>>
-<<if (_currentRule.navelPiercing != 0)>>
-<<if $args[0].navelPiercing !== _currentRule.navelPiercing>>
-	<<set $args[0].navelPiercing = _currentRule.navelPiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName's navel has been pierced.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastCorsetPiercingRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.corsetPiercing !== "no default setting")>>
-<<if (_currentRule.corsetPiercing != 0)>>
-<<if $args[0].corsetPiercing !== _currentRule.corsetPiercing>>
-	<<set $args[0].corsetPiercing = _currentRule.corsetPiercing>>
-	<<set $cash -= $modCost>>
-	<br>$args[0].slaveName has been given a set of corset piercings.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastBoobsTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.boobsTat !== "no default setting")>>
-<<if ($args[0].boobsTat !== _currentRule.boobsTat)>>
-	<<set $args[0].boobsTat = _currentRule.boobsTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's chest has been tattooed.
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastButtTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.buttTat !== "no default setting")>>
-<<if ($args[0].buttTat !== _currentRule.buttTat)>>
-	<<set $args[0].buttTat = _currentRule.buttTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's butt has been tattooed.
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastVaginaTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.vaginaTat !== "no default setting")>>
-<<if ($args[0].vaginaTat !== _currentRule.vaginaTat)>>
-	<<set $args[0].vaginaTat = _currentRule.vaginaTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's abdomen has been tattooed.
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastDickTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
 <<if ($args[0].dick > 0)>>
-<<if (_currentRule.dickTat !== "no default setting")>>
-<<if ($args[0].dickTat !== _currentRule.dickTat)>>
-	<<set $args[0].dickTat = _currentRule.dickTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's dick has been tattooed.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<set _tmp = lastLipsTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.lipsTat !== "no default setting")>>
-<<if ($args[0].lipsTat !== _currentRule.lipsTat)>>
-	<<set $args[0].lipsTat = _currentRule.lipsTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's face has been tattooed.
+<<if (_combinedRule.dickPiercing !== "no default setting")>>
+<<if ($args[0].dickPiercing !== _combinedRule.dickPiercing)>>
+    <<if (_combinedRule.dickPiercing == 0)>>
+        <<set $args[0].dickPiercing = 0>>
+        <br>$args[0].slaveName's shaft piercings have been removed.
+    <<else>>
+        <<set $args[0].dickPiercing = _combinedRule.dickPiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's shaft has been pierced.
+    <</if>>
 <</if>>
 <</if>>
 <</if>>
 
-<<set _tmp = lastAnusTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.anusTat !== "no default setting")>>
-<<if ($args[0].anusTat !== _currentRule.anusTat)>>
-	<<set $args[0].anusTat = _currentRule.anusTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's asshole has been modded.
+<<if (_combinedRule.anusPiercing !== "no default setting")>>
+<<if ($args[0].anusPiercing !== _combinedRule.anusPiercing)>>
+    <<if (_combinedRule.anusPiercing == 0)>>
+        <<set $args[0].anusPiercing = 0>>
+        <br>$args[0].slaveName's asshole piercings have been removed.
+    <<else>>
+        <<set $args[0].anusPiercing = _combinedRule.anusPiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's asshole has been pierced.
+    <</if>>
+<</if>>
+<</if>>
+
+<<if (_combinedRule.lipsPiercing !== "no default setting")>>
+<<if ($args[0].lipsPiercing !== _combinedRule.lipsPiercing)>>
+    <<if (_combinedRule.lipsPiercing == 0)>>
+        <<set $args[0].lipsPiercing = 0>>
+        <br>$args[0].slaveName's lip piercings have been removed.
+    <<else>>
+        <<set $args[0].lipsPiercing = _combinedRule.lipsPiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's lips have been pierced.
+    <</if>>
+<</if>>
+<</if>>
+
+<<if (_combinedRule.tonguePiercing !== "no default setting")>>
+<<if ($args[0].tonguePiercing !== _combinedRule.tonguePiercing)>>
+    <<if (_combinedRule.tonguePiercing == 0)>>
+        <<set $args[0].tonguePiercing = 0>>
+        <br>$args[0].slaveName's tongue piercings have been removed.
+    <<else>>
+        <<set $args[0].tonguePiercing = _combinedRule.tonguePiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's tongue has been pierced.
+    <</if>>
+<</if>>
+<</if>>
+
+<<if (_combinedRule.earPiercing !== "no default setting")>>
+<<if ($args[0].earPiercing !== _combinedRule.earPiercing)>>
+    <<if (_combinedRule.earPiercing == 0)>>
+        <<set $args[0].earPiercing = 0>>
+        <br>$args[0].slaveName's ear piercings have been removed.
+    <<else>>
+        <<set $args[0].earPiercing = _combinedRule.earPiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's ears have been pierced.
+    <</if>>
+<</if>>
+<</if>>
+
+<<if (_combinedRule.nosePiercing !== "no default setting")>>
+<<if ($args[0].nosePiercing !== _combinedRule.nosePiercing)>>
+    <<if (_combinedRule.nosePiercing == 0)>>
+        <<set $args[0].nosePiercing = 0>>
+        <br>$args[0].slaveName's nose piercing has been removed.
+    <<else>>
+        <<set $args[0].nosePiercing = _combinedRule.nosePiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's nose has been pierced.
+    <</if>>
+<</if>>
+<</if>>
+
+<<if (_combinedRule.eyebrowPiercing !== "no default setting")>>
+<<if ($args[0].eyebrowPiercing !== _combinedRule.eyebrowPiercing)>>
+    <<if (_combinedRule.eyebrowPiercing == 0)>>
+        <<set $args[0].eyebrowPiercing = 0>>
+        <br>$args[0].slaveName's eyebrow piercings have been removed.
+    <<else>>
+        <<set $args[0].eyebrowPiercing = _combinedRule.eyebrowPiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's eyebrows have been pierced.
+    <</if>>
+<</if>>
+<</if>>
+
+<<if (_combinedRule.navelPiercing !== "no default setting")>>
+<<if ($args[0].navelPiercing !== _combinedRule.navelPiercing)>>
+    <<if (_combinedRule.navelPiercing == 0)>>
+        <<set $args[0].navelPiercing = 0>>
+        <br>$args[0].slaveName's navel piercing have been removed.
+    <<else>>
+        <<set $args[0].navelPiercing = _combinedRule.navelPiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName's navel has been pierced.
+    <</if>>
+<</if>>
+<</if>>
+
+<<if (_combinedRule.corsetPiercing !== "no default setting")>>
+<<if ($args[0].corsetPiercing !== _combinedRule.corsetPiercing)>>
+    <<if (_combinedRule.corsetPiercing == 0)>>
+        <<set $args[0].corsetPiercing = 0>>
+        <br>$args[0].slaveName's corset piercings have been removed.
+    <<else>>
+        <<set $args[0].corsetPiercing = _combinedRule.corsetPiercing>>
+        <<set $cash -= $modCost>>
+        <br>$args[0].slaveName has been given a set of corset piercings.
+    <</if>>
+<</if>>
+<</if>>
+
+<<if (_combinedRule.boobsTat !== "no default setting")>>
+<<if ($args[0].boobsTat !== _combinedRule.boobsTat)>>
+    <<set $args[0].boobsTat = _combinedRule.boobsTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's chest has been tattooed.
+<</if>>
+<</if>>
+
+<<if (_combinedRule.buttTat !== "no default setting")>>
+<<if ($args[0].buttTat !== _combinedRule.buttTat)>>
+    <<set $args[0].buttTat = _combinedRule.buttTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's butt has been tattooed.
+<</if>>
+<</if>>
+
+<<if (_combinedRule.vaginaTat !== "no default setting")>>
+<<if ($args[0].vaginaTat !== _combinedRule.vaginaTat)>>
+    <<set $args[0].vaginaTat = _combinedRule.vaginaTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's abdomen has been tattooed.
+<</if>>
+<</if>>
+
+<<if ($args[0].dick > 0)>>
+<<if (_combinedRule.dickTat !== "no default setting")>>
+<<if ($args[0].dickTat !== _combinedRule.dickTat)>>
+    <<set $args[0].dickTat = _combinedRule.dickTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's dick has been tattooed.
 <</if>>
 <</if>>
 <</if>>
 
-<<set _tmp = lastShouldersTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.shouldersTat !== "no default setting")>>
-<<if ($args[0].shouldersTat !== _currentRule.shouldersTat)>>
-	<<set $args[0].shouldersTat = _currentRule.shouldersTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's shoulders have been tattooed.
-<</if>>
+<<if (_combinedRule.lipsTat !== "no default setting")>>
+<<if ($args[0].lipsTat !== _combinedRule.lipsTat)>>
+    <<set $args[0].lipsTat = _combinedRule.lipsTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's face has been tattooed.
 <</if>>
 <</if>>
 
-<<set _tmp = lastArmsTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.armsTat !== "no default setting")>>
-<<if ($args[0].armsTat !== _currentRule.armsTat)>>
-	<<set $args[0].armsTat = _currentRule.armsTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's arms have been tattooed.
-<</if>>
+<<if (_combinedRule.anusTat !== "no default setting")>>
+<<if ($args[0].anusTat !== _combinedRule.anusTat)>>
+    <<set $args[0].anusTat = _combinedRule.anusTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's asshole has been modded.
 <</if>>
 <</if>>
 
-<<set _tmp = lastLegsTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.legsTat !== "no default setting")>>
-<<if ($args[0].legsTat !== _currentRule.legsTat)>>
-	<<set $args[0].legsTat = _currentRule.legsTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's legs have been tattooed.
-<</if>>
+<<if (_combinedRule.shouldersTat !== "no default setting")>>
+<<if ($args[0].shouldersTat !== _combinedRule.shouldersTat)>>
+    <<set $args[0].shouldersTat = _combinedRule.shouldersTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's shoulders have been tattooed.
 <</if>>
 <</if>>
 
-<<set _tmp = lastStampTatRule($args[0], $defaultRules)>>
-<<if (_tmp != null) && (_tmp.ID == _currentRule.ID)>>
-<<if (_currentRule.stampTat !== "no default setting")>>
-<<if ($args[0].stampTat !== _currentRule.stampTat)>>
-	<<set $args[0].stampTat = _currentRule.stampTat>>
-	<<set $cash -= $modCost>>
-  <br>$args[0].slaveName's lower back has been tattooed.
-<</if>>
+<<if (_combinedRule.armsTat !== "no default setting")>>
+<<if ($args[0].armsTat !== _combinedRule.armsTat)>>
+    <<set $args[0].armsTat = _combinedRule.armsTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's arms have been tattooed.
 <</if>>
 <</if>>
 
-<<if (_currentRule.pornFameSpending !== "no default setting")>>
+<<if (_combinedRule.legsTat !== "no default setting")>>
+<<if ($args[0].legsTat !== _combinedRule.legsTat)>>
+    <<set $args[0].legsTat = _combinedRule.legsTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's legs have been tattooed.
+<</if>>
+<</if>>
+
+<<if (_combinedRule.stampTat !== "no default setting")>>
+<<if ($args[0].stampTat !== _combinedRule.stampTat)>>
+    <<set $args[0].stampTat = _combinedRule.stampTat>>
+    <<set $cash -= $modCost>>
+    <br>$args[0].slaveName's lower back has been tattooed.
+<</if>>
+<</if>>
+
+<<if (_combinedRule.pornFameSpending !== "no default setting")>>
 <<if ($args[0].devotion > 95)>>
 <<if ($args[0].trust > 95)>>
 <<if ($args[0].prestige < 3)>>
-<<if ($args[0].pornFameSpending !== _currentRule.pornFameSpending)>>
-  <<set $args[0].pornFameSpending = _currentRule.pornFameSpending>>
-  <br>$args[0].slaveName's porn publicity has been corrected.
+<<if ($args[0].pornFameSpending !== _combinedRule.pornFameSpending)>>
+    <<set $args[0].pornFameSpending = _combinedRule.pornFameSpending>>
+    <br>$args[0].slaveName's porn publicity has been corrected.
 <</if>>
 <</if>>
 <</if>>
 <</if>>
 <</if>>
 
-<<if (_currentRule.autoBrand == 1)>>
+<<if (_combinedRule.autoBrand == 1)>>
 <<if ($args[0].brand == 0)>>
 <<if ($args[0].health > -20)>>
 	<<set $args[0].brand = $brandDesign>>
@@ -4670,280 +4655,39 @@ is now _currentRule.hLength cm long.
 	<<if ($args[0].devotion < 18)>><<set $args[0].devotion -= 5>><</if>>
 	<<set $args[0].trust -= 5>>
 	<<set $args[0].health -= 10>>
-	<br>$args[0].slaveName has been branded, with @@.gold;fear@@<<if ($args[0].devotion < 18)>>, @@.mediumorchid;regard@@,<</if>> and @@.red;health@@
-consequences.
+	<br>$args[0].slaveName has been branded, with @@.gold;fear@@<<if ($args[0].devotion < 18)>>, @@.mediumorchid;regard@@,<</if>> and @@.red;health@@ consequences.
 <</if>>
 <</if>>
 <</if>>
 
-<<set _exclude = false>>
-<<if $args[0].assignment.includes("agent")>>
-	<<set _exclude = true>>
-<<elseif _currentRule.excludeSpecialSlaves>>
-	<<if (($HeadGirl != 0) && ($HeadGirl.ID == $args[0].ID)) || (($Bodyguard != 0) && ($Bodyguard.ID == $args[0].ID)) || (($Recruiter != 0) && ($Recruiter.ID == $args[0].ID)) || (($Concubine != 0) && ($Concubine.ID == $args[0].ID)) || (($Nurse != 0) && ($Nurse.ID == $args[0].ID)) || (($Attendant != 0) && ($Attendant.ID == $args[0].ID)) || (($Madam != 0) || ($Madam.ID == $args[0].ID)) || (($DJ != 0) && ($DJ.ID == $args[0].ID)) || (($Milkmaid != 0) && ($Milkmaid.ID == $args[0].ID)) || (($Stewardess != 0 ) && ($Stewardess.ID == $args[0].ID)) || (($Schoolteacher != 0) && ($Schoolteacher.ID == $args[0].ID)) || (($Wardeness != 0) && ($Wardeness.ID == $args[0].ID))>>
-		<<set _exclude = true>>
-	<</if>>
-<</if>>
-
-<<if !_exclude>>
-<<switch _currentRule.assignFacility>>
-<<case "hgsuite">>
-	<<if ($HGSuiteSlaves == 0) && ($args[0].indentureRestrictions <= 0) && ($args[0].assignment != "live with your Head Girl")>>
-		<br>$args[0].slaveName has been automatically assigned to live in your Head Girl's private suite.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-<<case "arcade">>
-	<<if ($arcade > $arcadeSlaves) && ($args[0].indentureRestrictions <= 0) && ($args[0].assignment != "be confined in the arcade") && $args[0].breedingMark != 1>>
-		<br>$args[0].slaveName has been automatically assigned to be confined in $arcadeName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-<<case "mastersuite">>
-	<<if ($masterSuite > $masterSuiteSlaves) && ($args[0].devotion > 20) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50)>>
-	<<if ($args[0].assignment != "serve in the master suite")>>
-		<br>$args[0].slaveName has been automatically assigned to $masterSuiteName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-	<<else>>
-		<<if ($args[0].assignment == "serve in the master suite")>>
-			<<include "Rules Facility Remove">>
-		<</if>>
-	<</if>>
-<<case "clinic">>
-	<<if ($clinic > $clinicSlaves) && ($args[0].health < 20) || (($Nurse != 0) && ($args[0].chem > 15) && ($clinicUpgradeFilters == 1)) || (($args[0].bellyImplant > 100) && ($bellyImplants == 1)) || $args[0].preg > 1>>
-	<<if ($args[0].assignment != "get treatment in the clinic")>>
-		<br>$args[0].slaveName has been automatically assigned to get treatment in $clinicName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-	<<else>>
-		<<if ($args[0].assignment == "get treatment in the clinic")>>
-			<<include "Rules Facility Remove">>
-		<</if>>
-	<</if>>
-<<case "spa">>
-	<<if ($spa > $spaSlaves) && ($args[0].health < 20) || ($args[0].trust < 60) || ($args[0].devotion <= 60) || ($args[0].fetish == "mindbroken") && ($args[0].devotion >= -20)>>
-	<<if ($args[0].assignment != "rest in the spa")>>
-		<br>$args[0].slaveName has been automatically assigned to rest in $spaName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-	<<else>>
-		<<if ($args[0].assignment == "rest in the spa")>>
-			<<include "Rules Facility Remove">>
-		<</if>>
-	<</if>>
-<<case "brothel">>
-	<<if ($brothel > $brothelSlaves) && ($args[0].devotion > 50) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50) || ($args[0].trust > 50) && $args[0].breedingMark != 1>>
-	<<if ($args[0].assignment != "work in the brothel")>>
-		<br>$args[0].slaveName has been automatically assigned to work in $brothelName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-	<<else>>
-		<<if ($args[0].assignment == "work in the brothel")>>
-			<<include "Rules Facility Remove">>
-		<</if>>
-	<</if>>
-<<case "club">>
-	<<if ($club > $clubSlaves) && ($args[0].devotion > 50) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50) || ($args[0].trust > 50) && $args[0].breedingMark != 1>>
-	<<if ($args[0].assignment != "serve in the club")>>
-		<br>$args[0].slaveName has been automatically assigned to serve in $clubName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-	<<else>>
-		<<if ($args[0].assignment == "serve in the club")>>
-			<<include "Rules Facility Remove">>
-		<</if>>
-	<</if>>
-<<case "dairy">>
-	<<if ($dairy > $dairySlaves+$bioreactorsXY+$bioreactorsXX+$bioreactorsHerm+$bioreactorsBarren)>>
-	<<if ($args[0].indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)>>
-	<<elseif (($args[0].indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || ($args[0].breedingMark == 1 && $dairyRestriantsSettings > 0) || (($dairyPregSetting > 0) && ((_Slave.bellyImplant != 0) || (_Slave.pregType >= 50)))>>
-	<<else>>
-		<<if ($args[0].lactation > 0) || ($args[0].balls > 0) || (($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0))>>
-		<<if ($args[0].devotion > 20) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50) || ($args[0].amp == 1) || ($dairyRestraintsUpgrade == 1)>>
-		<<if ($dairyStimulatorsSetting < 2) || ($args[0].anus > 2) || ($dairyPrepUpgrade == 1)>>
-		<<if ($dairyPregSetting < 2) || ($args[0].vagina > 2) || ($args[0].ovaries == 0) || ($dairyPrepUpgrade == 1)>>
-	<<if ($args[0].assignment != "work in the dairy")>>
-		<br>$args[0].slaveName has been automatically assigned to be milked in $dairyName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-		<<else>>
-			<<if ($args[0].assignment == "work in the dairy")>>
-				<<include "Rules Facility Remove">>
-			<</if>>
-		<</if>>
-		<<else>>
-			<<if ($args[0].assignment == "work in the dairy")>>
-				<<include "Rules Facility Remove">>
-			<</if>>
-		<</if>>
-		<<else>>
-			<<if ($args[0].assignment == "work in the dairy")>>
-				<<include "Rules Facility Remove">>
-			<</if>>
-		<</if>>
-		<<else>>
-			<<if ($args[0].assignment == "work in the dairy")>>
-				<<include "Rules Facility Remove">>
-			<</if>>
-		<</if>>
-	<</if>>
-	<</if>>
-<<case "servantsquarters">>
-	<<if ($servantsQuarters > $servantsQuartersSlaves) && ($args[0].devotion >= -20) || (($args[0].devotion >= -50) && ($args[0].trust <= 20)) || ($args[0].trust < -20)>>
-	<<if ($args[0].assignment != "work as a servant")>>
-		<br>$args[0].slaveName has been automatically assigned to work in $servantsQuartersName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-	<<else>>
-		<<if ($args[0].assignment == "work as a servant")>>
-			<<include "Rules Facility Remove">>
-		<</if>>
-	<</if>>
-<<case "schoolroom">>
-	<<if ($schoolroom > $schoolroomSlaves) && ($args[0].fetish != "mindbroken") && ($args[0].devotion >= -20 || ($args[0].devotion >= -50 && $args[0].trust < -20) || $args[0].trust < -50)>>
-	<<if ($args[0].intelligenceImplant < 1) || ($args[0].voice != 0 && $args[0].accent+$schoolroomUpgradeLanguage > 2) || ($args[0].oralSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].whoreSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].entertainSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].analSkill < 10+$schoolroomUpgradeSkills*20) || (($args[0].vagina >= 0) && ($args[0].vaginalSkill < 10+$schoolroomUpgradeSkills*20))>>
-	<<if ($args[0].assignment != "learn in the schoolroom")>>
-		<br>$args[0].slaveName has been automatically assigned to study in $schoolroomName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-	<</if>>
-	<<else>>
-		<<if ($args[0].assignment == "learn in the schoolroom")>>
-			<<include "Rules Facility Remove">>
-		<</if>>
-	<</if>>
-	<<else>>
-		<<if ($args[0].assignment == "learn in the schoolroom")>>
-			<<include "Rules Facility Remove">>
-		<</if>>
-	<</if>>
-<<case "cellblock">>
-	<<if ($cellblock > $cellblockSlaves ) && (($args[0].devotion < -20) && ($args[0].trust >= -20)) || (($args[0].devotion < -50) && ($args[0].trust >= -50))>>
-	<<if ($args[0].assignment != "be confined in the cellblock")>>
-		<br>$args[0].slaveName has been automatically assigned to be confined in $cellblockName.
-		<<if ($personalAttention == $args[0].ID)>>
-			$args[0].slaveName no longer has your personal attention; you plan to focus on business.
-		<</if>>
-		<<assignJob $args[0] _currentRule.assignFacility>>
-		<</if>>
-	<<else>>
-		<<if ($args[0].assignment == "be confined in the cellblock")>>
-			<<include "Rules Facility Remove">>
-		<</if>>
-	<</if>>
-<</switch>>
-<</if>>
-
-<<if !_exclude>>
-<<if _currentRule.setAssignment !== "none">>
-	<<if ($args[0].assignment !== _currentRule.setAssignment)>>
-		<br>$args[0].slaveName has been automatically assigned to _currentRule.setAssignment.
-		<<assignJob $args[0] _currentRule.setAssignment>>
-	<</if>>
-<</if>>
-<</if>>
-
-<</for>>
 <</widget>>
 
 /%
-	Call as <<CheckAutoRulesActivate SlaveObject>>
-	Does not use or modify $currentRule
-%/
+ % Call as <<CheckAutoRulesActivate SlaveObject>>
+ % Does not use or modify $currentRule
+ %/
 <<widget "CheckAutoRulesActivate">>
 	<<if (ndef $args[0].currentRules) || ($args[0].currentRules.length < 1)>>
 		<<set $args[0].currentRules = []>>
 	<</if>>
 
+	<<set _leaders = [$HeadGirl, $Bodyguard, $Recruiter, $Concubine, $Nurse, $Attendant, $Madam, $DJ, $Milkmaid, $Stewardess, $Schoolteacher, $Wardeness]>>
+
 	<<for _r = 0; _r < $defaultRules.length; _r++>>
-		<<set _currentRule = $defaultRules[_r], _rule = _r+1, _ruleAppliesToThisSlave = true>> /* starting assumption, to be tested below */
+		<<set _currentRule = $defaultRules[_r], _rule = _r+1>>
 
-		<<switch _currentRule.activation>> /* check activation conditions */
+		<<set _ruleAppliesToThisSlave = evalExpr(_currentRule.condition, $args[0])>>
 
-			<<case "custom">>	/* for betterRA */
-				<<set State.variables._parseFailed = _currentRule.customActivationText>>
-				<<script>>
-					try { if (parseAndEvaluate(State.variables._parseFailed, State.variables.args[0])) { State.variables._parseFailed = -1; }
-						} catch (e) { throwError("Failed to parse a custom rule. Check your custom rules in the Rules Assistant options."); }
-				<</script>>
-				<<if State.variables._parseFailed != -1>>
+		<<if _ruleAppliesToThisSlave == true && _currentRule.excludeSpecialSlaves>> /* passed activation conditions - check inclusion/exclusion rules */
+			<<for _L = 0; _L < _leaders.length; _L++>>
+				<<if (def _leaders[_L].ID) && (_leaders[_L].ID == $args[0].ID)>>
 					<<set _ruleAppliesToThisSlave = false>>
+					<<break>>
 				<</if>>
-			<<case "always">>
-				/* _ruleAppliesToThisSlave remains true, but still need to pass inclusion/exclusion checks below */
-			<<case "none">>
-					<<set _ruleAppliesToThisSlave = false>>
-			<<case "devotion">>
-				<<if !checkThresholds($args[0].devotion, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-			<<case "trust">>
-				<<if !checkThresholds($args[0].trust, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-			<<case "health">>
-				<<if !checkThresholds($args[0].health, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-			<<case "sex drive">> /* rule can only be applied if slave's sexuality is known */
-				<<if ($args[0].attrKnown == 0) || !checkThresholds($args[0].energy, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-			<<case "age">>
-				<<if !checkThresholds($args[0].physicalAge, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-			<<case "weight">>
-				<<if !checkThresholds($args[0].weight, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-			<<case "lactation">>
-				<<if !checkThresholds($args[0].lactation, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-			<<case "pregnancy week">>
-				<<if !checkThresholds($args[0].preg, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-			<<case "pregnancy foetuses">> /* pregnancy only becomes visible after tenth week */
-				<<if $args[0].preg <= 10 || !checkThresholds($args[0].pregType, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-			<<case "belly implant volume">>
-				<<if !checkThresholds($args[0].bellyImplant, _currentRule)>>
-					<<set _ruleAppliesToThisSlave = false>>
-				<</if>>
-		<</switch>> /* closes activation condition checks */
+			<</for>>
+		<</if>>
 
-		<<if _ruleAppliesToThisSlave == true>> /* passed activation conditions check - next check inclusion/exclusion rules */
+		<<if _ruleAppliesToThisSlave == true>> /* check more inclusion/exclusion rules */
 			<<if   (def _currentRule.excludedSlaves && _currentRule.excludedSlaves.length > 0 && ruleSlaveExcluded($args[0], _currentRule))
 				|| (def _currentRule.selectedSlaves && _currentRule.selectedSlaves.length > 0 && !ruleSlaveSelected($args[0], _currentRule))>>
 					<<set _ruleAppliesToThisSlave = false>>
