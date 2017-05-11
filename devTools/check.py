@@ -25,7 +25,7 @@ def yield_line_and_islastline(f):
         prevline = line
     yield prevline, True
 
-pattern = re.compile(r'(<<(\/?) *(if|for|else|switch|case)[^<>]*)')
+pattern = re.compile(r'(<<(\/?) *(if|for|else|switch|case|replace|link)[^<>]*)')
 
 
 tagfound = []
