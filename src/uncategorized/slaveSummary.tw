@@ -1,8 +1,11 @@
 :: Slave Summary [nobr]
 
-<<set _Pass = passage(), _SL = $slaves.length>>
+<<set _Pass = passage(), _SL = $slaves.length, $assignTo = _Pass>>
 <<for _i = 0;_i < _SL;_i++>>
 <<set _Slave = $slaves[_i]>>
+<<if _Slave.assignment == "be your agent" || _Slave.assignment == "live with your agent">>
+	<<continue>> /* slaves on these assignments should never be visible from facilities */
+<</if>>
 <<switch _Pass>>
 <<case "Main">>
 	<<if _Slave.assignmentVisible != 1>><<continue>><</if>>
@@ -190,7 +193,7 @@
 <<if _Slave.fuckdoll > 0>><<continue>><</if>>
 <<if $Flag == 0>>
 	<<if _Slave.assignment == "get treatment in the clinic">><<continue>><</if>>
-	<<if (_Slave.health < 20) || ($Nurse != 0 && (_Slave.chem > 15 && $clinicUpgradeFilters == 1) || ($bellyImplants == 1 && _Slave.bellyImplant > 100) || (_Slave.preg >= 1 && ($clinicSpeedGestation >= 0 || $slaves[_i].pregControl == "speed up")))>>
+	<<if (_Slave.health < 20) || ($Nurse != 0 && (_Slave.chem > 15 && $clinicUpgradeFilters == 1) || ($bellyImplants == 1 && _Slave.bellyImplant > 100) || (_Slave.preg >= 1 && ($clinicSpeedGestation >= 0 || _Slave.pregControl == "speed up")))>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 		<<print "[[_Slave.slaveName|Slave Interact][$activeSlave = $slaves["+_i+"]]]">>
 	<<else>>
@@ -540,7 +543,7 @@
 	<</if>>
 <</if>>
 <<case "Matchmaking">>
-	<<if ($slaves[_i].devotion < 100) || ($slaves[_i].relationship != $activeSlave.relationship) || ($slaves[_i].ID == $activeSlave.ID)>><<continue>><</if>>
+	<<if (_Slave.devotion < 100) || (_Slave.relationship != $activeSlave.relationship) || (_Slave.ID == $activeSlave.ID)>><<continue>><</if>>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 	<<print "[[_Slave.slaveName|Slave Interact][$activeSlave = $slaves["+_i+"]]]">>
 <</switch>>
@@ -584,67 +587,67 @@ will
 <<if (_Slave.assignment == "rest") && (_Slave.health >= -20)>>
 	''__@@.lawngreen;rest.@@__''
 <<elseif (_Slave.assignment == "stay confined") && ((_Slave.devotion > 20) || ((_Slave.trust < -20) && (_Slave.devotion >= -20)) || ((_Slave.trust < -50) && (_Slave.devotion >= -50)))>>
-	''__@@.lawngreen;stay confined.@@__''
+	''__@@.lawngreen;stay confined.@@__''<<if _Slave.sentence > 0>> (_Slave.sentence weeks)<</if>>
 <<else>>
-	_Slave.assignment<<if _Slave.sentence > 0>> (_Slave.sentence weeks)<</if>>.
+	<<if _Slave.choosesOwnAssignment == 1>>choose her own assignment for next week<<else>>_Slave.assignment<<if _Slave.sentence > 0>> (_Slave.sentence weeks)<</if>><</if>>.
 <</if>>
 
 <<if ($displayAssignments == 1) && (_Pass == "Main") && (_Slave.ID != $HeadGirl.ID) && (_Slave.ID != $Recruiter.ID) && (_Slave.ID != $Bodyguard.ID)>>
 	<<if _Slave.assignment != "rest">>
-		<<print "[[Rest|Rest Workaround][$i = "+_i+"]]">> |
+		<<print "[[Rest|Rest Workaround][$i = "+_i+"]]">>
 	<<else>>
-		Rest |
+		Rest
 	<</if>>
 	<<if _Slave.assignment != "please you">>
-		<<print "[[Fucktoy|Fucktoy Workaround][$i = "+_i+"]]">> |
+		| <<print "[[Fucktoy|Fucktoy Workaround][$i = "+_i+"]]">>
 	<<else>>
-		Fucktoy |
-	<</if>>
-	<<if _Slave.fuckdoll == 0>>
-	<<if (_Slave.assignment != "be a servant")>>
-		<<if ((_Slave.devotion >= -20) || ((_Slave.trust < -20) && (_Slave.devotion >= -50)) || (_Slave.trust < -50)) && canWalk(_Slave) && canSee(_Slave)>>
-			<<print "[[House Servant|Servant Workaround][$i = "+_i+"]]">> |
-		<</if>>
-	<<else>>
-		House Servant |
-	<</if>>
-	<<if (_Slave.assignment != "take classes")>>
-		<<if ((_Slave.devotion >= -20) || ((_Slave.trust < -20) && (_Slave.devotion >= -50)) || (_Slave.trust < -50)) && (_Slave.fetish != "mindbroken") && (_Slave.intelligenceImplant != 1)>>
-			<<print "[[Classes|Classes Workaround][$i = "+_i+"]]">> |
-		<</if>>
-	<<else>>
-		Classes |
-	<</if>>
-	<<if (_Slave.assignment != "stay confined")>>
-		<<print "[[Confinement|Confinement Workaround][$i = "+_i+"]]">> |
-	<<else>>
-		Confinement |
-	<</if>>
-	<<if (_Slave.assignment != "whore") && _Slave.breedingMark != 1>>
-		<<print "[[Whore|Whore Workaround][$i = "+_i+"]]">> |
-	<<else>>
-		Whore |
-	<</if>>
-	<<if (_Slave.assignment != "serve the public") && _Slave.breedingMark != 1>>
-		<<print "[[Public Servant|Public Servant Workaround][$i = "+_i+"]]">> |
-	<<else>>
-		Public Servant |
-	<</if>>
-	<<if (_Slave.lactation > 0) || (_Slave.balls > 0)>>
-		<<if (_Slave.assignment != "get milked")>>
-			<<print "[[Milking|Milking Workaround][$i = "+_i+"]]">> |
-		<<else>>
-			Milking |
-		<</if>>
-	<</if>>
+		| Fucktoy
 	<</if>>
 	<<if _Slave.indentureRestrictions <= 0 && _Slave.breedingMark != 1>>
 		<<if _Slave.assignment != "work a glory hole">>
-			<<print "[[Hole|Hole Workaround][$i = "+_i+"]]">>
+			| <<print "[[Gloryhole|Hole Workaround][$i = "+_i+"]]">>
 		<<else>>
-			Hole
+			| Hole
 		<</if>>
 	<</if>>
+	<<if _Slave.fuckdoll == 0>> /* NON-FUCKDOLL ASSIGNMENTS */
+		<<if (_Slave.assignment != "take classes")>>
+			<<if (_Slave.intelligenceImplant != 1) && ((_Slave.devotion >= -20) || ((_Slave.trust < -20) && (_Slave.devotion >= -50)) || (_Slave.trust < -50)) && (_Slave.fetish != "mindbroken")>>
+				| <<print "[[Classes|Classes Workaround][$i = "+_i+"]]">>
+			<</if>>
+		<<else>>
+			| Classes
+		<</if>>
+		<<if (_Slave.assignment != "be a servant")>>
+			<<if ((_Slave.devotion >= -20) || ((_Slave.trust < -20) && (_Slave.devotion >= -50)) || (_Slave.trust < -50)) && canWalk(_Slave) && canSee(_Slave)>>
+				| <<print "[[House Servant|Servant Workaround][$i = "+_i+"]]">>
+			<</if>>
+		<<else>>
+			| House Servant
+		<</if>>
+		<<if (_Slave.assignment != "whore") && _Slave.breedingMark != 1>>
+			| <<print "[[Whore|Whore Workaround][$i = "+_i+"]]">>
+		<<else>>
+			| Whore
+		<</if>>
+		<<if (_Slave.assignment != "serve the public") && _Slave.breedingMark != 1>>
+			| <<print "[[Public Servant|Public Servant Workaround][$i = "+_i+"]]">>
+		<<else>>
+			| Public Servant
+		<</if>>
+		<<if (_Slave.lactation > 0) || (_Slave.balls > 0)>>
+			<<if (_Slave.assignment != "get milked")>>
+				| <<print "[[Milked|Milking Workaround][$i = "+_i+"]]">>
+			<<else>>
+				| Milked
+			<</if>>
+		<</if>>
+		<<if (_Slave.assignment != "stay confined")>>
+			| <<print "[[Confinement|Confinement Workaround][$i = "+_i+"]]">>
+		<<else>>
+			| Confinement
+		<</if>>
+	<</if>> /* CLOSES FUCKDOLL CHECK */
 <</if>>
 
 <br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
@@ -3334,7 +3337,7 @@ _Slave.faceShape face.
 <<case "Clinic">>
 <br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
 	<<if $clinicUpgradeScanner == 1>>
-		@@.cyan;Estimated DNA error value: <<print Math.ceil($slaves[_i].chem/10)>>@@
+		@@.cyan;Estimated DNA error value: <<print Math.ceil(_Slave.chem/10)>>@@
 	<</if>>
 <<if $Flag == 0>>
 	<<print "[[Send her to the Clinic|Assign][$i = "+_i+"]]">>
