@@ -36,14 +36,14 @@ __Sex Slave Purchase Options__
 <br>[[Kidnappers' Market|Slave Markets][$slaveMarket = "kidnappers", $slavesSeen += 1]] | //Slaves will tend to be low quality and resistant.//
 <</if>>
 
-<<set $seed = 0>>
+<<set _culture = 0>>
 <<for $i = 0; $i < $arcologies.length; $i++>>
 	<<if $arcologies[$i].direction != 0>>
 	<br><<print "[[Slaves from|Slave Markets][$activeArcology = $arcologies[" + $i + "]]]">>
 	''$arcologies[$i].name''
-	<<if $seed == 0>>
+	<<if _culture == 0>>
 		| //The arcology's prosperity and culture will affect slaves who have lived there.//
-		<<set $seed = 1>>
+		<<set _culture = 1>>
 	<</if>>
 	<</if>>
 <</for>>
@@ -146,8 +146,8 @@ __Menial Slaves__
 <<MenialPopCap>>
 The parts of your arcology you own can house a total of $PopCap menial slaves.
 
-<<set $seed = Math.trunc(($slaveCostFactor*1000)/100)*100>>
-<<set $seed = Math.clamp($seed, 500, 1500)>>
+<<set _menialPrice = Math.trunc(($slaveCostFactor*1000)/100)*100>>
+<<set _menialPrice = Math.clamp(_menialPrice, 500, 1500)>>
 
 <br>
 <<if $helots > 1>>
@@ -157,26 +157,31 @@ The parts of your arcology you own can house a total of $PopCap menial slaves.
 <<else>>
 	You do not own any menial slaves.
 <</if>>
-The market price of menials is ¤$seed.
-[[Buy|Buy Slaves][$helots+=1,$menialDemandFactor+=1,$cash-=$seed]]
-<<if $cash > $seed*10>>
-	[[(x10)|Buy Slaves][$helots+=10,$menialDemandFactor+=10,$cash-=$seed*10]]
-<</if>>
-<<if $cash > $seed*100>>
-	[[(x100)|Buy Slaves][$helots+=100,$menialDemandFactor+=100,$cash-=$seed*100]]
-<</if>>
-<<if $cash > $seed*2>>
-	[[(max)|Buy Slaves][$helots+=Math.trunc($cash/($seed)),$menialDemandFactor+=Math.trunc($cash/($seed)),$cash-=Math.trunc($cash/($seed))*($seed)]]
+The market price of menials is ¤_menialPrice.
+<<set _optionsBreak = 0>>
+<<if $PopCap < $helots+$fuckdolls+$menialBioreactors>>
+	[[Buy|Buy Slaves][$helots+=1,$menialDemandFactor+=1,$cash-=_menialPrice]]
+	<<if $cash > _menialPrice*10>>
+		[[(x10)|Buy Slaves][$helots+=10,$menialDemandFactor+=10,$cash-=_menialPrice*10]]
+	<</if>>
+	<<if $cash > _menialPrice*100>>
+		[[(x100)|Buy Slaves][$helots+=100,$menialDemandFactor+=100,$cash-=_menialPrice*100]]
+	<</if>>
+	<<if $cash > _menialPrice*2>>
+		[[(max)|Buy Slaves][$helots+=Math.trunc($cash/(_menialPrice)),$menialDemandFactor+=Math.trunc($cash/(_menialPrice)),$cash-=Math.trunc($cash/(_menialPrice))*(_menialPrice)]]
+	<</if>>
+	<<set _optionsBreak = 1>>
 <</if>>
 <<if $helots >= 1>>
-	| [[Sell|Buy Slaves][$helots-=1,$menialDemandFactor-=1,$cash+=$seed]]
+	<<if _optionsBreak>>|<</if>>
+	[[Sell|Buy Slaves][$helots-=1,$menialDemandFactor-=1,$cash+=_menialPrice]]
 <<if $helots >= 10>>
-	[[(x10)|Buy Slaves][$helots-=10,$menialDemandFactor-=10,$cash+=$seed*10]]
+	[[(x10)|Buy Slaves][$helots-=10,$menialDemandFactor-=10,$cash+=_menialPrice*10]]
 <<if $helots >= 100>>
-	[[(x100)|Buy Slaves][$helots-=100,$menialDemandFactor-=100,$cash+=$seed*100]]
+	[[(x100)|Buy Slaves][$helots-=100,$menialDemandFactor-=100,$cash+=_menialPrice*100]]
 <</if>>
 <</if>>
-[[(all)|Buy Slaves][$cash+=$helots*($seed),$menialDemandFactor-=$helots*($seed),$helots = 0]]
+[[(all)|Buy Slaves][$cash+=$helots*(_menialPrice),$menialDemandFactor-=$helots*(_menialPrice),$helots = 0]]
 	<<if $arcologies[0].FSPaternalist == "unset">>
 	<<if $arcadeUpgradeFuckdolls == 1>>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[Convert to Fuckdoll|Buy Slaves][$helots-=1,$fuckdolls+=1,$cash-=1000]]
@@ -212,28 +217,33 @@ The market price of menials is ¤$seed.
 	<br>You do not own any standard Fuckdolls.
 <</if>>
 <<if ($fuckdolls > 0) || ($arcologies[0].FSPaternalist == "unset")>>
-The market price of standard fuckdolls is ¤<<print $seed*2>>.
+The market price of standard fuckdolls is ¤<<print _menialPrice*2>>.
+<<set _optionsBreak = 0>>
+<<if $PopCap < $helots+$fuckdolls+$menialBioreactors>>
 <<if $arcologies[0].FSPaternalist == "unset">>
-[[Buy|Buy Slaves][$fuckdolls+=1,$menialDemandFactor+=1,$cash-=$seed*2]]
-<<if $cash > $seed*20>>
-	[[(x10)|Buy Slaves][$fuckdolls+=10,$menialDemandFactor+=10,$cash-=$seed*20]]
-<</if>>
-<<if $cash > $seed*200>>
-	[[(x100)|Buy Slaves][$fuckdolls+=100,$menialDemandFactor+=100,$cash-=$seed*200]]
-<</if>>
-<<if $cash > $seed*4>>
-	[[(max)|Buy Slaves][$fuckdolls+=Math.trunc($cash/($seed*2)),$menialDemandFactor+=Math.trunc($cash/($seed*2)),$cash-=Math.trunc($cash/($seed*2))*($seed*2)]]
+	[[Buy|Buy Slaves][$fuckdolls+=1,$menialDemandFactor+=1,$cash-=_menialPrice*2]]
+	<<if $cash > _menialPrice*20>>
+		[[(x10)|Buy Slaves][$fuckdolls+=10,$menialDemandFactor+=10,$cash-=_menialPrice*20]]
+	<</if>>
+	<<if $cash > _menialPrice*200>>
+		[[(x100)|Buy Slaves][$fuckdolls+=100,$menialDemandFactor+=100,$cash-=_menialPrice*200]]
+	<</if>>
+	<<if $cash > _menialPrice*4>>
+		[[(max)|Buy Slaves][$fuckdolls+=Math.trunc($cash/(_menialPrice*2)),$menialDemandFactor+=Math.trunc($cash/(_menialPrice*2)),$cash-=Math.trunc($cash/(_menialPrice*2))*(_menialPrice*2)]]
+	<</if>>
+	<<set _optionsBreak = 1>>
 <</if>>
 <</if>>
 <<if $fuckdolls >= 1>>
-	| [[Sell|Buy Slaves][$fuckdolls-=1,$menialDemandFactor-=1,$cash+=$seed*2]]
+	<<if _optionsBreak>>|<</if>>
+	[[Sell|Buy Slaves][$fuckdolls-=1,$menialDemandFactor-=1,$cash+=_menialPrice*2]]
 <<if $fuckdolls >= 10>>
-	[[(x10)|Buy Slaves][$fuckdolls-=10,$menialDemandFactor-=10,$cash+=$seed*20]]
+	[[(x10)|Buy Slaves][$fuckdolls-=10,$menialDemandFactor-=10,$cash+=_menialPrice*20]]
 <<if $fuckdolls >= 100>>
-	[[(x100)|Buy Slaves][$fuckdolls-=100,$menialDemandFactor-=100,$cash+=$seed*200]]
+	[[(x100)|Buy Slaves][$fuckdolls-=100,$menialDemandFactor-=100,$cash+=_menialPrice*200]]
 <</if>>
 <</if>>
-[[(all)|Buy Slaves][$cash+=$fuckdolls*($seed*2),$menialDemandFactor-=$fuckdolls*($seed*2),$fuckdolls = 0]]
+[[(all)|Buy Slaves][$cash+=$fuckdolls*(_menialPrice*2),$menialDemandFactor-=$fuckdolls*(_menialPrice*2),$fuckdolls = 0]]
 <</if>>
 <</if>>
 
@@ -245,27 +255,32 @@ The market price of standard fuckdolls is ¤<<print $seed*2>>.
 	<br>You do not own any standard bioreactors.
 <</if>>
 <<if ($menialBioreactors > 0) || ($arcologies[0].FSPaternalist == "unset")>>
-The market price of standard bioreactors is ¤<<print ($seed-100)>>.
+The market price of standard bioreactors is ¤<<print (_menialPrice-100)>>.
+<<set _optionsBreak = 0>>
+<<if $PopCap < $helots+$fuckdolls+$menialBioreactors>>
 <<if $arcologies[0].FSPaternalist == "unset">>
-[[Buy|Buy Slaves][$menialBioreactors+=1,$menialDemandFactor+=1,$cash-=($seed-100)]]
-<<if $cash > ($seed-100)*10>>
-	[[(x10)|Buy Slaves][$menialBioreactors+=10,$menialDemandFactor+=10,$cash-=($seed-100)*10]]
-<</if>>
-<<if $cash > ($seed-100)*100>>
-	[[(x100)|Buy Slaves][$menialBioreactors+=100,$menialDemandFactor+=100,$cash-=($seed-100)*100]]
-<</if>>
-<<if $cash > ($seed-100)*2>>
-	[[(max)|Buy Slaves][$menialBioreactors+=Math.trunc($cash/($seed-100)),$menialDemandFactor+=Math.trunc($cash/($seed-100)),$cash-=Math.trunc($cash/($seed-100))*($seed-100)]]
+	[[Buy|Buy Slaves][$menialBioreactors+=1,$menialDemandFactor+=1,$cash-=(_menialPrice-100)]]
+	<<if $cash > (_menialPrice-100)*10>>
+		[[(x10)|Buy Slaves][$menialBioreactors+=10,$menialDemandFactor+=10,$cash-=(_menialPrice-100)*10]]
+	<</if>>
+	<<if $cash > (_menialPrice-100)*100>>
+		[[(x100)|Buy Slaves][$menialBioreactors+=100,$menialDemandFactor+=100,$cash-=(_menialPrice-100)*100]]
+	<</if>>
+	<<if $cash > (_menialPrice-100)*2>>
+		[[(max)|Buy Slaves][$menialBioreactors+=Math.trunc($cash/(_menialPrice-100)),$menialDemandFactor+=Math.trunc($cash/(_menialPrice-100)),$cash-=Math.trunc($cash/(_menialPrice-100))*(_menialPrice-100)]]
+	<</if>>
+	<<set _optionsBreak = 1>>
 <</if>>
 <</if>>
 <<if $menialBioreactors >= 1>>
-	| [[Sell|Buy Slaves][$menialBioreactors-=1,$menialDemandFactor-=1,$cash+=($seed-100)]]
+	<<if _optionsBreak>>|<</if>>
+	[[Sell|Buy Slaves][$menialBioreactors-=1,$menialDemandFactor-=1,$cash+=(_menialPrice-100)]]
 <<if $menialBioreactors >= 10>>
-	[[(x10)|Buy Slaves][$menialBioreactors-=10,$menialDemandFactor-=10,$cash+=($seed-100)*10]]
+	[[(x10)|Buy Slaves][$menialBioreactors-=10,$menialDemandFactor-=10,$cash+=(_menialPrice-100)*10]]
 <<if $menialBioreactors >= 100>>
-	[[(x100)|Buy Slaves][$menialBioreactors-=100,$menialDemandFactor-=100,$cash+=($seed-100)*100]]
+	[[(x100)|Buy Slaves][$menialBioreactors-=100,$menialDemandFactor-=100,$cash+=(_menialPrice-100)*100]]
 <</if>>
 <</if>>
-[[(all)|Buy Slaves][$cash+=$menialBioreactors*($seed-100),$menialDemandFactor-=$menialBioreactors*($seed-100),$menialBioreactors = 0]]
+[[(all)|Buy Slaves][$cash+=$menialBioreactors*(_menialPrice-100),$menialDemandFactor-=$menialBioreactors*(_menialPrice-100),$menialBioreactors = 0]]
 <</if>>
 <</if>>
