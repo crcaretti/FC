@@ -1472,6 +1472,24 @@
 	''Classes''
 <</if>>
 |
+/* disabled until we add a lactation check in DefaultRules when applying this
+<<if ($currentRule.setAssignment != "get milked")>>
+	<<link "Milking">>
+		<<set $currentRule.assignment.delete("get milked")>>
+		<<set $currentRule.setAssignment = "get milked">>
+		<<set $currentRule.assignFacility = "none">>
+		<<set $currentRule.facilityRemove = false>>
+		<<RAChangeApplyAssignment>>
+		<<RAChangeSetAssignment>>
+		<<RAChangeAssignFacility>>
+		<<RAChangeSave>>
+		<<RAChangeApply>>
+	<</link>>
+<<else>>
+	''Milking''
+<</if>>
+|
+*/
 <<if ($currentRule.setAssignment != "work a glory hole")>>
 	<<link "Gloryhole">>
 		<<set $currentRule.assignment.delete("work a glory hole")>>
@@ -3193,6 +3211,101 @@ Your brand design is ''$brandDesign.''
 <</widget>>
 
 /%
+ % Call as <<RAFacilityRemove SlaveObject RuleObject>>
+ %/
+<<widget "RAFacilityRemove">>
+<<if $args[1].facilityRemove>>
+    <<switch $args[1].assignFacility>>
+    <<case "arcade">>
+        <<if $args[0].assignment == "be confined in the arcade">>
+            <br>$args[0].slaveName has been removed from $arcadeName and has been assigned to $args[1].removalAssignment.
+            <<assignJob $args[0] $args[1].removalAssignment>>
+        <</if>>
+
+    <<case "brothel">>
+        <<if $args[0].assignment == "work in the brothel">>
+            <<if ($Madam == 0) || ($Madam.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $brothelName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+
+    <<case "club">>
+        <<if $args[0].assignment == "serve in the club">>
+            <<if ($DJ == 0) || ($DJ.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $clubName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+
+    <<case "dairy">>
+        <<if $args[0].assignment == "work in the dairy">>
+            <<if ($Milkmaid == 0) || ($Milkmaid.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $dairyName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+
+    <<case "spa">>
+        <<if $args[0].assignment == "rest in the spa">>
+            <<if ($Attendant == 0) || ($Attendant.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $spaName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+
+    <<case "clinic">>
+        <<if $args[0].assignment == "get treatment in the clinic">>
+            <<if ($Nurse == 0) || ($Nurse.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $clinicName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+
+    <<case "mastersuite">>
+        <<if $args[0].assignment == "serve in the master suite">>
+            <<if ($Concubine == 0) || ($Concubine.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $masterSuiteName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+
+    <<case "hgsuite">>
+        <<if $args[0].assignment == "live with your Head Girl">>
+            <<if ($HeadGirl == 0) || ($HeadGirl.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $HGSuiteName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+
+    <<case "servantsquarters">>
+        <<if $args[0].assignment == "work as a servant">>
+            <<if ($Stewardess == 0) || ($Stewardess.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $servantsQuartersName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+
+    <<case "schoolroom">>
+        <<if $args[0].assignment == "learn in the schoolroom">>
+            <<if ($Schoolteacher == 0) || ($Schoolteacher.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $schoolroomName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+
+    <<case "cellblock">>
+        <<if $args[0].assignment == "be confined in the cellblock">>
+            <<if ($Wardeness == 0) || ($Wardeness.ID != $args[0].ID)>>
+                <br>$args[0].slaveName has been removed from $cellblockName and has been assigned to $args[1].removalAssignment.
+                <<assignJob $args[0] $args[1].removalAssignment>>
+            <</if>>
+        <</if>>
+    <</switch>>
+<</if>>
+<</widget>>
+
+/%
  Call as <<RARemoveRule SlaveObject>>
 %/
 <<widget "RARemoveRule">>
@@ -3201,8 +3314,7 @@ Your brand design is ''$brandDesign.''
 			<<set _dump = $args[0].currentRules.deleteAt(_s)>>
 			<br>//@@.tan;Rule _rule (_currentRule.name) is no longer applying to $args[0].slaveName, who is assigned to $args[0].assignment.@@//
 			<<if $args[0].assignmentVisible == 0>>
-				<<set _combinedRule = _currentRule>>
-				<<include "Rules Facility Remove">>
+				<<RAFacilityRemove $args[0] _currentRule>>
 			<</if>>
 			<<break>>
 		<</if>>
@@ -3216,74 +3328,80 @@ Your brand design is ''$brandDesign.''
 <<widget "DefaultRules">>
 <<set _combinedRule = {}>>
 <<for _r = 0; _r < $defaultRules.length; _r++>>
+	<<set _currentRule = $defaultRules[_r]>>
 	/% skip inapplicable rules %/
-	<<if !ruleApplied($args[0], $defaultRules[_r].ID)>>
+	<<if !ruleApplied($args[0], _currentRule.ID)>>
 		<<continue>>
 	<</if>>
 
-	<<set _combinedRule = mergeRules([_combinedRule, $defaultRules[_r]])>>
-	
-	<<switch _combinedRule.assignFacility>>
+	<<set _combinedRule = mergeRules([_combinedRule, _currentRule])>>
+
+	/% apply assignment changes for each rule (_currentRule) we process; _combinedRule will be used later %/
+	<<switch _currentRule.assignFacility>>
 	<<case "hgsuite">>
 		<<if ($HGSuiteSlaves == 0) && ($args[0].indentureRestrictions <= 0) && ($args[0].assignment != "live with your Head Girl")>>
 			<br>$args[0].slaveName has been automatically assigned to live in your Head Girl's private suite.
-			<<assignJob $args[0] _combinedRule.assignFacility>>
+			<<assignJob $args[0] _currentRule.assignFacility>>
+		<<else>>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 
 	<<case "arcade">>
 		<<if ($arcade > $arcadeSlaves) && ($args[0].indentureRestrictions <= 0) && ($args[0].assignment != "be confined in the arcade") && $args[0].breedingMark != 1>>
 			<br>$args[0].slaveName has been automatically assigned to be confined in $arcadeName.
-			<<assignJob $args[0] _combinedRule.assignFacility>>
+			<<assignJob $args[0] _currentRule.assignFacility>>
+		<<else>>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 
 	<<case "mastersuite">>
 		<<if ($masterSuite > $masterSuiteSlaves) && ($args[0].devotion > 20) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50)>>
 			<<if ($args[0].assignment != "serve in the master suite")>>
 				<br>$args[0].slaveName has been automatically assigned to $masterSuiteName.
-				<<assignJob $args[0] _combinedRule.assignFacility>>
+				<<assignJob $args[0] _currentRule.assignFacility>>
 			<</if>>
 		<<else>>
-			<<include "Rules Facility Remove">>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 
 	<<case "clinic">>
 		<<if ($clinic > $clinicSlaves) && ($args[0].health < 20) || (($Nurse != 0) && ($args[0].chem > 15) && ($clinicUpgradeFilters == 1)) || (($args[0].bellyImplant > 100) && ($bellyImplants == 1)) || $args[0].preg > 1>>
 			<<if ($args[0].assignment != "get treatment in the clinic")>>
 				<br>$args[0].slaveName has been automatically assigned to get treatment in $clinicName.
-				<<assignJob $args[0] _combinedRule.assignFacility>>
+				<<assignJob $args[0] _currentRule.assignFacility>>
 			<</if>>
 		<<else>>
-			<<include "Rules Facility Remove">>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 
 	<<case "spa">>
 		<<if ($spa > $spaSlaves) && ($args[0].health < 20) || ($args[0].trust < 60) || ($args[0].devotion <= 60) || ($args[0].fetish == "mindbroken") && ($args[0].devotion >= -20)>>
 			<<if ($args[0].assignment != "rest in the spa")>>
 				<br>$args[0].slaveName has been automatically assigned to rest in $spaName.
-				<<assignJob $args[0] _combinedRule.assignFacility>>
+				<<assignJob $args[0] _currentRule.assignFacility>>
 			<</if>>
 		<<else>>
-			<<include "Rules Facility Remove">>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 
 	<<case "brothel">>
 		<<if ($brothel > $brothelSlaves) && (($args[0].devotion > 50) || ($args[0].trust > 50) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50)) && $args[0].breedingMark != 1>>
 			<<if ($args[0].assignment != "work in the brothel")>>
 				<br>$args[0].slaveName has been automatically assigned to work in $brothelName.
-				<<assignJob $args[0] _combinedRule.assignFacility>>
+				<<assignJob $args[0] _currentRule.assignFacility>>
 			<</if>>
 		<<else>>
-			<<include "Rules Facility Remove">>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 
 	<<case "club">>
 		<<if ($club > $clubSlaves) && (($args[0].devotion > 50) || ($args[0].trust > 50) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50)) && $args[0].breedingMark != 1>>
 			<<if ($args[0].assignment != "serve in the club")>>
 				<br>$args[0].slaveName has been automatically assigned to serve in $clubName.
-				<<assignJob $args[0] _combinedRule.assignFacility>>
+				<<assignJob $args[0] _currentRule.assignFacility>>
 			<</if>>
 		<<else>>
-			<<include "Rules Facility Remove">>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 
 	<<case "dairy">>
@@ -3297,19 +3415,19 @@ Your brand design is ''$brandDesign.''
 							<<if ($dairyPregSetting < 2) || ($args[0].vagina > 2) || ($args[0].ovaries == 0) || ($dairyPrepUpgrade == 1)>>
 								<<if ($args[0].assignment != "work in the dairy")>>
 									<br>$args[0].slaveName has been automatically assigned to be milked in $dairyName.
-									<<assignJob $args[0] _combinedRule.assignFacility>>
+									<<assignJob $args[0] _currentRule.assignFacility>>
 								<</if>>
 							<<else>>
-								<<include "Rules Facility Remove">>
+								<<RAFacilityRemove $args[0] _currentRule>>
 							<</if>>
 						<<else>>
-							<<include "Rules Facility Remove">>
+							<<RAFacilityRemove $args[0] _currentRule>>
 						<</if>>
 					<<else>>
-						<<include "Rules Facility Remove">>
+						<<RAFacilityRemove $args[0] _currentRule>>
 					<</if>>
 				<<else>>
-					<<include "Rules Facility Remove">>
+					<<RAFacilityRemove $args[0] _currentRule>>
 				<</if>>
 			<</if>>
 		<</if>>
@@ -3318,10 +3436,10 @@ Your brand design is ''$brandDesign.''
 		<<if ($servantsQuarters > $servantsQuartersSlaves) && (($args[0].devotion >= -20) || (($args[0].devotion >= -50) && ($args[0].trust <= 20)) || ($args[0].trust < -20)) && canSee($args[0]) && canWalk($args[0])>>
 			<<if ($args[0].assignment != "work as a servant")>>
 				<br>$args[0].slaveName has been automatically assigned to work in $servantsQuartersName.
-				<<assignJob $args[0] _combinedRule.assignFacility>>
+				<<assignJob $args[0] _currentRule.assignFacility>>
 			<</if>>
 		<<else>>
-			<<include "Rules Facility Remove">>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 
 	<<case "schoolroom">>
@@ -3329,39 +3447,46 @@ Your brand design is ''$brandDesign.''
 			<<if ($args[0].intelligenceImplant < 1) || ($args[0].voice != 0 && $args[0].accent+$schoolroomUpgradeLanguage > 2) || ($args[0].oralSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].whoreSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].entertainSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].analSkill < 10+$schoolroomUpgradeSkills*20) || (($args[0].vagina >= 0) && ($args[0].vaginalSkill < 10+$schoolroomUpgradeSkills*20))>>
 				<<if ($args[0].assignment != "learn in the schoolroom")>>
 					<br>$args[0].slaveName has been automatically assigned to study in $schoolroomName.
-					<<assignJob $args[0] _combinedRule.assignFacility>>
+					<<assignJob $args[0] _currentRule.assignFacility>>
 				<</if>>
 			<<else>>
-				<<include "Rules Facility Remove">>
+				<<RAFacilityRemove $args[0] _currentRule>>
 			<</if>>
 		<<else>>
-			<<include "Rules Facility Remove">>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 
 	<<case "cellblock">>
 		<<if ($cellblock > $cellblockSlaves) && (($args[0].devotion < -20) && ($args[0].trust >= -20)) || (($args[0].devotion < -50) && ($args[0].trust >= -50))>>
 			<<if ($args[0].assignment != "be confined in the cellblock")>>
 				<br>$args[0].slaveName has been automatically assigned to be confined in $cellblockName.
-				<<assignJob $args[0] _combinedRule.assignFacility>>
+				<<assignJob $args[0] _currentRule.assignFacility>>
 			<</if>>
 		<<else>>
-			<<include "Rules Facility Remove">>
+			<<RAFacilityRemove $args[0] _currentRule>>
 		<</if>>
 	<</switch>>
 
-	<<if (_combinedRule.setAssignment !== "none")>>
-	<<if (_combinedRule.setAssignment == "choose her own job")>>
+	<<if (_currentRule.setAssignment !== "none")>>
+	<<if (_currentRule.setAssignment == "choose her own job")>>
 		<<if ($args[0].choosesOwnAssignment == 0)>>
 			<br>$args[0].slaveName is now allowed to select her own assignments.
-			<<assignJob $args[0] _combinedRule.setAssignment>>
+			<<assignJob $args[0] _currentRule.setAssignment>>
 		<</if>>
-	<<elseif ($args[0].assignment !== _combinedRule.setAssignment)>>
-		<br>$args[0].slaveName has been automatically assigned to _combinedRule.setAssignment.
-		<<assignJob $args[0] _combinedRule.setAssignment>>
+	<<elseif ($args[0].assignment !== _currentRule.setAssignment)>>
+		<br>$args[0].slaveName has been automatically assigned to _currentRule.setAssignment.
+		<<assignJob $args[0] _currentRule.setAssignment>>
 	<</if>>
 	<</if>>
 
-<</for>>
+<</for>> /* done merging rules; from here onwards, we should only use _combinedRule */
+
+/% In case a slave has no rules applying to them, _combinedRule would (should)
+be an empty object, and that would wreck havoc to the rest of the code. So, we
+check if a rule attribute, any one, is defined and otherwise skip everything.
+%/
+
+<<if (def _combinedRule.clothes)>> /* we have at least one non-default rule setting */
 
 <<if $args[0].fuckdoll == 0>>
 
@@ -3616,7 +3741,7 @@ Your brand design is ''$brandDesign.''
 		<<if $args[0].bellyAccessory == "none">>
 			<br>$args[0].slaveName has been instructed not to wear a torso accessory.
 		<<else>>
-			<br>$args[0].slaveName has been given a $args[0].bellyAccessory to wear.
+			<br>$args[0].slaveName has been given $args[0].bellyAccessory to wear.
 		<</if>>
 	<</if>>
 <</if>>
@@ -4617,6 +4742,8 @@ is now _combinedRule.hLength cm long.
 <</if>>
 <</if>>
 <</if>>
+
+<</if>> /* closes we have at least one non-default rule setting */
 
 <</widget>>
 
