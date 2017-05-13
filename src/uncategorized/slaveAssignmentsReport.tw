@@ -351,17 +351,20 @@
  */
 
 <<set _facListArr = [
-    ["Brothel Report", $brothelNameCaps, $brothel, $brothelSlaves, $Madam, "Madam"],
-    ["Club Report", $clubNameCaps, $club, $clubSlaves, $DJ, "DJ"],
-    ["Arcade Report", $arcadeNameCaps, $arcade, $arcadeSlaves, -1, -1],
-    ["Dairy Report", $dairyNameCaps, $dairy, $dairySlaves, $Milkmaid, "Milkmaid"],
+    ["Penthouse Report", "The Penthouse", 1, $slavesVisible, -1, -1], /** must be first - may assign slaves to facilities **/
     ["Servants' Quarters Report", $servantsQuartersNameCaps, $servantsQuarters, $servantsQuartersSlaves, $Stewardess, "Stewardess"],
     ["Schoolroom Report", $schoolroomNameCaps, $schoolroom, $schoolroomSlaves, $Schoolteacher, "Schoolteacher"],
     ["Spa Report", $spaNameCaps, $spa, $spaSlaves, $Attendant, "Attendant"],
     ["Clinic Report", $clinicNameCaps, $clinic, $clinicSlaves, $Nurse, "Nurse"],
+    ["Arcade Report", $arcadeNameCaps, $arcade, $arcadeSlaves, -1, -1],
+    ["Brothel Report", $brothelNameCaps, $brothel, $brothelSlaves, $Madam, "Madam"],
+    ["Club Report", $clubNameCaps, $club, $clubSlaves, $DJ, "DJ"],
+    ["Dairy Report", $dairyNameCaps, $dairy, $dairySlaves, $Milkmaid, "Milkmaid"],
     ["Cellblock Report", $cellblockNameCaps, $cellblock, $cellblockSlaves, $Wardeness, "Wardeness"],
+/**    ["Lab Report"], "Research Lab", $researchLab.built, $researchLab.hired + $researchLab.menials, -1, -1], **/
     ["Incubator Report", $incubatorNameCaps, $incubator, $incubatorSlaves, -1, -1],
     ["Master Suite Report", $masterSuiteNameCaps, $masterSuite, $masterSuiteSlaves, $Concubine, "Concubine"]
+    ["Rules Assistant Report", "Rules Assistant", $rulesAssistantAuto, 1, -1, -1] /** should be last - may reassign slaves **/
 ]>>
 
 <<for _ii = 0; _ii < _facListArr.length; _ii++>>
@@ -371,7 +374,10 @@
     <<if _facSubArr[2] > 0>> /** Do we have one of these facilities? */
         <<if $useAccordion > 0>> <<set _accText = " accordion", _disTxt = "">> <</if>> /** Is Accordion turned on? */
         <<if (_facSubArr[3] == 0) && (_facSubArr[4] <= 0)>> /** Is there anyone inside the facility? */
-            <<= '<div id="button-' + _str + '" class="unStaffed">' + _facSubArr[1] + ' is currently unstaffed</div>'>> /** No, so we display the Unstaffed bar */
+            ''_facSubArr[1] Report''<hr style="margin:0"> /** No - it's empty, so we display the heading without a button and with a thinner bar under it */
+            @@.gray;_facSubArr[1] is currently empty.@@
+            <br><br>
+            /** Old code: <<= '<div id="button-' + _str + '" class="unStaffed">' + _facSubArr[1] + ' is currently unstaffed</div>'>> */
         <<else>>
             <<= '<button type="button"' + _disTxt + ' id="button-' + _str + '" class="buttonBar' + _accText + '" data-after="' + _facSubArr[3] + ' slaves in ' + _facSubArr[1] + '">' + _facSubArr[1] + ' Report</button>'>> /** Yes, display the bar with information */
         <</if>>
@@ -388,45 +394,3 @@
 	<<include "Lab Report">><br><br>
 <</if>>
 
-<<if $slavesVisible > 0>>
-<br>__''Penthouse Report''__<br>
-<<for $i = 0; $i < _SL; $i++>>
-<<if $slaves[$i].assignmentVisible == 1>>
-	<br>
-	<<include "Full Report">>
-	<<if ($slaves[$i].assignment == "be your Head Girl") && ($HGSuiteSlaves > 0)>>
-		<<set _iTemp = $i, $i = $HGSuiteiIDs[0].Index, _ID = $HGSuiteiIDs[0].ID>>
-		<<if $i >= _SL || _ID != $slaves[$i].ID>>
-			/% Slaves.ID and $HGSuiteiIDs.ID's don't match-up so let's find her %/
-			<<for $i = 0; $i < _SL; $i++>>
-			<<if _ID == $slaves[$i].ID>>
-				/% Correct the Index %/
-				<<set $HGSuiteiIDs[0].Index = $i>>
-				<<break>>
-			<</if>>
-			<</for>>
-		<</if>>
-		<<if $i < _SL && $slaves[$i].assignment != "live with your Head Girl">>
-			<br>@@.red;$slaves[$i].slaveName had been assigned to live with your Head Girl, but this week she was assigned to $slaves[$i].assignment. She has been released to your penthouse for reassignment.@@
-			<<removeJob $slaves[$i] "live with your head girl">>
-		<</if>>
-		/% Onward bound as normal %/
-		<<set $HGRelease = 1>>
-		<br><br><<include "SA live with HG">>
-		<<set $i = _iTemp>>
-	<</if>>
-<</if>>
-<<if ($rulesAssistantAuto == 1) && ($slaves[$i].useRulesAssistant == 1)>>
-	<<if $slaves[$i].assignmentVisible == 0>>
-		<<silently>>
-			<<CheckAutoRulesActivate $slaves[$i]>>
-			<<DefaultRules $slaves[$i]>>
-		<</silently>>
-	<<else>>
-		<<CheckAutoRulesActivate $slaves[$i]>>
-		<<DefaultRules $slaves[$i]>>
-	<</if>>
-<</if>>
-<<if $slaves[$i].assignmentVisible == 1>><br><</if>>
-<</for>>
-<</if>>
