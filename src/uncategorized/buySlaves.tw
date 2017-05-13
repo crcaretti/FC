@@ -2,6 +2,7 @@
 
 <<set $nextButton = "Back">>
 <<set $nextLink = "Main">>
+<<set _minimumFive = $minimumSlaveCost * 5>>
 
 <<set $activeArcology = 0>>
 
@@ -24,61 +25,115 @@ __Sex Slave Purchase Options__
 
 <<if $corpMarket != 0>>
 	<br>[[Corporate Market][$slavesSeen += 1]] | //Slaves from your corporation purchased at a discounted rate.//
+	<<if $cash > _minimumFive>>
+		[[(x5)|Bulk Slave Generate][$slaveMarket = "corporate", $introType = "bulk", $numSlaves = 5]] |
+	<</if>>
 <</if>>
 
-<br>[[The Flesh Heap|Slave Markets][$slaveMarket = "heap", $slavesSeen += 1]] | //Broken and discarded slaves. Near useless, but cheap.//
+<br>[[The Flesh Heap|Slave Markets][$slaveMarket = "heap", $slavesSeen += 1]] | //Broken and discarded slaves. Near useless, but cheap. No longer does bulk orders after complaints.//
 
 <<if $bodyswapAnnounced == 1>>
 <br>[[Order a custom husk slave from the Flesh Heap|Husk Slave]] | //Will need to be used on arrival.//
 <</if>>
 
 <<if ($rep > 500)>>
-<br>[[Kidnappers' Market|Slave Markets][$slaveMarket = "kidnappers", $slavesSeen += 1]] | //Slaves will tend to be low quality and resistant.//
+<br>[[Kidnappers' Market|Slave Markets][$slaveMarket = "kidnappers", $slavesSeen += 1]] | 
+<<if $cash > _minimumFive>>
+	[[(x5)|Bulk Slave Generate][$slaveMarket = "kidnappers", $introType = "bulk", $numSlaves = 5]] |
+<</if>>
+//Slaves will tend to be low quality and resistant.//
 <</if>>
 
-<<set _culture = 0>>
-<<for $i = 0; $i < $arcologies.length; $i++>>
-	<<if $arcologies[$i].direction != 0>>
-	<br><<print "[[Slaves from|Slave Markets][$activeArcology = $arcologies[" + $i + "]]]">>
-	''$arcologies[$i].name''
-	<<if _culture == 0>>
-		| //The arcology's prosperity and culture will affect slaves who have lived there.//
-		<<set _culture = 1>>
-	<</if>>
+<br>''Neighboring Arcologies:'' //The arcology's prosperity and culture will affect slaves who have lived there.//
+<<for _i = 0; _i < $arcologies.length; _i++>>
+	<<if $arcologies[_i].direction != 0>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;<<print '[[Slaves from|Slave Markets][$slaveMarket = "neighbor", $numArcology = ' + _i + ']]'>>
+		''$arcologies[_i].name'' 
+		<<if $cash > _minimumFive>>
+			| <<print '[[(x5)|Bulk Slave Generate][$slaveMarket = "neighbor", $introType = "bulk", $numSlaves = 5, $numArcology = '+_i+']]'>>
+		<</if>>
 	<</if>>
 <</for>>
 
 <<if ($rep > 1000)>>
-	<br>[[Runaway Hunters' Market|Slave Markets][$slaveMarket = "hunters", $slavesSeen += 1]] | //Slaves will tend to be skilled but rebellious.//
+	<br>[[Runaway Hunters' Market|Slave Markets][$slaveMarket = "hunters", $slavesSeen += 1]] | 
+	<<if $cash > _minimumFive>>
+		[[(x5)|Bulk Slave Generate][$slaveMarket = "hunters", $introType = "bulk", $numSlaves = 5]] |
+	<</if>>
+	//Slaves will tend to be skilled but rebellious.//
 <</if>>
 
 <<if ($rep > 2000)>>
-	<br>[[Indentures Market|Slave Markets][$slaveMarket = "indentures", $slavesSeen += 1]] | //Temporary enslavement and restrictions on treatment.//
+	<br>[[Indentures Market|Slave Markets][$slaveMarket = "indentures", $slavesSeen += 1]] | 
+	<<if $cash > _minimumFive>>
+		[[(x5)|Bulk Slave Generate][$slaveMarket = "indentures", $introType = "bulk", $numSlaves = 5]] |
+	<</if>>
+	//Temporary enslavement and restrictions on treatment.//
 <</if>>
 
 <<if ($rep > 3000)>>
-	<br>[[Raiders' Market|Slave Markets][$slaveMarket = "raiders", $slavesSeen += 1]] | //Slaves will always be sold immediately upon reaching majority.//
+	<br>[[Raiders' Market|Slave Markets][$slaveMarket = "raiders", $slavesSeen += 1]] | 
+	<<if $cash > _minimumFive>>
+		[[(x5)|Bulk Slave Generate][$slaveMarket = "raiders", $introType = "bulk", $numSlaves = 5]] |
+	<</if>>
+	//Slaves will always be sold immediately upon reaching majority.//
 <</if>>
 
 <<if ($pedo_mode == 1 || ($minimumSlaveAge <= 13 && $minimumSlaveAge <= $fertilityAge)) && ($rep > 3500)>>
-	<br>[[Raiders' Black Market|Slave Markets][$slaveMarket = "underage raiders", $slavesSeen += 1]] | //Very young slaves.//
+	<br>[[Raiders' Black Market|Slave Markets][$slaveMarket = "underage raiders", $slavesSeen += 1]] | 
+	<<if $cash > _minimumFive>>
+		[[(x5)|Bulk Slave Generate][$slaveMarket = "underage raiders", $introType = "bulk", $numSlaves = 5]] |
+	<</if>>
+	//Very young slaves.//
 <</if>>
 
 <<if ($rep > 4000)>>
-	<br>[[Trainers' Market|Slave Markets][$slaveMarket = "trainers", $slavesSeen += 1]] | //Slaves will tend to be good quality and obedient.//
+	<br>[[Trainers' Market|Slave Markets][$slaveMarket = "trainers", $slavesSeen += 1]] | 
+	<<if $cash > _minimumFive>>
+		[[(x5)|Bulk Slave Generate][$slaveMarket = "trainers", $introType = "bulk", $numSlaves = 5]] |
+	<</if>>
+	//Slaves will tend to be good quality and obedient.//
 <</if>>
 
 <<if ($rep > 5500)>>
 	<br>''Slave Schools:'' //High prices; will be young and healthy.//
 	<<if ($seeDicks != 2)>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[The Slavegirl School][$slavesSeen += 1]] | //Straightforward slaves with good training.//<<if $TSS.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[Growth Research Institute][$slavesSeen += 1]] | //Poorly trained slaves with huge assets.//<<if $GRI.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[St. Claver Preparatory][$slavesSeen += 1]] | //Slaves with basic training and solid implants.//<<if $SCP.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[The Slavegirl School][$slavesSeen += 1]] | 
+		<<if $cash > _minimumFive>>
+			[[(x5)|Bulk Slave Generate][$slaveMarket = "TSS", $introType = "bulk", $numSlaves = 5]] |
+		<</if>>
+		//Straightforward slaves with good training.//<<if $TSS.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
+		
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[Growth Research Institute][$slavesSeen += 1]] | 
+		<<if $cash > _minimumFive>>
+			[[(x5)|Bulk Slave Generate][$slaveMarket = "GRI", $introType = "bulk", $numSlaves = 5]] |
+		<</if>>
+		//Poorly trained slaves with huge assets.//<<if $GRI.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
+		
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[St. Claver Preparatory][$slavesSeen += 1]] | 
+		<<if $cash > _minimumFive>>
+			[[(x5)|Bulk Slave Generate][$slaveMarket = "SCP", $introType = "bulk", $numSlaves = 5]] |
+		<</if>>
+		//Slaves with basic training and solid implants.//<<if $SCP.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
 	<</if>>
 	<<if ($seeDicks != 0)>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[L'école des Enculées][$slavesSeen += 1]] | //Slaves optimized and trained for anal.//<<if $LDE.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[The Gymnasium-Academy][$slavesSeen += 1]] | //Well trained slaves with dicks.//<<if $TGA.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[The Futanari Sisters][$slavesSeen += 1]] | //Highly skilled, highly feminine hermaphrodites.//<<if $TFS.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[L'école des Enculées][$slavesSeen += 1]] | 
+		<<if $cash > _minimumFive>>
+			[[(x5)|Bulk Slave Generate][$slaveMarket = "LDE", $introType = "bulk", $numSlaves = 5]] |
+		<</if>>
+		//Slaves optimized and trained for anal.//<<if $LDE.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
+		
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[The Gymnasium-Academy][$slavesSeen += 1]] | 
+		<<if $cash > _minimumFive>>
+			[[(x5)|Bulk Slave Generate][$slaveMarket = "TGA", $introType = "bulk", $numSlaves = 5]] |
+		<</if>>
+		//Well trained slaves with dicks.//<<if $TGA.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
+		
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;[[The Futanari Sisters][$slavesSeen += 1]] | 
+		<<if $cash > _minimumFive>>
+			[[(x5)|Bulk Slave Generate][$slaveMarket = "TFS", $introType = "bulk", $numSlaves = 5]] |
+		<</if>>
+		//Highly skilled, highly feminine hermaphrodites.//<<if $TFS.schoolSale == 1>> //@@.yellow;Offering your first purchase at half price this week.@@//<</if>>
 	<</if>>
 <</if>>
 

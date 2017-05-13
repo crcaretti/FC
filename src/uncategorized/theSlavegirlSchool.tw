@@ -1,65 +1,17 @@
-:: The Slavegirl School
+:: The Slavegirl School [nobr]
 
-<<set $nextButton = "Back">>\
-<<set $nextLink = "Buy Slaves">>\
-<<set $returnTo = "Buy Slaves">>\
-<<set $showEncyclopedia = 1>><<set $encyclopedia = "Slave Schools">>\
-\
+<<set $nextButton = "Back", $nextLink = "Buy Slaves", $returnTo = "Buy Slaves", $showEncyclopedia = 1, $encyclopedia = "Slave Schools">>
+/* Multi-Purchase Support */
+<<if ndef $newSlaves>><<set $newSlaves = []>><</if>>
+<<if $newSlaves.length > 0>>
+	<<set $nextButton = "Continue", $nextLink = "Bulk Slave Intro", $slaveMarket = "TSS", $returnTo = "Main", $newSlaveIndex = 0>>
+<</if>>
+
 //The Slavegirl School is the newest slave school operating in the Free Cities. Its business model is to offer simpler, cheaper wares than its competitors. All Slavegirl School graduates are natural-born females without surgical modifications. Their training emphasizes elimination of any serious psychological deformities. They are promptly enslaved and sold as soon as they reach their majorities, and are marketed as complete virgins. <<if $TSS.schoolUpgrade != 0>><br><br>You have endowed <<if $TSS.schoolUpgrade == 1>>an alternative college at The Slavegirl School, which focuses on retraining good MILF stock into mature slave girls.<<else>>an improvement in the simplistic school's approach that teaches good basic skills without losing too much efficiency.<</if>> As a major <<if $PC.title == 0>>benefactrix<<else>>benefactor<</if>> of the institution, you also receive a discount on them.<</if>>//
 
-The Slavegirl School offers a fresh graduate for inspection via video call. The interview takes place in a faculty member's office. Absurdly, it's barely distinguishable from an office at any traditional institution of higher education. The only giveaway is the profusion of sex toys on the desk and the pornography on the walls.
+<br><br>The Slavegirl School offers a fresh graduate for inspection via video call. The interview takes place in a faculty member's office. Absurdly, it's barely distinguishable from an office at any traditional institution of higher education. The only giveaway is the profusion of sex toys on the desk and the pornography on the walls.
 
-<<nobr>>
-<<if $TSS.schoolUpgrade == 1>>
-	<<set $activeSlaveOneTimeMinAge = 36>>
-<<else>>
-	<<set $activeSlaveOneTimeMaxAge = 18>>
-<</if>>
-<<include "Generate XX Slave">>
-<<set $activeSlave.career = "a slave">>
-<<set $activeSlave.butt = either(1, 2, 2, 3)>>
-<<set $activeSlave.boobs = either(200, 300, 300, 400)>>
-<<if $TSS.schoolUpgrade == 1>>
-	<<set $activeSlave.origin = "You bought her fresh from the new Slavegirl School after she was retrained as a slave girl.">>
-	<<set $activeSlave.butt += 1>>
-	<<set $activeSlave.boobs += 200>>
-	<<set $activeSlave.anus = 1>>
-	<<set $activeSlave.vagina = 1>>
-<<else>>
-	<<set $activeSlave.origin = "You bought her fresh from the Slavegirl School right after her majority.">>
-	<<set $activeSlave.anus = 0>>
-	<<set $activeSlave.vagina = 0>>
-	<<set $activeSlave.birthWeek = 0>>
-<</if>>
-<<set $activeSlave.intelligenceImplant = 1>>
-<<set $activeSlave.teeth = "normal">>
-<<set $activeSlave.intelligence = either (-1, 0, 1, 2)>>
-<<set $activeSlave.devotion = random(25,45)>>
-<<set $activeSlave.trust = random(25,45)>>
-<<set $activeSlave.health = random(50,60)>>
-<<set $activeSlave.preg = 0>>
-<<set $activeSlave.weight = 0>>
-<<set $activeSlave.chem = 20>>
-<<if $TSS.schoolUpgrade == 0>>
-	<<set $activeSlave.vaginalSkill = 0>>
-	<<set $activeSlave.oralSkill = 0>>
-	<<set $activeSlave.analSkill = 0>>
-	<<set $activeSlave.whoreSkill = 0>>
-	<<set $activeSlave.entertainSkill = 15>>
-<<else>>
-	<<set $activeSlave.vaginalSkill = 15>>
-	<<set $activeSlave.oralSkill = 15>>
-	<<set $activeSlave.analSkill = 15>>
-	<<set $activeSlave.whoreSkill = 15>>
-	<<set $activeSlave.entertainSkill = 15>>
-<</if>>
-<<set $activeSlave.combatSkill = 0>>
-<<set $activeSlave.pubicHStyle = "waxed">>
-<<set $activeSlave.underArmHStyle = "waxed">>
-<<set $activeSlave.sexualFlaw = either("none")>>
-<<set $activeSlave.behavioralFlaw = either("none")>>
-<<set $activeSlave.hStyle = "tails">>
-<<set $activeSlave.customTat = "She has the simple logo of the corporation that operates The Slavegirl School tattooed on her left cheek.">>
+<<GenerateMarketSlave "TSS">>
 <<slaveCost $activeSlave>>
 <<if $TSS.schoolSale != 0>>
 	<<set $slaveCost = Math.trunc($slaveCost*0.5)>>
@@ -67,19 +19,26 @@ The Slavegirl School offers a fresh graduate for inspection via video call. The 
 	<<set $slaveCost = Math.trunc($slaveCost*0.8)>>
 <</if>>
 <<if $slavesSeen > $slaveMarketLimit>><<set $slaveCost += Math.trunc($slaveCost*(($slavesSeen-$slaveMarketLimit)*0.1))>><</if>>
-<</nobr>>\
-\
-The price is ¤<<print $slaveCost>>.<<if $slavesSeen > $slaveMarketLimit>> You have cast such a wide net for slaves this week that it is becoming more expensive to find more for sale. Your reputation helps determine your reach within the slave market.<</if>>
-\
-<<nobr>>
+
+
+<br><br>The price is ¤<<print $slaveCost>>.<<if $slavesSeen > $slaveMarketLimit>> You have cast such a wide net for slaves this week that it is becoming more expensive to find more for sale. Your reputation helps determine your reach within the slave market.<</if>>
+
 <<if $cash >= $slaveCost>>
-	[[Buy her slave contract|New Slave Intro][$cash -= $slaveCost,$TSS.schoolSale = 0,$TSS.studentsBought += 1,$nextButton = "Continue",$nextLink = "AS Dump",$returnTo = "Main"]]
+	<br>[[Buy her and check out other slaves to order|The Slavegirl School][$cash -= $slaveCost, $TSS.schoolSale = 0, $TSS.studentsBought += 1, $newSlaves.push($activeSlave), $introType = "multi", $slavesSeen+=1]]
+	<<if $newSlaves.length == 0>>
+		<br>[[Buy her slave contract|New Slave Intro][$cash -= $slaveCost, $TSS.schoolSale = 0, $TSS.studentsBought += 1, $nextButton = "Continue", $nextLink = "AS Dump", $returnTo = "Main"]]
+	<<else>>
+		<br>[[Buy her and Finish your order of slaves|Bulk Slave Intro][$cash -= $slaveCost, $TSS.schoolSale = 0, $TSS.studentsBought += 1, $newSlaves.push($activeSlave)]]
+	<</if>>
 <<else>>
 	//You lack the necessary funds to buy this slave.//
 <</if>>
-<</nobr>>
-[[Request to see a different graduate of the same school|The Slavegirl School][$slavesSeen += 1]]
+<br>[[Decline to purchase her and check out another slave|The Slavegirl School][$slavesSeen += 1]]
+<<if $newSlaves.length > 0>>
+	<br>[[Finish your order of slaves|Bulk Slave Intro]]
+<</if>>
 
-<<set $saleDescription = 1>>\
-<<include "Long Slave Description">>\
-<<set $saleDescription = 0>>\
+<br><br>
+<<set $saleDescription = 1>>
+<<include "Long Slave Description">>
+<<set $saleDescription = 0>>
