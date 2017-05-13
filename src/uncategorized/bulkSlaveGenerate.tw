@@ -1,0 +1,122 @@
+:: Bulk Slave Generate [nobr]
+
+<<set $newSlaves = []>>
+<<set $returnTo = "Main">>
+<<if ndef $numSlaves>>
+    <<set $numSlaves = 5>>
+<</if>>
+<<if ndef $numArcology>>
+    <<set $numArcology = 1>>
+<</if>>
+<<set $newSlavesDone = 0>>
+<<set $spent = 0>>
+<<set $newSlaveIndex = 0>>
+
+/* Discount calculation.  Gives 5% on top of slave school discount */
+<<set $discount = 475>>
+<<switch $slaveMarket>>
+<<case "TSS">>
+    <<if $TSS.schoolUpgrade != 0>>
+        <<set $discount = 375>>
+    <</if>>
+
+<<case "GRI">>
+    <<if $GRI.schoolUpgrade != 0>>
+        <<set $discount = 375>>
+    <</if>>
+
+<<case "SCP">>
+    <<if $SCP.schoolUpgrade != 0>>
+        <<set $discount = 375>>
+    <</if>>
+
+<<case "LDE">>
+    <<if $LDE.schoolUpgrade != 0>>
+        <<set $discount = 375>>
+    <</if>>
+
+<<case "TGA">>
+    <<if $TGA.schoolUpgrade != 0>>
+        <<set $discount = 375>>
+    <</if>>
+
+<<case "TFS">>
+    <<if $TFS.schoolUpgrade != 0>>
+        <<set $discount = 300>>
+    <<else>>
+        <<set $discount = 380>>
+    <</if>>
+    
+<<case "corporate">>
+    <<if $publicShares <= $personalShares*0.2>>
+		<<set $discount = 350>>
+	<<elseif $publicShares <= $personalShares*0.5>>
+		<<set $discount = 400>>
+	<<else>>
+		<<set $discount = 450>>
+	<</if>>
+
+<<case "neighbor">>
+    <<set $activeArcology = $arcologies[0]>>
+    <<if $numArcology >= $arcologies.length>>
+        <<set $numArcology = 1>>
+    <</if>>
+    <<set $targetArcology = $arcologies[$numArcology]>>
+    <<include "Arcology Opinion">>
+	<<set $opinion = Math.trunc($opinion/20)>>
+	<<set $opinion = Math.clamp($opinion, -10, 10)>>
+    <<set $discount -= ($opinion * 25)>>
+
+<</switch>>
+
+<<for _i = 0; _i < $numSlaves; _i++>>
+    <<silently>>
+        <<GenerateMarketSlave $slaveMarket $numArcology>>
+    <</silently>>
+    <<set $slavesSeen += 1>>
+    <<slaveCost $activeSlave>>
+    
+    /* Adjust $slaveCost according to $slavesSeen */
+    <<if $slavesSeen > $slaveMarketLimit>>
+        <<set $slaveCost += $slaveCost*(($slavesSeen-$slaveMarketLimit)*0.1)>>
+		<<if $introType == "inStock">>
+			<<break>>
+		<</if>>
+    <</if>>
+    
+    /* Apply discount modifier */
+    <<set $slaveCost = $discount*Math.trunc($slaveCost/500)>>
+    
+    /* Charge the Player for the slave, or break out if cannot afford */
+    <<if $cash < $slaveCost>>
+        <<set _i = $numSlaves>>
+	<<break>>
+    <<else>>
+        <<set $cash -= $slaveCost>>
+        <<set $newSlaves.push($activeSlave)>>
+        <<set $spent += $slaveCost>>
+    <</if>>
+<</for>>
+
+/* Max Buy clean-up */
+<<if $numSlaves == 9999>>
+	<<set $numSlaves = $newSlaves.length>>
+<</if>>
+
+/* increment Slave school purchase counts if needed */
+<<switch $slaveMarket>>
+<<case "TSS">>
+    <<set $TSS.studentsBought += $newSlaves.length>>
+<<case "GRI">>
+    <<set $GRI.studentsBought += $newSlaves.length>>
+<<case "SCP">>
+    <<set $SCP.studentsBought += $newSlaves.length>>
+<<case "LDE">>
+    <<set $LDE.studentsBought += $newSlaves.length>>
+<<case "TGA">>
+    <<set $TGA.studentsBought += $newSlaves.length>>
+<<case "TFS">>
+    <<set $TFS.studentsBought += $newSlaves.length>>
+<</switch>>
+
+<<goto "Bulk Slave Intro">>
