@@ -3,41 +3,59 @@
 <<set $clubBonuses = 0, $DJRepBonus = 0, $implanted = 0, $legendaryEntertainerID = 0, $modded = 0, $old = 0, $pure = 0, $slim = 0, $stacked = 0, $unmodded = 0, $XX = 0, $XY = 0, $young = 0, _FLsFetish = 0, _DL = $ClubiIDs.length, $clubSlaves = _DL, _SL = $slaves.length, _FLs = -1>>
 <<set $legendaryWombID = 0, $pregYes = 0, $pregNo = 0>>
 
+<<for _dI = 0; _dI < _DL; _dI++>>
+	<<set _i = $ClubiIDs[_dI].Index, _ID = $ClubiIDs[_dI].ID>>
+	<<if _i >= _SL || _ID != $slaves[_i].ID>>
+		/% Slaves.ID and $ClubiIDs.ID's don't match-up so let's find her %/
+		<<for _i = 0; _i < _SL; _i++>>
+			<<if _ID == $slaves[_i].ID>>
+				/% Correct the Index %/
+				<<set $ClubiIDs[_dI].Index = _i>>
+				<<break>>
+			<</if>>
+		<</for>>
+	<</if>>
+	<<if _i >= _SL || $slaves[_i].assignment != "serve in the club">>
+		<<set $ClubiIDs.deleteAt(_dI), _dI--, _DL-->>
+		<<continue>>
+	<</if>>
+<</for>>
+<<SlaveSort $ClubiIDs>>
 
 <<if $DJ != 0>>
 	<<for _FLs = 0; _FLs < _SL; _FLs++>>
-	<<if $slaves[_FLs].ID == $DJ.ID>>
-		<<break>>
-	<</if>>
+		<<if $slaves[_FLs].ID == $DJ.ID>>
+			<<break>>
+		<</if>>
 	<</for>>
 	<<if ($slaves[_FLs].health < -80)>>
-	<<set $slaves[_FLs].health += 20>>
+		<<set $slaves[_FLs].health += 20>>
 	<<elseif $slaves[_FLs].health < -40>>
-	<<set $slaves[_FLs].health += 15>>
+		<<set $slaves[_FLs].health += 15>>
 	<<elseif $slaves[_FLs].health < 0>>
-	<<set $slaves[_FLs].health += 10>>
+		<<set $slaves[_FLs].health += 10>>
 	<<elseif $slaves[_FLs].health < 90>>
-	<<set $slaves[_FLs].health += 7>>
+		<<set $slaves[_FLs].health += 7>>
 	<</if>>
 	<<if $slaves[_FLs].devotion <= 60>>
-	<<set $slaves[_FLs].devotion += 5>>
+		<<set $slaves[_FLs].devotion += 5>>
 	<</if>>
 	<<if $slaves[_FLs].trust < 60>>
-	<<set $slaves[_FLs].trust += 3>>
+		<<set $slaves[_FLs].trust += 3>>
 	<</if>>
 	<<if $slaves[_FLs].fetishStrength <= 95>>
-	<<if $slaves[_FLs].fetish != "humiliation">>
-		<<fetishChangeChance $slaves[_FLs]>>
-		<<if $fetishChangeChance > random(0,100)>>
-			<<set _FLsFetish = 1, $slaves[_FLs].fetishKnown = 1, $slaves[_FLs].fetish = "humiliation">>
+		<<if $slaves[_FLs].fetish != "humiliation">>
+			<<fetishChangeChance $slaves[_FLs]>>
+			<<if $fetishChangeChance > random(0,100)>>
+				<<set _FLsFetish = 1, $slaves[_FLs].fetishKnown = 1, $slaves[_FLs].fetish = "humiliation">>
+			<</if>>
+		<<elseif $slaves[_FLs].fetishKnown == 0>>
+			<<set _FLsFetish = 1, $slaves[_FLs].fetishKnown = 1>>
+		<<else>>
+			<<set _FLsFetish = 2, $slaves[_FLs].fetishStrength += 4>>
 		<</if>>
-	<<elseif $slaves[_FLs].fetishKnown == 0>>
-		<<set _FLsFetish = 1, $slaves[_FLs].fetishKnown = 1>>
-	<<else>>
-		<<set _FLsFetish = 2, $slaves[_FLs].fetishStrength += 4>>
 	<</if>>
-	<</if>>
-	<<set $DJ = $slaves[_FLs]>>
+	<<set $DJ = $slaves[_FLs], $i = _FLs>>
 	&nbsp;&nbsp;&nbsp;&nbsp;$DJ.slaveName is performing as the DJ.
 	<<if $DJ.relationship == -3>>
 		She tries her best to be your energetic, cheerful wife.
@@ -87,11 +105,11 @@
 	<<if ($clubSlaves < 10)>>
 		<<set $slavesGettingHelp = 0>>
 		<<if $universalRulesFacilityWork == 1>>
-		<<for _i = 0; _i < _SL; _i++>>
-			<<if ($slaves[_i].assignment == "serve the public")>>
-			<<set $slavesGettingHelp++>>
-			<</if>>
-		<</for>>
+			<<for _i = 0; _i < _SL; _i++>>
+				<<if ($slaves[_i].assignment == "serve the public")>>
+					<<set $slavesGettingHelp++>>
+				<</if>>
+			<</for>>
 		<</if>>
 		<<if ($clubSlaves+$slavesGettingHelp < 10)>>
 			<<if ($legendaryEntertainerID == 0) && ($slaves[_FLs].prestige == 0) && ($slaves[_FLs].entertainSkill >= 100) && ($slaves[_FLs].devotion > 50)>>
@@ -115,6 +133,7 @@
 <</if>>
 
 <<if ($DJ != 0)>>
+	<<set $i = _FLs>> /* apply following SA passages to facility leader */
 	<<if $showEWD != 0>>
 		<br><br>
 		/* 000-250-006 */
@@ -126,14 +145,7 @@
 		/* 000-250-006 */
 		''__@@.pink;$slaves[_FLs].slaveName@@__'' is performing as the DJ in the club.
 		<br>&nbsp;&nbsp;&nbsp;
-		<<if $slaves[_FLs].choosesOwnClothes == 1>>
 		<<include "SA chooses own clothes">>
-		<<if ($slaves[_FLs].devotion <= 20)>>
-			<<set $slaves[_FLs].devotion -= 5>>
-		<<else>>
-			<<set $slaves[_FLs].devotion++>>
-		<</if>>
-		<</if>>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -142,14 +154,7 @@
 		<br><<include "SA devotion">>
 	<<else>>
 		<<silently>>
-		<<if $slaves[_FLs].choosesOwnClothes == 1>>
 		<<include "SA chooses own clothes">>
-		<<if ($slaves[$i].devotion <= 20)>>
-			<<set $slaves[_FLs].devotion -= 5>>
-		<<else>>
-			<<set $slaves[_FLs].devotion++>>
-		<</if>>
-		<</if>>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -161,101 +166,70 @@
 	<<set $DJ = $slaves[_FLs]>>
 <</if>>
 
-<<if $clubSlaves > 0>>
-	<<SlaveSort $ClubiIDs>>
+<<if ($clubSlaves > 0)>>
 	<<for _dI = 0; _dI < _DL; _dI++>>
-	<<set _i = $ClubiIDs[_dI].Index, _ID = $ClubiIDs[_dI].ID>>
-	<<if _i >= _SL || _ID != $slaves[_i].ID>>
-		/% Slaves.ID and $ClubiIDs.ID's don't match-up so let's find her %/
-		<<for _i = 0; _i < _SL; _i++>>
-		<<if _ID == $slaves[_i].ID>>
-			/% Correct the Index %/
-			<<set $ClubiIDs[_dI].Index = _i>>
-			<<break>>
+		<<set _i = $ClubiIDs[_dI].Index, $i = _i>>
+		<<if ($legendaryEntertainerID == 0) && ($slaves[_i].prestige == 0) && ($slaves[_i].entertainSkill >= 100) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
+			<<set $legendaryEntertainerID = $slaves[_i].ID>>
 		<</if>>
-		<</for>>
-	<</if>>
-	<<if _i >= _SL || $slaves[_i].assignment != "serve in the club">>
-		<<set $ClubiIDs.deleteAt(_dI), _dI--, _DL-->>
-		<<continue>>
-	<</if>>
-
-	<<if ($legendaryEntertainerID == 0) && ($slaves[_i].prestige == 0) && ($slaves[_i].entertainSkill >= 100) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
-	<<set $legendaryEntertainerID = $slaves[_i].ID>>
-	<</if>>
-	<<if ($legendaryWombID == 0) && ($slaves[_i].amp != 1) && ($slaves[_i].preg > 30) && ($slaves[_i].pregType < 50) && ($slaves[_i].eggType == "human") && ($slaves[_i].births > 10) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
-		<<set $legendaryWombID = $slaves[_i].ID>>
-	<</if>>
-	<<if ($slaves[_i].devotion <= 20) && ($slaves[_i].trust > -20)>>
-		<<set $slaves[_i].devotion -= 5, $slaves[_i].trust -= 5>>
-	<<elseif ($slaves[_i].devotion < 45)>>
-		<<set $slaves[_i].devotion += 4>>
-	<<elseif ($slaves[_i].devotion >= 50)>>
-		<<set $slaves[_i].devotion -= 4>>
-	<</if>>
-
-	<<if ($slaves[_i].trust < 30)>>
-		<<set $slaves[_i].trust += 5>>
-	<</if>>
-
-	<<if ($slaves[_i].health < -80)>>
-		<<set $slaves[_i].health += 20>>
-	<<elseif ($slaves[_i].health < -40)>>
-		<<set $slaves[_i].health += 15>>
-	<<elseif ($slaves[_i].health < 0)>>
-		<<set $slaves[_i].health += 10>>
-	<<elseif ($slaves[_i].health < 90)>>
-		<<set $slaves[_i].health += 7>>
-	<</if>>
-
-	<<set $i = _i>>
-
-	<<if $showEWD != 0>>
-		<br><br>
-		/* 000-250-006 */
-		<<if $seeImages == 1 && $imageChoice == 0>>
-		<div class="imageRef tinyImg">
-			<<SlaveArt $slaves[$i] 0 0>>
-		</div>
+		<<if ($legendaryWombID == 0) && ($slaves[_i].amp != 1) && ($slaves[_i].preg > 30) && ($slaves[_i].pregType < 50) && ($slaves[_i].eggType == "human") && ($slaves[_i].births > 10) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
+			<<set $legendaryWombID = $slaves[_i].ID>>
 		<</if>>
-		/* 000-250-006 */
-		''__@@.pink;$slaves[$i].slaveName@@__'' is serving in the club.
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA serve the public">>
-		<br>&nbsp;&nbsp;&nbsp;
-		<<if $slaves[$i].choosesOwnClothes == 1>>
-		<<include "SA chooses own clothes">>
-		<<if ($slaves[$i].devotion <= 20)>>
-			<<set $slaves[$i].devotion -= 5>>
+		<<if ($slaves[_i].devotion <= 20) && ($slaves[_i].trust > -20)>>
+			<<set $slaves[_i].devotion -= 5, $slaves[_i].trust -= 5>>
+		<<elseif ($slaves[_i].devotion < 45)>>
+			<<set $slaves[_i].devotion += 4>>
+		<<elseif ($slaves[_i].devotion >= 50)>>
+			<<set $slaves[_i].devotion -= 4>>
+		<</if>>
+
+		<<if ($slaves[_i].trust < 30)>>
+			<<set $slaves[_i].trust += 5>>
+		<</if>>
+
+		<<if ($slaves[_i].health < -80)>>
+			<<set $slaves[_i].health += 20>>
+		<<elseif ($slaves[_i].health < -40)>>
+			<<set $slaves[_i].health += 15>>
+		<<elseif ($slaves[_i].health < 0)>>
+			<<set $slaves[_i].health += 10>>
+		<<elseif ($slaves[_i].health < 90)>>
+			<<set $slaves[_i].health += 7>>
+		<</if>>
+
+		<<if $showEWD != 0>>
+			<br><br>
+			/* 000-250-006 */
+			<<if $seeImages == 1 && $imageChoice == 0>>
+			<div class="imageRef tinyImg">
+				<<SlaveArt $slaves[$i] 0 0>>
+			</div>
+			<</if>>
+			/* 000-250-006 */
+			''__@@.pink;$slaves[$i].slaveName@@__'' is serving in the club.
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA serve the public">>
+			<br>&nbsp;&nbsp;&nbsp;
+			<<include "SA chooses own clothes">>
+			<<include "SA diet">>
+			<<include "SA long term effects">>
+			<<include "SA drugs">>
+			<<include "SA relationships">>
+			<<include "SA rivalries">>
+			<br><<include "SA devotion">>
 		<<else>>
-			<<set $slaves[$i].devotion++>>
+			<<silently>>
+			<<include "SA serve the public">>
+			<<include "SA chooses own clothes">>
+			<<include "SA diet">>
+			<<include "SA long term effects">>
+			<<include "SA drugs">>
+			<<include "SA relationships">>
+			<<include "SA rivalries">>
+			<<include "SA devotion">>
+			<</silently>>
 		<</if>>
-		<</if>>
-		<<include "SA diet">>
-		<<include "SA long term effects">>
-		<<include "SA drugs">>
-		<<include "SA relationships">>
-		<<include "SA rivalries">>
-		<br><<include "SA devotion">>
-	<<else>>
-		<<silently>>
-		<<include "SA serve the public">>
-		<<if $slaves[$i].choosesOwnClothes == 1>>
-		<<include "SA chooses own clothes">>
-		<<if ($slaves[$i].devotion <= 20)>>
-			<<set $slaves[$i].devotion -= 5>>
-		<<else>>
-			<<set $slaves[$i].devotion++>>
-		<</if>>
-		<</if>>
-		<<include "SA diet">>
-		<<include "SA long term effects">>
-		<<include "SA drugs">>
-		<<include "SA relationships">>
-		<<include "SA rivalries">>
-		<<include "SA devotion">>
-		<</silently>>
-	<</if>>
-<</for>>
+	<</for>>
+
 	<br><br>&nbsp;&nbsp;&nbsp;
 	<<if $clubAdsSpending != 0>>
 		An ad campaign is getting citizens into the club every night, and sluts that match it gratify patrons.
@@ -324,13 +298,6 @@
 		$clubNameCaps's customers enjoy @@.green;having sex in $clubDecoration surroundings.@@
 	<</if>>
 
-	<<if ($club <= $clubSlaves)>>
-	<<set $clubSpots = 0>>
-	<<else>>
-	<<set $clubSpots = $club - $clubSlaves>>
-	<</if>>
-<<else>>
-	<<set $clubSpots = $club>>
 <</if>>
 <<if $clubSlaves || $DJ>>
 	<br><br>
