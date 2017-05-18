@@ -328,6 +328,16 @@
 <</if>>
 <</if>>
 
+/** silent pass for any reassignments before generating reports */
+<<for $i = 0; $i < _SL; $i++>>
+	<<if $slaves[$i].choosesOwnAssignment == 1>>
+		<<silently>>
+			<<include "SA chooses own job">>
+		<</silently>>
+	<</if>>
+<</for>>
+
+
 /**
  * Accordion
  * @version 0.7RC
@@ -351,24 +361,22 @@
  */
 
 <<set _facListArr = [
-    ["Penthouse Report", "The Penthouse", 1, $slavesVisible, -1, -1], /** must be first - may assign slaves to facilities **/
-    ["Master Suite Report", $masterSuiteNameCaps, $masterSuite, $masterSuiteSlaves, $Concubine, "Concubine"],
-    ["Servants' Quarters Report", $servantsQuartersNameCaps, $servantsQuarters, $servantsQuartersSlaves, $Stewardess, "Stewardess"],
-    ["Schoolroom Report", $schoolroomNameCaps, $schoolroom, $schoolroomSlaves, $Schoolteacher, "Schoolteacher"],
-    ["Spa Report", $spaNameCaps, $spa, $spaSlaves, $Attendant, "Attendant"],
-    ["Clinic Report", $clinicNameCaps, $clinic, $clinicSlaves, $Nurse, "Nurse"],
     ["Arcade Report", $arcadeNameCaps, $arcade, $arcadeSlaves, -1, -1],
     ["Brothel Report", $brothelNameCaps, $brothel, $brothelSlaves, $Madam, "Madam"],
+    ["Cellblock Report", $cellblockNameCaps, $cellblock, $cellblockSlaves, $Wardeness, "Wardeness"],
+    ["Clinic Report", $clinicNameCaps, $clinic, $clinicSlaves, $Nurse, "Nurse"],
     ["Club Report", $clubNameCaps, $club, $clubSlaves, $DJ, "DJ"],
     ["Dairy Report", $dairyNameCaps, $dairy, $dairySlaves, $Milkmaid, "Milkmaid"],
-    ["Cellblock Report", $cellblockNameCaps, $cellblock, $cellblockSlaves, $Wardeness, "Wardeness"],
-/**    ["Lab Report"], "Research Lab", $researchLab.built, $researchLab.hired + $researchLab.menials, -1, -1], **/
-    ["Incubator Report", $incubatorNameCaps, $incubator, $incubatorSlaves, -1, -1],
+    ["Schoolroom Report", $schoolroomNameCaps, $schoolroom, $schoolroomSlaves, $Schoolteacher, "Schoolteacher"],
+    ["Spa Report", $spaNameCaps, $spa, $spaSlaves, $Attendant, "Attendant"],
+/** ["Lab Report"], "Research Lab", $researchLab.built, $researchLab.hired + $researchLab.menials, -1, -1], **/
+    ["Servants' Quarters Report", $servantsQuartersNameCaps, $servantsQuarters, $servantsQuartersSlaves, $Stewardess, "Stewardess"],
+    ["Master Suite Report", $masterSuiteNameCaps, $masterSuite, $masterSuiteSlaves, $Concubine, "Concubine"],
+    ["Penthouse Report", "The Penthouse", 1, $slavesVisible, -1, -1],
     ["Rules Assistant Report", "Rules Assistant", $rulesAssistantAuto, 1, -1, -1] /** should be last - may reassign slaves **/
 ]>>
 
 <<for _ii = 0; _ii < _facListArr.length; _ii++>>
-	<<if $useAccordion > 0>><<set _accText = " accordion">><</if>>	/** Quick settings check - static or pretty tops? */
     <<set _facSubArr = _facListArr[_ii], _accText = "", _disTxt = " disabled='disabled'">> /** Chunk the row from our array we're working on to make reading code easier, null some text vars we'll need */
     <<set _str = _facSubArr[0].replace(/\W+/g, '-').toLowerCase()>> /** Normalize the passage name to use as an element ID */
     <<if _facSubArr[2] > 0>> /** Do we have one of these facilities? */
@@ -380,8 +388,17 @@
             /** Old code: <<= '<div id="button-' + _str + '" class="unStaffed">' + _facSubArr[1] + ' is currently unstaffed</div>'>> */
         <<else>>
             <<= '<button type="button"' + _disTxt + ' id="button-' + _str + '" class="buttonBar' + _accText + '" data-after="' + _facSubArr[3] + ' slaves in ' + _facSubArr[1] + '">' + _facSubArr[1] + ' Report</button>'>> /** Yes, display the bar with information */
+            <<if $useAccordion == 0>>
+                <br>
+                <<include `_facSubArr[0]`>> /** not using accordion -- just include the report under the disabled button above */
+                <br>
+           <</if>>
         <</if>>
-    <<include `_facSubArr[0]` "div">> /** OK, we're done with the pretty stuff, go get the guts */
+        <div class="accHidden">
+			<<if $useAccordion == 1>>
+				<<include `_facSubArr[0]`>> /** OK, we're done with the pretty stuff, go get the guts and collapse it into the accordion */
+			<</if>>
+        </div>
     <</if>>
     <<unset _facSubArr>>
 <</for>>
