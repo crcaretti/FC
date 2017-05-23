@@ -1,60 +1,36 @@
 :: PETS [nobr]
 
-<<switch $PETSevent>>
-  <<case "nurse molestation">>
-	<<set $activeSlave = $Nurse>>
-	<<set $subSlave = $nurseMolestationSubIDs.random()>>
-  <<case "stewardess beating">>
-	<<set $activeSlave = $Stewardess>>
-	<<for $i = 0; $i < $slaves.length; $i++>>
-		<<if $slaves[$i].assignment == "work as a servant">>
-			<<set $subSlave = $slaves[$i].ID>><<break>>
-		<</if>>
-	<</for>>
-  <<case "aggressive schoolteacher">>
-	<<set $activeSlave = $Schoolteacher>>
-	<<for $i = 0; $i < $slaves.length; $i++>>
-		<<if $slaves[$i].assignment == "learn in the schoolroom">>
-			<<set $subSlave = $slaves[$i].ID>><<break>>
-		<</if>>
-	<</for>>
-  <<case "abusive wardeness">>
-	<<set $activeSlave = $Wardeness>>
-	<<for $i = 0; $i < $slaves.length; $i++>>
-		<<if $slaves[$i].assignment == "be confined in the cellblock">>
-			<<set $subSlave = $slaves[$i].ID>><<break>>
-		<</if>>
-	<</for>>
-  <<case "comforting attendant">>
-	<<set $activeSlave = $Attendant>>
-	<<for $i = 0; $i < $slaves.length; $i++>>
-		<<if $slaves[$i].assignment == "rest in the spa">>
-			<<set $subSlave = $slaves[$i].ID>><<break>>
-		<</if>>
-	<</for>>
-<</switch>>
-
-<<if $activeSlave == 0>>
+<<if (ndef $activeSlave) || ($activeSlave == 0)>>
+  <<set $activeSlave = $eventSlave>>
   <<if $cheatMode == 1>>
-	''A random leadership interaction event would have been selected from the following:''
+	<<set $nextButton = "Back", $nextLink = "Nonrandom Event", $returnTo = "Nonrandom Event">> /* if user just clicks spacebar */
+	''A random two slave event would have been selected from the following:''
 	<br>
 	<<for _i = 0; _i < $PETSevent.length; _i++>>
 		<<print "[[$PETSevent[_i]|PETS][$PETSevent = $PETSevent[" + _i + "]]]">>
 		<br>
 	<</for>>
+	<br><br>[[Go Back to Random Nonindividual Event|Random Nonindividual Event][$eventSlave = 0]]
   <<else>>
 	<<set $PETSevent = $PETSevent.random()>>
 	<<goto "PETS">>
   <</if>>
 <<else>>
 
-<<for $i = 0; $i < $slaves.length; $i++>>
-  <<if $slaves[$i].ID == $subSlave>>
-	<<set $subSlave = $slaves[$i]>>
-  <</if>>
-<</for>>
-
 <<set $nextButton = "Continue", $nextLink = "AS Dump", $returnTo = "RIE Eligibility Check">>
+
+<<switch $PETSevent>>
+  <<case "nurse molestation">>
+	<<set $activeSlave = $Nurse, $subSlave = $slaves.find(function(s) { return s.anus != 0 && s.assignment == "get treatment in the clinic"; })>>
+  <<case "stewardess beating">>
+	<<set $activeSlave = $Stewardess, $subSlave = $slaves.find(function(s) { return s.assignment == "work as a servant"; })>>
+  <<case "aggressive schoolteacher">>
+	<<set $activeSlave = $Schoolteacher, $subSlave = $slaves.find(function(s) { return s.assignment == "learn in the schoolroom"; })>>
+  <<case "abusive wardeness">>
+	<<set $activeSlave = $Wardeness, $subSlave = $slaves.find(function(s) { return s.assignment == "be confined in the cellblock"; })>>
+  <<case "comforting attendant">>
+	<<set $activeSlave = $Attendant, $subSlave = $slaves.find(function(s) { return s.assignment == "rest in the spa"; })>>
+<</switch>>
 
 <<SlaveTitle $activeSlave>>
 
@@ -112,7 +88,7 @@ As you pass the entrance to the hall of cells where <span id="name"><<print "[[$
 You decide to knit up care's raveled sleeve with a break in the spa. You have your own bath, of course, but the female company is always nice even if you aren't actively using the spa's resting inhabitants. The steam in the warm pool room is turned up very high, and you can hardly see. As you lower yourself into the warm water, you see <span id="name"><<print "[[$activeSlave.slaveName|Long Slave Description][$nextLink = passage(), $eventDescription = 1]]">></span> across from you, sitting in the water against the pool wall. She's holding $subSlave.slaveName in her arms, rubbing a comforting hand up and down her back and murmuring into her ear. $subSlave.slaveName has her head <<if ($activeSlave.boobs > 2000)>>almost hidden between $activeSlave.slaveName's massive tits<<elseif ($activeSlave.boobs > 1000)>>between $activeSlave.slaveName's huge boobs<<elseif ($activeSlave.boobs > 300)>>between $activeSlave.slaveName's breasts<<else>>against $activeSlave.slaveName's flat chest<</if>>, but it's a nonsexual embrace. You can't hear what $activeSlave.slaveName is saying, but it's clearly comforting; $subSlave.slaveName has a happy little smile on her face and has her eyes closed in relaxation.
 
 <<default>>
-	ERROR: bad event
+	<br>ERROR: bad PETS event $PETSevent
 <</switch>>
 
 <br><br>
@@ -394,8 +370,12 @@ You decide to knit up care's raveled sleeve with a break in the spa. You have yo
 <</link>>
 
 <<default>>
-	ERROR: bad event
+	<br>ERROR: bad PETS event $PETSevent
 <</switch>>
+
+<<if $cheatMode == 1>>
+	<br><br>DEBUG: &nbsp;&nbsp;&nbsp;&nbsp;[[Go back to Nonrandom Event|Nonrandom Event][$activeSlave = 0, $eventSlave = 0]]
+<</if>>
 
 </span>
 

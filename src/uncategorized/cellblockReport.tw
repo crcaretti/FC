@@ -1,21 +1,15 @@
 :: Cellblock Report [nobr]
 
-<<set _brokenSlaves = 0, _idleBonus = 0, _softenedQuirks = 0, _trustMalus = 0, _FLsFetish = 0, _DL = $CellBiIDs.length, $cellblockSlaves = _DL, _SL = $slaves.length, _FLs = -1>>
+<<set _DL = $CellBiIDs.length, $cellblockSlaves = _DL, _SL = $slaves.length, _brokenSlaves = 0, _idleBonus = 0, _softenedQuirks = 0, _trustMalus = 0, _FLsFetish = 0>>
 
 <<for _dI = 0; _dI < _DL; _dI++>>
-	<<set _i = $CellBiIDs[_dI].Index, _ID = $CellBiIDs[_dI].ID>>
-	<<if _i >= _SL || _ID != $slaves[_i].ID>>
-		/% Slaves.ID and $CellBiIDs.ID's don't match-up so let's find her %/
-		<<for _i = 0; _i < _SL; _i++>>
-			<<if (_ID == $slaves[_i].ID)>>
-				/% Correct the Index %/
-				<<set $CellBiIDs[_dI].Index = _i>>
-				<<break>>
-			<</if>>
-		<</for>>
+	<<set $i = $CellBiIDs[_dI].Index, _ID = $CellBiIDs[_dI].ID>>
+	<<if $i >= _SL || _ID != $slaves[$i].ID>>
+		/% IDs don't match-up so let's find her %/
+		<<set $i = $slaves.findIndex(function(s) { return s.ID == _ID; }), $CellBiIDs[_dI].Index = $i>>
 	<</if>>
-	<<if _i >= _SL || $slaves[_i].assignment != "be confined in the cellblock">>
-		<<set $CellBiIDs.deleteAt(_dI), _dI--, _DL-->>
+	<<if $i == -1 || $slaves[$i].assignment != "be confined in the cellblock">>
+		<<set $CellBiIDs.deleteAt(_dI), _dI--, _DL--, $cellblockSlaves-->>
 		<<continue>>
 	<</if>>
 <</for>>
@@ -28,11 +22,8 @@
 <</if>>
 
 <<if ($Wardeness != 0)>>
-	<<for _FLs = 0; _FLs < _SL; _FLs++>>
-		<<if ($slaves[_FLs].ID == $Wardeness.ID)>>
-			<<break>>
-		<</if>>
-	<</for>>
+	<<set _FLs = $slaves.findIndex(function(s) { return s.ID == $Wardeness.ID; })>>
+
 	<<if ($slaves[_FLs].health < -80)>>
 		<<set $slaves[_FLs].health += 20>>
 	<<elseif ($slaves[_FLs].health < -40)>>
@@ -61,11 +52,11 @@
 			<<set _FLsFetish = 2, $slaves[_FLs].fetishStrength += 4>>
 		<</if>>
 	<</if>>
-	<<set $Wardeness = $slaves[_FLs], $i = _FLs>>
+	<<set $Wardeness = $slaves[_FLs]>>
 	<<if ($Wardeness.energy > 95) || ($Wardeness.fetish == "sadist")>>
 		<<set _devBonus++, _trustMalus++, _idleBonus++>>
 	<</if>>
-	&nbsp;&nbsp;&nbsp;&nbsp;$Wardeness.slaveName is serving as the wardeness.
+	&nbsp;&nbsp;&nbsp;&nbsp;$Wardeness.slaveName is serving as the Wardeness.
 	<<if $Wardeness.relationship == -3>>
 		<<set _devBonus++, _trustMalus++, _idleBonus++>>
 		As your wife, she tries her best to break the disobedient slaves to your will.
@@ -101,54 +92,54 @@
 		Her devotion to you is so absolute that she sees breaking bitches for your service as a noble calling.
 	<</if>>
 	<<for _dI = 0; _dI < _DL; _dI++>>
-		<<set _i = $CellBiIDs[_dI].Index>>
-		<<if $Wardeness.rivalryTarget == $slaves[_i].ID>>
-			She greatly enjoys breaking her <<if $Wardeness.rivalry == 1>>growing rival<<elseif $Wardeness.rivalry == 2>>rival<<elseif $Wardeness.rivalry == 3>>bitter rival<</if>>, $slaves[_i].slaveName's will.
-			<<set $slaves[_i].devotion++, $slaves[_i].trust -= 3>>
+		<<set $i = $CellBiIDs[_dI].Index>>
+		<<if $Wardeness.rivalryTarget == $slaves[$i].ID>>
+			She greatly enjoys breaking her <<if $Wardeness.rivalry == 1>>growing rival<<elseif $Wardeness.rivalry == 2>>rival<<elseif $Wardeness.rivalry == 3>>bitter rival<</if>>, $slaves[$i].slaveName's will.
+			<<set $slaves[$i].devotion++, $slaves[$i].trust -= 3>>
 			<<if random(1,100) > 30>>
-				<<set $Wardeness.rivalry++, $slaves[_FLs].rivalry++, $slaves[_i].rivalry++>>
+				<<set $Wardeness.rivalry++, $slaves[_FLs].rivalry++, $slaves[$i].rivalry++>>
 			<</if>>
-		<<elseif $Wardeness.relationshipTarget == $slaves[_i].ID>>
-			She hates having to break her <<if $Wardeness.relationship == 1>>friend<<elseif $Wardeness.relationship == 2>>best friend<<elseif $Wardeness.relationship == 3>>friend with benefits<<elseif $Wardeness.relationship == 4>>lover<<elseif $Wardeness.relationship == 5>>slave wife<</if>>, $slaves[_i].slaveName, but her devotion to you wins out in the end.
-			<<set $slaves[_i].devotion++, $slaves[_i].trust -= 3>>
+		<<elseif $Wardeness.relationshipTarget == $slaves[$i].ID>>
+			She hates having to break her <<if $Wardeness.relationship == 1>>friend<<elseif $Wardeness.relationship == 2>>best friend<<elseif $Wardeness.relationship == 3>>friend with benefits<<elseif $Wardeness.relationship == 4>>lover<<elseif $Wardeness.relationship == 5>>slave wife<</if>>, $slaves[$i].slaveName, but her devotion to you wins out in the end.
+			<<set $slaves[$i].devotion++, $slaves[$i].trust -= 3>>
 			<<if random(1,100) >= 50>>
-				Her and $slaves[_i].slaveName's relationship has been shattered by these events.
-				<<set $Wardeness.relationship = 0, $Wardeness.relationshipTarget = 0, $slaves[_FLs].relationship = 0, $slaves[_FLs].relationshipTarget = 0, $slaves[_i].relationship = 0, $slaves[_i].relationshipTarget = 0>>
+				Her and $slaves[$i].slaveName's relationship has been shattered by these events.
+				<<set $Wardeness.relationship = 0, $Wardeness.relationshipTarget = 0, $slaves[_FLs].relationship = 0, $slaves[_FLs].relationshipTarget = 0, $slaves[$i].relationship = 0, $slaves[$i].relationshipTarget = 0>>
 			<</if>>
-		<<elseif $familyTesting == 1 && totalRelatives($slaves[_i]) > 0>>
-			<<if $slaves[_i].mother == $Wardeness.ID || $slaves[_i].father == $Wardeness.ID>>
-				She spares no mercy for her daughter, $slaves[_i].slaveName, making sure she understands her place.
-				<<set $slaves[_i].devotion++, $slaves[_i].trust-->>
-			<<elseif $slaves[_i].ID == $Wardeness.mother>>
-				She spares no mercy for her mother, $slaves[_i].slaveName, making sure she understands her place.
-				<<set $slaves[_i].devotion++, $slaves[_i].trust-->>
-			<<elseif $slaves[_i].ID == $Wardeness.father>>
-				She spares no mercy for her father, $slaves[_i].slaveName, making sure she understands her place.
-				<<set $slaves[_i].devotion++, $slaves[_i].trust-->>
-			<<elseif areSisters($slaves[_i], $Wardeness) == 1>>
-				She spares no mercy for her twin sister, $slaves[_i].slaveName, making sure she understands her place.
-				<<set $slaves[_i].devotion++, $slaves[_i].trust-->>
-			<<elseif areSisters($slaves[_i], $Wardeness) == 2>>
-				She spares no mercy for her sister, $slaves[_i].slaveName, making sure she understands her place.
-				<<set $slaves[_i].devotion++, $slaves[_i].trust-->>
-			<<elseif areSisters($slaves[_i], $Wardeness) == 3>>
-				She spares no mercy for her half-sister, $slaves[_i].slaveName, making sure she understands her place.
-				<<set $slaves[_i].devotion++, $slaves[_i].trust-->>
+		<<elseif $familyTesting == 1 && totalRelatives($slaves[$i]) > 0>>
+			<<if $slaves[$i].mother == $Wardeness.ID || $slaves[$i].father == $Wardeness.ID>>
+				She spares no mercy for her daughter, $slaves[$i].slaveName, making sure she understands her place.
+				<<set $slaves[$i].devotion++, $slaves[$i].trust-->>
+			<<elseif $slaves[$i].ID == $Wardeness.mother>>
+				She spares no mercy for her mother, $slaves[$i].slaveName, making sure she understands her place.
+				<<set $slaves[$i].devotion++, $slaves[$i].trust-->>
+			<<elseif $slaves[$i].ID == $Wardeness.father>>
+				She spares no mercy for her father, $slaves[$i].slaveName, making sure she understands her place.
+				<<set $slaves[$i].devotion++, $slaves[$i].trust-->>
+			<<elseif areSisters($slaves[$i], $Wardeness) == 1>>
+				She spares no mercy for her twin sister, $slaves[$i].slaveName, making sure she understands her place.
+				<<set $slaves[$i].devotion++, $slaves[$i].trust-->>
+			<<elseif areSisters($slaves[$i], $Wardeness) == 2>>
+				She spares no mercy for her sister, $slaves[$i].slaveName, making sure she understands her place.
+				<<set $slaves[$i].devotion++, $slaves[$i].trust-->>
+			<<elseif areSisters($slaves[$i], $Wardeness) == 3>>
+				She spares no mercy for her half-sister, $slaves[$i].slaveName, making sure she understands her place.
+				<<set $slaves[$i].devotion++, $slaves[$i].trust-->>
 			<</if>>
-		<<elseif $Wardeness.relationTarget == $slaves[_i].ID && $familyTesting == 0>>
-			She spares no mercy for her $slaves[_i].relation, $slaves[_i].slaveName, making sure she understands her place.
-			<<set $slaves[_i].devotion++, $slaves[_i].trust-->>
+		<<elseif $Wardeness.relationTarget == $slaves[$i].ID && $familyTesting == 0>>
+			She spares no mercy for her $slaves[$i].relation, $slaves[$i].slaveName, making sure she understands her place.
+			<<set $slaves[$i].devotion++, $slaves[$i].trust-->>
 		<</if>>
 	<</for>>
-	<<if ($cellblockSlaves < $cellblock)>>
-		<<set _seed = random(1,10)+(($cellblock-$cellblockSlaves)*(random(150,170)+(_idleBonus*10))), $cash += _seed>>
+	<<if (_DL < 5)>>
+		<<set _seed = random(1,10)+((5-_DL)*(random(150,170)+(_idleBonus*10))), $cash += _seed>>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;Since she doesn't have enough prisoners to manage to keep her busy, she works on citizens' slaves, earning @@.yellowgreen;¤_seed.@@
 	<</if>>
-	<<if ($cellblockSlaves > 0)>><br><br><</if>>
+	<<if (_DL > 0)>><br><br><</if>>
 <</if>>
 
-<<if ($cellblockSlaves > 0)>>
-	&nbsp;&nbsp;&nbsp;&nbsp;<<if ($cellblockSlaves == 1)>>''One slave is being confined in $cellblockName until she is willing to obey.''<<else>>''$cellblockSlaves slaves are being confined in $cellblockName until they are willing to obey.''<</if>>
+<<if (_DL > 0)>>
+	&nbsp;&nbsp;&nbsp;&nbsp;<<if (_DL == 1)>>''One slave is being confined in $cellblockName until she is willing to obey.''<<else>>''_DL slaves are being confined in $cellblockName until they are willing to obey.''<</if>>
 <</if>>
 
 <<if ($Wardeness != 0)>>
@@ -186,82 +177,82 @@
 <</if>>
 
 <<for _dI = 0; _dI < _DL; _dI++>>
-	<<set _i = $CellBiIDs[_dI].Index, $i = _i>>
-	<<if ($slaves[_i].devotion <= 20)>>
-		<<if ($slaves[_i].trust > -20)>>
-			<<set $slaves[_i].devotion -= 4, $slaves[_i].trust -= 4>>
+	<<set $i = $CellBiIDs[_dI].Index>>
+	<<if ($slaves[$i].devotion <= 20)>>
+		<<if ($slaves[$i].trust > -20)>>
+			<<set $slaves[$i].devotion -= 4, $slaves[$i].trust -= 4>>
 		<<else>>
-			<<set $slaves[_i].devotion++>>
+			<<set $slaves[$i].devotion++>>
 		<</if>>
 	<</if>>
 	<<if $cellblockUpgrade == 1>>
-		<<if ($slaves[_i].behavioralFlaw != "none") && ($slaves[_i].behavioralQuirk == "none")>>
-			<<switch $slaves[_i].behavioralFlaw>>
+		<<if ($slaves[$i].behavioralFlaw != "none") && ($slaves[$i].behavioralQuirk == "none")>>
+			<<switch $slaves[$i].behavioralFlaw>>
 			<<case "arrogant">>
-				<<set $slaves[_i].behavioralQuirk = "confident", _softenedQuirks++>>
+				<<set $slaves[$i].behavioralQuirk = "confident", _softenedQuirks++>>
 			<<case "bitchy">>
-				<<set $slaves[_i].behavioralQuirk = "cutting", _softenedQuirks++>>
+				<<set $slaves[$i].behavioralQuirk = "cutting", _softenedQuirks++>>
 			<<case "odd">>
-				<<set $slaves[_i].behavioralQuirk = "funny", _softenedQuirks++>>
+				<<set $slaves[$i].behavioralQuirk = "funny", _softenedQuirks++>>
 			<<case "hates men">>
-				<<set $slaves[_i].behavioralQuirk = "adores women", _softenedQuirks++>>
+				<<set $slaves[$i].behavioralQuirk = "adores women", _softenedQuirks++>>
 			<<case "hates women">>
-				<<set $slaves[_i].behavioralQuirk = "adores men", _softenedQuirks++>>
+				<<set $slaves[$i].behavioralQuirk = "adores men", _softenedQuirks++>>
 			<<case "gluttonous">>
-				<<set $slaves[_i].behavioralQuirk = "fitness", _softenedQuirks++>>
+				<<set $slaves[$i].behavioralQuirk = "fitness", _softenedQuirks++>>
 			<<case "anorexic">>
-				<<set $slaves[_i].behavioralQuirk = "insecure", _softenedQuirks++>>
+				<<set $slaves[$i].behavioralQuirk = "insecure", _softenedQuirks++>>
 			<<case "devout">>
-				<<set $slaves[_i].behavioralQuirk = "sinful", _softenedQuirks++>>
+				<<set $slaves[$i].behavioralQuirk = "sinful", _softenedQuirks++>>
 			<<case "liberated">>
-				<<set $slaves[_i].behavioralQuirk = "advocate", _softenedQuirks++>>
+				<<set $slaves[$i].behavioralQuirk = "advocate", _softenedQuirks++>>
 			<</switch>>
-			<<set $slaves[_i].behavioralFlaw = "none", $slaves[_i].devotion -= 10>>
-		<<elseif ($slaves[_i].sexualFlaw != "none") && ($slaves[_i].sexualQuirk == "none")>>
-			<<switch $slaves[_i].sexualFlaw>>
+			<<set $slaves[$i].behavioralFlaw = "none", $slaves[$i].devotion -= 10>>
+		<<elseif ($slaves[$i].sexualFlaw != "none") && ($slaves[$i].sexualQuirk == "none")>>
+			<<switch $slaves[$i].sexualFlaw>>
 			<<case "hates oral">>
-				<<set $slaves[_i].sexualQuirk = "gagfuck queen", _softenedQuirks++>>
+				<<set $slaves[$i].sexualQuirk = "gagfuck queen", _softenedQuirks++>>
 			<<case "hates anal">>
-				<<set $slaves[_i].sexualQuirk = "painal queen", _softenedQuirks++>>
+				<<set $slaves[$i].sexualQuirk = "painal queen", _softenedQuirks++>>
 			<<case "hates penetration">>
-				<<set $slaves[_i].sexualQuirk = "strugglefuck queen", _softenedQuirks++>>
+				<<set $slaves[$i].sexualQuirk = "strugglefuck queen", _softenedQuirks++>>
 			<<case "shamefast">>
-				<<set $slaves[_i].sexualQuirk = "tease", _softenedQuirks++>>
+				<<set $slaves[$i].sexualQuirk = "tease", _softenedQuirks++>>
 			<<case "idealistic">>
-				<<set $slaves[_i].sexualQuirk = "romantic", _softenedQuirks++>>
+				<<set $slaves[$i].sexualQuirk = "romantic", _softenedQuirks++>>
 			<<case "repressed">>
-				<<set $slaves[_i].sexualQuirk = "perverted", _softenedQuirks++>>
+				<<set $slaves[$i].sexualQuirk = "perverted", _softenedQuirks++>>
 			<<case "apathetic">>
-				<<set $slaves[_i].sexualQuirk = "caring", _softenedQuirks++>>
+				<<set $slaves[$i].sexualQuirk = "caring", _softenedQuirks++>>
 			<<case "crude">>
-				<<set $slaves[_i].sexualQuirk = "unflinching", _softenedQuirks++>>
+				<<set $slaves[$i].sexualQuirk = "unflinching", _softenedQuirks++>>
 			<<case "judgemental">>
-				<<set $slaves[_i].sexualQuirk = "size queen", _softenedQuirks++>>
+				<<set $slaves[$i].sexualQuirk = "size queen", _softenedQuirks++>>
 			<</switch>>
-			<<set $slaves[_i].sexualFlaw = "none", $slaves[_i].devotion -= 10>>
+			<<set $slaves[$i].sexualFlaw = "none", $slaves[$i].devotion -= 10>>
 		<</if>>
 	<</if>>
-	<<set $slaves[_i].devotion += _devBonus, $slaves[_i].trust -= _trustMalus>>
-	<<if ($Wardeness != 0) && ($Wardeness.sexualFlaw == "malicious") && ($slaves[_i].energy >= 2)>>
-		<<set $slaves[_i].energy -= 2>>
+	<<set $slaves[$i].devotion += _devBonus, $slaves[$i].trust -= _trustMalus>>
+	<<if ($Wardeness != 0) && ($Wardeness.sexualFlaw == "malicious") && ($slaves[$i].energy >= 2)>>
+		<<set $slaves[$i].energy -= 2>>
 	<</if>>
-	<<if ($slaves[_i].health < -80)>>
-		<<set $slaves[_i].health += 20>>
-	<<elseif ($slaves[_i].health < -40)>>
-		<<set $slaves[_i].health += 15>>
-	<<elseif ($slaves[_i].health < 0)>>
-		<<set $slaves[_i].health += 10>>
-	<<elseif ($slaves[_i].health < 40)>>
-		<<set $slaves[_i].health += 7>>
-	<<elseif ($slaves[_i].health < 100)>>
-		<<set $slaves[_i].health += 3>>
+	<<if ($slaves[$i].health < -80)>>
+		<<set $slaves[$i].health += 20>>
+	<<elseif ($slaves[$i].health < -40)>>
+		<<set $slaves[$i].health += 15>>
+	<<elseif ($slaves[$i].health < 0)>>
+		<<set $slaves[$i].health += 10>>
+	<<elseif ($slaves[$i].health < 40)>>
+		<<set $slaves[$i].health += 7>>
+	<<elseif ($slaves[$i].health < 100)>>
+		<<set $slaves[$i].health += 3>>
 	<</if>>
 	<<if $showEWD != 0>>
 		<br><br>
 		/* 000-250-006 */
 		<<if $seeImages == 1 && $imageChoice == 0>>
 		<div class="imageRef tinyImg">
-			<<SlaveArt $slaves[_i] 0 0>>
+			<<SlaveArt $slaves[$i] 0 0>>
 		</div>
 		<</if>>
 		/* 000-250-006 */
@@ -313,6 +304,6 @@
 		<</if>>
 	<</if>>
 <</if>>
-<<if $cellblockSlaves || $Wardeness>>
+<<if _DL > 0 || $Wardeness != 0>>
 	<br><br>
 <</if>>
