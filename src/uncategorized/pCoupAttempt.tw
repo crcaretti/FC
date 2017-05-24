@@ -1,8 +1,6 @@
 :: P coup attempt [nobr]
 
-<<set $nextButton = "Continue">>
-<<set $nextLink = "Random Nonindividual Event">>
-<<set $nextButton = "Continue">>
+<<set $nextButton = "Continue", $nextLink = "Random Nonindividual Event">>
 
 <<set $daughtersVictory = 1>>
 
@@ -24,7 +22,11 @@ You are awakened in the middle of the night by a jolt that shakes the entire arc
 
 <<set _newSlaves = []>>
 <<if $arcologies[0].FSRomanRevivalistLaw + $mercenaries + $personalArms + $hackerSupport < 9>>
-	@@.yellow;The Daughters of Liberty are defeated.@@ @@.red;$arcologies[0].name is heavily damaged,@@ and the repairs will be very costly. The effect on your reputation is @@.green;muted, but positive,@@ since though you won, your victory was hard-fought and set the arcology's prosperity back @@.red;a long way.@@ <<if $traitor != 0>>$traitor.slaveName was killed in the fighting.<<set $traitor = 0>><</if>>
+	@@.yellow;The Daughters of Liberty are defeated.@@ @@.red;$arcologies[0].name is heavily damaged,@@ and the repairs will be very costly. The effect on your reputation is @@.green;muted, but positive,@@ since though you won, your victory was hard-fought and set the arcology's prosperity back @@.red;a long way.@@
+	<<if $traitor != 0>>
+		$traitor.slaveName was killed in the fighting.
+		<<set $traitor = 0>>
+	<</if>>
 	<<set $daughtersVictory = 2>>
 	<<set $cash -= 10000>>
 	<<set $cash -= Math.trunc($cash*0.3)>>
@@ -57,7 +59,7 @@ You are awakened in the middle of the night by a jolt that shakes the entire arc
 	<<set $desc = "a Daughters of Liberty brassard">>
 	<<set $trinkets.push($desc)>>
 <<elseif $arcologies[0].FSRomanRevivalistLaw == 1>>
-	@@.yellow;The Daughters of Liberty are utterly crushed.@@ $arcologies[0].name has been slightly damaged, but even as the last pockets of resistance are crushed, your citizens begin repairs themselves. The effect on your reputation is @@.green;immensely positive,@@ since your victory was insultingly easy and barely set the arcology's prosperity back at all. You also took a truly impressive bag of prisoners. <<if $traitor != 0>>$traitor.slaveName was captured and has been returned to you.<</if>>
+	@@.yellow;The Daughters of Liberty are utterly crushed.@@ $arcologies[0].name has been slightly damaged, but even as the last pockets of resistance are crushed, your citizens begin repairs themselves. The effect on your reputation is @@.green;immensely positive,@@ since your victory was insultingly easy and barely set the arcology's prosperity back at all. You also took a truly impressive bag of prisoners.
 	<<set $daughtersVictory = 3>>
 	<<set $cash -= 2000>>
 	<<set $cash -= Math.trunc($cash*0.2)>>
@@ -83,20 +85,12 @@ You are awakened in the middle of the night by a jolt that shakes the entire arc
 	<<set $desc = "a damaged plate carrier bearing Daughters of Liberty insignia">>
 	<<set $trinkets.push($desc)>>
 <<else>>
-	@@.yellow;The Daughters of Liberty are annihilated.@@ @@.red;$arcologies[0].name has been damaged,@@ and the repairs will be quite costly. However, the effect on your reputation is @@.green;very positive,@@ since though your victory was hard-fought and set the arcology's prosperity back @@.red;considerably,@@ you did better than other arcology owners have done when faced with similar well-armed unrest. You also took a truly impressive bag of prisoners. <<if $traitor != 0>>$traitor.slaveName was captured and has been returned to you.<</if>>
+	@@.yellow;The Daughters of Liberty are annihilated.@@ @@.red;$arcologies[0].name has been damaged,@@ and the repairs will be quite costly. However, the effect on your reputation is @@.green;very positive,@@ since though your victory was hard-fought and set the arcology's prosperity back @@.red;considerably,@@ you did better than other arcology owners have done when faced with similar well-armed unrest. You also took a truly impressive bag of prisoners.
 	<<set $daughtersVictory = 3>>
 	<<set $cash -= 5000>>
 	<<set $cash -= Math.trunc($cash*0.2)>>
 	<<set $arcologies[0].prosperity = Math.trunc($arcologies[0].prosperity*0.7)>>
 	<<set $rep += 1000>>
-	<<if $traitor != 0>>
-		<<set $activeSlave = $traitor>>
-		<<set $activeSlave.assignmentVisible = 1>>
-		<<set $activeSlave.assignment = "rest">>
-		<<set $activeSlave.health = random(-80,-60)>>
-		<<set $activeSlave.origin = "She was your slave, but you freed her, which she repaid by participating in a coup attempt against you. It failed, and she is again your chattel.">>
-		<<set _newSlaves.push($activeSlave)>>
-	<</if>>
 	<<if $seeDicks > 50>>
 		<<set $j = 5>>
 	<<elseif $seeDicks > 0>>
@@ -125,6 +119,15 @@ You are awakened in the middle of the night by a jolt that shakes the entire arc
 	<<set $trinkets.push($desc)>>
 <</if>>
 
+<<if $traitor != 0>>
+	$traitor.slaveName was captured and has been returned to you.
+	<<set $traitor.assignmentVisible = 1>>
+	<<set $traitor.assignment = "rest">>
+	<<set $traitor.health = random(-80,-60)>>
+	<<set $traitor.origin = "She was your slave, but you freed her, which she repaid by participating in a coup attempt against you. It failed, and she is again your chattel.">>
+	<<AddSlave $traitor>>
+<</if>>
+
 <br><br>
 
 <span id="result">
@@ -145,7 +148,7 @@ You are awakened in the middle of the night by a jolt that shakes the entire arc
 	<</for>>
 	Prisoners @@.green;given away.@@
 	<</replace>>
-<</link>> <<if $traitor != 0>>//$traitor.slaveName will not be sold.//<</if>>
+<</link>> <<if $traitor != 0>>//$traitor.slaveName will not be given away.//<</if>>
 <br><<link "Enslave all of your prisoners">>
 	<<replace "#result">>
 	<<for _i = 0; _i < _newSlaves.length; _i++>>

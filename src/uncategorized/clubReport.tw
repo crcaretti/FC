@@ -1,33 +1,24 @@
 :: Club Report [nobr]
 
-<<set $clubBonuses = 0, $DJRepBonus = 0, $implanted = 0, $legendaryEntertainerID = 0, $modded = 0, $old = 0, $pure = 0, $slim = 0, $stacked = 0, $unmodded = 0, $XX = 0, $XY = 0, $young = 0, _FLsFetish = 0, _DL = $ClubiIDs.length, $clubSlaves = _DL, _SL = $slaves.length, _FLs = -1>>
+<<set _DL = $ClubiIDs.length, $clubSlaves = _DL, _SL = $slaves.length, $clubBonuses = 0, $DJRepBonus = 0, $implanted = 0, $legendaryEntertainerID = 0, $modded = 0, $old = 0, $pure = 0, $slim = 0, $stacked = 0, $unmodded = 0, $XX = 0, $XY = 0, $young = 0, _FLsFetish = 0>>
 <<set $legendaryWombID = 0, $pregYes = 0, $pregNo = 0>>
 
 <<for _dI = 0; _dI < _DL; _dI++>>
-	<<set _i = $ClubiIDs[_dI].Index, _ID = $ClubiIDs[_dI].ID>>
-	<<if _i >= _SL || _ID != $slaves[_i].ID>>
-		/% Slaves.ID and $ClubiIDs.ID's don't match-up so let's find her %/
-		<<for _i = 0; _i < _SL; _i++>>
-			<<if _ID == $slaves[_i].ID>>
-				/% Correct the Index %/
-				<<set $ClubiIDs[_dI].Index = _i>>
-				<<break>>
-			<</if>>
-		<</for>>
+	<<set $i = $ClubiIDs[_dI].Index, _ID = $ClubiIDs[_dI].ID>>
+	<<if $i >= _SL || _ID != $slaves[$i].ID>>
+		/% IDs don't match-up so let's find her %/
+		<<set $i = $slaves.findIndex(function(s) { return s.ID == _ID; }), $ClubiIDs[_dI].Index = $i>>
 	<</if>>
-	<<if _i >= _SL || $slaves[_i].assignment != "serve in the club">>
-		<<set $ClubiIDs.deleteAt(_dI), _dI--, _DL-->>
+	<<if $i == -1 || $slaves[$i].assignment != "serve in the club">>
+		<<set $ClubiIDs.deleteAt(_dI), _dI--, _DL--, $clubSlaves-->>
 		<<continue>>
 	<</if>>
 <</for>>
 <<SlaveSort $ClubiIDs>>
 
 <<if $DJ != 0>>
-	<<for _FLs = 0; _FLs < _SL; _FLs++>>
-		<<if $slaves[_FLs].ID == $DJ.ID>>
-			<<break>>
-		<</if>>
-	<</for>>
+	<<set _FLs = $slaves.findIndex(function(s) { return s.ID == $DJ.ID; })>>
+
 	<<if ($slaves[_FLs].health < -80)>>
 		<<set $slaves[_FLs].health += 20>>
 	<<elseif $slaves[_FLs].health < -40>>
@@ -55,7 +46,7 @@
 			<<set _FLsFetish = 2, $slaves[_FLs].fetishStrength += 4>>
 		<</if>>
 	<</if>>
-	<<set $DJ = $slaves[_FLs], $i = _FLs>>
+	<<set $DJ = $slaves[_FLs]>>
 	&nbsp;&nbsp;&nbsp;&nbsp;$DJ.slaveName is performing as the DJ.
 	<<if $DJ.relationship == -3>>
 		She tries her best to be your energetic, cheerful wife.
@@ -101,17 +92,17 @@
 		She has musical experience from her life before she was a slave, a grounding that gives her tracks actual depth.
 		<<set $DJRepBonus += 0.05>>
 	<</if>>
-	<<set $i = _FLs>>
-	<<if ($clubSlaves < 10)>>
+	<<if (_DL < 10)>>
 		<<set $slavesGettingHelp = 0>>
 		<<if $universalRulesFacilityWork == 1>>
-			<<for _i = 0; _i < _SL; _i++>>
-				<<if ($slaves[_i].assignment == "serve the public")>>
+			<<for $i = 0; $i < _SL; $i++>>
+				<<if ($slaves[$i].assignment == "serve the public")>>
 					<<set $slavesGettingHelp++>>
 				<</if>>
 			<</for>>
 		<</if>>
-		<<if ($clubSlaves+$slavesGettingHelp < 10)>>
+		<<if (_DL+$slavesGettingHelp < 10)>>
+			<<set $i = _FLs>> /* apply following SA passages to facility leader */
 			<<if ($legendaryEntertainerID == 0) && ($slaves[_FLs].prestige == 0) && ($slaves[_FLs].entertainSkill >= 100) && ($slaves[_FLs].devotion > 50)>>
 				<<set $legendaryEntertainerID = $slaves[_FLs].ID>>
 			<</if>>
@@ -124,12 +115,12 @@
 			<br>&nbsp;&nbsp;&nbsp;&nbsp;Since she doesn't have enough sluts in $clubName to make it worthwhile for her to be on stage 24/7, she spends her extra time slutting it up herself. She has sex with $beauty citizens, @@.green;pleasing them immensely,@@ since it's more appealing to fuck the DJ than some club slut.
 		<</if>>
 	<</if>>
-	<<if ($clubSlaves > 0)>><br><br><</if>>
+	<<if (_DL > 0)>><br><br><</if>>
 <</if>>
 
-<<if ($clubSlaves > 0)>>
+<<if (_DL > 0)>>
 	<<set _possibleBonuses = 0>>
-	&nbsp;&nbsp;&nbsp;&nbsp;<<if ($clubSlaves != 1)>>''The $clubSlaves slaves pleasing citizens in $clubName''<<else>>''The one slave pleasing citizens in $clubName''<</if>> worked hard to @@.green;increase your reputation@@ this week.
+	&nbsp;&nbsp;&nbsp;&nbsp;<<if (_DL != 1)>>''The _DL slaves pleasing citizens in $clubName''<<else>>''The one slave pleasing citizens in $clubName''<</if>> worked hard to @@.green;increase your reputation@@ this week.
 <</if>>
 
 <<if ($DJ != 0)>>
@@ -166,35 +157,35 @@
 	<<set $DJ = $slaves[_FLs]>>
 <</if>>
 
-<<if ($clubSlaves > 0)>>
+<<if (_DL > 0)>>
 	<<for _dI = 0; _dI < _DL; _dI++>>
-		<<set _i = $ClubiIDs[_dI].Index, $i = _i>>
-		<<if ($legendaryEntertainerID == 0) && ($slaves[_i].prestige == 0) && ($slaves[_i].entertainSkill >= 100) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
-			<<set $legendaryEntertainerID = $slaves[_i].ID>>
+		<<set $i = $ClubiIDs[_dI].Index>>
+		<<if ($legendaryEntertainerID == 0) && ($slaves[$i].prestige == 0) && ($slaves[$i].entertainSkill >= 100) && ($slaves[$i].devotion > 50) && ($slaves[$i].prestige == 0)>>
+			<<set $legendaryEntertainerID = $slaves[$i].ID>>
 		<</if>>
-		<<if ($legendaryWombID == 0) && ($slaves[_i].amp != 1) && ($slaves[_i].preg > 30) && ($slaves[_i].pregType < 50) && ($slaves[_i].eggType == "human") && ($slaves[_i].births > 10) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
-			<<set $legendaryWombID = $slaves[_i].ID>>
+		<<if ($legendaryWombID == 0) && ($slaves[$i].amp != 1) && ($slaves[$i].preg > 30) && ($slaves[$i].pregType < 50) && ($slaves[$i].eggType == "human") && ($slaves[$i].births > 10) && ($slaves[$i].devotion > 50) && ($slaves[$i].prestige == 0)>>
+			<<set $legendaryWombID = $slaves[$i].ID>>
 		<</if>>
-		<<if ($slaves[_i].devotion <= 20) && ($slaves[_i].trust > -20)>>
-			<<set $slaves[_i].devotion -= 5, $slaves[_i].trust -= 5>>
-		<<elseif ($slaves[_i].devotion < 45)>>
-			<<set $slaves[_i].devotion += 4>>
-		<<elseif ($slaves[_i].devotion >= 50)>>
-			<<set $slaves[_i].devotion -= 4>>
-		<</if>>
-
-		<<if ($slaves[_i].trust < 30)>>
-			<<set $slaves[_i].trust += 5>>
+		<<if ($slaves[$i].devotion <= 20) && ($slaves[$i].trust > -20)>>
+			<<set $slaves[$i].devotion -= 5, $slaves[$i].trust -= 5>>
+		<<elseif ($slaves[$i].devotion < 45)>>
+			<<set $slaves[$i].devotion += 4>>
+		<<elseif ($slaves[$i].devotion >= 50)>>
+			<<set $slaves[$i].devotion -= 4>>
 		<</if>>
 
-		<<if ($slaves[_i].health < -80)>>
-			<<set $slaves[_i].health += 20>>
-		<<elseif ($slaves[_i].health < -40)>>
-			<<set $slaves[_i].health += 15>>
-		<<elseif ($slaves[_i].health < 0)>>
-			<<set $slaves[_i].health += 10>>
-		<<elseif ($slaves[_i].health < 90)>>
-			<<set $slaves[_i].health += 7>>
+		<<if ($slaves[$i].trust < 30)>>
+			<<set $slaves[$i].trust += 5>>
+		<</if>>
+
+		<<if ($slaves[$i].health < -80)>>
+			<<set $slaves[$i].health += 20>>
+		<<elseif ($slaves[$i].health < -40)>>
+			<<set $slaves[$i].health += 15>>
+		<<elseif ($slaves[$i].health < 0)>>
+			<<set $slaves[$i].health += 10>>
+		<<elseif ($slaves[$i].health < 90)>>
+			<<set $slaves[$i].health += 7>>
 		<</if>>
 
 		<<if $showEWD != 0>>
@@ -244,8 +235,8 @@
 	<<if ($arcologies[0].FSAssetExpansionist == "unset") && ($arcologies[0].FSSlimnessEnthusiast == "unset")>>
 	<<if ($clubAdsSpending == 0) || ($clubAdsStacked == 0)>>
 		<<set _possibleBonuses++>>
-		<<if ($slim > 0) && ($stacked > 0) && (Math.abs($slim-$stacked) <= ($clubSlaves/3))>>
-		<<set $repGain += $clubSlaves*random(5,10), $clubBonuses++>>
+		<<if ($slim > 0) && ($stacked > 0) && (Math.abs($slim-$stacked) <= (_DL/3))>>
+		<<set $repGain += _DL*random(5,10), $clubBonuses++>>
 		There is a @@.green;wide@@ variety of slim and stacked slaves working the club.
 		<</if>>
 	<</if>>
@@ -253,8 +244,8 @@
 	<<if ($arcologies[0].FSDegradationist == "unset") && ($arcologies[0].FSBodyPurist == "unset")>>
 	<<if ($clubAdsSpending == 0) || ($clubAdsModded == 0)>>
 		<<set _possibleBonuses++>>
-		<<if ($modded > 0) && ($unmodded > 0) && (Math.abs($modded-$unmodded) <= ($clubSlaves/3))>>
-		<<set $repGain += $clubSlaves*random(5,10), $clubBonuses++>>
+		<<if ($modded > 0) && ($unmodded > 0) && (Math.abs($modded-$unmodded) <= (_DL/3))>>
+		<<set $repGain += _DL*random(5,10), $clubBonuses++>>
 		There are @@.green;both@@ heavily pierced and tattooed slaves and slaves with more natural bodies filling the club.
 		<</if>>
 	<</if>>
@@ -262,8 +253,8 @@
 	<<if ($arcologies[0].FSTransformationFetishist == "unset") && ($arcologies[0].FSBodyPurist == "unset")>>
 	<<if ($clubAdsSpending == 0) || ($clubAdsImplanted == 0)>>
 		<<set _possibleBonuses++>>
-		<<if ($implanted > 0) && ($pure > 0) && (Math.abs($implanted-$pure) <= ($clubSlaves/3))>>
-		<<set $repGain += $clubSlaves*random(5,10), $clubBonuses++>>
+		<<if ($implanted > 0) && ($pure > 0) && (Math.abs($implanted-$pure) <= (_DL/3))>>
+		<<set $repGain += _DL*random(5,10), $clubBonuses++>>
 		Citizens in $clubName can easily find @@.yellowgreen;both@@ all-natural girls, and slaves whose beauty has been improved by surgical means.
 		<</if>>
 	<</if>>
@@ -271,8 +262,8 @@
 	<<if ($seeDicks != 0)>>
 	<<if ($clubAdsSpending == 0) || ($clubAdsXX == 0)>>
 		<<set _possibleBonuses++>>
-		<<if ($XX > 0) && ($XY > 0) && (Math.abs($XX-$XY) <= ($clubSlaves/3))>>
-		<<set $repGain += $clubSlaves*random(5,10), $clubBonuses++>>
+		<<if ($XX > 0) && ($XY > 0) && (Math.abs($XX-$XY) <= (_DL/3))>>
+		<<set $repGain += _DL*random(5,10), $clubBonuses++>>
 		The club offers a @@.green;mix@@ of sluts that can appeal to varied tastes in genitalia.
 		<</if>>
 	<</if>>
@@ -280,8 +271,8 @@
 	<<if ($arcologies[0].FSMaturityPreferentialist == "unset") && ($arcologies[0].FSYouthPreferentialist == "unset")>>
 	<<if ($clubAdsSpending == 0) || ($clubAdsOld == 0)>>
 		<<set _possibleBonuses++>>
-		<<if ($young > 0) && ($old > 0) && (Math.abs($young-$old) <= ($clubSlaves/3))>>
-		<<set $repGain += $clubSlaves*random(5,10), $clubBonuses++>>
+		<<if ($young > 0) && ($old > 0) && (Math.abs($young-$old) <= (_DL/3))>>
+		<<set $repGain += _DL*random(5,10), $clubBonuses++>>
 		There are girls @@.green;both@@ young and mature in $clubName.
 		<</if>>
 	<</if>>
@@ -289,22 +280,26 @@
 	<<if ($arcologies[0].FSRepopulationFocus == "unset") && ($arcologies[0].FSRestart == "unset")>>
 	<<if ($clubAdsSpending == 0) || ($clubAdsPreg == 0)>>
 		<<set _possibleBonuses++>>
-		<<if ($pregYes > 0) && ($pregNo > 0) && (Math.abs($pregYes-$pregNo) <= ($clubSlaves/3))>>
-		<<set $repGain += $clubSlaves*random(5,10), $clubBonuses++>>
+		<<if ($pregYes > 0) && ($pregNo > 0) && (Math.abs($pregYes-$pregNo) <= (_DL/3))>>
+		<<set $repGain += _DL*random(5,10), $clubBonuses++>>
 		There is a @@.green;wide@@ variety of slaves with swollen, round bellies and flat bellies working the club.
 		<</if>>
 	<</if>>
 	<</if>>
 
 	<<if (_possibleBonuses > 0) && ($clubBonuses >= _possibleBonuses)>>
-		<<set $repGain += $clubSlaves*random(10,15)>>
-		There is a ''@@.green;perfect variety@@'' of slaves serving the public from the club.
+		<<set $repGain += _DL*random(10,15)>>
+		There is a ''@@.green;perfect variety@@'' of slaves serving the public from $clubName.
+	<<else>>
+		$clubNameCaps does not offer enough variety to satisfy all visitors.
 	<</if>>
 	<<if $clubDecoration != "standard">>
 		$clubNameCaps's customers enjoy @@.green;having sex in $clubDecoration surroundings.@@
 	<</if>>
 
 <</if>>
-<<if $clubSlaves || $DJ>>
+
+<<if _DL > 0 || $DJ != 0>>
 	<br><br>
 <</if>>
+

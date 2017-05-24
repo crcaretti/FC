@@ -1,32 +1,25 @@
 :: Dairy Report [nobr]
 
-<<set $bioreactorPerfectedID = 0, $legendaryBallsID = 0, $legendaryCowID = 0, $milkmaidDevotionBonus = 1, $milkmaidHealthBonus = 0, $milkmaidTrustBonus = 1, $milkmaidDevotionThreshold = 45, $milkmaidTrustThreshold = 35, _anusesStretched = 0, _birthers = 0, _births = 0, _cumWeek = 0, _femCumWeek = 0, _FLsFetish = 0, _milkWeek = 0, _balltacular = 0, _boobtacular = 0, _careerForgotten = 0, _chemMinor = 0, _chemSevere = 0, _desterilized = 0, _hatefilled = 0, _horrified = 0, _intelligenceLost = 0, _mindbroken = 0, _profits = 0, _skillsLost = 0, _stupidified = 0, _vaginasStretched = 0, _DL = $DairyiIDs.length, $dairySlaves = _DL, _SL = $slaves.length, _FLs = -1>>
+<<set _DL = $DairyiIDs.length, $dairySlaves = _DL, _SL = $slaves.length, $bioreactorPerfectedID = 0, $legendaryBallsID = 0, $legendaryCowID = 0, $milkmaidDevotionBonus = 1, $milkmaidHealthBonus = 0, $milkmaidTrustBonus = 1, $milkmaidDevotionThreshold = 45, $milkmaidTrustThreshold = 35, _anusesStretched = 0, _birthers = 0, _births = 0, _cumWeek = 0, _femCumWeek = 0, _FLsFetish = 0, _milkWeek = 0, _balltacular = 0, _boobtacular = 0, _careerForgotten = 0, _chemMinor = 0, _chemSevere = 0, _desterilized = 0, _hatefilled = 0, _horrified = 0, $intelligenceLost = 0, _mindbroken = 0, _profits = 0, _skillsLost = 0, _stupidified = 0, _vaginasStretched = 0>>
+
+<<set _MMWorkout = 0>>
 
 <<for _dI = 0; _dI < _DL; _dI++>>
-	<<set _i = $DairyiIDs[_dI].Index, _ID = $DairyiIDs[_dI].ID>>
-	<<if _i >= _SL || _ID != $slaves[_i].ID>>
-		/% Slaves.ID and $DairyiIDs.ID's don't match-up so let's find her %/
-		<<for _i = 0; _i < _SL; _i++>>
-			<<if _ID == $slaves[_i].ID>>
-				/% Correct the Index %/
-				<<set $DairyiIDs[_dI].Index = _i>>
-				<<break>>
-			<</if>>
-		<</for>>
+	<<set $i = $DairyiIDs[_dI].Index, _ID = $DairyiIDs[_dI].ID>>
+	<<if $i >= _SL || _ID != $slaves[$i].ID>>
+		/% IDs don't match-up so let's find her %/
+		<<set $i = $slaves.findIndex(function(s) { return s.ID == _ID; }), $DairyiIDs[_dI].Index = $i>>
 	<</if>>
-	<<if _i >= _SL || $slaves[_i].assignment != "work in the dairy">>
-		<<set $DairyiIDs.deleteAt(_dI), _dI--, _DL-->>
+	<<if $i == -1 || $slaves[$i].assignment != "work in the dairy">>
+		<<set $DairyiIDs.deleteAt(_dI), _dI--, _DL--, $dairySlaves-->>
 		<<continue>>
 	<</if>>
 <</for>>
 <<SlaveSort $DairyiIDs>>
 
 <<if ($Milkmaid != 0)>>
-	<<for _FLs = 0; _FLs < _SL; _FLs++>>
-		<<if $slaves[_FLs].ID == $Milkmaid.ID>>
-			<<break>>
-		<</if>>
-	<</for>>
+	<<set _FLs = $slaves.findIndex(function(s) { return s.ID == $Milkmaid.ID; })>>
+
 	<<if $slaves[_FLs].health < 90>>
 		<<set $slaves[_FLs].curatives = 2>>
 	<<else>>
@@ -65,12 +58,12 @@
 		<<set $milkmaidDevotionBonus += 2, $milkmaidTrustBonus += 2>>
 		She tries her best to be your perfect farmwife.
 	<</if>>
-	<<if ($dairySlaves > 0) && ($milkmaidImpregnates == 1) && (canPenetrate($Milkmaid)) && $Milkmaid.pubertyXY == 1>>
+	<<if (_DL > 0) && ($milkmaidImpregnates == 1) && (canPenetrate($Milkmaid)) && $Milkmaid.pubertyXY == 1>>
 		<<set _milkmaidImpregnated = 0>>
 		<<for _dI = 0; _dI < _DL; _dI++>>
-			<<set _i = $DairyiIDs[_dI].Index>>
-			<<if (canImpreg($slaves[_i], $Milkmaid))>>
-				<<set $slaves[_i].preg = 1, $slaves[_i].pregSource = $Milkmaid.ID, _milkmaidImpregnated++, $slaves[_i].vaginalCount += 10, $vaginalTotal += 10>>
+			<<set $i = $DairyiIDs[_dI].Index>>
+			<<if (canImpreg($slaves[$i], $Milkmaid))>>
+				<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = $Milkmaid.ID, _milkmaidImpregnated++, $slaves[$i].vaginalCount += 10, $vaginalTotal += 10>>
 			<</if>>
 		<</for>>
 		<<if _milkmaidImpregnated > 0>>
@@ -94,45 +87,45 @@
 	<</if>>
 	<<if $dairyRestraintsSetting != 2>> /* how much effort the MM must take to force a slave into a stall */
 		<<for _dI = 0; _dI < _DL; _dI++>>
-			<<set _i = $DairyiIDs[_dI].Index>>
-			<<if $slaves[_i].devotion < 20>>
+			<<set $i = $DairyiIDs[_dI].Index>>
+			<<if $slaves[$i].devotion < 20>>
 				<<set _MMWorkout++>>
 			<</if>>
-			<<if $slaves[_i].trust < 20>>
+			<<if $slaves[$i].trust < 20>>
 				<<set _MMWorkout++>>
 			<</if>>
-			<<if $slaves[_i].muscles >= 30>>
+			<<if $slaves[$i].muscles >= 30>>
 				<<set _MMWorkout++>>
 			<</if>>
-			<<if $slaves[_i].weight >= 70>>
+			<<if $slaves[$i].weight >= 70>>
 				<<set _MMWorkout++>>
 			<</if>>
-			<<if $slaves[_i].boobs >= 6000>>
+			<<if $slaves[$i].boobs >= 6000>>
 				<<set _MMWorkout++>>
 			<</if>>
-			<<if $slaves[_i].balls >= 30>>
+			<<if $slaves[$i].balls >= 30>>
 				<<set _MMWorkout++>>
 			<</if>>
-			<<if bigBellyPreg($slaves[_i])>>
+			<<if bigBellyPreg($slaves[$i])>>
 				<<set _MMWorkout++>>
 			<</if>>
-			<<if !canWalk($slaves[_i])>> /* big bonus if they can't move themselves and are fat as cows */
-				<<if $slaves[_i].weight >= 70>>
+			<<if !canWalk($slaves[$i])>> /* big bonus if they can't move themselves and are fat as cows */
+				<<if $slaves[$i].weight >= 70>>
 					<<set _MMWorkout += 2>>
 				<</if>>
-				<<if $slaves[_i].boobs >= 6000>>
+				<<if $slaves[$i].boobs >= 6000>>
 					<<set _MMWorkout += 2>>
 				<</if>>
-				<<if $slaves[_i].balls >= 30>>
+				<<if $slaves[$i].balls >= 30>>
 					<<set _MMWorkout += 2>>
 				<</if>>
-				<<if bigBellyPreg($slaves[_i])>>
+				<<if bigBellyPreg($slaves[$i])>>
 					<<set _MMWorkout += 2>>
 				<</if>>
 			<</if>>
 		<</for>>
 	<</if>>
-	<<if _MMWorkout > (random(1,100)+$Milkmaid.muscles) && $Milkmaid.muscles < 60>>>
+	<<if (_MMWorkout > random(1,10)) && $Milkmaid.muscles < 60>>>
 		Constantly having to wrestle unruly or aiding heavy cows into their stalls forces her to @@.lime;build muscle.@@
 		<<set $slaves[_FL].muscles++>>
 	<</if>>
@@ -157,8 +150,8 @@
 	<</if>>
 	<<if ($dairyStimulatorsSetting < 2) && ($Milkmaid.dick > 4) && (canPenetrate($Milkmaid))>>
 		<<for _dI = 0; _dI < _DL; _dI++>>
-			<<set _i = $DairyiIDs[_dI].Index>>
-			<<if ($slaves[_i].balls > 0)>>
+			<<set $i = $DairyiIDs[_dI].Index>>
+			<<if ($slaves[$i].balls > 0)>>
 				She uses her turgid cock to give prostate stimulation to slaves that need help ejaculating.
 				<<break>>
 			<</if>>
@@ -166,64 +159,64 @@
 	<</if>>
 	<<set $milkmaidDevotionThreshold += (5*$milkmaidDevotionBonus), $milkmaidTrustThreshold += (5*$milkmaidTrustBonus)>>
 	<<for _dI = 0; _dI < _DL; _dI++>>
-		<<set _i = $DairyiIDs[_dI].Index>>
-		<<if $Milkmaid.rivalryTarget == $slaves[_i].ID>>
-			She either neglects or harasses her <<if $Milkmaid.rivalry == 1>>growing rival<<elseif $Milkmaid.rivalry == 2>>rival<<elseif $Milkmaid.rivalry == 3>>bitter rival<</if>>, $slaves[_i].slaveName, making sure she is unhappy and uncomfortable.
-			<<set $slaves[_i].devotion -= 3, $slaves[_i].trust -= 3>>
+		<<set $i = $DairyiIDs[_dI].Index>>
+		<<if $Milkmaid.rivalryTarget == $slaves[$i].ID>>
+			She either neglects or harasses her <<if $Milkmaid.rivalry == 1>>growing rival<<elseif $Milkmaid.rivalry == 2>>rival<<elseif $Milkmaid.rivalry == 3>>bitter rival<</if>>, $slaves[$i].slaveName, making sure she is unhappy and uncomfortable.
+			<<set $slaves[$i].devotion -= 3, $slaves[$i].trust -= 3>>
 			<<if random(1,100) > 65>>
-				<<set $Milkmaid.rivalry++, $slaves[_FLs].rivalry++, $slaves[_i].rivalry++>>
+				<<set $Milkmaid.rivalry++, $slaves[_FLs].rivalry++, $slaves[$i].rivalry++>>
 			<</if>>
-		<<elseif $Milkmaid.relationshipTarget == $slaves[_i].ID>>
-			She dotes over her <<if $Milkmaid.relationship == 1>>friend<<elseif $Milkmaid.relationship == 2>>best friend<<elseif $Milkmaid.relationship == 3>>friend with benefits<<elseif $Milkmaid.relationship == 4>>lover<<elseif $Milkmaid.relationship == 5>>slave wife<</if>>, $slaves[_i].slaveName, making sure she is happy and comfortable.
-			<<set $slaves[_i].devotion++, $slaves[_i].trust++>>
-		<<elseif $familyTesting == 1 && totalRelatives($slaves[_i]) > 0>>
-			<<if $slaves[_i].mother == $Milkmaid.ID || $slaves[_i].father == $Milkmaid.ID>>
-				She pays special attention to her daughter, $slaves[_i].slaveName, making sure she is well kept and happy.
-				<<set $slaves[_i].trust++>>
-			<<elseif $slaves[_i].ID == $Milkmaid.mother>>
-				She pays special attention to her mother, $slaves[_i].slaveName, making sure she is well kept and happy.
-				<<set $slaves[_i].trust++>>
-			<<elseif $slaves[_i].ID == $Milkmaid.father>>
-				She pays special attention to her father, $slaves[_i].slaveName, making sure she is well kept and happy.
-				<<set $slaves[_i].trust++>>
-			<<elseif areSisters($slaves[_i], $Milkmaid) == 1>>
-				She pays special attention to her twin sister, $slaves[_i].slaveName, making sure she is well kept and happy.
-				<<set $slaves[_i].trust++>>
-			<<elseif areSisters($slaves[_i], $Milkmaid) == 2>>
-				She pays special attention to her sister, $slaves[_i].slaveName, making sure she is well kept and happy.
-				<<set $slaves[_i].trust++>>
-			<<elseif areSisters($slaves[_i], $Milkmaid) == 3>>
-				She pays special attention to her half-sister, $slaves[_i].slaveName, making sure she is well kept and happy.
-				<<set $slaves[_i].trust++>>
+		<<elseif $Milkmaid.relationshipTarget == $slaves[$i].ID>>
+			She dotes over her <<if $Milkmaid.relationship == 1>>friend<<elseif $Milkmaid.relationship == 2>>best friend<<elseif $Milkmaid.relationship == 3>>friend with benefits<<elseif $Milkmaid.relationship == 4>>lover<<elseif $Milkmaid.relationship == 5>>slave wife<</if>>, $slaves[$i].slaveName, making sure she is happy and comfortable.
+			<<set $slaves[$i].devotion++, $slaves[$i].trust++>>
+		<<elseif $familyTesting == 1 && totalRelatives($slaves[$i]) > 0>>
+			<<if $slaves[$i].mother == $Milkmaid.ID || $slaves[$i].father == $Milkmaid.ID>>
+				She pays special attention to her daughter, $slaves[$i].slaveName, making sure she is well kept and happy.
+				<<set $slaves[$i].trust++>>
+			<<elseif $slaves[$i].ID == $Milkmaid.mother>>
+				She pays special attention to her mother, $slaves[$i].slaveName, making sure she is well kept and happy.
+				<<set $slaves[$i].trust++>>
+			<<elseif $slaves[$i].ID == $Milkmaid.father>>
+				She pays special attention to her father, $slaves[$i].slaveName, making sure she is well kept and happy.
+				<<set $slaves[$i].trust++>>
+			<<elseif areSisters($slaves[$i], $Milkmaid) == 1>>
+				She pays special attention to her twin sister, $slaves[$i].slaveName, making sure she is well kept and happy.
+				<<set $slaves[$i].trust++>>
+			<<elseif areSisters($slaves[$i], $Milkmaid) == 2>>
+				She pays special attention to her sister, $slaves[$i].slaveName, making sure she is well kept and happy.
+				<<set $slaves[$i].trust++>>
+			<<elseif areSisters($slaves[$i], $Milkmaid) == 3>>
+				She pays special attention to her half-sister, $slaves[$i].slaveName, making sure she is well kept and happy.
+				<<set $slaves[$i].trust++>>
 			<</if>>
-		<<elseif $Milkmaid.relationTarget == $slaves[_i].ID && $familyTesting == 0>>
-			She pays special attention to her $slaves[_i].relation, $slaves[_i].slaveName, making sure she is well kept and happy.
-			<<set $slaves[_i].trust++>>
+		<<elseif $Milkmaid.relationTarget == $slaves[$i].ID && $familyTesting == 0>>
+			She pays special attention to her $slaves[$i].relation, $slaves[$i].slaveName, making sure she is well kept and happy.
+			<<set $slaves[$i].trust++>>
 		<</if>>
-		<<if $slaves[_i].prestigeDesc == "She is remembered for winning best in show as a dairy cow.">>
-			She spends extra time with $slaves[_i].slaveName, the well-known cow. $Milkmaid.slaveName is fascinated by her massive $slaves[_i].boobs cc breasts and spends extra time massaging and kneading them to maximize production.
-			<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
+		<<if $slaves[$i].prestigeDesc == "She is remembered for winning best in show as a dairy cow.">>
+			She spends extra time with $slaves[$i].slaveName, the well-known cow. $Milkmaid.slaveName is fascinated by her massive $slaves[$i].boobs cc breasts and spends extra time massaging and kneading them to maximize production.
+			<<set $slaves[$i].devotion += 3, $slaves[$i].trust += 3>>
 		<</if>>
-		<<if $slaves[_i].prestigeDesc == "She is remembered for winning best in show as a cockmilker.">>
-			She spends extra time with $slaves[_i].slaveName, the massive ejaculating cow.  She can't help but massage the cow's dick and testes to stimulate them further and coax more from them.
-			<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
+		<<if $slaves[$i].prestigeDesc == "She is remembered for winning best in show as a cockmilker.">>
+			She spends extra time with $slaves[$i].slaveName, the massive ejaculating cow.  She can't help but massage the cow's dick and testes to stimulate them further and coax more from them.
+			<<set $slaves[$i].devotion += 3, $slaves[$i].trust += 3>>
 		<</if>>
-		<<if $slaves[_i].prestigeDesc == "She is remembered for winning best in show as a breeder." && $slaves[_i].preg > 10>>
-			She spends extra time with $slaves[_i].slaveName, the well-known breeder. $Milkmaid.slaveName is fascinated by her growing pregnancy and popular womb. She makes sure her belly and it's occupants are nice and comfortable.
-			<<set $slaves[_i].devotion += 3, $slaves[_i].trust += 3>>
+		<<if $slaves[$i].prestigeDesc == "She is remembered for winning best in show as a breeder." && $slaves[$i].preg > 10>>
+			She spends extra time with $slaves[$i].slaveName, the well-known breeder. $Milkmaid.slaveName is fascinated by her growing pregnancy and popular womb. She makes sure her belly and it's occupants are nice and comfortable.
+			<<set $slaves[$i].devotion += 3, $slaves[$i].trust += 3>>
 		<</if>>
 	<</for>>
 <</if>>
 
 <<set _Tadd = ($bioreactorsXY + $bioreactorsXX + $bioreactorsHerm + $bioreactorsBarren)>>
-<<if ($dairySlaves + _Tadd > 0)>>
+<<if (_DL + _Tadd > 0)>>
 	<<if ($Milkmaid != 0)>><br><br><</if>>
-	&nbsp;&nbsp;&nbsp;&nbsp;<<if ($dairySlaves != 1)>>''There are $dairySlaves cows in $dairyName.''<<else>>''There is one cow in $dairyName.''<</if>>
+	&nbsp;&nbsp;&nbsp;&nbsp;<<if (_DL != 1)>>''There are _DL cows in $dairyName.''<<else>>''There is one cow in $dairyName.''<</if>>
 	<<if ($dairyRestraintsSetting > 1)>>
 		The facility functions as an industrial slave products factory.
 	<</if>>
 	<<if (_Tadd > 0)>>
-		_Tadd milking machines have permanent biological components, making a total of <<print _Tadd + $dairySlaves>> milk-producing bodies.
+		_Tadd milking machines have permanent biological components, making a total of <<print _Tadd + _DL>> milk-producing bodies.
 	<</if>>
 <</if>>
 
@@ -261,29 +254,29 @@
 	<<set $Milkmaid = $slaves[_FLs]>>
 <</if>>
 
-<<set $oldCash = $cash>>
+<<set _oldCash = $cash>>
 <<for _dI = 0; _dI < _DL; _dI++>>
-	<<set _i = $DairyiIDs[_dI].Index, $i = _i>>
+	<<set $i = $DairyiIDs[_dI].Index>>
 	/* Special attention section */
-	<<if ($legendaryCowID == 0) && ($slaves[_i].lactation > 0) && (($slaves[_i].boobs-$slaves[_i].boobsImplant) > 6000) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
-		<<set $legendaryCowID = $slaves[_i].ID>>
+	<<if ($legendaryCowID == 0) && ($slaves[$i].lactation > 0) && (($slaves[$i].boobs-$slaves[$i].boobsImplant) > 6000) && ($slaves[$i].devotion > 50) && ($slaves[$i].prestige == 0)>>
+		<<set $legendaryCowID = $slaves[$i].ID>>
 	<</if>>
-	<<if ($legendaryBallsID == 0) && ($slaves[_i].balls > 5) && ($slaves[_i].devotion > 50) && ($slaves[_i].prestige == 0)>>
-		<<set $legendaryBallsID = $slaves[_i].ID>>
+	<<if ($legendaryBallsID == 0) && ($slaves[$i].balls > 5) && ($slaves[$i].devotion > 50) && ($slaves[$i].prestige == 0)>>
+		<<set $legendaryBallsID = $slaves[$i].ID>>
 	<</if>>
 
 	/* Perform facility based rule changes */
-	<<if ($dairySlimMaintain == 0) && ($slaves[_i].weight <= 30)>>
-		<<set $slaves[_i].diet = "fattening">>
-	<<elseif ($slaves[_i].diet == "fattening") || ($dairyRestraintsSetting > 1)>>
-		<<set $slaves[_i].diet = "healthy">>
+	<<if ($dairySlimMaintain == 0) && ($slaves[$i].weight <= 30)>>
+		<<set $slaves[$i].diet = "fattening">>
+	<<elseif ($slaves[$i].diet == "fattening") || ($dairyRestraintsSetting > 1)>>
+		<<set $slaves[$i].diet = "healthy">>
 	<</if>>
 	<<if $dairyRestraintsSetting > 1>>
-		<<set $slaves[_i].collar = "none", $slaves[_i].choosesOwnClothes = 0, $slaves[_i].clothes = "no clothing", $slaves[_i].buttplug = "none", $slaves[_i].vaginalAccessory = "none", $slaves[_i].dickAccessory = "none">>
+		<<set $slaves[$i].collar = "none", $slaves[$i].choosesOwnClothes = 0, $slaves[$i].clothes = "no clothing", $slaves[$i].buttplug = "none", $slaves[$i].vaginalAccessory = "none", $slaves[$i].dickAccessory = "none">>
 	<</if>>
 	<<if $dairyPregSetting > 0>>
-		<<set $reservedChildren -= $slaves[_i].reservedChildren>>
-		<<set $slaves[_i].reservedChildren to 0>>
+		<<set $reservedChildren -= $slaves[$i].reservedChildren>>
+		<<set $slaves[$i].reservedChildren = 0>>
 	<</if>>
 	
 	/* General End of Week effects */
@@ -325,82 +318,85 @@
 	<<set _milkWeek += $milk, _cumWeek += $cum>>
 
 	/* Facility Specific End of Week effects */
-	<<if ($slaves[_i].devotion <= 20) && ($slaves[_i].trust > -20)>>
-		<<set $slaves[_i].devotion -= 5, $slaves[_i].trust -= 5>>
+	<<if ($slaves[$i].devotion <= 20) && ($slaves[$i].trust > -20)>>
+		<<set $slaves[$i].devotion -= 5, $slaves[$i].trust -= 5>>
 	<</if>>
-	<<if ($slaves[_i].health < -80)>>
-		<<set $slaves[_i].health += 20>>
-	<<elseif ($slaves[_i].health < -40)>>
-		<<set $slaves[_i].health += 10>>
-	<<elseif ($slaves[_i].health < 0)>>
-		<<set $slaves[_i].health += 7>>
-	<<elseif ($slaves[_i].health < 90)>>
-		<<set $slaves[_i].health += 3>>
+	<<if ($slaves[$i].health < -80)>>
+		<<set $slaves[$i].health += 20>>
+	<<elseif ($slaves[$i].health < -40)>>
+		<<set $slaves[$i].health += 10>>
+	<<elseif ($slaves[$i].health < 0)>>
+		<<set $slaves[$i].health += 7>>
+	<<elseif ($slaves[$i].health < 90)>>
+		<<set $slaves[$i].health += 3>>
 	<</if>>
-	<<if ($slaves[_i].inflation > 0)>>
-		<<set $slaves[_i].inflation = 0, $slaves[_i].inflationType = "none", $slaves[_i].inflationMethod = 0, $slaves[_i].milkSource = 0>>
+	<<if ($slaves[$i].inflation > 0)>>
+		<<set $slaves[$i].inflation = 0, $slaves[$i].inflationType = "none", $slaves[$i].inflationMethod = 0, $slaves[$i].milkSource = 0>>
 	<</if>>
-	<<if ($slaves[_i].lactation > 0) && (($dairySlimMaintain == 0) || ($slaves[_i].boobs > 700))>>
-		<<if ($slaves[_i].boobs < 2000)>>
-			<<set $slaves[_i].boobs += 100>>
-		<<elseif ($slaves[_i].boobs < 5000)>>
-			<<set $slaves[_i].boobs += 50>>
-		<<elseif ($slaves[_i].boobs < 10000)>>
-			<<set $slaves[_i].boobs += 25>>
+	<<if ($slaves[$i].lactation > 0) && (($dairySlimMaintain == 0) || ($slaves[$i].boobs > 700))>>
+		<<if ($slaves[$i].boobs < 2000)>>
+			<<set $slaves[$i].boobs += 100>>
+		<<elseif ($slaves[$i].boobs < 5000)>>
+			<<set $slaves[$i].boobs += 50>>
+		<<elseif ($slaves[$i].boobs < 10000)>>
+			<<set $slaves[$i].boobs += 25>>
 		<</if>>
 	<</if>>
 	<<if ($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0)>>
 		<<if ($dairySlimMaintain == 0)>>
-			<<if ($slaves[_i].balls == 0)>>
-				<<set $slaves[_i].hormones = 2>>
+			<<if ($slaves[$i].balls == 0)>>
+				<<set $slaves[$i].hormones = 2>>
 			<</if>>
-			<<if ($slaves[_i].lactation < 2)>>
-				<<set $slaves[_i].lactation = 2, $slaves[_i].health -= 10, $cash -= $surgeryCost>>
+			<<if ($slaves[$i].lactation < 2)>>
+				<<set $slaves[$i].lactation = 2, $slaves[$i].health -= 10, $cash -= $surgeryCost>>
 			<</if>>
 		<</if>>
-		<<if ($slaves[_i].health < 75)>>
-			<<set $slaves[_i].health += 25>>
+		<<if $slaves[$i].prostate == 1>>
+			<<set $slaves[$i].prostate = 2, $slaves[$i].health -= 10, $cash -= $surgeryCost>>
+		<</if>>
+		<<if ($slaves[$i].health < 75)>>
+			<<set $slaves[$i].health += 25>>
 		<<else>>
 			<<if ($dairySlimMaintain == 0)>>
-				<<if ($slaves[_i].boobs < 25000)>>
+				<<if ($slaves[$i].boobs < 25000)>>
 					<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
-						<<if ($slaves[_i].boobs < 2000)>>
-							<<set $slaves[_i].boobs += 500>>
-						<<elseif ($slaves[_i].boobs < 5000)>>
-							<<set $slaves[_i].boobs += 250>>
+						<<if ($slaves[$i].boobs < 2000)>>
+							<<set $slaves[$i].boobs += 500>>
+						<<elseif ($slaves[$i].boobs < 5000)>>
+							<<set $slaves[$i].boobs += 250>>
 						<<else>>
-							<<set $slaves[_i].boobs += 100>>
+							<<set $slaves[$i].boobs += 100>>
 						<</if>>
 					<<else>>
-						<<set $slaves[_i].boobs += 25*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50-$slaves[_i].physicalAge)/4))>>
+						<<set $slaves[$i].boobs += 25*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50-$slaves[$i].physicalAge)/4))>>
 					<</if>>
-					<<if ($slaves[_i].boobs > 14900) && ($slaves[_i].boobs < 15100)>>
+					<<if ($slaves[$i].boobs > 14900) && ($slaves[$i].boobs < 15100)>>
 						<<set _boobtacular++>>
 					<</if>>
 				<<else>>
-					<<set $slaves[_i].boobs = 25000>>
+					<<set $slaves[$i].boobs = 25000>>
 				<</if>>
 			<</if>>
-			<<if ($slaves[_i].balls > 0)>>
+			<<if ($slaves[$i].balls > 0)>>
 				<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
-					<<if ($slaves[_i].balls < 125)>>
-						<<set $slaves[_i].balls++>>
+					<<if ($slaves[$i].balls < 125)>>
+						<<set $slaves[$i].balls++>>
 					<</if>>
-					<<if ($slaves[_i].balls == 125)>>
+					<<if ($slaves[$i].balls == 125)>>
 						<<set _balltacular++>>
 					<</if>>
-				<<elseif ($slaves[_i].balls < 6)>>
-					<<if (random(1,100) > (40+(10*$slaves[_i].dick)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
-						<<set $slaves[_i].balls++>>
+				<<elseif ($slaves[$i].balls < 6)>>
+					<<if (random(1,100) > (40+(10*$slaves[$i].dick)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
+						<<set $slaves[$i].balls++>>
 					<</if>>
-					<<if ($slaves[_i].balls == 6)>>
+					<<if ($slaves[$i].balls == 6)>>
 						<<set _balltacular++>>
 					<</if>>
 				<</if>>
-				<<if $slaves[_i].dick > 0>>
-					<<if $slaves[_i].dick < 10>>
-						<<if (random(1,100) > (40+(10*$slaves[_i].dick)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
-							<<set $slaves[_i].dick++>>
+				<<if $slaves[$i].dick > 0>>
+					<<if $slaves[$i].dick < 10>>
+						<<if (random(1,100) > (40+(10*$slaves[$i].dick)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
+							<<set $slaves[$i].dick++>>
 						<</if>>
 					<</if>>
 				<</if>>
@@ -408,61 +404,61 @@
 		<</if>>
 	<</if>> /* closes ($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0) */
 	<<if ($dairyStimulatorsUpgrade == 1)>>
-		<<if ($dairyStimulatorsSetting > 1) && ($slaves[_i].anus < 4)>>
-			<<set $slaves[_i].anus++>>
-			<<if ($slaves[_i].anus == 4)>>
+		<<if ($dairyStimulatorsSetting > 1) && ($slaves[$i].anus < 4)>>
+			<<set $slaves[$i].anus++>>
+			<<if ($slaves[$i].anus == 4)>>
 				<<set _anusesStretched++>>
 			<</if>>
-		<<elseif ($slaves[_i].anus < 3)>>
-			<<set $slaves[_i].anus++>>
+		<<elseif ($slaves[$i].anus < 3)>>
+			<<set $slaves[$i].anus++>>
 		<</if>>
-		<<if ($slaves[_i].health < 60)>>
-			<<set $slaves[_i].health += 20>>
+		<<if ($slaves[$i].health < 60)>>
+			<<set $slaves[$i].health += 20>>
 		<<elseif $dairySlimMaintain == 0>>
-			<<if ($slaves[_i].boobs < 25000)>>
+			<<if ($slaves[$i].boobs < 25000)>>
 				<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
-					<<if ($slaves[_i].boobs < 2000)>>
-						<<set $slaves[_i].boobs += 500>>
-					<<elseif ($slaves[_i].boobs < 5000)>>
-						<<set $slaves[_i].boobs += 250>>
+					<<if ($slaves[$i].boobs < 2000)>>
+						<<set $slaves[$i].boobs += 500>>
+					<<elseif ($slaves[$i].boobs < 5000)>>
+						<<set $slaves[$i].boobs += 250>>
 					<<else>>
-						<<set $slaves[_i].boobs += 100>>
+						<<set $slaves[$i].boobs += 100>>
 					<</if>>
 				<<else>>
-					<<set $slaves[_i].boobs += 25*Math.trunc(($injectionUpgrade*2)+$dairyStimulatorsSetting+$dairyRestraintsSetting+((50-$slaves[_i].physicalAge)/4))>>
+					<<set $slaves[$i].boobs += 25*Math.trunc(($injectionUpgrade*2)+$dairyStimulatorsSetting+$dairyRestraintsSetting+((50-$slaves[$i].physicalAge)/4))>>
 				<</if>>
-				<<if ($slaves[_i].boobs > 14900) && ($slaves[_i].boobs < 15100)>>
+				<<if ($slaves[$i].boobs > 14900) && ($slaves[$i].boobs < 15100)>>
 					<<set _boobtacular++>>
 				<</if>>
 			<<else>>
-				<<set $slaves[_i].boobs = 25000>>
+				<<set $slaves[$i].boobs = 25000>>
 			<</if>>
 		<</if>>
 	<</if>>
 	<<if ($dairyRestraintsSetting > 1)>>
-		<<set $slaves[_i].lactationAdaptation += 1>>
-		<<if ($slaves[_i].fetish == "mindbroken")>>
-			<<if ($slaves[_i].boobs > 24800) && (($slaves[_i].balls > 5) || ($slaves[_i].balls == 0))>>
-				<<set $bioreactorPerfectedID = $slaves[_i].ID>>
+		<<set $slaves[$i].lactationAdaptation += 1>>
+		<<if ($slaves[$i].fetish == "mindbroken")>>
+			<<if ($slaves[$i].boobs > 24800) && (($slaves[$i].balls > 5) || ($slaves[$i].balls == 0))>>
+				<<set $bioreactorPerfectedID = $slaves[$i].ID>>
 			<</if>>
 		<<else>>
-			<<if ($slaves[_i].sexualFlaw != "self hating")>>
-			<<if ($slaves[_i].sexualFlaw != "cum addict") || ($dairyFeedersSetting == 0)>>
-			<<if ($slaves[_i].sexualFlaw != "anal addict") || ($dairyStimulatorsSetting == 0)>>
-			<<if ($slaves[_i].sexualFlaw != "breeder") || ($slaves[_i].preg < 0) || ($dairyPregSetting == 0)>>
+			<<if ($slaves[$i].sexualFlaw != "self hating")>>
+			<<if ($slaves[$i].sexualFlaw != "cum addict") || ($dairyFeedersSetting == 0)>>
+			<<if ($slaves[$i].sexualFlaw != "anal addict") || ($dairyStimulatorsSetting == 0)>>
+			<<if ($slaves[$i].sexualFlaw != "breeder") || ($slaves[$i].preg < 0) || ($dairyPregSetting == 0)>>
 				<<if $dairyStimulatorsSetting > 1>>
-					<<if ($slaves[_i].sexualFlaw != "hates anal") && ($slaves[_i].sexualQuirk != "painal queen")>>
-						<<set $slaves[_i].sexualFlaw = "hates anal">>
+					<<if ($slaves[$i].sexualFlaw != "hates anal") && ($slaves[$i].sexualQuirk != "painal queen")>>
+						<<set $slaves[$i].sexualFlaw = "hates anal">>
 					<</if>>
 				<</if>>
 				<<if $dairyPregSetting > 1>>
-					<<if ($slaves[_i].sexualFlaw != "hates penetration") && ($slaves[_i].sexualQuirk != "strugglefuck queen")>>
-						<<set $slaves[_i].sexualFlaw = "hates penetration">>
+					<<if ($slaves[$i].sexualFlaw != "hates penetration") && ($slaves[$i].sexualQuirk != "strugglefuck queen")>>
+						<<set $slaves[$i].sexualFlaw = "hates penetration">>
 					<</if>>
 				<</if>>
 				<<if $dairyFeedersSetting > 1>>
-					<<if ($slaves[_i].sexualFlaw != "hates oral") && ($slaves[_i].sexualQuirk != "gagfuck queen")>>
-						<<set $slaves[_i].sexualFlaw = "hates oral">>
+					<<if ($slaves[$i].sexualFlaw != "hates oral") && ($slaves[$i].sexualQuirk != "gagfuck queen")>>
+						<<set $slaves[$i].sexualFlaw = "hates oral">>
 					<</if>>
 				<</if>>
 			<</if>>
@@ -470,124 +466,124 @@
 			<</if>>
 			<</if>>
 		<</if>>
-		<<if $slaves[_i].chem > 250>>
+		<<if $slaves[$i].chem > 250>>
 			<<set _chemSevere++>>
-		<<elseif $slaves[_i].chem > 100>>
+		<<elseif $slaves[$i].chem > 100>>
 			<<set _chemMinor++>>
 		<</if>>
 	<</if>>
 	<<if ($dairyStimulatorsSetting + $dairyFeedersSetting + $dairyPregSetting) > 5>>
-		<<if $slaves[_i].devotion <= 95 && $slaves[_i].sexualFlaw != "self hating">>
-			<<if ($slaves[_i].sexualFlaw != "breeder") || ($slaves[_i].preg < 0)>>
-				<<if ($slaves[_i].devotion > -75)>>
-					<<set $slaves[_i].devotion -= 10>>
-					<<if ($slaves[_i].devotion < -65)>>
+		<<if $slaves[$i].devotion <= 95 && $slaves[$i].sexualFlaw != "self hating">>
+			<<if ($slaves[$i].sexualFlaw != "breeder") || ($slaves[$i].preg < 0)>>
+				<<if ($slaves[$i].devotion > -75)>>
+					<<set $slaves[$i].devotion -= 10>>
+					<<if ($slaves[$i].devotion < -65)>>
 						<<set _hatefilled++>>
 					<</if>>
-				<<elseif ($slaves[_i].trust > -75)>>
-					<<set $slaves[_i].trust -= 10>>
-					<<if ($slaves[_i].trust < -65)>>
+				<<elseif ($slaves[$i].trust > -75)>>
+					<<set $slaves[$i].trust -= 10>>
+					<<if ($slaves[$i].trust < -65)>>
 						<<set _horrified++>>
 					<</if>>
-				<<elseif ($slaves[_i].vaginalSkill > 0)>>
-					<<set $slaves[_i].vaginalSkill -= 10, _skillsLost++>>
-				<<elseif ($slaves[_i].oralSkill > 0)>>
-					<<set $slaves[_i].oralSkill -= 10, _skillsLost++>>
-				<<elseif ($slaves[_i].analSkill > 0)>>
-					<<set $slaves[_i].analSkill -= 10, _skillsLost++>>
-				<<elseif ($slaves[_i].career != "a bioreactor")>>
-					<<set $slaves[_i].career = "a bioreactor", _careerForgotten++>>
-				<<elseif ($slaves[_i].intelligence > -1)>>
-					<<set $slaves[_i].intelligence--, _intelligenceLost++>>
-				<<elseif ($slaves[_i].devotion >= -20)>>
-					<<set $slaves[_i].devotion -= 10>>
-				<<elseif ($slaves[_i].trust > -20)>>
-					<<set $slaves[_i].trust -= 10>>
-				<<elseif ($slaves[_i].whoreSkill > 0)>>
-					<<set $slaves[_i].whoreSkill -= 10, _skillsLost++>>
-				<<elseif ($slaves[_i].entertainSkill > 0)>>
-					<<set $slaves[_i].entertainSkill -= 10, _skillsLost++>>
-				<<elseif ($slaves[_i].intelligence > -2)>>
-					<<set $slaves[_i].intelligence--, _stupidified++>>
-				<<elseif ($slaves[_i].fetish != "mindbroken")>>
-					<<set $slaves[_i].fetish = "mindbroken", _mindbroken++>>
+				<<elseif ($slaves[$i].vaginalSkill > 0)>>
+					<<set $slaves[$i].vaginalSkill -= 10, _skillsLost++>>
+				<<elseif ($slaves[$i].oralSkill > 0)>>
+					<<set $slaves[$i].oralSkill -= 10, _skillsLost++>>
+				<<elseif ($slaves[$i].analSkill > 0)>>
+					<<set $slaves[$i].analSkill -= 10, _skillsLost++>>
+				<<elseif ($slaves[$i].career != "a bioreactor")>>
+					<<set $slaves[$i].career = "a bioreactor", _careerForgotten++>>
+				<<elseif ($slaves[$i].intelligence > -1)>>
+					<<set $slaves[$i].intelligence--, _intelligenceLost++>>
+				<<elseif ($slaves[$i].devotion >= -20)>>
+					<<set $slaves[$i].devotion -= 10>>
+				<<elseif ($slaves[$i].trust > -20)>>
+					<<set $slaves[$i].trust -= 10>>
+				<<elseif ($slaves[$i].whoreSkill > 0)>>
+					<<set $slaves[$i].whoreSkill -= 10, _skillsLost++>>
+				<<elseif ($slaves[$i].entertainSkill > 0)>>
+					<<set $slaves[$i].entertainSkill -= 10, _skillsLost++>>
+				<<elseif ($slaves[$i].intelligence > -2)>>
+					<<set $slaves[$i].intelligence--, _stupidified++>>
+				<<elseif ($slaves[$i].fetish != "mindbroken")>>
+					<<set $slaves[$i].fetish = "mindbroken", _mindbroken++>>
 				<</if>>
 			<</if>>
 		<</if>>
-		<<if ($slaves[_i].milk > 1000) && ($slaves[_i].boobs > 12000) && ($slaves[_i].career != "a bioreactor")>>
-			<<set $slaves[_i].career = "a bioreactor", _careerForgotten++>>
+		<<if ($slaves[$i].milk > 1000) && ($slaves[$i].boobs > 12000) && ($slaves[$i].career != "a bioreactor")>>
+			<<set $slaves[$i].career = "a bioreactor", _careerForgotten++>>
 		<</if>>
 		<<if ($arcologies[0].FSBodyPuristLaw == 0) && ($healthyDrugsUpgrade == 0)>>
-			<<set $slaves[_i].chem += 5>>
+			<<set $slaves[$i].chem += 5>>
 		<<else>>
-			<<set $slaves[_i].chem += 2>>
+			<<set $slaves[$i].chem += 2>>
 		<</if>>
 	<<elseif ($dairyStimulatorsSetting + $dairyFeedersSetting + $dairyPregSetting) > 3>>
-		<<if ($slaves[_i].devotion < 75)>>
-			<<if ($slaves[_i].devotion > -75)>>
-				<<set $slaves[_i].devotion -= 5>>
-				<<if ($slaves[_i].devotion < -70)>>
+		<<if ($slaves[$i].devotion < 75)>>
+			<<if ($slaves[$i].devotion > -75)>>
+				<<set $slaves[$i].devotion -= 5>>
+				<<if ($slaves[$i].devotion < -70)>>
 					<<set _hatefilled++>>
 				<</if>>
-			<<elseif ($slaves[_i].trust > -75)>>
-				<<set $slaves[_i].trust -= 5>>
-				<<if ($slaves[_i].trust < -70)>>
+			<<elseif ($slaves[$i].trust > -75)>>
+				<<set $slaves[$i].trust -= 5>>
+				<<if ($slaves[$i].trust < -70)>>
 					<<set _horrified++>>
 				<</if>>
-			<<elseif ($slaves[_i].vaginalSkill >= 20)>>
-				<<set $slaves[_i].vaginalSkill -= 10, _skillsLost++>>
-			<<elseif ($slaves[_i].oralSkill >= 20)>>
-				<<set $slaves[_i].oralSkill -= 10, _skillsLost++>>
-			<<elseif ($slaves[_i].analSkill >= 20)>>
-				<<set $slaves[_i].analSkill -= 10, _skillsLost++>>
-			<<elseif ($slaves[_i].career != "a bioreactor")>>
-				<<set $slaves[_i].career = "a bioreactor", _careerForgotten++>>
-			<<elseif ($slaves[_i].intelligence > -1)>>
-				<<set $slaves[_i].intelligence--, _intelligenceLost++>>
-			<<elseif ($slaves[_i].devotion >= -20)>>
-				<<set $slaves[_i].devotion -= 8>>
-			<<elseif ($slaves[_i].trust > -20)>>
-				<<set $slaves[_i].trust -= 8>>
-			<<elseif ($slaves[_i].whoreSkill >= 20)>>
-				<<set $slaves[_i].whoreSkill -= 10, _skillsLost++>>
-			<<elseif ($slaves[_i].entertainSkill >= 20)>>
-				<<set $slaves[_i].entertainSkill -= 10, _skillsLost++>>
-			<<elseif ($slaves[_i].intelligence > -2)>>
-				<<set $slaves[_i].intelligence--, _stupidified++>>
-			<<elseif ($slaves[_i].fetish != "mindbroken")>>
-				<<set $slaves[_i].fetish = "mindbroken", _mindbroken++>>
+			<<elseif ($slaves[$i].vaginalSkill >= 20)>>
+				<<set $slaves[$i].vaginalSkill -= 10, _skillsLost++>>
+			<<elseif ($slaves[$i].oralSkill >= 20)>>
+				<<set $slaves[$i].oralSkill -= 10, _skillsLost++>>
+			<<elseif ($slaves[$i].analSkill >= 20)>>
+				<<set $slaves[$i].analSkill -= 10, _skillsLost++>>
+			<<elseif ($slaves[$i].career != "a bioreactor")>>
+				<<set $slaves[$i].career = "a bioreactor", _careerForgotten++>>
+			<<elseif ($slaves[$i].intelligence > -1)>>
+				<<set $slaves[$i].intelligence--, $intelligenceLost++>>
+			<<elseif ($slaves[$i].devotion >= -20)>>
+				<<set $slaves[$i].devotion -= 8>>
+			<<elseif ($slaves[$i].trust > -20)>>
+				<<set $slaves[$i].trust -= 8>>
+			<<elseif ($slaves[$i].whoreSkill >= 20)>>
+				<<set $slaves[$i].whoreSkill -= 10, _skillsLost++>>
+			<<elseif ($slaves[$i].entertainSkill >= 20)>>
+				<<set $slaves[$i].entertainSkill -= 10, _skillsLost++>>
+			<<elseif ($slaves[$i].intelligence > -2)>>
+				<<set $slaves[$i].intelligence--, _stupidified++>>
+			<<elseif ($slaves[$i].fetish != "mindbroken")>>
+				<<set $slaves[$i].fetish = "mindbroken", _mindbroken++>>
 			<</if>>
-		<<elseif ($slaves[_i].milk > 1000) && ($slaves[_i].boobs > 12000) && ($slaves[_i].career != "a bioreactor")>>
-			<<set $slaves[_i].career = "a bioreactor", _careerForgotten++>>
+		<<elseif ($slaves[$i].milk > 1000) && ($slaves[$i].boobs > 12000) && ($slaves[$i].career != "a bioreactor")>>
+			<<set $slaves[$i].career = "a bioreactor", _careerForgotten++>>
 		<</if>>
 		<<if ($arcologies[0].FSBodyPuristLaw == 0) && ($healthyDrugsUpgrade == 0)>>
-			<<set $slaves[_i].chem += 2>>
+			<<set $slaves[$i].chem += 2>>
 		<<else>>
-			<<set $slaves[_i].chem++>>
+			<<set $slaves[$i].chem++>>
 		<</if>>
 	<</if>> /* closes ($dairyStimulatorsSetting + $dairyFeedersSetting + $dairyPregSetting) > 5 */
 	<<if ($dairyPregUpgrade == 1) && ($dairyPregSetting > 0)>>
-		<<if ($slaves[_i].ovaries == 1) && ($slaves[_i].vagina > -1)>>
-			<<set _femCumWeek += Math.trunc((70-$slaves[_i].physicalAge)/(30-($slaves[_i].vaginaLube*10)))>>
-			<<if ($slaves[_i].preg == -2)>>
-				<<set $slaves[_i].preg = 0, _desterilized++>>
+		<<if ($slaves[$i].ovaries == 1) && ($slaves[$i].vagina > -1)>>
+			<<set _femCumWeek += Math.trunc((70-$slaves[$i].physicalAge)/(30-($slaves[$i].vaginaLube*10)))>>
+			<<if ($slaves[$i].preg == -2)>>
+				<<set $slaves[$i].preg = 0, _desterilized++>>
 			<</if>>
-			<<if isFertile($slaves[_i])>>
-				<<if $slaves[_i].eggType == "human">>
-					<<set $slaves[_i].preg = 1>>
+			<<if isFertile($slaves[$i])>>
+				<<if $slaves[$i].eggType == "human">>
+					<<set $slaves[$i].preg = 1>>
 					<<if ($dairyPregSetting > 2)>>
-						<<set $slaves[_i].pregType = random(10,29)>>
+						<<set $slaves[$i].pregType = random(10,29)>>
 					<<elseif ($dairyPregSetting > 1)>>
-						<<set $slaves[_i].pregType = random(3,5)>>
+						<<set $slaves[$i].pregType = random(3,5)>>
 					<<else>>
-						<<set $slaves[_i].pregType = either(1, 1, 1, 1, 2, 2, 2, 3, 3, 4)>>
+						<<set $slaves[$i].pregType = either(1, 1, 1, 1, 2, 2, 2, 3, 3, 4)>>
 					<</if>>
-					<<set $slaves[_i].pregSource = -2>>
+					<<set $slaves[$i].pregSource = -2>>
 				<</if>> /*closes eggType */
-				<<if ($slaves[_i].vagina == 0)>>
-					<<set $slaves[_i].vagina++>>
+				<<if ($slaves[$i].vagina == 0)>>
+					<<set $slaves[$i].vagina++>>
 				<</if>>
-			<<elseif ($slaves[_i].preg > 0)>>
+			<<elseif ($slaves[$i].preg > 0)>>
 				<<if ($dairyPregSetting > 2)>>
 					<<set $cash += 100>>
 				<<elseif ($dairyPregSetting > 1)>>
@@ -595,13 +591,13 @@
 				<<else>>
 					<<set $cash += 25>>
 				<</if>>
-				<<if ($dairyPregSetting > 1) && ($slaves[_i].vagina < 4)>>
-					<<set $slaves[_i].vagina++>>
-					<<if ($slaves[_i].vagina == 4)>>
+				<<if ($dairyPregSetting > 1) && ($slaves[$i].vagina < 4)>>
+					<<set $slaves[$i].vagina++>>
+					<<if ($slaves[$i].vagina == 4)>>
 						<<set _vaginasStretched++>>
 					<</if>>
-				<<elseif ($slaves[_i].vagina < 3)>>
-					<<set $slaves[_i].vagina++>>
+				<<elseif ($slaves[$i].vagina < 3)>>
+					<<set $slaves[$i].vagina++>>
 				<</if>>
 			<</if>>
 		<</if>>
@@ -652,7 +648,7 @@
 	<<set $cash -= Math.trunc(((300*($inflatedSlavesCum+8))+random(25,100)))>>
 <</if>>
 
-<<set _profits = $cash-$oldCash>>
+<<set _profits = $cash-_oldCash>>
 <br><br>&nbsp;&nbsp;&nbsp;&nbsp;
 <<if _chemSevere > 1>>
 	_chemSevere cows' productivity is being reduced by the long term effects of industrial use.
@@ -699,9 +695,9 @@
 <<elseif _anusesStretched > 0>>
 	One cow's anus was loosened by machine sodomy, and is now permanently gaped.
 <</if>>
-<<if _intelligenceLost > 1>>
-	_intelligenceLost cows suffered some loss of intelligence due to accumulated mental stress from life attached to a milking machine.
-<<elseif _intelligenceLost > 0>>
+<<if $intelligenceLost > 1>>
+	$intelligenceLost cows suffered some loss of intelligence due to accumulated mental stress from life attached to a milking machine.
+<<elseif $intelligenceLost > 0>>
 	One cow  suffered some loss of intelligence due to accumulated mental stress from life attached to a milking machine.
 <</if>>
 <<if _stupidified > 1>>
@@ -791,26 +787,26 @@ These products sell for @@.yellowgreen;¤_profits@@.
 
 <<if ($createBioreactors == 1) && ($bioreactorPerfectedID != 0)>>
 	<<for _dI = 0; _dI < _DL; _dI++>>
-		<<set _i = $DairyiIDs[_dI].Index>>
-		<<if ($slaves[_i].ID == $bioreactorPerfectedID)>>
-			<br><br>&nbsp;&nbsp;&nbsp;&nbsp;$slaves[_i].slaveName's breasts<<if $slaves[_i].balls > 0>>, balls<</if>><<if $slaves[_i].ovaries == 1>>, belly<</if>>, body, and mind have been completely adapted to synthesize useful products. She has been reclassified as part of the machine she's now permanently attached to. This combination is projected to produce approximately
-			<<if $slaves[_i].balls > 0>><<print 1000*Math.trunc((3*52*(45-$slaves[_i].physicalAge))/1000)>> liters of cum,<</if>>
-			<<if $slaves[_i].ovaries == 1>><<print 100*Math.trunc((52*(45-$slaves[_i].physicalAge))/100)>> liters of vaginal secretions, <<if $dairyPregSetting == 3>><<print 13*(45-$slaves[_i].physicalAge)>><<else>><<print 5*(45-$slaves[_i].physicalAge)>><</if>> slaves,<</if>>
-			and <<print 1000*Math.trunc((300*52*(45-$slaves[_i].physicalAge))/1000)>> liters of milk over a <<print 45-$slaves[_i].physicalAge>> year period before its biological components must be replaced.
-			<<if ($slaves[_i].ovaries == 1)>>
-				<<if ($slaves[_i].balls == 0)>>
+		<<set $i = $DairyiIDs[_dI].Index>>
+		<<if ($slaves[$i].ID == $bioreactorPerfectedID)>>
+			<br><br>&nbsp;&nbsp;&nbsp;&nbsp;$slaves[$i].slaveName's breasts<<if $slaves[$i].balls > 0>>, balls<</if>><<if $slaves[$i].ovaries == 1>>, belly<</if>>, body, and mind have been completely adapted to synthesize useful products. She has been reclassified as part of the machine she's now permanently attached to. This combination is projected to produce approximately
+			<<if $slaves[$i].balls > 0>><<print 1000*Math.trunc((3*52*(45-$slaves[$i].physicalAge))/1000)>> liters of cum,<</if>>
+			<<if $slaves[$i].ovaries == 1>><<print 100*Math.trunc((52*(45-$slaves[$i].physicalAge))/100)>> liters of vaginal secretions, <<if $dairyPregSetting == 3>><<print 13*(45-$slaves[$i].physicalAge)>><<else>><<print 5*(45-$slaves[$i].physicalAge)>><</if>> slaves,<</if>>
+			and <<print 1000*Math.trunc((300*52*(45-$slaves[$i].physicalAge))/1000)>> liters of milk over a <<print 45-$slaves[$i].physicalAge>> year period before its biological components must be replaced.
+			<<if ($slaves[$i].ovaries == 1)>>
+				<<if ($slaves[$i].balls == 0)>>
 					<<set $bioreactorsXX++>>
 				<<else>>
 					<<set $bioreactorsHerm++>>
 				<</if>>
 			<<else>>
-				<<if ($slaves[_i].balls == 0)>>
+				<<if ($slaves[$i].balls == 0)>>
 					<<set $bioreactorsBarren++>>
 				<<else>>
 					<<set $bioreactorsXY++>>
 				<</if>>
 			<</if>>
-			<<set $activeSlave = $slaves[_i]>>
+			<<set $activeSlave = $slaves[$i]>>
 			<<include "Remove activeSlave">>
 			<<break>>
 		<</if>>
@@ -820,6 +816,6 @@ These products sell for @@.yellowgreen;¤_profits@@.
 <<if $dairyDecoration != "standard">>
 	$dairyNameCaps's @@.green;$dairyDecoration style is well known.@@
 <</if>>
-<<if ($dairySlaves + _Tadd) || $Milkmaid>>
+<<if (_DL + _Tadd) > 0 || $Milkmaid != 0>>
 	<br><br>
 <</if>>
