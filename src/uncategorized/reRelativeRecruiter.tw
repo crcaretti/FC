@@ -17,86 +17,76 @@
 	<<set $newRelativeRecruitID = 1100000>>
 <</if>>
 
-
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].fuckdoll == 0>>
-	<<if $slaves[$i].canRecruit == 1>>
-	<<if ($slaves[$i].devotion > 50)>>
-	<<if canWalk($slaves[$i])>>
-	<<for $j = 0; $j < $slavesOriginal.length; $j++>>
-		<<if $slaves[$i].ID == $slavesOriginal[$j].ID>>
-			<<set $eventSlave = $slaves[$i]>>
-			<<set $activeSlave = $slavesOriginal[$j]>>
-			<<if random(1,100) > 0+(totalRelatives($slaves[$i])*20)>>
-				<<break>>
-			<</if>>
-		<</if>>
-	<</for>>
-	<</if>>
-	<</if>>
-	<</if>>
-	<</if>>
-<</for>>
-
-<<set $recruitedType = []>>
+<<set $eventSlave = $slaves.find(function(s) { return s.canRecruit == 1 && s.fuckdoll == 0 && s.devotion > 50 && canWalk(s) && (random(1,100) > (totalRelatives(s)*20)); })>>
+<<if (ndef $eventSlave)>><<goto "RIE Eligibility Check">><</if>> /* due to randomization, we might have to stop here */
+<<set $activeSlave = $slavesOriginal.find(function(o) { return o && o.ID == $eventSlave.ID; })>>
+<<if (ndef $activeSlave)>> /* slave not being in slavesOriginal array should never happen, but just in case ... */
+	@@.red;ERROR:@@  $eventSlave.slaveName ID $eventSlave.ID is not in the original slaves array: using current stats instead
+	<br>''this should never happen, so please save your game on this page and upload the save for investigation''
+	<br><br>
+	<<set $activeSlave = jQuery.extend(true, {}, $eventSlave)>> /* deep copy */
+<</if>>
+<<set _recruitedType = []>>
 <<if $eventSlave.mother == 0 && $activeSlave.actualAge < 24 && $seeDicks != 100>>
-	<<set $recruitedType.push("mother")>>
-	<<set $recruitedType.push("mother")>>
-	<<set $recruitedType.push("mother")>>
+	<<set _recruitedType.push("mother")>>
+	<<set _recruitedType.push("mother")>>
+	<<set _recruitedType.push("mother")>>
 <</if>>
 <<if $eventSlave.father == 0 && $activeSlave.actualAge < 24 && $seeDicks != 0>>
-	<<set $recruitedType.push("father")>>
+	<<set _recruitedType.push("father")>>
 <</if>>
 <<if ($eventSlave.daughters < 3) && ($activeSlave.actualAge > ($minimumSlaveAge+$fertilityAge)) && isFertile($activeSlave)>>
 	<<if $seeDicks != 100>>
-		<<set $recruitedType.push("daughter")>>
-		<<set $recruitedType.push("daughter")>>
+		<<set _recruitedType.push("daughter")>>
+		<<set _recruitedType.push("daughter")>>
 	<</if>>
 	<<if $seeDicks != 0>>
-		<<set $recruitedType.push("son")>>
+		<<set _recruitedType.push("son")>>
 	<</if>>
-	<<set $tempMF = "mother">>
+	<<set _tempMF = "mother">>
 <</if>>
 <<if ($eventSlave.daughters < 3) && $activeSlave.actualAge > ($minimumSlaveAge+$potencyAge) && $activeSlave.balls > 0>>
 	<<if $seeDicks != 100>>
-		<<set $recruitedType.push("daughter")>>
-		<<set $recruitedType.push("daughter")>>
+		<<set _recruitedType.push("daughter")>>
+		<<set _recruitedType.push("daughter")>>
 	<</if>>
 	<<if $seeDicks != 0>>
-		<<set $recruitedType.push("son")>>
+		<<set _recruitedType.push("son")>>
 	<</if>>
-	<<set $tempMF = "father">>
+	<<set _tempMF = "father">>
 <</if>>
 <<if ($eventSlave.sisters < 3)>>
 	<<if $activeSlave.actualAge <= ($retirementAge-5)>>
 		<<if $seeDicks != 100>>
-			<<set $recruitedType.push("older sister")>>
-			<<set $recruitedType.push("older sister")>>
+			<<set _recruitedType.push("older sister")>>
+			<<set _recruitedType.push("older sister")>>
 		<</if>>
 		<<if $seeDicks != 0>>
-			<<set $recruitedType.push("older brother")>>
-			<<set $recruitedType.push("older brother")>>
+			<<set _recruitedType.push("older brother")>>
+			<<set _recruitedType.push("older brother")>>
 		<</if>>
 	<</if>>
 	<<if $activeSlave.actualAge >= ($minimumSlaveAge+5)>>
 		<<if $seeDicks != 100>>
-			<<set $recruitedType.push("younger sister")>>
-			<<set $recruitedType.push("younger sister")>>
+			<<set _recruitedType.push("younger sister")>>
+			<<set _recruitedType.push("younger sister")>>
 		<</if>>
 		<<if $seeDicks != 0>>
-			<<set $recruitedType.push("younger brother")>>
-			<<set $recruitedType.push("younger brother")>>
+			<<set _recruitedType.push("younger brother")>>
+			<<set _recruitedType.push("younger brother")>>
 		<</if>>
 	<</if>>
-	<<set $recruitedType.push("twin")>>
+	<<set _recruitedType.push("twin")>>
 <</if>>
-<<if $recruitedType.length == 0>>
+<<if _recruitedType.length == 0>>
 	<<set $eventSlave.canRecruit = 0>>
-	$eventSlave.slaveName requests an interview with you. However, she ends up withdrawing her request. It would seem whatever she wanted to tell you is no longer relavant.
-<<else>>
-	<<set $relationType = $recruitedType.random()>>
-	
-	<<if $relationType != "twin">>
+	$eventSlave.slaveName requests an interview with you. However, she ends up withdrawing her request. It would seem whatever she wanted to tell you is no longer relevant.
+
+<<else>> /* this else covers the remainder of the extended family mode variant (search for vanilla to find closing tag) */
+
+	<<set _relationType = _recruitedType.random()>>
+
+	<<if _relationType != "twin">>
 		<<set $activeSlave.weight = 0>>
 		<<set $activeSlave.muscles = 0>>
 		<<set $activeSlave.corsetPiercing = 0>>
@@ -137,9 +127,9 @@
 		<<RandomizeAttraction>>
 		<<ResyncHeight>>
 	<</if>>
-	
+
 	$eventSlave.slaveName requests an interview with you. She's a devoted slave, and you grant it, and are happy you did when you see the troubled expression on her face. She explains<<if !canTalk($eventSlave)>> with desperate gestures<</if>> that
-	<<switch $relationType>>
+	<<switch _relationType>>
 	<<case "daughter">>
 		she had a daughter, who was sent to the slave orphanages, but now she's heard a rumor through other slaves that her daughter will go up for sale soon.
 	<<case "son">>
@@ -159,8 +149,8 @@
 	<<default>>
 		she has a twin sister, who was still free the last $eventSlave.slaveName knew of her. She's heard a rumor through other slaves that her twin has finally been enslaved, and will soon go up for sale.
 	<</switch>>
-<<if canTalk($eventSlave) == false>>She urgently gestures for permission to write. It's unusual, but she seems quite serious, so you grant it. She writes,
-<</if>>"You've been so good to me, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>. I'm sure she looks like I did when you bought me. Please, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>, will you buy her like you bought me? I'm afraid she'll go to a cruel <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>." She bites her lip. "And, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>, I'm sure she'd learn to love
+
+<<if canTalk($eventSlave) == false>>She urgently gestures for permission to write. It's unusual, but she seems quite serious, so you grant it. She writes,<</if>>"You've been so good to me, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>. I'm sure she looks like I did when you bought me. Please, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>, will you buy her like you bought me? I'm afraid she'll go to a cruel <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>." She bites her lip. "And, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>, I'm sure she'd learn to love
 <<if $eventSlave.fetish == "cumslut">>
 	the taste of your cum
 <<elseif $eventSlave.fetish == "submissive">>
@@ -171,7 +161,7 @@
 	the feeling of your cock in her butt
 <<elseif $eventSlave.fetish == "sadist">>
 	hurting your other slaves
-<<elseif $eventSlave.fetish == "pregnancy" && $relationType != "father" && $relationType != "son" && $relationType != "older brother" && $relationType != "younger brother">>
+<<elseif $eventSlave.fetish == "pregnancy" && _relationType != "father" && _relationType != "son" && _relationType != "older brother" && _relationType != "younger brother">>
 	being pregnant
 <<elseif $eventSlave.fetish == "masochist">>
 	being beaten
@@ -181,9 +171,9 @@
 	being a good nympho slut
 <<elseif $eventSlave.addict > 2>>
 	being a druggie whore
-<<elseif $eventSlave.births > 3 && $relationType != "father" && $relationType != "son" && $relationType != "older brother" && $relationType != "younger brother">>
+<<elseif $eventSlave.births > 3 && _relationType != "father" && _relationType != "son" && _relationType != "older brother" && _relationType != "younger brother">>
 	bearing children
-<<elseif $eventSlave.preg > 10 && $relationType != "father" && $relationType != "son" && $relationType != "older brother" && $relationType != "younger brother">>
+<<elseif $eventSlave.preg > 10 && _relationType != "father" && _relationType != "son" && _relationType != "older brother" && _relationType != "younger brother">>
 	swelling with life
 <<elseif $eventSlave.anus > 2>>
 	getting her butt stretched out
@@ -201,7 +191,7 @@ as much as I do.
 	You could make us fuck each other in public, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>!"
 <<elseif $eventSlave.fetish == "buttslut">>
 	You could fuck our butts right next to each other, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>!"
-<<elseif $eventSlave.fetish == "pregnancy" && $relationType != "father" && $relationType != "son" && $relationType != "older brother" && $relationType != "younger brother">>
+<<elseif $eventSlave.fetish == "pregnancy" && _relationType != "father" && _relationType != "son" && _relationType != "older brother" && _relationType != "younger brother">>
 	You could knock us up next to each other, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>!"
 <<elseif $eventSlave.fetish == "sadist">>
 	I'm sure she'd love to help me, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>!"
@@ -211,17 +201,16 @@ as much as I do.
 	I'm sure she'd love to help me use other slaves, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>!"
 <<elseif $eventSlave.energy > 95>>
 	I'm sure she'd love to have threesomes, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>!"
-<<elseif $eventSlave.births > 3 && $relationType != "father" && $relationType != "son" && $relationType != "older brother" && $relationType != "younger brother">>
+<<elseif $eventSlave.births > 3 && _relationType != "father" && _relationType != "son" && _relationType != "older brother" && _relationType != "younger brother">>
 	We could compete over who carried more of your children, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>!
-<<elseif $eventSlave.preg > 10 && $relationType != "father" && $relationType != "son" && $relationType != "older brother" && $relationType != "younger brother">>
+<<elseif $eventSlave.preg > 10 && _relationType != "father" && _relationType != "son" && _relationType != "older brother" && _relationType != "younger brother">>
 	You could compare how big our bellies are next to each other, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>!
 <<else>>
 	You could fuck us together, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>!"
 <</if>>
 She waits anxiously for your decision.
-<</if>>
 
-<<switch $relationType>>
+<<switch _relationType>>
 
 <<case "mother">>
 	<<set $activeSlave.origin = "She was recruited into your service by her daughter.">>
@@ -248,7 +237,7 @@ She waits anxiously for your decision.
 	<<set $activeSlave.voice = 2>>
 	<<set $activeSlave.birthsTotal = 5>>
 	<<for $j = 0; $j < $slaves.length; $j++>>
-		<<if $slaves[$j].mother is $activeSlave.ID || $slaves[$j].father is $activeSlave.ID>>
+		<<if $slaves[$j].mother == $activeSlave.ID || $slaves[$j].father == $activeSlave.ID>>
 			<<set $activeSlave.birthsTotal += 1>>
 		<</if>>
 	<</for>>
@@ -528,12 +517,11 @@ She waits anxiously for your decision.
 	<<set $activeSlave.slaveName = $activeSlave.birthName>>
 <</if>>
 
-<<set $activeSlave.ID = $newRelativeRecruitID>>
-<<set $newRelativeRecruitID++>>
+<<set $activeSlave.ID = $newRelativeRecruitID++>>
 
 <br><br>
-You look up the $relationType. She costs ¤$slaveCost, a bargain, but you won't be able to inspect her beyond her likely resemblance to her
-<<switch $relationType>>
+You look up the _relationType. She costs ¤$slaveCost, a bargain, but you won't be able to inspect her beyond her likely resemblance to her
+<<switch _relationType>>
 <<case "daughter">>
 	mother. Her listing states that she was used as a prostitute by her previous owner.
 <<case "son">>
@@ -558,15 +546,15 @@ You look up the $relationType. She costs ¤$slaveCost, a bargain, but you won't 
 <span id="result">
 <<link "Buy her">>
 	<<set $cash -= $slaveCost>>
-	<<switch $relationType>>
+	<<switch _relationType>>
 	<<case "daughter">>
-		<<if $tempMF == "father">>
+		<<if _tempMF == "father">>
 			<<set $activeSlave.father = $eventSlave.ID>>
 		<<else>>
 			<<set $activeSlave.mother = $eventSlave.ID>>
 		<</if>>
 	<<case "son">>
-		<<if $tempMF == "father">>
+		<<if _tempMF == "father">>
 			<<set $activeSlave.father = $eventSlave.ID>>
 		<<else>>
 			<<set $activeSlave.mother = $eventSlave.ID>>
@@ -739,37 +727,22 @@ You look up the $relationType. She costs ¤$slaveCost, a bargain, but you won't 
 	<<AddSlave $activeSlave>>
 	<<SlaveTitle $eventSlave>>
 	<<replace "#result">>
-	You complete the legalities and biometric scanning quickly and without fuss. $activeSlave.slaveName arrives shortly. The two slaves remember each other only dimly - they parted a long time ago - but they embrace. The devoted $desc explains the situation and encourages her $relationType to be a good slave to you. $activeSlave.slaveName looks a little fearful but clearly realizes that she's lucky to be here.
+	You complete the legalities and biometric scanning quickly and without fuss. $activeSlave.slaveName arrives shortly. The two slaves remember each other only dimly - they parted a long time ago - but they embrace. The devoted $desc explains the situation and encourages her _relationType to be a good slave to you. $activeSlave.slaveName looks a little fearful but clearly realizes that she's lucky to be here.
 	<<set $nextLink = "AS Dump">>
-	<<set $recruitedType = 0>>
-	<<set $relationType = 0>>
-	<<set $tempMF = 0>>
 	<<include "New Slave Intro">>
 	<</replace>>
 <</link>>
 </span>
 
+<</if>> /* _recruitedType.length */
+
 <<else>> /* vanilla */
 
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].fuckdoll == 0>>
-	<<if $slaves[$i].recruiter != 0>>
-	<<if ($slaves[$i].devotion > 50)>>
-	<<if ($slaves[$i].relation == 0)>>
-	<<if canWalk($slaves[$i])>>
-		<<for $j = 0; $j < $slavesOriginal.length; $j++>>
-			<<if $slaves[$i].ID == $slavesOriginal[$j].ID>>
-				<<set $eventSlave = $slaves[$i]>>
-				<<set $activeSlave = $slavesOriginal[$j]>>
-				<<break>>
-			<</if>>
-		<</for>>
-	<</if>>
-	<</if>>
-	<</if>>
-	<</if>>
-	<</if>>
-<</for>>
+<<set $i = $slaves.findIndex(function(s) { return s.recruiter != 0 && s.fuckdoll == 0 && s.devotion > 50 && s.relation == 0 && canWalk(s); })>>
+<<set $j = $slavesOriginal.findIndex(function(o) { return o.ID == $slaves[$i].ID; })>>
+
+<<set $eventSlave = $slaves[$i]>>
+<<set $activeSlave = $slavesOriginal[$j]>>
 
 /* 000-250-006 */
 /* <<if $seeImages == 1>><<SlaveArt $eventSlave 2 0>><</if>> */
@@ -904,11 +877,11 @@ She waits anxiously for your decision.
 	<<set $activeSlave.entertainSkill = 0>>
 	<<set $activeSlave.whoreSkill = 0>>
 	<<set $activeSlave.lactation = 0>>
-<<set $activeSlaveOneTimeMaxAge = Math.max($minimumSlaveAge, Math.min(18, ($activeSlave.actualAge - Math.min(11, $fertilityAge))))>>
-<<set $activeSlaveOneTimeMinAge = Math.max($minimumSlaveAge, Math.min(14, $activeSlaveOneTimeMaxAge))>>
-<<if $pedo_mode == 1>><<set $activeSlaveOneTimeMinAge = $minimumSlaveAge>><</if>>
-<<set $activeSlave.actualAge = random($activeSlaveOneTimeMinAge, $activeSlaveOneTimeMaxAge)>>
-<<set $activeSlave.birthWeek = 0>>
+	<<set $activeSlaveOneTimeMaxAge = Math.max($minimumSlaveAge, Math.min(18, ($activeSlave.actualAge - Math.min(11, $fertilityAge))))>>
+	<<set $activeSlaveOneTimeMinAge = Math.max($minimumSlaveAge, Math.min(14, $activeSlaveOneTimeMaxAge))>>
+	<<if $pedo_mode == 1>><<set $activeSlaveOneTimeMinAge = $minimumSlaveAge>><</if>>
+	<<set $activeSlave.actualAge = random($activeSlaveOneTimeMinAge, $activeSlaveOneTimeMaxAge)>>
+	<<set $activeSlave.birthWeek = 0>>
 <<case "daughter">>
 	<<set $activeSlave.origin = "She was recruited into your service by her daughter.">>
 	<<if $activeSlave.vagina == 0>>
@@ -1052,3 +1025,4 @@ You look up the $activeSlave.relation. She costs ¤$slaveCost, a bargain, but yo
 </span>
 
 <</if>> /* close extended family mode */
+
