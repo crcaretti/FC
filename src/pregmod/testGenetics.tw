@@ -4,32 +4,53 @@
 <<set _seed = 0>>
 
 All slave array slaves MUST be present in genePool or else there is a malfunction.
-<br>Name ID Origin
-<br><br>
-
-genePool:
+<table><caption style="background-color: rgba(127, 127, 127, 0.2)">genePool</caption>
+<tr><th>index</th><th>name</th><th>ID</th><th>origin</th></tr>
 <<for _i = 0; _i < $genePool.length; _i++>>
-	<br>
-	_i $genePool[_i].slaveName $genePool[_i].ID $genePool[_i].origin
+	<tr>
+		<td>_i</td>
+		<td>$genePool[_i].slaveName</td>
+		<td>$genePool[_i].ID</td>
+		<td>$genePool[_i].origin</td>
+	</tr>
 <</for>>
+</table>
 
-<br><br>
-<br>Name ID Origin Assignment
-<br><br>
-
-slaves:
+<<set _neededProperties =
+	['genes', 'vagina', 'ovaries', 'dick', 'balls', 'prostate',
+		'pubertyXX', 'pubertyAgeXX', 'pubertyXY', 'pubertyAgeXY',
+		'skin', 'eyeColor', 'hColor', 'nationality', 'race',
+		'face', 'intelligence']>>
+<table><caption style="background-color: rgba(127, 127, 127, 0.2)">slaves</caption>
+<tr><th>index</th><th>name</th><th>ID</th><th>origin</th><th>assignment</th></tr>
 <<for _i = 0; _i < $slaves.length; _i++>>
-	<br>
-	<<for _k = 0; _k < $genePool.length; _k++>>
-		<<if $slaves[_i].ID == $genePool[_k].ID>>
-			<<set _seed = 1>>
-			<<break>>
+	<<set _s = $slaves[_i]>>
+	<<set _error = $genePool.every(function(g) { return $slaves[_i].ID !== g.ID; })>>
+	<<if _error>><<set _errorCause = "Doesn't exist in the gene pool">><</if>>
+	<<if !_error>>
+		<<set _missingProperties = _neededProperties.filter(function(p) { return !(p in _s);})>>
+		<<if _missingProperties.length > 0>>
+			<<set _error = true, _errorCause = "Missing properties: " + _missingProperties.join(", ")>>
 		<</if>>
-	<</for>>
-	<<if _seed == 1>>
-		@@.green;_i $slaves[_i].slaveName $slaves[_i].ID $slaves[_i].origin $slaves[_i].assignment @@
-	<<else>>
-		@@.red;_i $slaves[_i].slaveName $slaves[_i].ID $slaves[_i].origin $slaves[_i].assignment @@
 	<</if>>
-	<<set _seed = 0>>
+	<<if _error>>
+		<tr class="red">
+			<td>_i</td>
+			<td>_s.slaveName</td>
+			<td>_s.ID</td>
+			<td>_s.origin</td>
+			<td>_s.assignment</td>
+			<td>_errorCause</td>
+		</tr>
+	<<else>>
+		<tr class="green">
+			<td>_i</td>
+			<td>_s.slaveName</td>
+			<td>_s.ID</td>
+			<td>_s.origin</td>
+			<td>_s.assignment</td>
+			<td></td>
+		</tr>
+	<</if>>
 <</for>>
+</table>
