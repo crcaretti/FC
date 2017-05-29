@@ -30,28 +30,6 @@
 <<if $slaves.includes(null)>>
 	<br><br>@@.red;ERROR: Main slaves array contains a null entry! Please report this.@@ <<link "Repair">><<set $slaves.delete(null)>><</link>><<goto "Main">><br><br>
 <</if>>
-<<if $slavesOriginal.includes(null)>>
-	<br><br>@@.red;ERROR: slavesOriginal array contains a null entry! Please report this.@@ <<link "Repair">><<set $slavesOriginal.delete(null)>><<goto "Main">><</link>><br><br>
-<<else>>
-	<<if $slavesOriginal.length != $slaves.length>><br><br>@@.red;slavesOriginal array length $slavesOriginal.length differs from slaves array length $slaves.length<</if>>
-	<<for _i = 0; _i < $slavesOriginal.length; _i++>>
-		<<if $slaves.findIndex(function(s) { return s.ID == $slavesOriginal[_i].ID; }) == -1>>
-			<<capture _i>>
-				<br>@@.red;slavesOriginal[_i] $slavesOriginal[_i].slaveName (birthName $slavesOriginal[_i].birthName) is not in the current slaves array@@ <<link "Remove from slavesOriginal array">><<set $slavesOriginal.deleteAt(_i)>><<goto "Main">><</link>> | <<link "Re-acquire this slave (as she was when you first acquired her)">><<AddSlave $slavesOriginal[_i]>><<set $genePool.deleteAt($genePool.length-1), $slavesOriginal.deleteAt($slavesOriginal.length-1)>><<goto "Main">><</link>>
-			<</capture>>
-		<<else>> /* check for duplicates */
-			<<for _j = _i + 1; _j < $slavesOriginal.length; _j++>>
-				<<if $slavesOriginal[_j].ID == $slavesOriginal[_i].ID>>
-					<<capture _i, _j>>
-						<br>@@.red;slavesOriginal[_i] $slavesOriginal[_i].slaveName (birthName $slavesOriginal[_i].birthName) has the same ID $slavesOriginal[_i].ID as slavesOriginal[_j] $slavesOriginal[_j].slaveName (birthName $slavesOriginal[_j].birthName)@@
-						&nbsp;&nbsp;&nbsp;&nbsp;The duplicate entries are <<if _.isEqual($slavesOriginal[_i], $slavesOriginal[_j])>>identical. <<link "Remove newer (higher-index) duplicate entry from slavesOriginal array">><<set $slavesOriginal.deleteAt(_j)>><<goto "Main">><</link>><<else>>different.<</if>>
-					<</capture>>
-				<</if>>
-			<</for>>
-		<</if>>
-	<</for>>
-	<br><br>
-<</if>>
 /* end extra sanity checks and repair */
 
 <<for $i = 0; $i < _SL; $i++>>
@@ -60,11 +38,6 @@
 			<br><br>@@.red;Duplicate slave ID $slaves[$i].ID at index $i - $slaves[$i].slaveName ($slaves[$i].assignment) and index _i - $slaves[_i].slaveName ($slaves[_i].assignment)@@<br><br>
 		<</if>>
 	<</for>>
-	<<if $slavesOriginal.findIndex(function(s) { return s && s.ID == $slaves[$i].ID; }) == -1>>
-		<<capture $i>>
-			<br><br>@@.red;Slave $slaves[$i].slaveName (birthname $slaves[$i].birthName) ID $slaves[$i].ID is missing from slavesOriginal array@@ <<link "Add using current stats">><<set $slavesOriginal.push($slaves[$i])>><<goto "Main">><</link>><br><br>
-		<</capture>>
-	<</if>>
 	<<if $slaves[$i].assignmentVisible == 1>>
 		<<set $slavesVisible++>>
 		<<if $slaves[$i].livingRules == "luxurious">>
