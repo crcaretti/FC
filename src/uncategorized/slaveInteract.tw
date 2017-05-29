@@ -1039,20 +1039,33 @@ __Contraception__: <span id="fertility"><strong><<if $activeSlave.preg == -1>><<
 <<if $activeSlave.assignment == "work in the dairy" && $dairyPregSetting > 0>>
 <<else>>
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;
+	<<set $freeTanks = ($incubator-$tanks.length)>>
 	<<if $activeSlave.reservedChildren > 0>>
 		$activeSlave.reservedChildren of her children will be placed in $incubatorName.
-		<<if ($activeSlave.reservedChildren < $activeSlave.pregType) && ($reservedChildren < ($incubator-$incubatorSlaves))>>
-			<<print "[[Keep another child|Slave Interact][$activeSlave.reservedChildren += 1, $reservedChildren += 1]]">>
+		<<if ($activeSlave.reservedChildren < $activeSlave.pregType) && ($reservedChildren < $freeTanks)>>
+			[[Keep another child|Slave Interact][$activeSlave.reservedChildren += 1, $reservedChildren += 1]]
 			<<if $activeSlave.reservedChildren > 0>>
 				| [[Keep one less child|Slave Interact][$activeSlave.reservedChildren -= 1, $reservedChildren -= 1]]
 			<</if>>
-		<<elseif ($activeSlave.reservedChildren == $activeSlave.pregType) || ($reservedChildren == ($incubator-$tanks.length))>>
-			[[Keep one less child|Slave Interact][$activeSlave.reservedChildren -= 1, $reservedChildren--]]
+			<<if $activeSlave.reservedChildren > 1>>
+				| [[Keep none of her children|Slave Interact][$reservedChildren -= $activeSlave.reservedChildren, $activeSlave.reservedChildren = 0]]
+			<</if>>
+			<<if ($reservedChildren + $activeSlave.pregType - $activeSlave.reservedChildren) <= $freeTanks>>
+				| [[Keep the rest of her children|Slave Interact][$reservedChildren += ($activeSlave.pregType - $activeSlave.reservedChildren), $activeSlave.reservedChildren += ($activeSlave.pregType - $activeSlave.reservedChildren)]]
+			<</if>>
+	<<elseif ($activeSlave.reservedChildren == $activeSlave.pregType) || ($reservedChildren == $freeTanks)>>
+			[[Keep one less child|Slave Interact][$activeSlave.reservedChildren -= 1, $reservedChildren -= 1]]
+			<<if $activeSlave.reservedChildren > 1>>
+				| [[Keep none of her children|Slave Interact][$reservedChildren -= $activeSlave.reservedChildren, $activeSlave.reservedChildren = 0]]
+			<</if>>
 		<</if>>
-	<<elseif $reservedChildren < ($incubator-$incubatorSlaves)>>
-		She is pregnant and you have an available aging tank.
-		[[Keep a child|Slave Interact][$activeSlave.reservedChildren += 1, $reservedChildren += 1]]
-	<<elseif $reservedChildren == ($incubator-$incubatorSlaves)>>
+	<<elseif $reservedChildren < $freeTanks>>
+		She is pregnant and you have <<if $freeTanks == 1>>an<</if>> @@.lime;available aging tank<<if $freeTanks > 1>>s<</if>>.@@
+		<<print "[[Keep "+ (($activeSlave.pregType > 1) ? "a" : "the") +" child|Slave Interact][$activeSlave.reservedChildren += 1, $reservedChildren += 1]]">>
+		<<if ($activeSlave.pregType > 1) && ($reservedChildren + $activeSlave.pregType) <= $freeTanks>>
+			| [[Keep all of her children|Slave Interact][$reservedChildren += $activeSlave.pregType, $activeSlave.reservedChildren += $activeSlave.pregType]]
+		<</if>>
+	<<elseif $reservedChildren == $freeTanks>>
 		You have no available tanks for her children.
 	<</if>>
 <</if>>

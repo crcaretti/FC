@@ -30,13 +30,13 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 [[Add another incubation tank|Incubator][$cash -= Math.trunc(60000*$upgradeMultiplierArcology), $incubator += 1]] //Costs ¤<<print Math.trunc(60000*$upgradeMultiplierArcology)>> and will increase upkeep costs//
 
 <br><br>
-Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $incubator tanks, <<print $freeTanks>> <<if $freeTanks == 1>>is<<else>>are<</if>> available. Of those, $reservedChildren <<if $reservedChildren == 1>>tank is<<else>>tanks are<</if>> reserved.
+Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $incubator tanks, <<print $freeTanks>> <<if $freeTanks == 1>>is<<else>>are<</if>> unoccupied. Of those, $reservedChildren <<if $reservedChildren == 1>>tank is<<else>>tanks are<</if>> reserved.
 <<for _u = 0; _u < _SL; _u++>>
 	<<if $slaves[_u].pregType < 50 && $slaves[_u].preg > 3 && $slaves[_u].eggType == "human">>
 	<<if $slaves[_u].assignment == "work in the dairy" && $dairyPregSetting > 0>>
 	<<else>>
 		<br><<print "[[$slaves[" + _u + "].slaveName|Long Slave Description][$activeSlave = $slaves[" + _u + "], $nextLink = passage()]]">> is $slaves[_u].preg weeks pregnant with
-		<<if $slaves[_u].pregSource == 0 || $slaves[_u].preg <= 5>>someone's<<if $slaves[_u].preg <= 5>>, though it is too early to tell who's,<</if>>
+		<<if $slaves[_u].pregSource == 0 || $slaves[_u].preg <= 5>>someone's<<if $slaves[_u].preg <= 5>>, though it is too early to tell whose,<</if>>
 		<<elseif $slaves[_u].pregSource == -1>>your
 		<<elseif $slaves[_u].pregSource == -2>>a citizen's
 		<<else>>
@@ -56,14 +56,26 @@ Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $
 				<<if $slaves[_u].reservedChildren > 0>>
 					| <<print "[[Keep one less child|Incubator][$slaves[" + _u + "].reservedChildren -= 1, $reservedChildren -= 1]]">>
 				<</if>>
-			<<elseif ($slaves[_u].reservedChildren == $slaves[_u].pregType) || ($reservedChildren == ($incubator-$tanks.length))>>
+				<<if $slaves[_u].reservedChildren > 1>>
+					| <<print "[[Keep none of her children|Incubator][$reservedChildren -= $slaves[" + _u + "].reservedChildren, $slaves[" + _u + "].reservedChildren = 0]]">>
+				<</if>>
+				<<if ($reservedChildren + $slaves[_u].pregType - $slaves[_u].reservedChildren) <= $freeTanks>>
+					| <<print "[[Keep the rest of her children|Incubator][$reservedChildren += ($slaves[" + _u + "].pregType - $slaves[" + _u + "].reservedChildren), $slaves[" + _u + "].reservedChildren += ($slaves[" + _u + "].pregType - $slaves[" + _u + "].reservedChildren)]]">>
+				<</if>>
+			<<elseif ($slaves[_u].reservedChildren == $slaves[_u].pregType) || ($reservedChildren == $freeTanks)>>
 				<br>&nbsp;&nbsp;&nbsp;&nbsp;
 				<<print "[[Keep one less child|Incubator][$slaves[" + _u + "].reservedChildren -= 1, $reservedChildren -= 1]]">>
+				<<if $slaves[_u].reservedChildren > 1>>
+					| <<print "[[Keep none of her children|Incubator][$reservedChildren -= $slaves[" + _u + "].reservedChildren, $slaves[" + _u + "].reservedChildren = 0]]">>
+				<</if>>
 			<</if>>
 		<<elseif $reservedChildren < $freeTanks>>
-			You have an @@.lime;available aging tank.@@
+			You have <<if $freeTanks == 1>>an<</if>> @@.lime;available aging tank<<if $freeTanks > 1>>s<</if>>.@@
 			<br>&nbsp;&nbsp;&nbsp;&nbsp;
-			<<print "[[Keep a child|Incubator][$slaves[" + _u + "].reservedChildren += 1, $reservedChildren += 1]]">>
+			<<print "[[Keep "+ (($slaves[_u].pregType > 1) ? "a" : "the") +" child|Incubator][$slaves[" + _u + "].reservedChildren += 1, $reservedChildren += 1]]">>
+			<<if ($slaves[_u].pregType > 1) && ($reservedChildren + $slaves[_u].pregType - $slaves[_u].reservedChildren) <= $freeTanks>>
+				| <<print "[[Keep all of her children|Incubator][$reservedChildren += $slaves["+ _u + "].pregType, $slaves[" + _u + "].reservedChildren += $slaves["+ _u +"].pregType]]">>
+			<</if>>
 		<<elseif $reservedChildren == $freeTanks>>
 			<br>&nbsp;&nbsp;&nbsp;&nbsp;
 			You have @@.red;no room for her offspring.@@
