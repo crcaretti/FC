@@ -2,8 +2,7 @@
  
 <<set $nextButton = "Continue", $nextLink = "Scheduled Event">>
 
-<<set _gaveBirth = 0>>
-<<set _PCDegree = 0>>
+<<set _gaveBirth = 0, _PCDegree = 0>>
 
 /*
 PC.pregSource documentation
@@ -13,6 +12,7 @@ PC.pregSource documentation
 -3 - former master
 -4 - male arc owner
 -5 - citizen
+-6 - Player - self-impreg
 */
 
 
@@ -22,9 +22,7 @@ PC.pregSource documentation
 	<<set $badBirth = 10>>
 <</if>>
 
-<<set $PC.preg = 0>>
-<<set $PC.labor = 0>>
-<<set $PC.births += 1>>
+<<set $PC.preg = 0, $PC.labor = 0, $PC.births += 1>>
 <<if $PC.pregSource == 0>>
 	<<set $PC.birthOther += 1>>
 <<elseif $PC.pregSource == -1>>
@@ -37,6 +35,8 @@ PC.pregSource documentation
 	<<set $PC.birthArcOwner += 1>>
 <<elseif $PC.pregSource == -5>>
 	<<set $PC.birthCitizen += 1>>
+<<elseif $PC.pregSource == -6>>
+	<<set $PC.birthSelf += 1>>
 <<else>>
 	<<set $PC.birthDegenerate += 1>>
 <</if>>
@@ -98,11 +98,11 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 	<</if>>
 <<else>>
 	<<if $Nurse != 0>>
-		Under $Nurse.slaveName's guidance, childbirth is a breeze for you.<<if $Concubine != 0>> Or it would have been, had $Concubine.slaveName not driven you to an intense orgasm right as your child entered the world.<</if>> $Nurse.slaveName cuts the cord, swaddles your child, and hands you @@.lime;your new baby <<if $babyGender == 1>>girl<<else>>boy<</if>>.@@
+		Under $Nurse.slaveName's guidance, childbirth is a breeze for you.<<if $Concubine != 0>> Or it would have been, had $Concubine.slaveName not driven you to an intense orgasm right as your child entered the world.<<if $PC.balls > 1>> An orgasm that resulted in $Concubine.slaveName, $Nurse.slaveName, and your newborn getting sprayed with cum.<</if>><</if>> $Nurse.slaveName cuts the cord, swaddles your child, and hands you @@.lime;your new baby <<if $babyGender == 1>>girl<<else>>boy<</if>>.@@
 	<<elseif $Bodyguard != 0>>
-		With $Bodyguard.slaveName watching over you, you feel safe enough to let your guard down and focus on giving birth. Once you are relaxed, you feel your child begin to inch down your birth canal. Before long you've completed the job without any trouble.<<if $Concubine != 0>> Or it would have, had $Concubine.slaveName not driven you to an intense orgasm right as your child entered the world.<</if>> $Bodyguard.slaveName cuts the cord with her blade, and hands you @@.lime;your new baby <<if $babyGender == 1>>girl<<else>>boy<</if>>.@@
+		With $Bodyguard.slaveName watching over you, you feel safe enough to let your guard down and focus on giving birth. Once you are relaxed, you feel your child begin to inch down your birth canal. Before long you've completed the job without any trouble.<<if $Concubine != 0>> Or it would have, had $Concubine.slaveName not driven you to an intense orgasm right as your child entered the world.<<if $PC.balls > 1>> An orgasm that resulted in $Concubine.slaveName, $Bodyguard.slaveName, and your newborn getting sprayed with cum.<</if>><</if>> $Bodyguard.slaveName cuts the cord with her blade, and hands you @@.lime;your new baby <<if $babyGender == 1>>girl<<else>>boy<</if>>.@@
 	<<elseif $HeadGirl != 0>>
-		With $HeadGirl.slaveName waiting with everything you need, childbirth goes by without a hitch.<<if $Concubine != 0>> Or it would have, had $Concubine.slaveName not driven you to an intense orgasm right as your child entered the world.<</if>> $HeadGirl.slaveName cuts the cord, swaddles your child, and hands you @@.lime;your new baby <<if $babyGender == 1>>girl<<else>>boy<</if>>.@@
+		With $HeadGirl.slaveName waiting with everything you need, childbirth goes by without a hitch.<<if $Concubine != 0>> Or it would have, had $Concubine.slaveName not driven you to an intense orgasm right as your child entered the world.<<if $PC.balls > 1>> An orgasm that resulted in $Concubine.slaveName, $HeadGirl.slaveName, and your newborn getting sprayed with cum.<</if>><</if>> $HeadGirl.slaveName cuts the cord, swaddles your child, and hands you @@.lime;your new baby <<if $babyGender == 1>>girl<<else>>boy<</if>>.@@
 	<<elseif $Concubine != 0>>
 		 $Concubine.slaveName alternates between calming your nerves and driving your to orgasm. It works fairly well, as your child rapidly enters the world alongside a particularly powerful climax. You reach down and draw @@.lime;your new baby <<if $babyGender == 1>>girl<<else>>boy<</if>>@@ into your arms, while $Concubine.slaveName shifts to eagerly "clean" your crotch with her tongue.
 	<<else>>
@@ -128,7 +128,9 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 <</if>>
 
 Your little <<if $babyGender == 1>>girl<<else>>boy<</if>>
-<<if _PCDegree == 4>>
+<<if $PC.pregSource == -6>>
+	looks exactly like you, in fact, the resemblance seems uncanny. Since she has the exact same genetics as you, she'll likely look almost identical to you when she's your age.
+<<elseif _PCDegree == 4>>
 	looks just like you; she will likely grow up to closely resemble yourself.
 <<elseif $activeSlave.eyeColor == $PC.eyeColor>>
 	has your lovely $PC.eyeColor eyes.
@@ -144,24 +146,23 @@ Your little <<if $babyGender == 1>>girl<<else>>boy<</if>>
 <</if>>
 
 <<if $PC.pregSource > 0>>
-	<<for $i = 0; $i < $slaves.length; $i++>>
-		<<if $slaves[$i].ID == $PC.pregSource>>
-			Rumors spread that your child was fathered by a slave, @@.red;harming your lasting reputation.@@
-			<<set $PC.degeneracy += 20>>
-			<<if $arcologies[0].FSSupremacist != "unset">>
-				<<if $activeSlave.race != $arcologies[0].FSSupremacistRace>>
-					Furthermore, word is that your child was not $arcologies[0].FSSupremacistRace, @@.red;hurting your lasting reputation.@@
-					<<set $PC.degeneracy += 10>>
-				<</if>>
-			<</if>>
-			<<if $arcologies[0].FSSubjugationist != "unset">>
-				<<if $activeSlave.race == $arcologies[0].FSSubjugationistRace>>
-					In addition, there is a nasty rumor that you gave birth to a $arcologies[0].FSSubjugationistRace child, @@.red;devastating your lasting reputation.@@
-					<<set $PC.degeneracy += 50>>
-				<</if>>
+	<<set _pb = $slaves.findIndex(function(s) { return s.ID == $PC.pregSource; })>>
+	<<if _pb != -1>>
+		Rumors spread that your child was fathered by a slave, @@.red;harming your lasting reputation.@@
+		<<set $PC.degeneracy += 20>>
+		<<if $arcologies[0].FSSupremacist != "unset">>
+			<<if $slaves[_pb].race != $arcologies[0].FSSupremacistRace>>
+				Furthermore, word is that your child was not $arcologies[0].FSSupremacistRace, @@.red;hurting your lasting reputation.@@
+				<<set $PC.degeneracy += 10>>
 			<</if>>
 		<</if>>
-	<</for>>
+		<<if $arcologies[0].FSSubjugationist != "unset">>
+			<<if $slaves[_pb].race == $arcologies[0].FSSubjugationistRace>>
+				In addition, there is a nasty rumor that you gave birth to a $arcologies[0].FSSubjugationistRace child, @@.red;devastating your lasting reputation.@@
+				<<set $PC.degeneracy += 50>>
+			<</if>>
+		<</if>>
+	<</if>>
 <</if>>
 
 <br><br>
@@ -180,7 +181,4 @@ Now you are faced with a decision of what to do with your new child. You're far 
 <</if>> /*closes gaveBirth*/
 <</if>> /*closes SE*/
 
-<<set $badBirth = 0>>
-<<set $PC.pregSource = 0>>
-<<set $seed = 0>>
-<<set $babyGender = 0>>
+<<set $badBirth = 0, $PC.pregSource = 0, $seed = 0, $babyGender = 0>>

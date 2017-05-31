@@ -1297,7 +1297,11 @@
 %/
 <<widget "AddSlave">>
 
-<<set $args[0].origEye = $args[0].eyeColor>>
+<<switch $args[0].eyeColor>>
+<<case "blind blue">><<set $args[0].origEye = "deep blue">>
+<<case "milky white">><<set $args[0].origEye = either("blue", "green", "brown", "hazel", "light blue", "light green", "dark green", "dark blue")>>
+<<default>><<set $args[0].origEye = $args[0].eyeColor>>
+<</switch>>
 <<set $args[0].origHColor = $args[0].hColor>>
 <<set $args[0].underArmHColor = $args[0].hColor>>
 <<set $args[0].pubicHColor = $args[0].hColor>>
@@ -1358,7 +1362,15 @@
 	<<set $REReductionCheckinIDs.push($args[0].ID)>>
 <</if>>
 
-<<set $slaves.push($args[0]), $genePool.push($args[0])>>
+<<set $slaves.push($args[0])>>
+<<if $args[0].origin != "She was your slave, but you freed her, which she repaid by participating in a coup attempt against you. It failed, and she is again your chattel.">>
+	<<set $genePool.push($args[0])>>
+<<else>>
+	<<set _t = $genePool.findIndex(function(s) { return s.ID == $args[0].ID; })>>
+	<<if _t == -1>> /* traitor somehow not found */
+		<<set $genePool.push($args[0])>>
+	<</if>>
+<</if>>
 
 /* add to facilities array if needed */
 <<if $args[0].assignment != "rest">>
