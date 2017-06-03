@@ -1563,11 +1563,30 @@ The fabricator has completed $possessive $activeOrgan.type.
 		|
 		<<link "Discard">><<for $i to 0; $i < $organs.length; $i++>><<if $activeSlave.ID == $organs[$i].ID>><<set $dump to $organs.pluck([$i], [$i])>><<break>><</if>><</for>><<goto "Remote Surgery">><</link>>
 	<</if>>
-<<elseif $activeOrgan.type == "eyes">>
-	<<if $activeSlave.eyes > -2 || $activeSlave.origEye == "implant">>
+<<elseif $activeOrgan.type == "eyes">> /*  */
+	<<if $activeSlave.eyes > -2 && $activeSlave.origEye != "implant">>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;
 		ERROR: this slave has working eyes.
 		<<link "Discard">><<for $i to 0; $i < $organs.length; $i++>><<if $activeSlave.ID == $organs[$i].ID>><<set $dump to $organs.pluck([$i], [$i])>><<break>><</if>><</for>><<goto "Remote Surgery">><</link>>
+	<<elseif $activeSlave.origEye == "implant">>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;
+		<<link "Remove ocular implants and implant">>
+			<<set $cash -= $surgeryCost>>
+			<<for $i to 0; $i < $organs.length; $i++>><<if $activeSlave.ID == $organs[$i].ID>><<set $dump to $organs.pluck([$i], [$i])>><<break>><</if>><</for>>
+			<<set $stockpile.ocularImplant++>>
+			<<set $activeSlave.eyes to 1>>
+			<<set _oldEyes = $genePool.find(function(s) { return s.ID = $activeSlave.ID; })>>
+			<<set $activeSlave.origEye = _oldEyes.origEye>>
+			<<set $activeSlave.eyeColor to $activeSlave.origEye>>
+			<<set $activeSlave.health -= 20>>
+			<<if $organFarmUpgrade == 2>>
+				<<set $activeSlave.chem += 20>>
+			<</if>>
+			<<set $surgeryType = "newEyes">>
+			<<goto "Surgery Degradation">>
+		<</link>>
+		|
+		<<link "Discard">><<for $i to 0; $i < $organs.length; $i++>><<if $activeSlave.ID == $organs[$i].ID>><<set $dump to $organs.pluck([$i], [$i])>><<break>><</if>><</for>><<goto "Remote Surgery">><</link>>		
 	<<else>>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;
 		<<link "Implant">>
