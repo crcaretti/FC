@@ -1,0 +1,59 @@
+:: Foreach Macro JS [script]
+
+Macro.add('foreach', {
+	skipArgs : true,
+	tags     : null,
+		
+	handler() {
+		const payload        = this.payload[0].contents.replace(/\n$/, '');
+		let statement        = this.args.raw.trim();
+		let variable;
+		let array;
+		let result;
+		
+		if (statement.length !== 0) {
+			const parts = statement.match(/^(\S+?)\s+of\s+(\S.*?)\s*$/i);
+			if(parts !== null) {
+				variable = parts[1];
+				array = parts[2];
+			}
+		}
+		if(!variable || !array) {
+			return this.error('invalid syntax, format: <<foreach variable of array-expression>>');
+		}
+		
+		try {
+			result = Scripting.evalTwineScript(array);
+		} catch (ex) {
+			return this.error(`bad evaluation: ${typeof ex === 'object' ? ex.message : ex}`);
+		}
+		
+		let resultLength = result['length'];
+		
+		// We don't check for "instanceof Array" to also be able to pass arguments or other strange objects
+		if(typeof resultLength !== 'number' || (resultLength % 1) !== 0) {
+			return this.error("bad evaluation: '" + result + "' is not an array or array-like object");
+		}
+		
+		if(resultLength > Config.macros.maxLoopIterations) {
+			return this.error('Array too large for maxLoopIterations (' + resultLength + ' > ' + Config.macros.maxLoopIterations + ')');
+		}
+		
+		if(!new RegExp(`^(${Patterns.variable})$`).test(variable)) {
+			return this.error('not a variable identifier: ' + variable);
+		}
+
+		if(resultLength <= 0) {
+			// Don't bother with empty stuff
+			return;
+		}
+
+		Config.debug && this.debugView.modes({block: true});
+		
+		payload.replace(/^\n/, '');
+		for(let i = 0; i < resultLength; ++ i) {
+			Wikifier.setValue(variable, result[i]);
+			new Wikifier(this.output, payload);
+		}
+	}
+});
