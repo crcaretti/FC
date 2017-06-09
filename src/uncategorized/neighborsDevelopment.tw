@@ -280,12 +280,20 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 		<<else>>
 		  <<set $arcologies[$i].FSPastoralist -= 10>>
 		<</if>>
-	  <<elseif $arcologies[$i].FSPhysicalIdealist != "unset">>
+	  <</if>>
+	  <<if $arcologies[$i].FSPhysicalIdealist != "unset">>
 		<<if $arcologies[$i].FSPhysicalIdealist < random(10,150)>>
 		  <<set $desc.push("Physical Idealism")>>
 		  <<set $arcologies[$i].FSPhysicalIdealist = "unset">>
 		<<else>>
 		  <<set $arcologies[$i].FSPhysicalIdealist -= 10>>
+		<</if>>
+	  <<elseif $arcologies[$i].FSHedonisticDecadence != "unset">>
+		<<if $arcologies[$i].FSHedonisticDecadence < random(10,150)>>
+		  <<set $desc.push("Decadent Hedonism")>>
+		  <<set $arcologies[$i].FSHedonisticDecadence = "unset">>
+		<<else>>
+		  <<set $arcologies[$i].FSHedonisticDecadence -= 10>>
 		<</if>>
 	  <</if>>
 	  <<if $arcologies[$i].FSChattelReligionist != "unset">>
@@ -1194,9 +1202,6 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 		<<if $arcologies[$j].FSPastoralist > $arcologies[$i].FSPastoralist + _FSCrossThresh>>
 		<<if $showNeighborDetails != 0>>Pastoralism in $arcologies[$i].name is influenced by $arcologies[$j].name's more advanced society.<</if>>
 		<<set $arcologies[$i].FSPastoralist += 1>>
-		<<elseif $arcologies[$j].FSPhysicalIdealist > $arcologies[$i].FSPastoralist + _FSCrossThresh>>
-		<<if $showNeighborDetails != 0>>Development of Asset Expansionism in $arcologies[$i].name is slowed by contact with $arcologies[$j].name's more advanced Physical Idealist society.<</if>>
-		<<set $arcologies[$i].FSPastoralist -= 1>>
 		<</if>>
 	<</if>>
 	<</for>>
@@ -1222,7 +1227,9 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 		<<set $corpCash += _corpBonus*2>>
 	<</if>>
 	<</if>>
-<<elseif $arcologies[$i].FSPhysicalIdealist != "unset">>
+<</if>>
+
+<<if $arcologies[$i].FSPhysicalIdealist != "unset">>
 	<<set _societiesAdopted += 1>>
 	<<if $arcologies[$i].direction != 0>>
 	<<set $arcologies[$i].FSPhysicalIdealist += $efficiency>>
@@ -1232,8 +1239,8 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 		<<if $arcologies[$j].FSPhysicalIdealist > $arcologies[$i].FSPhysicalIdealist + _FSCrossThresh>>
 		<<if $showNeighborDetails != 0>>Physical Idealism in $arcologies[$i].name is influenced by $arcologies[$j].name's more advanced society.<</if>>
 		<<set $arcologies[$i].FSPhysicalIdealist += 1>>
-		<<elseif $arcologies[$j].FSPastoralist > $arcologies[$i].FSPhysicalIdealist + _FSCrossThresh>>
-		<<if $showNeighborDetails != 0>>Development of Asset Expansionism in $arcologies[$i].name is slowed by contact with $arcologies[$j].name's more advanced Pastoralist society.<</if>>
+		<<elseif $arcologies[$j].FSHedonisticDecadence > $arcologies[$i].FSPhysicalIdealist + _FSCrossThresh>>
+		<<if $showNeighborDetails != 0>>Development of Physical Idealism in $arcologies[$i].name is slowed by contact with $arcologies[$j].name's more advanced Decadent Hedonism society.<</if>>
 		<<set $arcologies[$i].FSPhysicalIdealist -= 1>>
 		<</if>>
 	<</if>>
@@ -1261,6 +1268,48 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 	<<elseif $generalUpgradeMuscle == "toned">>
 		It's a @@.lightgreen;good market@@ for your corporation's toned ladies, improving sales and helping social progress.
 		<<set $arcologies[$i].FSPhysicalIdealist += 1>>
+		<<set $corpCash += _corpBonus>>
+	<</if>>
+	<</if>>
+<<elseif $arcologies[$i].FSHedonisticDecadence != "unset">>
+	<<set _societiesAdopted += 1>>
+	<<if $arcologies[$i].direction != 0>>
+	<<set $arcologies[$i].FSHedonisticDecadence += $efficiency>>
+	<</if>>
+	<<for $j = 0; $j < $arcologies.length; $j++>>
+	<<if $arcologies[$i].direction != $arcologies[$j].direction>>
+		<<if $arcologies[$j].FSHedonisticDecadence > $arcologies[$i].FSHedonisticDecadence + _FSCrossThresh>>
+		<<if $showNeighborDetails != 0>>Decadent Hedonism in $arcologies[$i].name is influenced by $arcologies[$j].name's more advanced society.<</if>>
+		<<set $arcologies[$i].FSHedonisticDecadence += 1>>
+		<<elseif $arcologies[$j].FSPhysicalIdealist > $arcologies[$i].FSHedonisticDecadence + _FSCrossThresh>>
+		<<if $showNeighborDetails != 0>>Development of Decadent Hedonism in $arcologies[$i].name is slowed by contact with $arcologies[$j].name's more advanced Physical Idealism society.<</if>>
+		<<set $arcologies[$i].FSHedonisticDecadence -= 1>>
+		<</if>>
+	<</if>>
+	<</for>>
+	<<if $arcologies[$i].direction != 0>>
+	<<if $arcologies[$i].FSHedonisticDecadence >= $FSLockinLevel>>
+		<<set $arcologies[$i].influenceBonus += $arcologies[$i].FSHedonisticDecadence - $FSLockinLevel>>
+		<<set $arcologies[$i].FSHedonisticDecadence = $FSLockinLevel>>
+		<<set $toSearch = $arcologies[$i].name>>
+		<<if ($toSearch.indexOf("Arcology") != -1) && (random(0,2) == 0)>>
+		Decadent Hedonism has reached stability and acceptance there. The arcology has been renamed
+		<<set $arcologies[$i].name = setup.ArcologyNamesHedonisticDecadence.random()>>
+		''$arcologies[$i].name'' to mark the occasion.
+		<</if>>
+	<<elseif $arcologies[$i].FSHedonisticDecadence < 0>>
+		$arcologies[$i].name @@.cyan;has given up@@ on Decadent Hedonism.
+		<<set $arcologies[$i].FSHedonisticDecadence = "unset">>
+	<</if>>
+	<</if>>
+	<<if $corpIncorporated == 1>>
+	<<if $generalUpgradeBreaking == "care">>
+		It's an excellent market for your corporation's well kept, happy slaves, improving sales and helping social progress.
+		<<set $arcologies[$i].FSHedonisticDecadence += 2>>
+		<<set $corpCash += _corpBonus*2>>
+	<<elseif $trainingUpgradeSexEd == "highly skilled">>
+		It's a @@.lightgreen;good market@@ for your corporation's skilled slaves, improving sales and helping social progress.
+		<<set $arcologies[$i].FSHedonisticDecadence += 1>>
 		<<set $corpCash += _corpBonus>>
 	<</if>>
 	<</if>>
@@ -1798,18 +1847,25 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 		<<set $arcologies[$i].FSPastoralist += Math.trunc(($arcologies[$j].FSPastoralist-60)/4)+$appliedInfluenceBonus>>
 	<<if $arcologies[$i].FSPastoralist > $FSLockinLevel>><<set _alignment += 1>><</if>>
 	<<set $desc.push("helping to advance its Pastoralism")>>
-	<<elseif $arcologies[$i].FSPhysicalIdealist != "unset">>
-		<<set $arcologies[$i].FSPhysicalIdealist -= Math.trunc(($arcologies[$j].FSPastoralist-60)/4)+$appliedInfluenceBonus>>
-	<<set $desc.push("attacking its Physical Idealism")>>
 	<</if>>
-<<elseif $arcologies[$j].FSPhysicalIdealist > 60>>
+<</if>>
+<<if $arcologies[$j].FSPhysicalIdealist > 60>>
 	<<if $arcologies[$i].FSPhysicalIdealist != "unset">>
 		<<set $arcologies[$i].FSPhysicalIdealist += Math.trunc(($arcologies[$j].FSPhysicalIdealist-60)/4)+$appliedInfluenceBonus>>
 	<<if $arcologies[$i].FSPhysicalIdealist > $FSLockinLevel>><<set _alignment += 1>><</if>>
 	<<set $desc.push("helping to advance its Physical Idealism")>>
-	<<elseif $arcologies[$i].FSPastoralist != "unset">>
-		<<set $arcologies[$i].FSPastoralist -= Math.trunc(($arcologies[$j].FSPhysicalIdealist-60)/4)+$appliedInfluenceBonus>>
-	<<set $desc.push("attacking its Pastoralism")>>
+	<<elseif $arcologies[$i].FSHedonisticDecadence != "unset">>
+		<<set $arcologies[$i].FSHedonisticDecadence -= Math.trunc(($arcologies[$j].FSPhysicalIdealist-60)/4)+$appliedInfluenceBonus>>
+	<<set $desc.push("attacking its Hedonism")>>
+	<</if>>
+<<elseif $arcologies[$j].FSHedonisticDecadence > 60>>
+	<<if $arcologies[$i].FSHedonisticDecadence != "unset">>
+		<<set $arcologies[$i].FSHedonisticDecadence += Math.trunc(($arcologies[$j].FSHedonisticDecadence-60)/4)+$appliedInfluenceBonus>>
+	<<if $arcologies[$i].FSHedonisticDecadence > $FSLockinLevel>><<set _alignment += 1>><</if>>
+	<<set $desc.push("helping to advance its Hedonism")>>
+	<<elseif $arcologies[$i].FSPhysicalIdealist != "unset">>
+		<<set $arcologies[$i].FSPhysicalIdealist -= Math.trunc(($arcologies[$j].FSHedonisticDecadence-60)/4)+$appliedInfluenceBonus>>
+	<<set $desc.push("attacking its Physical Idealism")>>
 	<</if>>
 <</if>>
 <<if $arcologies[$j].FSChattelReligionist > 60>>
@@ -2033,7 +2089,10 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 <</if>>
 <<if $arcologies[$i].FSPastoralist > 60>>
 	<<set _influential = 1>>
-<<elseif $arcologies[$i].FSPhysicalIdealist > 60>>
+<</if>>
+<<if $arcologies[$i].FSPhysicalIdealist > 60>>
+	<<set _influential = 1>>
+<<elseif $arcologies[$i].FSHedonisticDecadence > 60>>
 	<<set _influential = 1>>
 <</if>>
 <<if $arcologies[$i].FSChattelReligionist > 60>>
@@ -2197,15 +2256,22 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 	<<if $arcologies[$j].FSPastoralist < $FSLockinLevel>>
 		<<set _eligibleTargets.push($arcologies[$j].direction)>>
 	<</if>>
-	<<elseif $arcologies[$j].FSPhysicalIdealist != "unset">>
-	<<set _eligibleTargets.push($arcologies[$j].direction)>>
 	<</if>>
-<<elseif $arcologies[$i].FSPhysicalIdealist != "unset">>
+<</if>>
+<<if $arcologies[$i].FSPhysicalIdealist != "unset">>
 	<<if $arcologies[$j].FSPhysicalIdealist != "unset">>
 	<<if $arcologies[$j].FSPhysicalIdealist < $FSLockinLevel>>
 		<<set _eligibleTargets.push($arcologies[$j].direction)>>
 	<</if>>
-	<<elseif $arcologies[$j].FSPastoralist != "unset">>
+	<<elseif $arcologies[$j].FSHedonisticDecadence != "unset">>
+	<<set _eligibleTargets.push($arcologies[$j].direction)>>
+	<</if>>
+<<elseif $arcologies[$i].FSHedonisticDecadence != "unset">>
+	<<if $arcologies[$j].FSHedonisticDecadence != "unset">>
+	<<if $arcologies[$j].FSHedonisticDecadence < $FSLockinLevel>>
+		<<set _eligibleTargets.push($arcologies[$j].direction)>>
+	<</if>>
+	<<elseif $arcologies[$j].FSPhysicalIdealist != "unset">>
 	<<set _eligibleTargets.push($arcologies[$j].direction)>>
 	<</if>>
 <</if>>
