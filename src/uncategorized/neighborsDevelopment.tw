@@ -280,6 +280,13 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 		<<else>>
 		  <<set $arcologies[$i].FSPastoralist -= 10>>
 		<</if>>
+	  <<elseif $arcologies[$i].FSCummunism != "unset">>
+		<<if $arcologies[$i].FSCummunism < random(10,150)>>
+		  <<set $desc.push("Cummunism")>>
+		  <<set $arcologies[$i].FSCummunism = "unset">>
+		<<else>>
+		  <<set $arcologies[$i].FSCummunism -= 10>>
+		<</if>>
 	  <</if>>
 	  <<if $arcologies[$i].FSPhysicalIdealist != "unset">>
 		<<if $arcologies[$i].FSPhysicalIdealist < random(10,150)>>
@@ -1227,6 +1234,48 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 		<<set $corpCash += _corpBonus*2>>
 	<</if>>
 	<</if>>
+<<elseif $arcologies[$i].FSCummunism != "unset">>
+	<<set _societiesAdopted += 1>>
+	<<if $arcologies[$i].direction != 0>>
+	<<set $arcologies[$i].FSCummunism += $efficiency>>
+	<</if>>
+	<<for $j = 0; $j < $arcologies.length; $j++>>
+	<<if $arcologies[$i].direction != $arcologies[$j].direction>>
+		<<if $arcologies[$j].FSCummunism > $arcologies[$i].FSCummunism + _FSCrossThresh>>
+		<<if $showNeighborDetails != 0>>Cummunism in $arcologies[$i].name is influenced by $arcologies[$j].name's more advanced society.<</if>>
+		<<set $arcologies[$i].FSCummunism += 1>>
+		<<elseif $arcologies[$j].FSPastoralist > $arcologies[$i].FSCummunism + _FSCrossThresh>>
+		<<if $showNeighborDetails != 0>>Development of Cummunism in $arcologies[$i].name is slowed by contact with $arcologies[$j].name's more advanced Pastoralist society.<</if>>
+		<<set $arcologies[$i].FSCummunism -= 1>>
+		<</if>>
+	<</if>>
+	<</for>>
+	<<if $arcologies[$i].direction != 0>>
+	<<if $arcologies[$i].FSCummunism >= $FSLockinLevel>>
+		<<set $arcologies[$i].influenceBonus += $arcologies[$i].FSCummunism - $FSLockinLevel>>
+		<<set $arcologies[$i].FSCummunism = $FSLockinLevel>>
+		<<set $toSearch = $arcologies[$i].name>>
+		<<if ($toSearch.indexOf("Arcology") != -1) && (random(0,2) == 0)>>
+		Cummunism has reached stability and acceptance there. The arcology has been renamed
+		<<set $arcologies[$i].name = setup.ArcologyNamesCummunism.random()>>
+		''$arcologies[$i].name'' to mark the occasion.
+		<</if>>
+	<<elseif $arcologies[$i].FSCummunism < 0>>
+		$arcologies[$i].name @@.cyan;has given up@@ on Cummunism.
+		<<set $arcologies[$i].FSCummunism = "unset">>
+	<</if>>
+	<</if>>
+	<<if $corpIncorporated == 1>>
+	<<if $drugUpgradeInjectionTwo == "pastoral">>
+		It's an excellent market for your corporation's world-class cum producers, improving sales and helping social progress.
+		<<set $arcologies[$i].FSCummunism += 2>>
+		<<set $corpCash += _corpBonus*2>>
+	<<elseif $drugUpgradeHormones = "XY">>
+		It's a @@.lightgreen;good market@@ for your corporation's masculinized slaves, improving sales and helping social progress.
+		<<set $arcologies[$i].FSCummunism += 1>>
+		<<set $corpCash += _corpBonus>>
+	<</if>>
+	<</if>>
 <</if>>
 
 <<if $arcologies[$i].FSPhysicalIdealist != "unset">>
@@ -1847,6 +1896,18 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 		<<set $arcologies[$i].FSPastoralist += Math.trunc(($arcologies[$j].FSPastoralist-60)/4)+$appliedInfluenceBonus>>
 	<<if $arcologies[$i].FSPastoralist > $FSLockinLevel>><<set _alignment += 1>><</if>>
 	<<set $desc.push("helping to advance its Pastoralism")>>
+	<<elseif $arcologies[$i].FSCummunism != "unset">>
+		<<set $arcologies[$i].FSCummunism -= Math.trunc(($arcologies[$j].FSPastoralist-60)/4)+$appliedInfluenceBonus>>
+	<<set $desc.push("attacking its Cummunism")>>
+	<</if>>
+<<elseif $arcologies[$j].FSCummunism > 60>>
+	<<if $arcologies[$i].FSCummunism != "unset">>
+		<<set $arcologies[$i].FSCummunism += Math.trunc(($arcologies[$j].FSCummunism-60)/4)+$appliedInfluenceBonus>>
+	<<if $arcologies[$i].FSCummunism > $FSLockinLevel>><<set _alignment += 1>><</if>>
+	<<set $desc.push("helping to advance its Cummunism")>>
+	<<elseif $arcologies[$i].FSPastoralist != "unset">>
+		<<set $arcologies[$i].FSPastoralist -= Math.trunc(($arcologies[$j].FSCummunism-60)/4)+$appliedInfluenceBonus>>
+	<<set $desc.push("attacking its Pastoralism")>>
 	<</if>>
 <</if>>
 <<if $arcologies[$j].FSPhysicalIdealist > 60>>
@@ -2089,6 +2150,8 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 <</if>>
 <<if $arcologies[$i].FSPastoralist > 60>>
 	<<set _influential = 1>>
+<<elseif $arcologies[$i].FSCummunism > 60>>
+	<<set _influential = 1>>
 <</if>>
 <<if $arcologies[$i].FSPhysicalIdealist > 60>>
 	<<set _influential = 1>>
@@ -2253,9 +2316,19 @@ has an estimated GSP of @@.yellowgreen;¤<<print Math.trunc((0.1*$arcologies[$i]
 <</if>>
 <<if $arcologies[$i].FSPastoralist != "unset">>
 	<<if $arcologies[$j].FSPastoralist != "unset">>
-	<<if $arcologies[$j].FSPastoralist < $FSLockinLevel>>
+		<<if $arcologies[$j].FSPastoralist < $FSLockinLevel>>
+			<<set _eligibleTargets.push($arcologies[$j].direction)>>
+		<</if>>
+	<<elseif $arcologies[$j].FSCummunism != "unset">>
 		<<set _eligibleTargets.push($arcologies[$j].direction)>>
 	<</if>>
+<<elseif $arcologies[$i].FSCummunism != "unset">>
+	<<if $arcologies[$j].FSCummunism != "unset">>
+		<<if $arcologies[$j].FSCummunism < $FSLockinLevel>>
+			<<set _eligibleTargets.push($arcologies[$j].direction)>>
+		<</if>>
+	<<elseif $arcologies[$j].FSPastoralist != "unset">>
+		<<set _eligibleTargets.push($arcologies[$j].direction)>>
 	<</if>>
 <</if>>
 <<if $arcologies[$i].FSPhysicalIdealist != "unset">>
