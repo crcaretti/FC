@@ -1,6 +1,6 @@
 :: Arcade Report [nobr]
 
-<<set _DL = $ArcadeiIDs.length, $arcadeSlaves = _DL, _SL = $slaves.length, _cockmilked = 0, _milked = 0, _profits = 0, _oldCash = $cash, $boobsImplanted = 0, $prostatesImplanted = 0>>
+<<set _DL = $ArcadeiIDs.length, $arcadeSlaves = _DL, _SL = $slaves.length, _cockmilked = 0, _milked = 0, _milkprofits = 0, _profits = 0, _oldCash = 0, $boobsImplanted = 0, $prostatesImplanted = 0>>
 
 <<for _dI = 0; _dI < _DL; _dI++>>
 	<<set $i = $ArcadeiIDs[_dI].Index, _ID = $ArcadeiIDs[_dI].ID>>
@@ -45,13 +45,20 @@
 			<<set $slaves[$i].health -= 1>>
 		<</if>>
 		<<set $slaves[$i].aphrodisiacs = 2, $slaves[$i].devotion -= 5, $slaves[$i].trust -= 10>>
+	<<elseif ($arcadeUpgradeCollectors > 0)>>
+		<<if ($slaves[$i].health > -60)>>
+			<<set $slaves[$i].health -= 5>>
+		<<elseif ($slaves[$i].health > -80)>>
+			<<set $slaves[$i].health -= 3>>
+		<<else>>
+			<<set $slaves[$i].health -= 2>>
+		<</if>>
+		<<set $slaves[$i].trust -= 5>>	
 	<<else>>
-		<<if ($slaves[$i].health < -60)>>
-			<<set $slaves[$i].health += 20>>
-		<<elseif ($slaves[$i].health < 10)>>
-			<<set $slaves[$i].health += 10>>
-		<<elseif ($slaves[$i].health > 20)>>
-			<<set $slaves[$i].health -= 10>>
+		<<if ($slaves[$i].health > -60)>>
+			<<set $slaves[$i].health -= 5>>
+		<<else>>
+			<<set $slaves[$i].health -= 1>>
 		<</if>>
 		<<set $slaves[$i].trust -= 5>>
 	<</if>>
@@ -84,11 +91,13 @@
     <<elseif $slaves[$i].prostate == 1>>
       <<set $slaves[$i].prostate = 2, $slaves[$i].health -= 10, $cash -= $surgeryCost, $prostatesImplanted++>>
 		<<elseif ($slaves[$i].lactation > 0) || ($slaves[$i].balls > 0)>>
+			<<set _oldCash = $cash>>
 			<<if $showEWD != 0>>
 				<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA get milked">>
 			<<else>>
 				<<silently>><<include "SA get milked">><</silently>>
 			<</if>>
+			<<set _milkprofits += $cash-_oldCash>>
 			<<if ($slaves[$i].boobs < 2000)>>
 				<<set $slaves[$i].boobs += 100>>
 			<<elseif ($slaves[$i].boobs < 5000)>>
@@ -113,7 +122,6 @@
 	<<if ($slaves[$i].inflation > 0)>>
 		<<set $slaves[$i].inflation = 0, $slaves[$i].inflationType = "none", $slaves[$i].inflationMethod = 0, $slaves[$i].milkSource = 0>>
 	<</if>>
-	<<set _profits += $cash-_oldCash>>
 	<<if $showEWD != 0>>
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA drugs">>
@@ -163,7 +171,7 @@
 	<<elseif _cockmilked > 1>>
 		_cockmilked of them retain testicles and are brutally cockmilked as they are used.
 	<</if>>
-	The arcade makes you @@.yellowgreen;¤_profits@@ this week.
+	The arcade makes you @@.yellowgreen;¤_profits@@ from selling the inmates' holes<<if ($arcadeUpgradeCollectors > 0)>> and @@.yellowgreen;¤_milkprofits@@ from selling the fluids they produced<</if>> this week.
 	<<if ($arcologies[0].FSDegradationist > 20)>>
 	<<elseif ($arcologies[0].FSPaternalist > 20)>>
 		<<set $repGain -= Math.trunc(_profits/20)>>
