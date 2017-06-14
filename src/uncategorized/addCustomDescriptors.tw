@@ -1,8 +1,8 @@
 :: Add custom descriptors [nobr]
 
 <<set $nextButton = "Continue", $nextLink = "AS Dump", $returnTo = "Slave Interact">>
+<<set $oldName = $activeSlave.slaveName, $oldSurname = $activeSlave.slaveSurname>>
 
-<<set $oldName = $activeSlave.slaveName>>
 You may enter custom descriptors for your slave's hair color, hair style, tattoos, or anything else here. After typing, press enter to commit your change. These custom descriptors will appear in descriptions of your slave, but will have no gameplay effect. Changing them is free.
 <br><br>
 
@@ -46,50 +46,58 @@ You may enter custom descriptors for your slave's hair color, hair style, tattoo
 
 <br><br>
 
-<<if (($activeSlave.devotion >= -50) || ($activeSlave.trust < -20)) && ($activeSlave.birthName != $activeSlave.slaveName)>>
-	Rename her (birth name was $activeSlave.birthName): <<textbox "$activeSlave.slaveName" $activeSlave.slaveName "Rename">>
+<<if ((($activeSlave.devotion >= -50) || ($activeSlave.trust < -20)) && ($activeSlave.birthName != $activeSlave.slaveName)) || (($activeSlave.devotion > 20) || ($activeSlave.trust < -20))>>
+	Change her given name<<if $activeSlave.birthName != $activeSlave.slaveName>> (her birth name was $activeSlave.birthName)<</if>>: <<textbox "$activeSlave.slaveName" $activeSlave.slaveName "Rename">>
 	<<link "Restore her birth name">><<set $activeSlave.slaveName = $activeSlave.birthName>><<goto "Rename">><</link>>
 	<<if $arcologies[0].FSPastoralist != "unset">>
 	<<if $activeSlave.lactation > 0>>
-	 | <<link "Give her a random cow name">><<set $activeSlave.slaveName = setup.cowSlaveNames.random()>><<goto "Rename">><</link>>
+		| <<link "Give her a random cow given name">><<set $activeSlave.slaveName = setup.cowSlaveNames.random()>><<goto "Rename">><</link>>
 	<</if>>
 	<</if>>
 	<<if $arcologies[0].FSChattelReligionist != "unset">>
-	 | <<link "Give her a random devotional name">><<set $activeSlave.slaveName = setup.chattelReligionistSlaveNames.random()>><<goto "Rename">><</link>>
+		| <<link "Give her a random devotional given name">><<set $activeSlave.slaveName = setup.chattelReligionistSlaveNames.random()>><<goto "Rename">><</link>>
+	<</if>>
+	<br><br>
+	Change her surname<<if $activeSlave.birthSurname != $activeSlave.slaveSurname>> (her birth surname was $activeSlave.birthSurname)<</if>>:
+	<<if $activeSlave.slaveSurname>>
+		<<textbox "$activeSlave.slaveSurname" $activeSlave.slaveSurname "Rename">>
+	<<else>>
+		<<textbox "$activeSlave.slaveSurname" "" "Rename">>
+	<</if>>
+	<<link "Restore her birth surname">><<set $activeSlave.slaveSurname = $activeSlave.birthSurname>><<goto "Rename">><</link>>
+	<<if $activeSlave.slaveSurname>>
+		| <<link "Take her surname away">><<set $activeSlave.slaveSurname = 0>><<goto "Rename">><</link>>
+	<</if>>
+	<<if $activeSlave.relationship >= 5>>
+		<<for _i = 0; _i < $slaves.length; _i++>>
+		<<if $activeSlave.relationshipTarget == $slaves[_i].ID>>
+			<<if $slaves[_i].slaveSurname>>
+			<<if $activeSlave.slaveSurname != $slaves[_i].slaveSurname>>
+				| <<link "Give her her wife's surname">><<set $activeSlave.slaveSurname = $slaves[_i].slaveSurname>><<goto "Rename">><</link>>
+				<<break>>
+			<</if>>
+			<</if>>
+		<</if>>
+		<</for>>
+	<</if>>
+	<<if $activeSlave.relationship == -3>>
+		<<if $PC.surname>>
+		<<if $activeSlave.slaveSurname != $PC.surname>>
+			| <<link "Give her your surname">><<set $activeSlave.slaveSurname = $PC.surname>><<goto "Rename">><</link>>
+		<</if>>
+		<</if>>
 	<</if>>
 	<<if $arcologies[0].FSRomanRevivalist != "unset">>
-	 | <<link "Give her a random Roman name">><<set $activeSlave.slaveName = setup.romanSlaveNames.random()>><<goto "Rename">><</link>>
+		| <<link "Give her a random full Roman name">><<set $activeSlave.slaveName = setup.romanSlaveNames.random(), $activeSlave.slaveSurname = setup.romanSlaveSurnames.random()>><<goto "Rename">><</link>>
 	<<elseif $arcologies[0].FSAztecRevivalist != "unset">>
-	 | <<link "Give her a random Aztec name">><<set $activeSlave.slaveName = setup.aztecSlaveNames.random()>><<goto "Rename">><</link>>
+		| <<link "Give her a random full Aztec name">><<set $activeSlave.slaveName = setup.aztecSlaveNames.random(), $activeSlave.slaveSurname = 0>><<goto "Rename">><</link>>
 	<<elseif $arcologies[0].FSEgyptianRevivalist != "unset">>
-	 | <<link "Give her a random ancient Egyptian name">><<set $activeSlave.slaveName = setup.ancientEgyptianSlaveNames.random()>><<goto "Rename">><</link>>
+		| <<link "Give her a random full ancient Egyptian name">><<set $activeSlave.slaveName = setup.ancientEgyptianSlaveNames.random(), $activeSlave.slaveSurname = 0>><<goto "Rename">><</link>>
 	<<elseif $arcologies[0].FSEdoRevivalist != "unset">>
-	 | <<link "Give her a random feudal Japanese name">><<set $activeSlave.slaveName = setup.edoSlaveNames.random()>><<goto "Rename">><</link>>
+		| <<link "Give her a random full feudal Japanese name">><<set $activeSlave.slaveName = setup.edoSlaveNames.random(), $activeSlave.slaveSurname = setup.edoSlaveSurnames.random()>><<goto "Rename">><</link>>
 	<</if>>
 	<<if $arcologies[0].FSDegradationist > -1>>
-	 | <<link "Give her a degrading name">><<include "Degrading Name">><<goto "Rename">><</link>>
-	<</if>>
-<<elseif (($activeSlave.devotion > 20) || ($activeSlave.trust < -20))>>
-	Rename her: <<textbox "$activeSlave.slaveName" $activeSlave.slaveName "Rename">>
-	<<if $arcologies[0].FSPastoralist != "unset">>
-	<<if $activeSlave.lactation > 0>>
-	 | <<link "Give her a random cow name">><<set $activeSlave.slaveName = setup.cowSlaveNames.random()>><<goto "Rename">><</link>>
-	<</if>>
-	<</if>>
-	<<if $arcologies[0].FSChattelReligionist != "unset">>
-	 | <<link "Give her a random devotional name">><<set $activeSlave.slaveName = setup.chattelReligionistSlaveNames.random()>><<goto "Rename">><</link>>
-	<</if>>
-	<<if $arcologies[0].FSRomanRevivalist != "unset">>
-	<<link "Give her a random Roman name">><<set $activeSlave.slaveName = setup.romanSlaveNames.random()>><<goto "Rename">><</link>>
-	<<elseif $arcologies[0].FSAztecRevivalist != "unset">>
-	<<link "Give her a random Aztec name">><<set $activeSlave.slaveName = setup.aztecSlaveNames.random()>><<goto "Rename">><</link>>
-	<<elseif $arcologies[0].FSEgyptianRevivalist != "unset">>
-	<<link "Give her a random ancient Egyptian name">><<set $activeSlave.slaveName = setup.ancientEgyptianSlaveNames.random()>><<goto "Rename">><</link>>
-	<<elseif $arcologies[0].FSEdoRevivalist != "unset">>
-	 | <<link "Give her a random feudal Japanese name">><<set $activeSlave.slaveName = setup.edoSlaveNames.random()>><<goto "Rename">><</link>>
-	<</if>>
-	<<if $arcologies[0].FSDegradationist > -1>>
-	<<link "Give her a degrading name">><<include "Degrading Name">><<goto "Rename">><</link>>
+		| <<link "Give her a degrading full name">><<include "Degrading Name">><<goto "Rename">><</link>>
 	<</if>>
 <<else>>
 	//You must break her will further before you can successfully force a new name on her.//
