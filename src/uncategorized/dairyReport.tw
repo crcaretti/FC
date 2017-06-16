@@ -53,7 +53,7 @@
 		<</if>>
 	<</if>>
 	<<set $Milkmaid = $slaves[_FLs], $i = _FLs>>
-	&nbsp;&nbsp;&nbsp;&nbsp;$Milkmaid.slaveName is serving as your Milkmaid.
+	&nbsp;&nbsp;&nbsp;&nbsp;<<SlaveFullName $Milkmaid>> is serving as your Milkmaid.
 	<<if $Milkmaid.relationship == -3 && $Milkmaid.devotion > 50>>
 		<<set $milkmaidDevotionBonus += 2, $milkmaidTrustBonus += 2>>
 		She tries her best to be your perfect farmwife.
@@ -100,6 +100,9 @@
 			<<if $slaves[$i].weight >= 70>>
 				<<set _MMWorkout++>>
 			<</if>>
+			<<if $slaves[$i].weight >= 160>>
+				<<set _MMWorkout++>>
+			<</if>>
 			<<if $slaves[$i].boobs >= 6000>>
 				<<set _MMWorkout++>>
 			<</if>>
@@ -111,6 +114,9 @@
 			<</if>>
 			<<if !canWalk($slaves[$i])>> /* big bonus if they can't move themselves and are fat as cows */
 				<<if $slaves[$i].weight >= 70>>
+					<<set _MMWorkout += 2>>
+				<</if>>
+				<<if $slaves[$i].weight >= 160>>
 					<<set _MMWorkout += 2>>
 				<</if>>
 				<<if $slaves[$i].boobs >= 6000>>
@@ -125,7 +131,7 @@
 			<</if>>
 		<</for>>
 	<</if>>
-	<<if (_MMWorkout > random(1,10)) && $Milkmaid.muscles < 60>>
+	<<if (_MMWorkout > random(1,30)) && $Milkmaid.muscles < 60>>
 		Constantly having to wrestle unruly or aiding heavy cows into their stalls forces her to @@.lime;build muscle.@@
 		<<set $slaves[_FLs].muscles++>>
 	<</if>>
@@ -144,7 +150,7 @@
 		<<set $milkmaidTrustBonus++>>
 		She's funny, and does her best to get the cows to trust her by keeping them laughing.
 	<</if>>
-	<<if $milkmaidCareers.includes($Milkmaid.career)>>
+	<<if setup.milkmaidCareers.includes($Milkmaid.career)>>
 		<<set $milkmaidHealthBonus++>>
 		She has career experience dealing with milk animals.
 	<</if>>
@@ -231,7 +237,7 @@
 		</div>
 		<</if>>
 		/* 000-250-006 */
-		''__@@.pink;$slaves[_FLs].slaveName@@__'' is serving as your Milkmaid.
+		''__@@.pink;<<SlaveFullName $slaves[_FLs]>>@@__'' is serving as your Milkmaid.
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
 		<<include "SA diet">>
@@ -289,7 +295,7 @@
 		</div>
 		<</if>>
 		/* 000-250-006 */
-		''__@@.pink;$slaves[$i].slaveName@@__''
+		''__@@.pink;<<SlaveFullName $slaves[$i]>>@@__''
 		<<if $slaves[$i].choosesOwnAssignment == 2>>
 			<<include "SA chooses own job">>
 		<<else>>
@@ -437,6 +443,9 @@
 	<</if>>
 	<<if ($dairyRestraintsSetting > 1)>>
 		<<set $slaves[$i].lactationAdaptation += 1>>
+		<<if ($slaves[$i].muscles > -100)>>
+			<<set $slaves[$i].muscles-->>
+		<</if>>
 		<<if ($slaves[$i].fetish == "mindbroken")>>
 			<<if ($slaves[$i].boobs > 24800) && (($slaves[$i].balls > 5) || ($slaves[$i].balls == 0))>>
 				<<set $bioreactorPerfectedID = $slaves[$i].ID>>
@@ -615,7 +624,8 @@
 <</if>>
 
 <<if (_Tadd > 0)>>
-	<<set _seed = (3*$bioreactorsXY) + (3*$bioreactorsHerm), _cumWeek += _seed>>
+	<<set _tempCash = $cash>>
+	<<set _seed = (100*$bioreactorsXY) + (100*$bioreactorsHerm), _cumWeek += _seed>>
 	<<if ($arcologies[0].FSPastoralistLaw == 1)>>
 		<<set $cash += _seed*random(40,50)>>
 	<<elseif ($arcologies[0].FSPastoralist != "unset")>>
@@ -623,7 +633,7 @@
 	<<else>>
 		<<set $cash += _seed*random(25,35)>>
 	<</if>>
-	<<set _seed = ($bioreactorsXX) + ($bioreactorsHerm), _femCumWeek += _seed>>
+	<<set _seed = (2*$bioreactorsXX) + (2*$bioreactorsHerm), _femCumWeek += _seed>>
 	<<if ($arcologies[0].FSPastoralistLaw == 1)>>
 		<<set $cash += _seed*random(40,50)>>
 	<<elseif ($arcologies[0].FSPastoralist != "unset")>>
@@ -631,7 +641,7 @@
 	<<else>>
 		<<set $cash += _seed*random(25,35)>>
 	<</if>>
-	<<set _seed = (300*$bioreactorsXX) + (250*$bioreactorsBarren) + (200*$bioreactorsXY) + (200*$bioreactorsHerm), _milkWeek += _seed>>
+	<<set _seed = (800*$bioreactorsXX) + (700*$bioreactorsBarren) + (600*$bioreactorsXY) + (600*$bioreactorsHerm), _milkWeek += _seed>>
 	<<if ($arcologies[0].FSPastoralistLaw == 1)>>
 		<<set $cash += _seed*(13+Math.trunc($arcologies[0].FSPastoralist/30))>>
 	<<elseif ($arcologies[0].FSPastoralist != "unset")>>
@@ -639,6 +649,7 @@
 	<<else>>
 		<<set $cash += _seed*9>>
 	<</if>>
+	<br><br>_Tadd permanently converted biological "machine<<if _Tadd > 1>>s<</if>>" produce<<if _Tadd == 1>>s<</if>> @@.yellowgreen;¤<<print $cash-_tempCash>>@@ income.
 <</if>>
 
 <<if $inflatedSlavesMilk > 0>>
@@ -767,7 +778,11 @@ $dairyNameCaps produced <<print _milkWeek+_outputMilk>> liters of milk<<if _cumW
 <</if>>
 <</if>>
 
-These products sell for @@.yellowgreen;¤_profits@@.
+<<if (_profits > 0)>>
+These sale of these products makes a profit of @@.yellowgreen;¤_profits@@.
+<<elseif (_profits < 0)>>
+Due to one-off costs of hormonal implants to encourage fluid production, your dairy made a loss of @@.red;¤_profits@@.
+<</if>>
 
 <<if ($arcologies[0].FSPastoralistLaw == 1)>>
 	Slave products have completely replaced traditional dairy, making the facility extremely lucrative.
@@ -789,7 +804,7 @@ These products sell for @@.yellowgreen;¤_profits@@.
 	<<for _dI = 0; _dI < _DL; _dI++>>
 		<<set $i = $DairyiIDs[_dI].Index>>
 		<<if ($slaves[$i].ID == $bioreactorPerfectedID)>>
-			<br><br>&nbsp;&nbsp;&nbsp;&nbsp;$slaves[$i].slaveName's breasts<<if $slaves[$i].balls > 0>>, balls<</if>><<if $slaves[$i].ovaries == 1>>, belly<</if>>, body, and mind have been completely adapted to synthesize useful products. She has been reclassified as part of the machine she's now permanently attached to. This combination is projected to produce approximately
+			<br><br>&nbsp;&nbsp;&nbsp;&nbsp;<<SlaveFullName $slaves[$i]>>'s breasts<<if $slaves[$i].balls > 0>>, balls<</if>><<if $slaves[$i].ovaries == 1>>, belly<</if>>, body, and mind have been completely adapted to synthesize useful products. She has been reclassified as part of the machine she's now permanently attached to. This combination is projected to produce approximately
 			<<if $slaves[$i].balls > 0>><<print 1000*Math.trunc((3*52*(45-$slaves[$i].physicalAge))/1000)>> liters of cum,<</if>>
 			<<if $slaves[$i].ovaries == 1>><<print 100*Math.trunc((52*(45-$slaves[$i].physicalAge))/100)>> liters of vaginal secretions, <<if $dairyPregSetting == 3>><<print 13*(45-$slaves[$i].physicalAge)>><<else>><<print 5*(45-$slaves[$i].physicalAge)>><</if>> slaves,<</if>>
 			and <<print 1000*Math.trunc((300*52*(45-$slaves[$i].physicalAge))/1000)>> liters of milk over a <<print 45-$slaves[$i].physicalAge>> year period before its biological components must be replaced.

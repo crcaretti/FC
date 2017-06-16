@@ -26,6 +26,10 @@ if(!Array.prototype.findIndex) {
 /*
 A categorizer is used to "slice" a value range into distinct categories in an efficient manner.
 
+If the values are objects their property named 'value' will be set to whatever
+the value used for the choice was. This is important for getters, where it can be accessed
+via this.value.
+
 --- Example ---
 Original SugarCube code
 <<if _Slave.muscles > 95>>
@@ -59,9 +63,31 @@ window.Categorizer = function() {
 		.sort(function(a, b) { return b[0] - a[0]; /* reverse sort */ });
 };
 window.Categorizer.prototype.cat = function(val, def) {
-	if(typeof val !== 'number' || isNaN(val)) {
-		return def;
+	var result = def;
+	if(typeof val === 'number' && !isNaN(val)) {
+		var foundCat = this.cats.find(function(e) { return val >= e[0]; });
+		if(foundCat) {
+			result = foundCat[1];
+		}
 	}
-	var result = this.cats.find(function(e) { return val >= e[0]; });
-	return result ? result[1] : def;
+	// Record the value for the result's getter, if it is an object
+	// and doesn't have the property yet
+	if(result === Object(result)) {
+		result['value'] = val;
+	}
+	return result;
 };
+
+/*
+Make everything waiting for this execute. Usage:
+
+let doSomething = function() {
+	... your initialization code goes here ...
+};
+if(typeof Categorizer === 'function') {
+	doSomething();
+} else {
+	jQuery(document).one('categorizer.ready', doSomething);
+}
+*/
+jQuery(document).trigger('categorizer.ready');
