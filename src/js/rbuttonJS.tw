@@ -1,5 +1,13 @@
 :: rbuttonJS [script]
 /* This is modifed radiobutton macro, for automatic checked state setup*/
+/* Usage (be sure to use quotes around parameters): 
+
+	<<rbutton "$variable" "value">>	
+Or:
+	<<rbutton "$variable" "value" "HTML_element_ID" "Text to replace with, inside html element with ID from previous parameter. <br> HTML tags allowed.">> 
+
+Group of radiobutton will be created based on variable name. Checked state will be setted up if variable contain value matched with second parameter. Full form of macro call can be used to display extended description of selected value.
+*/
 
 Macro.add('rbutton', {
 	handler() {
@@ -27,6 +35,17 @@ Macro.add('rbutton', {
 	    const checkValue = this.args[1];
 	    const el         = document.createElement('input');
 
+	    var replaceID = "";
+	    var replaceText = "";
+	    if (typeof this.args[2] === 'string') {
+			replaceID = this.args[2];
+	    }
+	    if (typeof this.args[3] === 'string') {
+			replaceText = this.args[3];
+	    }
+
+		
+	    
 	    /*
 		Setup and initialize the group counter.
 	    */
@@ -52,7 +71,29 @@ Macro.add('rbutton', {
 		.on('change', function () {
 		    if (this.checked) {
 			Wikifier.setValue(varName, checkValue);
+
+			if (replaceID.length > 0 && replaceText.length > 0){
+
+				var replaceEl = document.getElementById(replaceID);
+				//alert (replaceEl);
+				if (replaceEl != null) {
+					replaceEl.innerHTML = replaceText;
+					}
+
+				}
 		    }
+		})
+		.ready (function () {
+			//alert ("DOM finished");
+			if (el.checked && replaceID.length > 0 && replaceText.length > 0){
+
+				var replaceEl = document.getElementById(replaceID);
+				//alert (replaceEl);
+				if (replaceEl != null) {
+					replaceEl.innerHTML = replaceText;
+				}
+
+			}
 		})
 		.appendTo(this.output);
 
