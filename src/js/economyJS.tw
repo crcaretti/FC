@@ -3,7 +3,7 @@
 window.LivingRule = Object.freeze({LUXURIOUS: 'luxurious', NORMAL: 'normal', SPARSE: 'sparse'});
 window.Job = Object.freeze({
 	DAIRY: 'work in the dairy', MASTER_SUITE: 'serve in the master suite', CONCUBINE: 'be your concubine',
-	BABY_FACTORY: 'labor in the production line', BROTHEL: 'work in the brothel'});
+	BABY_FACTORY: 'labor in the production line', BROTHEL: 'work in the brothel', ARCADE: 'be confined in the arcade'});
 
 window.getSlaveCost = function(s) {
 	if(!s) { return 0; }
@@ -14,13 +14,18 @@ window.getSlaveCost = function(s) {
 	var drugsCost = State.variables.drugsCost;
 	
 	// Living expenses
-	if(s.livingRules === LivingRule.LUXURIOUS) {
-		cost += rulesCost * (s.relationship >= 4 ? 3 : 4);
-	} else if(s.livingRules == LivingRule.NORMAL) {
-		cost += rulesCost * 2;
+	if((s.assignment !== Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment !== Job.ARCADE)) {
+		if(s.livingRules === LivingRule.LUXURIOUS) {
+			cost += rulesCost * (s.relationship >= 4 ? 3 : 4);
+		} else if(s.livingRules == LivingRule.NORMAL) {
+			cost += rulesCost * 2;
+		} else {
+			cost += rulesCost;
+		}
 	} else {
-		cost += rulesCost;
+		cost += rulesCost * .75;
 	}
+		
 	
 	// Food
 	cost += foodCost * 4;
@@ -64,38 +69,40 @@ window.getSlaveCost = function(s) {
 	
 	// Accessibility costs
 	if(State.variables.boobAccessibility !== 1 && s.boobs > 7500
-		&& (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2)) {
+		&& (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
 		cost += 50;
 	}
 	if(State.variables.pregAccessibility !== 1
 		&& ((s.preg > 30 && s.pregType >= 2) || (s.preg > 20 && s.pregType >= 10) || (s.preg > 10 && s.pregType >= 20) || s.bellyImplant >= 10000)
-		&& s.assignment != Job.BABY_FACTORY) {
+		&& s.assignment != Job.BABY_FACTORY && (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
 		cost += 100;
 	}
-	if(State.variables.dickAccessibility != 1 && s.dick > 45) {
+	if(State.variables.dickAccessibility != 1 && s.dick > 45 && (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
 		cost += 50;
 	}
-	if(State.variables.ballsAccessibility != 1 && s.balls > 90) {
+	if(State.variables.ballsAccessibility != 1 && s.balls > 90 && (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
 		cost += 50;
 	}
-	if(State.variables.buttAccessibility != 1 && s.butt > 15) {
+	if(State.variables.buttAccessibility != 1 && s.butt > 15 && (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
 		cost += 50;
 	}
-	if(!canSee(s)) {
+	if(!canSee(s) && (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
 		cost += 50;
 	} else if(s.eyes <= -1) {
 		cost += 25;
 	} else if(s.eyewear === 'blurring glasses' || s.eyewear === 'blurring contacts') {
 		cost += 25;
 	}
-	if(s.amp !== 0) {
-		if(s.amp === 1) {
+	if((s.assignment !== Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment !== Job.ARCADE)) {
+		if(s.amp !== 0) {
+			if(s.amp === 1) {
+				cost += rulesCost;
+			} else {
+				cost += rulesCost / 2;
+			}
+		} else if(!canWalk(s)) {
 			cost += rulesCost;
-		} else {
-			cost += rulesCost / 2;
 		}
-	} else if(!canWalk(s)) {
-		cost += rulesCost;
 	}
 	
 	// Maintenance
@@ -105,8 +112,10 @@ window.getSlaveCost = function(s) {
 	if(s.butt > 10 && s.buttImplantType === 1) {
 		cost += 50;
 	}
-	if(s.preg > 25 && s.universalRulesBirthing === 1) {
-		cost += 50;
+	if((s.assignment !== Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment !== Job.ARCADE)) {
+		if(s.preg > 25 && s.universalRulesBirthing === 1) {
+			cost += 50;
+		}
 	}
 
 	// Retirement account
