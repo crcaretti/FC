@@ -4621,9 +4621,20 @@
 <</if>>
 
 <<if $arcologies[0].FSSlimnessEnthusiast != "unset">>
-	<<if ($slaves[$i].boobs < 500) && ($slaves[$i].butt < 3) && ($slaves[$i].weight <= 10) && ($slaves[$i].muscles <= 30)>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName's graceful, girlish form; $pronoun furthers the fashion for slaves like $object.
-	<<FSChangePorn "SlimnessEnthusiast" 1>>
+	<<if ($slaves[$i].boobs < 500) && ($slaves[$i].butt < 3)>>
+		<<if $arcologies[0].FSPhysicalIdealist != "unset" && ($slaves[$i].weight <= 10)>>
+			<<set _slimAccept = 1>>
+		<<elseif $arcologies[0].FSHedonisticDecadence != "unset" && $slaves[$i].weight <= 30 && $slaves[$i].muscles <= 30>>
+			<<set _slimAccept = 1>>
+		<<elseif $arcologies[0].FSPhysicalIdealist == "unset" && $arcologies[0].FSHedonisticDecadence == "unset" && $slaves[$i].muscles <= 30 && ($slaves[$i].weight <= 10)>>
+			<<set _slimAccept = 1>>
+		<<else>>
+			<<set _slimAccept = 0>>
+		<</if>>
+		<<if _slimAccept == 1>>
+			Society @@.green;approves@@ of $slaves[$i].slaveName's graceful, girlish form; $pronoun furthers the fashion for slaves like $object.
+			<<FSChangePorn "SlimnessEnthusiast" 1>>
+		<</if>>
 	<</if>>
 	<<if ($slaves[$i].butt > 4) && ($slaves[$i].boobs > 800)>>
 	Society @@.red;disapproves@@ of $slaves[$i].slaveName's boorishly large tits and ass; $pronoun damages the fashion for slender slaves.
@@ -5240,6 +5251,9 @@
 		<</if>>
 		<<if tooBigBalls($slaves[$i])>>
 			<<set $anchors.push("balls")>>
+		<</if>>
+		<<if tooFatSlave($slaves[$i])>>
+			<<set $anchors.push("fat body")>>
 		<</if>>
 		<<if $anchors.length > 0>>
 			<<if $anchors.length > 2>>
@@ -6085,6 +6099,34 @@
 <</if>>
 <</if>>
 
+<<if $slaves[$i].weight >= 100>>
+	<<if $slaves[$i].weight > 190>>
+		$possessiveCap extreme obesity @@.red;directly affects@@ $possesive health.
+		<<set $slaves[$i].health -= 2>>
+		<<if random(1,200) < 5>>
+			$pronounCap experienced @@.red;severe@@ health complications due to $possessive weight this week. After extensive surgery, $possessive health was stabilized, though $possessive survival is not assured.
+			<<set $slaves[$i].health -= 80>>
+		<</if>>
+	<<elseif $slaves[$i].weight > 160>>
+		$possessiveCap obesity @@.red;directly affects@@ $possesive health.
+		<<set $slaves[$i].health-->>
+		<<if random(1,200) < 5>>
+			$pronounCap experienced @@.red;severe@@ health complications due to $possessive weight this week. After extensive surgery, $possessive health was stabilized.
+			<<set $slaves[$i].health -= 40>>
+		<</if>>
+	<<elseif $slaves[$i].weight > 130>>
+		<<if random(1,200) < 5>>
+			$pronounCap experienced @@.red;severe@@ health complications due to $possessive weight this week. After some rest, $pronoun recovered.
+			<<set $slaves[$i].health -= 20>>
+		<</if>>
+	<<elseif $slaves[$i].weight > 95>>
+		<<if random(1,200) < 5>>
+			$pronounCap experienced @@.red;minor@@ health complications due to $possessive weight this week. After some rest, $pronoun recovered.
+			<<set $slaves[$i].health -= 5>>
+		<</if>>
+	<</if>>
+<</if>>
+
 /* pregmod */
 <<if ($slaves[$i].scarheal == 5)>>
 	$slaves[$i].slaveName's wound has @@.green;healed@@ leaving a big scar. It is still @@.red;quite ugly@@ but doesn't hurt anymore.
@@ -6111,7 +6153,7 @@
 	<<if ($slaves[$i].accent >= 4)>>
 		<<if ($week - $slaves[$i].weekAcquired) > _minweeks - 5>>
 			<<set $slaves[$i].accent -= 1>>
-			<<set $slaves[$i].speechRules = "accent elimination">>
+			<<if $slaves[$i].speechRules == "language lessons">><<set $slaves[$i].speechRules = "accent elimination">><</if>>
 			<<if $slaves[$i].voice == 0 || $slaves[$i].lips > 95>>
 				$pronounCap has managed to pick up enough $language that @@.green;$object could now barely get $possessive point across.@@ If $pronoun were able to talk, that is.
 			<<else>>
@@ -6398,7 +6440,10 @@
 <<if $slaves[$i].burst != 1>>
 	<<if $slaves[$i].health <= -90 && $slaves[$i].assignment != "get treatment in the clinic">>
 		<<set _deathSeed = ($slaves[$i].health-$slaves[$i].physicalAge-($slaves[$i].chem*2)-($slaves[$i].addict*2))>>
-		<<if $slaves[$i].weight < -50 || $slaves[$i].weight >= 95>>
+		<<if $slaves[$i].weight < -50 || $slaves[$i].weight > 95>>
+			<<set _deathSeed -= 100>>
+		<</if>>
+		<<if $slaves[$i].weight > 190>>
 			<<set _deathSeed -= 100>>
 		<</if>>
 		<<if $slaves[$i].aphrodisiacs > 0>>
