@@ -2150,6 +2150,15 @@ Hormones for geldings:
 <</widget>>
 
 /%
+ Call as <<RAChangeDrugs>>
+%/
+<<widget "RAChangeDrugs">>
+<<replace #otherdrugs>>
+Other drugs: // Will be overriden by hormones and other drugs where applicable.// ''$currentRule.drug.''
+<</replace>>
+<</widget>>
+
+/%
  Call as <<RAChangeDiet>>
 %/
 <<widget "RAChangeDiet">>
@@ -3798,12 +3807,77 @@ check if a rule attribute, any one, is defined and otherwise skip everything.
 
 <</if>> /* CLOSES FUCKDOLL CHECK */
 
+<<if (def _combinedRule.drug) && (_combinedRule.drug != "no default setting") && ($args[0].indentureRestrictions < 2)>>
+	<<switch _combinedRule.drug>>
+		<<case "none">>
+			<<if $args[0].drugs != "no drugs">>
+				<<set $args[0].drugs = "no drugs">>
+				<br>$args[0].slaveName has been taken off drugs.
+			<</if>>
+		<<case "psychosuppresants">>
+			<<if $args[0].intelligence > -2 && $args[0].drugs != "psychosuppresants">>
+				<<set $args[0].drugs = "psychosuppresants">>
+				<br>$args[0].slaveName is too smart, she has been put on psychosuppresants to make her easier to mold.
+			<<elseif $args[0].drugs == "psychosuppresants">>
+				<<set $args[0].drugs = "no drugs">>
+				<br>$args[0].slaveName is extremely stupid, so psychosuppresants would have no further effects on her.
+			<</if>>
+		<<case "steroids">>
+			<<if $args[0].drugs != "steroids">>
+				<<set $args[0].drugs = "steroids">>
+				<br>$args[0].slaveName has been put on a regimen of steroids to bulk up.
+			<</if>>
+		<<case "hormone injections">>
+			<<if $args[0].breedingMark != 1>>
+				<<if ($args[0].ovaries == 1 || $args[0].mpreg == 1) && $args[0].pubertyXX == 0 && $args[0].drugs != "female hormone injections">>
+					<<set $args[0].drugs = "female hormone injections">>
+					<br>$args[0].slaveName is now taking female hormone injections in an attempt to induce pubery sooner.
+				<<elseif $args[0].balls > 0 && $args[0].pubertyXY == 0 && $args[0].drugs != "male hormone injections">>
+					<<set $args[0].drugs = "male hormone injections">>
+					<br>$args[0].slaveName is now taking male hormone injections in an attempt to induce puberty sooner.
+				<<elseif $args[0].drugs == "male hormone injections" || $args[0].drugs == "female hormone injections">>
+					<<set $args[0].drugs = "no drugs">>
+					<br>$args[0].slaveName has no further need for puberty-inducing drugs.
+				<</if>>
+			<</if>>
+		<<case "hormone enhancers">>
+			<<if $args[0].drugs != "hormone enhancers">>
+				<<set $args[0].drugs = "hormone enhancers">>
+				<br>$args[0].slaveName has been put on a regimen of natural hormone enhancers.
+			<</if>>
+		<<case "nipple atrophiers">>
+			<<if ($args[0].nipples == "huge" || $args[0].nipples == "puffy" || $args[0].nipples == "cute") && $args[0].drugs != "nipple atrophiers">>
+				<<set $args[0].drugs = "nipple atrophiers">>
+				<br>$args[0].slaveName has been put on nipple reducing drugs to shrink her $args[0].nipples nipples.
+			<<elseif $args[0].drugs == "nipple atrophiers">>
+				<<set $args[0].drugs = "no drugs">>
+				<br>$args[0].slaveName has been taken off of nipple reducing drugs because they would have no further benefit.
+			<</if>>
+		<<case "weight-loss pills">>
+			<<if $args[0].weight > -95 && $args[0].drugs != "weight-loss pills">>
+				<<set $args[0].drugs = "weight-loss pills">>
+				<br>$args[0].slaveName has been put on weight-loss pills.
+			<<elseif $args[0].drugs == "weight-loss pills">>
+				<<set $args[0].drugs = "no drugs">>
+				<br>$args[0].slaveName has been taken off of weight-loss drugs as she would likely starve with further treatments.
+			<</if>>
+		<<case "anti-aging cream">>
+			<<if $args[0].visualAge > 18 && $args[0].drugs != "anti-aging cream">>
+				<<set $args[0].drugs = "anti-aging cream">>
+				<br>$args[0].slaveName is now on a regimen of creams designed to combat aging.
+			<<elseif $args[0].drugs == "anti-aging cream">>
+				<<set $args[0].drugs = "no drugs">>
+				<br>$args[0].slaveName is youthful enough that further anti-aging treatments will have no effect.
+			<</if>>
+	<</switch>>
+<</if>>
+
 <<if (def _combinedRule.growth) && (_combinedRule.growth !== "no default setting")>>
 <<if (_combinedRule.growth == "none")>>
 	<<switch $args[0].drugs>>
-		<<case "no drugs" "psychosuppressants" "fertility drugs" "steroids" "hormone enhancers" "super fertility drugs" "hyper breast injections" "hyper butt injections" "hyper penis enhancement" "hyper testicle enhancement" "female hormone injections" "male hormone injections" "anti-aging cream" "appetite suppressors" "penis atrophiers" "testicle atrophiers" "clitoris atrophiers" "labia atrophiers" "nipple atrophiers" "lip atrophiers" "breast redistributors" "butt redistributors">> /* list all non-growth drugs here */
+		<<case "no drugs" "psychosuppressants" "fertility drugs" "steroids" "hormone enhancers" "super fertility drugs" "female hormone injections" "male hormone injections" "anti-aging cream" "appetite suppressors" "labia atrophiers" "nipple atrophiers">> /* list all non-growth drugs here */
 			/* nothing to do */
-		<<case "butt injections" "breast injections" "lip injections" "penis enhancement" "testicle enhancement">>
+		<<case "butt injections" "breast injections" "lip injections" "penis enhancement" "testicle enhancement" "clitoris atrophiers" "penis atrophiers" "testicle atrophiers" "lip atrophiers" "breast redistributors" "butt redistributors" "hyper breast injections" "hyper butt injections" "hyper penis enhancement" "hyper testicle enhancement">>
 			<<set $args[0].drugs = "no drugs">>
 			<br>$args[0].slaveName has been taken off growth drugs.
 		<<default>> /* code should never reach this point */
@@ -3823,33 +3897,59 @@ check if a rule attribute, any one, is defined and otherwise skip everything.
 	<<elseif ($args[0].drugs == "lip injections") || ($args[0].drugs == "breast injections") || ($args[0].drugs == "butt injections")>>
 		<<set $args[0].drugs = "no drugs">>
 		<br>$args[0].slaveName has reached growth targets and has been taken off growth injections.
+	<<elseif $arcologies[0].FSSlimnessEnthusiastResarch == 1>>
+		<<if ($args[0].butt > 2)>>
+			<<set $args[0].drugs = "butt redistributors">>
+			<br>$args[0].slaveName's butt is too big, so she's been put on buttock reduction drugs.
+		<<elseif ($args[0].boobs > 350)>>
+			<<set $args[0].drugs = "breast redistributors">>
+			<br>$args[0].slaveName's tits are too big, so she's been put on breast reduction drugs.
+		<<elseif ($args[0].lips >= 20)>>
+			<<set $args[0].drugs = "lip atrophiers">>
+			<br>$args[0].slaveName's lips are too big, so she's been put on lip reduction drugs.
+		<<elseif ($args[0].drugs == "lip atrophiers") || ($args[0].drugs == "breast atrophiers") || ($args[0].drugs == "butt atrophiers")>>
+			<<set $args[0].drugs = "no drugs">>
+			<br>$args[0].slaveName has reached growth targets and has been taken off growth injections.
+		<</if>>
 	<</if>>
 <<elseif (_combinedRule.growth == "stacked")>>
+	<<if $arcologies[0].FSAssetExpansionistResearch == 1>>	
+		<<set _hyper = "">>
+	<<else>>
+		<<set _hyper = "hyper ">>
+	<</if>>
 	<<if ($args[0].butt < 2)>>
-		<<set $args[0].drugs = "butt injections">>
-		<br>$args[0].slaveName's butt is tiny, so she's been put on buttock growth drugs.
+		<<set $args[0].drugs = _hyper + "butt injections">>
+		<br>$args[0].slaveName's butt is tiny, so she's been put on _hyper buttock growth drugs.
 	<<elseif ($args[0].butt < 4) && ($args[0].hips > -2)>>
-		<<set $args[0].drugs = "butt injections">>
-		<br>$args[0].slaveName's hips can support a bigger butt, so she's been put on buttock growth drugs.
+		<<set $args[0].drugs = _hyper + "butt injections">>
+		<br>$args[0].slaveName's hips can support a bigger butt, so she's been put on _hyper buttock growth drugs.
 	<<elseif ($args[0].boobs < 1000)>>
-		<<set $args[0].drugs = "breast injections">>
-		<br>$args[0].slaveName's tits aren't large, so she's been put on breast growth drugs.
+		<<set $args[0].drugs = _hyper + "breast injections">>
+		<br>$args[0].slaveName's tits aren't large, so she's been put on _hyper breast growth drugs.
 	<<elseif ($args[0].dick > 0) && ($args[0].dick < 4) && ($args[0].balls > 0)>>
-		<<set $args[0].drugs = "penis enhancement">>
-		<br>$args[0].slaveName's dick isn't large, so she's been put on penis enhancement.
+		<<set $args[0].drugs = _hyper + "penis enhancement">>
+		<br>$args[0].slaveName's dick isn't large, so she's been put on _hyper penis enhancement.
 	<<elseif ($args[0].lips <= 20)>>
-		<<set $args[0].drugs = "lip injections">>
-		<br>$args[0].slaveName's has been put on lip growth injections.
+		<<set $args[0].drugs = _hyper + "lip injections">>
+		<br>$args[0].slaveName's has been put on _hyper lip growth injections.
 	<<elseif ($args[0].scrotum > 0) && ($args[0].balls < 4) && ($args[0].balls > 0)>>
-		<<set $args[0].drugs = "testicle enhancement">>
-		<br>$args[0].slaveName's balls aren't large, so she's been put on testicle enhancement.
+		<<set $args[0].drugs = _hyper + "testicle enhancement">>
+		<br>$args[0].slaveName's balls aren't large, so she's been put on _hyper testicle enhancement.
 	<<elseif $args[0].drugs != "no drugs">>
 		<<set $args[0].drugs = "no drugs">>
 		<br>$args[0].slaveName has reached growth targets and has been taken off growth injections.
 	<</if>>
 <<elseif (_combinedRule.growth == "advSelect")>>
 	<br><<print growAdvSelector($args[0], _combinedRule)>>
+<<elseif (_combinedRule.growth == "advSelect") && $arcologies[0].FSSlimnessEnthusiastResearch == 1>>
+	<br><<print growAdvSelectorSlim($args[0], _combinedRule)>>
 <<else>>
+	<<if $arcologies[0].FSAssetExpansionistResearch == 1>>	
+		<<set _hyper = "">>
+	<<else>>
+		<<set _hyper = "hyper ">>
+	<</if>>
 	<<if ($args[0].hips > -1) && ($args[0].butt < 6) && ($args[0].butt < ($args[0].boobs/500))>>
 		<<set $args[0].drugs = "butt injections">>
 		<br>$args[0].slaveName's hips can support a bigger butt, and her butt is behind her tits, so she's been put on butt injections.
@@ -3878,11 +3978,11 @@ check if a rule attribute, any one, is defined and otherwise skip everything.
 		<<set $args[0].drugs = "breast injections">>
 		<br>$args[0].slaveName could handle bigger tits, so she's been put on breast injections.
 	<<elseif ($args[0].dick > 0) && ($args[0].dick < 10) && (_combinedRule.growth == "unlimited")>>
-		<<set $args[0].drugs = "penis enhancement">>
-		<br>$args[0].slaveName's dick could be bigger, so she's been put on penis enhancement.
+		<<set $args[0].drugs = _hyper + "penis enhancement">>
+		<br>$args[0].slaveName's dick could be bigger, so she's been put on _hyper penis enhancement.
 	<<elseif ($args[0].boobs < 24000) && (_combinedRule.growth == "unlimited")>>
-		<<set $args[0].drugs = "breast injections">>
-		<br>$args[0].slaveName's boobs could be bigger, so she's been put on breast injections.
+		<<set $args[0].drugs = _hyper + "breast injections">>
+		<br>$args[0].slaveName's boobs could be bigger, so she's been put on _hyper breast injections.
 	<<elseif $args[0].drugs != "no drugs">>
 		<<set $args[0].drugs = "no drugs">>
 		<br>$args[0].slaveName has reached growth targets and has been taken off growth injections.
