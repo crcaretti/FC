@@ -8,6 +8,8 @@
  *     with Gaussian distribution (mean = 1, standard deviation = 0.05) around the mean height
  * Height.random(nationality, race, genes) - returns a random height for the given combination of an adult, as above
  * Height.random(slave) - returns a random height for the given slave, as above
+ * Height.forAge(height, age, genes) - returns the height adapted to the age and genes
+ * Height.forAge(height, slave) - returns the height adapted to the slave's age and genes
  */
 window.Height = (function(){
 	const xxMeanHeight = {
@@ -61,37 +63,63 @@ window.Height = (function(){
 		return Math.clamp(Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v), -max, max);
 	};
 	
+	// Helper method - apply age and genes to the adult height
+	const applyAge = function(height, age, genes) {
+		if(!_.isFinite(age) || age < 2 || age >= 20) {
+			return height;
+		}
+		let minHeight = 0, midHeight = 0, midAge = 15;
+		switch(genes) {
+			case 'XX': // female
+			case 'XXX': // Triple X syndrome female
+				minHeight = 85; midHeight = height * 157 / 164; midAge = 13;
+				break;
+			case 'XY': // male
+			case 'XXY': // Kinefelter syndrome male
+			case 'XYY': // XYY syndrome male
+				minHeight = 86; midHeight = height * 170 / 178; midAge = 15;
+				break;
+			case 'X0': case 'X': // Turner syndrome female
+				minHeight = 85 * 0.93; midHeight = height * 157 / 164; midAge = 13;
+				break;
+			default:
+				minHeight = 85.5, midHeight = height * 327 / 342, midAge = 14;
+				break;
+		}
+		if(age > midAge) {
+			// end of puberty to 20
+			return interpolate(midAge, midHeight, 20, height, age);
+		} else {
+			// 2 to end of puberty
+			return interpolate(2, minHeight, midAge, midHeight, age);
+		}
+	};
+	
 	const _meanHeight = function(nationality, race, genes, age) {
 		if(_.isObject(nationality)) {
 			// We got called with a single slave as the argument
 			return _meanHeight(nationality.nationality, nationality.race, nationality.genes, nationality.physicalAge + nationality.birthWeek / 52.0);
 		}
-		let result = 0, minHeight = 0, midHeight = 0, midAge = 15;
+		let result = 0;
 		switch(genes) {
 			case 'XX': // female
 				result = nationalityMeanHeight(xxMeanHeight, nationality, race);
-				minHeight = 85; midHeight = result * 157/164; midAge = 13;
 				break;
 			case 'XY': // male
 				result = nationalityMeanHeight(xyMeanHeight, nationality, race);
-				minHeight = 86; midHeight = result * 170/178; midAge = 15;
 				break;
 			// special cases. Extra SHOX genes on X and Y chromosomes make for larger people
 			case 'X0': case 'X': // Turner syndrome female
 				result = nationalityMeanHeight(xxMeanHeight, nationality, race) * 0.93;
-				minHeight = 85 * 0.93; midHeight = result * 157/164; midAge = 13;
 				break;
 			case 'XXX': // Triple X syndrome female
 				result = nationalityMeanHeight(xxMeanHeight, nationality, race) * 1.03;
-				minHeight = 85; midHeight = result * 157/164; midAge = 13;
 				break;
 			case 'XXY': // Kinefelter syndrome male
 				result = nationalityMeanHeight(xyMeanHeight, nationality, race) * 1.03;
-				minHeight = 86; midHeight = result * 170/178; midAge = 15;
 				break;
 			case 'XYY': // XYY syndrome male
 				result = nationalityMeanHeight(xyMeanHeight, nationality, race) * 1.04;
-				minHeight = 86; midHeight = result * 170/178; midAge = 15;
 				break;
 			case 'Y': case 'Y0': case 'YY': case 'YYY':
 				console.log("Height.mean(): non-viable genes " + genes);
@@ -100,29 +128,29 @@ window.Height = (function(){
 				console.log("Height.mean(): unknown genes " + genes + ", returning mean between XX and XY");
 				result = nationalityMeanHeight(xxMeanHeight, nationality, race) * 0.5
 					+ nationalityMeanHeight(xyMeanHeight, nationality, race) * 0.5;
-				minHeight = 85.5, midHeight = result * 327/342, midAge = 14;
 				break;
 		}
-		if(_.isFinite(age) && age >= 2 && age < 20) {
-			if(age > midAge) {
-				// end of puberty to 20
-				result = interpolate(midAge, midHeight, 20, result, age);
-			} else {
-				// 2 to end of puberty
-				result = interpolate(2, minHeight, midAge, midHeight, age);
-			}
-		}
-		return result;
+		return applyAge(result, age, genes);
 	};
 	
 	const _randomHeight = function(nationality, race, genes, age) {
 		const mean = _meanHeight(nationality, race, genes, age);
 		return mean * (1 + constrainedGaussian(3) * 0.05);
-	}
+	};
+	
+	const _forAge = function(height, age, genes) {
+		if(_.isObject(age)) {
+			// We got called with a slave as a second argument
+			return applyAge(height, age.physicalAge + age.birthWeek / 52.0, age.genes);
+		} else {
+			return applyAge(height, age, genes);
+		}
+	};
 	
 	return {
 		mean: _meanHeight,
 		random: _randomHeight,
+		forAge: _forAge,
 	};
 })();
 
