@@ -1,5 +1,131 @@
 :: UtilJS [script]
 
+/*
+ * Height.mean(nationality, race, genes, age) - returns the mean height for the given combination and age in years (>=2)
+ * Height.mean(nationality, race, genes) - returns the mean adult height for the given combination
+ * Height.mean(slave) - returns the mean (expected) height for the given slave
+ * Height.random(nationality, race, genes, age) - returns a random height for the given combination,
+ *     with Gaussian distribution (mean = 1, standard deviation = 0.05) around the mean height
+ * Height.random(nationality, race, genes) - returns a random height for the given combination of an adult, as above
+ * Height.random(slave) - returns a random height for the given slave, as above
+ */
+window.Height = (function(){
+	const xxMeanHeight = {
+		"American.white": 165, "American.black": 163.6, "American.latina": 158.9, "American.asian": 158.4, "American": 161.8,
+		"Afghan": undefined, "Algerian": 162, "Argentinian": 159.6, "Armenian": undefined, "Australian": 161.8, "Austrian": 166,
+		"Bangladeshi": undefined, "Belarusian": 166.8, "Belgian": 168.1, "Bolivian": 142.2, "Brazilian": 158.8,
+		"British": 161.9, "Burmese": undefined, "Canadian": 162.3, "Chilean": 157.2, "Chinese": 155.8, "Colombian": 158.7,
+		"Congolese": 157.7, "Cuban": 156, "Czech": 167.22, "Danish": 168.7, "Dominican": 156.4, "Dutch": 169, "Egyptian": 158.9,
+		"Emirati": 158.9, "Estonian": 165.5, "Ethiopian": undefined, "Filipina": undefined, "Finnish": 165.3, "French": 162.5,
+		"German": 162.8, "Ghanan": 158.5, "Greek": 165, "Guatemalan": undefined, "Haitian": undefined, "Hungarian": 164,
+		"Icelandic": 168, "Indian": 151.9, "Indonesian": 147, "Iranian": 157.2, "Iraqi": 155.8, "Irish": 163, "Israeli": 166,
+		"Italian": 162.5, "Jamaican": 160.8, "Japanese": 158, "Jordanian": undefined, "Kazakh": 159.8, "Kenyan": undefined,
+		"Korean": 156.15, "Lebanese": 165, "Libyan": 160.5, "Lithuanian": 167.5, "Malaysian": 154.7, "Malian": 160.4,
+		"Mexican": 154, "Moroccan": 158.5, "Nepalese": 150.8, "Nigerian": 163.8, "Norwegian": 157.8, "Omani": undefined,
+		"Pakistani": 151.9, "Peruvian": 151, "Polish": 165.1, "Portuguese": 165.1, "Puerto Rican": 158.9, "Romanian": 157,
+		"Russian": 164.1, "Saudi": 156.3, "Scottish": 163, "Serbian": 166.8, "Slovak": 165.6, "South African": 159,
+		"Spanish": 162.6, "Sudanese": undefined, "Swedish": 166.8, "Swiss": 162.5, "Tanzanian": undefined, "Thai": 159,
+		"Tunisian": 160, "Turkish": 161.9, "Ugandan": undefined, "Ukrainian": 164.8, "Uzbek": 159.9, "Venezuelan": 159,
+		"Vietnamese": 155.2, "Yemeni": undefined, "a New Zealander": 164, "Zimbabwean": undefined, 
+		"": 162.5 // default
+	};
+	const xyMeanHeight = {
+		"American.white": 178.2, "American.black": 177.4, "American.latina": 172.5, "American.asian": 172.5, "American": 176.4, 
+		"Afghan": undefined, "Algerian": 172.2, "Argentinian": 174.46, "Armenian": undefined, "Australian": 175.6,
+		"Austrian": 179, "Bangladeshi": undefined, "Belarusian": 176.9, "Belgian": 178.7, "Bolivian": 160, "Brazilian": 170.7,
+		"British": 175.3, "Burmese": undefined, "Canadian": 175.1, "Chilean": 169.6, "Chinese": 167.1, "Colombian": 170.6,
+		"Congolese": 158.9, "Cuban": 168, "Czech": 180.31, "Danish": 180.4, "Dominican": 168.4, "Dutch": 181, "Egyptian": 170.3,
+		"Emirati": 170.3, "Estonian": 179.1, "Ethiopian": undefined, "Filipina": undefined, "Finnish": 178.9, "French": 175.6,
+		"German": 175.4, "Ghanan": 169.5, "Greek": 177, "Guatemalan": undefined, "Haitian": undefined, "Hungarian": 176,
+		"Icelandic": 181, "Indian": 164.7, "Indonesian": 158, "Iranian": 170.3, "Iraqi": 165.4, "Irish": 177, "Israeli": 177,
+		"Italian": 176.5, "Jamaican": 171.8, "Japanese": 172, "Jordanian": undefined, "Kazakh": 169, "Kenyan": undefined,
+		"Korean": 168.15, "Lebanese": 176, "Libyan": 171.3, "Lithuanian": 177.2, "Malaysian": 166.3, "Malian": 171.3,
+		"Mexican": 167, "Moroccan": 172.7, "Nepalese": 163, "Nigerian": 163.8, "Norwegian": 179.63, "Omani": undefined,
+		"Pakistani": 164.7, "Peruvian": 164, "Polish": 178.7, "Portuguese": 173.9, "Puerto Rican": 172.5, "Romanian": 172,
+		"Russian": 177.2, "Saudi": 168.9, "Scottish": 177.6, "Serbian": 182, "Slovak": 179.4, "South African": 168,
+		"Spanish": 173.1, "Sudanese": undefined, "Swedish": 181.5, "Swiss": 178.2, "Tanzanian": undefined, "Thai": 170.3,
+		"Tunisian": 172.3, "Turkish": 173.6, "Ugandan": undefined, "Ukrainian": 176.5, "Uzbek": 175.4, "Venezuelan": 169,
+		"Vietnamese": 165.7, "Yemeni": undefined, "a New Zealander": 177, "Zimbabwean": undefined,
+		".white": 177.6, "": 172.5 // defaults
+	};
+	
+	// Helper method - table lookup for nationality/race combinations
+	const nationalityMeanHeight = function(table, nationality, race, def) {
+		return table[nationality + "." + race] || table[nationality] || table["." + race] || table[""] || def;
+	};
+	
+	// Helper method - Gaussian distributed random variable, constrained to +/-max, using Box-Muller transform
+	const constrainedGaussian = function(max) {
+	    var u = 1 - Math.random(); // Subtraction to flip [0, 1) to (0, 1].
+		var v = 1 - Math.random();
+		return Math.clamp(Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v), -max, max);
+	};
+	
+	const _meanHeight = function(nationality, race, genes, age) {
+		if(_.isObject(nationality)) {
+			// We got called with a single slave as the argument
+			return _meanHeight(nationality.nationality, nationality.race, nationality.genes, nationality.physicalAge + nationality.birthWeek / 52.0);
+		}
+		let result = 0, minHeight = 0, midHeight = 0, midAge = 15;
+		switch(genes) {
+			case 'XX': // female
+				result = nationalityMeanHeight(xxMeanHeight, nationality, race);
+				minHeight = 85; midHeight = result * 157/164; midAge = 13;
+				break;
+			case 'XY': // male
+				result = nationalityMeanHeight(xyMeanHeight, nationality, race);
+				minHeight = 86; midHeight = result * 170/178; midAge = 15;
+				break;
+			// special cases. Extra SHOX genes on X and Y chromosomes make for larger people
+			case 'X0': case 'X': // Turner syndrome female
+				result = nationalityMeanHeight(xxMeanHeight, nationality, race) * 0.93;
+				minHeight = 85 * 0.93; midHeight = result * 157/164; midAge = 13;
+				break;
+			case 'XXX': // Triple X syndrome female
+				result = nationalityMeanHeight(xxMeanHeight, nationality, race) * 1.03;
+				minHeight = 85; midHeight = result * 157/164; midAge = 13;
+				break;
+			case 'XXY': // Kinefelter syndrome male
+				result = nationalityMeanHeight(xyMeanHeight, nationality, race) * 1.03;
+				minHeight = 86; midHeight = result * 170/178; midAge = 15;
+				break;
+			case 'XYY': // XYY syndrome male
+				result = nationalityMeanHeight(xyMeanHeight, nationality, race) * 1.04;
+				minHeight = 86; midHeight = result * 170/178; midAge = 15;
+				break;
+			case 'Y': case 'Y0': case 'YY': case 'YYY':
+				console.log("Height.mean(): non-viable genes " + genes);
+				break;
+			default:
+				console.log("Height.mean(): unknown genes " + genes + ", returning mean between XX and XY");
+				result = nationalityMeanHeight(xxMeanHeight, nationality, race) * 0.5
+					+ nationalityMeanHeight(xyMeanHeight, nationality, race) * 0.5;
+				minHeight = 85.5, midHeight = result * 327/342, midAge = 14;
+				break;
+		}
+		if(_.isFinite(age) && age >= 2 && age < 20) {
+			if(age > midAge) {
+				// end of puberty to 20
+				result = interpolate(midAge, midHeight, 20, result, age);
+			} else {
+				// 2 to end of puberty
+				result = interpolate(2, minHeight, midAge, midHeight, age);
+			}
+		}
+		return result;
+	};
+	
+	const _randomHeight = function(nationality, race, genes, age) {
+		const mean = _meanHeight(nationality, race, genes, age);
+		return mean * (1 + constrainedGaussian(3) * 0.05);
+	}
+	
+	return {
+		mean: _meanHeight,
+		random: _randomHeight,
+	};
+})();
+
 if(!Array.prototype.findIndex) {
 	Array.prototype.findIndex = function(predicate) {
 		if (this == null) {
