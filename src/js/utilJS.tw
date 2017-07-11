@@ -4,14 +4,71 @@
  * Height.mean(nationality, race, genes, age) - returns the mean height for the given combination and age in years (>=2)
  * Height.mean(nationality, race, genes) - returns the mean adult height for the given combination
  * Height.mean(slave) - returns the mean (expected) height for the given slave
+ *
  * Height.random(nationality, race, genes, age) - returns a random height for the given combination,
  *     with Gaussian distribution (mean = 1, standard deviation = 0.05) around the mean height
  * Height.random(nationality, race, genes) - returns a random height for the given combination of an adult, as above
- * Height.random(slave) - returns a random height for the given slave, as above
+ * Height.random(slave[, options]) - returns a random height for the given slave, as above.
+ *                                   The additional options object can modify how the values are generated
+ *                                   in the same way setting them as global configuration would, but only for this
+ *                                   specific generation.
+ *
+ *                                   Example: Only generate above-average heights based on $activeSlave:
+ *                                   Height.random($activeSlave, {limitMult: [0, 5]})
+ *
  * Height.forAge(height, age, genes) - returns the height adapted to the age and genes
  * Height.forAge(height, slave) - returns the height adapted to the slave's age and genes
+ *
+ * Height.config(configuration) - configures the random height generator globally and returns the current configuration
+ *   The options and their default values are:
+ *   limitMult: [-3, 3] - Limit to the values the underlying (normal) random generator returns.
+ *                        In normal use, the values are almost never reached; only 0.27% of values are
+ *                        outside this range and need to be regenerated. With higher skew (see below),
+ *                        this might change.
+ *   spread: 0.05 - The random values generated are multiplied by this and added to 1 to generate
+ *                  the final height multiplier. The default value together with the default limitMult
+ *                  means that the generated height will always fall within (1 - 0.05 * 3) = 85% and
+ *                  (1 + 0.05 * 3) = 115% of the mean height.
+ *                  Minimum value: 0.001; maximum value: 0.5
+ *   skew: 0 - How much the height distribution skews to the right (positive) or left (negative) side
+ *             of the height.
+ *             Minimum value: -1000, maximum value: 1000
+ *   limitHeight: [0, 999] - Limit the resulting height range. Warning: A small height limit range
+ *                           paired with a high spread value results in the generator having to
+ *                           do lots of work generating and re-generating random heights until
+ *                           one "fits".
  */
 window.Height = (function(){
+	'use strict';
+	
+	// Global configuration (for different game modes/options/types)
+	var minMult = -3.0;
+	var maxMult = 3.0;
+	var skew = 0.0;
+	var spread = 0.05;
+	var minHeight = 0;
+	var maxHeight = 999;
+	
+	// Configuration method for the above values
+	const _config = function(conf) {
+		if(_.isUndefined(conf)) {
+			return {limitMult: [minMult, maxMult], limitHeight: [minHeight, maxHeight], skew: skew, spread: spread};
+		}
+		if(_.isFinite(conf.skew)) { skew = Math.clamp(conf.skew, -1000, 1000); }
+		if(_.isFinite(conf.spread)) { spread = Math.clamp(conf.spread, 0.001, 0.5); }
+		if(_.isArray(conf.limitMult) && conf.limitMult.length === 2 && conf.limitMult[0] !== conf.limitMult[1]
+			&& _.isFinite(conf.limitMult[0]) && _.isFinite(conf.limitMult[1])) {
+			minMult = Math.min(conf.limitMult[0], conf.limitMult[1]);
+			maxMult = Math.max(conf.limitMult[0], conf.limitMult[1]);
+		}
+		if(_.isArray(conf.limitHeight) && conf.limitHeight.length === 2 && conf.limitHeight[0] !== conf.limitHeight[1]
+			&& _.isFinite(conf.limitHeight[0]) && _.isFinite(conf.limitHeight[1])) {
+			minHeight = Math.min(conf.limitHeight[0], conf.limitHeight[1]);
+			maxHeight = Math.max(conf.limitHeight[0], conf.limitHeight[1]);
+		}
+		return {limitMult: [minMult, maxMult], limitHeight: [minHeight, maxHeight], skew: skew, spread: spread};
+	}
+	
 	const xxMeanHeight = {
 		"American.white": 165, "American.black": 163.6, "American.latina": 158.9, "American.asian": 158.4, "American": 161.8,
 		"Afghan": undefined, "Algerian": 162, "Argentinian": 159.6, "Armenian": undefined, "Australian": 161.8, "Austrian": 166,
@@ -56,13 +113,44 @@ window.Height = (function(){
 		return table[nationality + "." + race] || table[nationality] || table["." + race] || table[""] || def;
 	};
 	
-	// Helper method - Gaussian distributed random variable, constrained to +/-max, using Box-Muller transform
-	const constrainedGaussian = function(max) {
-	    var u = 1 - Math.random(); // Subtraction to flip [0, 1) to (0, 1].
-		var v = 1 - Math.random();
-		return Math.clamp(Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v), -max, max);
+	// Helper method - generate two independent Gaussian numbers using Box-Muller transform
+	const gaussianPair = function() {
+		let r = Math.sqrt(-2.0 * Math.log(1 - Math.random()));
+		let sigma = 2.0 * Math.PI * (1 - Math.random());
+		return [r * Math.cos(sigma), r * Math.sin(sigma)];
 	};
 	
+	// Helper method: Generate a skewed normal random variable with the skew s
+	// Reference: http://azzalini.stat.unipd.it/SN/faq-r.html
+	const skewedGaussian = function(s) {
+		let randoms = gaussianPair();
+		if(s === 0) {
+			// Don't bother, return an unskewed normal distribution
+			return randoms[0];
+		}
+		let delta = s / Math.sqrt(1 + s * s);
+		let result = delta * randoms[0] + Math.sqrt(1 - delta * delta) * randoms[1];
+		return randoms[0] >= 0 ? result : -result;
+	};
+	
+	// Height multiplier generator; skewed gaussian according to global parameters
+	const multGenerator = function() {
+		let result = skewedGaussian(skew);
+		while(result < minMult || result > maxMult) {
+			result = skewedGaussian(skew);
+		}
+		return result;
+	};
+	
+	// Helper method: Generate a height based on the mean one and limited according to config.
+	const heightGenerator = function(mean) {
+		let result = mean * (1 + multGenerator() * spread);
+		while(result < minHeight || result > maxHeight) {
+			result = mean * (1 + multGenerator() * spread);
+		}
+		return result;
+	};
+
 	// Helper method - apply age and genes to the adult height
 	const applyAge = function(height, age, genes) {
 		if(!_.isFinite(age) || age < 2 || age >= 20) {
@@ -135,7 +223,16 @@ window.Height = (function(){
 	
 	const _randomHeight = function(nationality, race, genes, age) {
 		const mean = _meanHeight(nationality, race, genes, age);
-		return mean * (1 + constrainedGaussian(3) * 0.05);
+		// If we got called with a slave object and options, temporarily modify
+		// our configuration.
+		if(_.isObject(nationality) && _.isObject(race)) {
+			const currentConfig = _config();
+			_config(race);
+			const result = heightGenerator(mean);
+			_config(currentConfig);
+			return result;
+		}
+		return heightGenerator(mean);
 	};
 	
 	const _forAge = function(height, age, genes) {
@@ -151,6 +248,7 @@ window.Height = (function(){
 		mean: _meanHeight,
 		random: _randomHeight,
 		forAge: _forAge,
+		config: _config,
 	};
 })();
 
