@@ -1,0 +1,227 @@
+:: Extended Family Mode JS [script]
+
+/* see documentation for details /devNotes/Extended Family Mode Explained.txt */
+
+window.sameDad = function(slave1, slave2){
+	if ((slave1.father == slave2.father) && (slave1.father != 0 && slave1.father != -2)) {
+		return true;
+	} else {
+		return false;
+	}
+};
+
+window.sameMom = function(slave1, slave2){
+	if ((slave1.mother == slave2.mother) && (slave1.mother != 0 && slave1.mother != -2)) {
+		return true;
+	} else {
+		return false;
+	}
+};
+
+// testtest catches the case if a mother is a father or a father a mother - thank you familyAnon, for this code
+window.sameTParent = function(slave1, slave2) {
+	if (slave1.mother == slave2.father && slave1.father == slave2.mother && slave1.mother != 0 && slave1.mother != -2 && slave1.father != 0 && slave1.father != -2 && slave1.mother != slave1.father) {
+		return 2;
+	} else if ((slave1.mother == slave2.father || slave1.father == slave2.mother) && slave1.mother != 0 && slave1.mother != -2 && slave2.mother != 0 && slave2.mother != -2 && slave1.mother != slave1.father) {
+		return 3;
+	} else {
+		return 0;
+	}
+};
+
+/*
+window.sameTParent = function(slave1, slave2) {
+	if ((slave1.mother == slave2.father || slave1.father == slave2.mother) && (slave1.mother != 0 && slave1.mother != -2 && slave1.father != 0 && slave1.father != -2)) {
+		return true; //testtest catches the case if a mother is a father or a father a mother
+	} else {
+		return false;
+	}
+};
+*/
+
+window.areTwins = function(slave1, slave2) {
+	if (sameDad(slave1, slave2) == false) {
+		return false;
+	} else if (sameMom(slave1, slave2) == false) {
+		return false;
+	} else if (slave1.actualAge == slave2.actualAge && slave1.birthWeek == slave2.birthWeek) {
+		return true;
+	} else {
+		return false;
+	}
+};
+
+window.areSisters = function(slave1, slave2) {
+	if (slave1.ID == slave2.ID) {
+		return 0; //you are not your own sister
+	} else if ((slave1.father != 0 && slave1.father != -2) || (slave1.mother != 0 && slave1.mother != -2)) {
+		if (sameDad(slave1, slave2) == false && sameMom(slave1, slave2) == true) {
+			return 3; //half sisters
+		} else if (sameDad(slave1, slave2) == true && sameMom(slave1, slave2) == false) {
+			return 3; //half sisters
+		} else if (sameTParent(slave1, slave2) == 3) {
+			return 3; //half sisters
+		} else if (sameTParent(slave1, slave2) == 2) {
+			return 2; //sisters
+		} else if (sameDad(slave1, slave2) == true && sameMom(slave1, slave2) == true) {
+			if (slave1.actualAge == slave2.actualAge && slave1.birthWeek == slave2.birthWeek) {
+				return 1; //twins
+			} else {
+				return 2; //sisters
+			}
+		} else {
+			return 0; //not related
+		}
+	} else {
+		return 0; //not related
+	}
+};
+
+/*
+//3 = half-sisters, 2 = sisters, 1 = twins, 0 = not related
+window.areSisters = function(c1, c2) {
+	if(c1.ID == c2.ID) {
+		return 0;
+	}
+	var sib = 4;
+	if(sameMom(c1, c2)) {
+		sib -= 1;
+	} 
+	if(sameDad(c1, c2)) {
+	   sib -=1;
+	}
+	if (sib == 2 && c1.actualAge == c2.actualAge && c1.birthWeek == c2.birthWeek) {
+		sib -= 1;
+	}
+	if(sib == 4) {
+		return 0
+	} else {
+		return sib;
+	}
+}
+*/
+
+window.totalRelatives = function(slave) {
+	var relatives = 0;
+	if (slave.mother > 0) {
+		relatives += 1
+	}
+	if (slave.father > 0) {
+		relatives += 1
+	}
+	if (slave.daughters > 0) {
+		relatives += slave.daughters
+	}
+	if (slave.sisters > 0) {
+		relatives += slave.sisters
+	}
+	return relatives
+};
+
+window.mutualChildren = function(slave1, slave2, slaves) { 
+	return slaves.filter(function(s) { return s.ID != slave1.ID && s.ID != slave2.ID && ((s.mother == slave1.ID && s.father == slave2.ID) || (s.mother == slave2.ID && s.father == slave1.ID)); }).length; 
+}
+
+window.isSlaveAvailable = function(slave) {
+	if (!slave) {
+		return null;
+	} else if (slave.assignment == "be your agent") {
+		return false;
+	} else if (slave.assignment == "live with your agent") {
+		return false;
+	} else if (slave.assignment == "be confined in the arcade") {
+		return false;
+	} else if (slave.assignment == "work in the dairy" && SugarCube.State.variables.DairyRestraintsSetting >= 2) {
+		return false;
+	} else {
+		return true;
+	}
+};
+
+if (typeof DairyRestraintsSetting == "undefined") {
+	var DairyRestraintsSetting = {
+		setSetting: function (setting) {
+			setting = Number(setting)
+			return setting
+		}
+	};
+	// Raise namespace scope to Global.
+	window.DairyRestraintsSetting = DairyRestraintsSetting;
+};
+
+/* OLD
+window.randomRelatedSlave = function(slave, filterFunction) {
+  if(!slave || !SugarCube) { return undefined; }
+  if(typeof filterFunction !==  'function') { filterFunction = function(s, index, array) { return true; }; }
+  return SugarCube.State.variables.slaves.filter(filterFunction).shuffle().find(function(s, index, array) {return areSisters(slave, s) || s.mother == slave.ID || s.father == slave.ID || slave.ID == s.mother || slave.ID == s.father; })
+}
+*/
+
+window.randomRelatedSlave = function(slave, filterFunction) {
+  if(!slave || !SugarCube) { return undefined; }
+  if(typeof filterFunction !== 'function') {
+    filterFunction = function(s, index, array) { return true; };
+  }
+  var arr = SugarCube.State.variables.slaves.filter(filterFunction)
+  arr.shuffle()
+  return arr.find(function(s, index, array) {
+    return areSisters(slave, s)
+      || slave.ID === s.mother
+      || slave.ID === s.father
+      || s.ID === slave.mother
+      || s.ID === slave.father;
+  })
+}
+
+window.randomRelatedAvailableSlave = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return isSlaveAvailable(s); });
+}
+
+window.randomSister = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return areSisters(slave, s); });
+}
+
+window.randomTwinSister = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return areSisters(slave, s) == 1; });
+}
+
+window.randomAvailableSister = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return isSlaveAvailable(s) && areSisters(slave, s); });
+}
+
+window.randomAvailableTwinSister = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return isSlaveAvailable(s) && areSisters(slave, s) == 1; });
+}
+
+window.randomDaughter = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return s.mother == slave.ID || s.father == slave.ID; });
+}
+
+window.randomAvailableDaughter = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return isSlaveAvailable(s) && (s.mother == slave.ID || s.father == slave.ID); });
+}
+
+window.randomParent = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return s.ID == slave.mother || s.ID == slave.father; });
+}
+
+window.randomAvailableParent = function(slave) {
+	return randomRelatedSlave(slave, function(s, index, array) { return isSlaveAvailable(s) && (s.ID == slave.mother || s.ID == slave.father); });
+}
+
+window.totalPlayerRelatives = function(pc) {
+	var relatives = 0;
+	if (pc.mother > 0) {
+		relatives += 1
+	}
+	if (pc.father > 0) {
+		relatives += 1
+	}
+	if (pc.daughters > 0) {
+		relatives += pc.daughters
+	}
+	if (pc.sisters > 0) {
+		relatives += pc.sisters
+	}
+	return relatives
+};
