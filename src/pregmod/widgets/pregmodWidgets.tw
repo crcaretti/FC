@@ -1547,6 +1547,27 @@ Of her $slaves[$i].pregType children; $slaves[$i].reservedChildren were taken to
 
 <</widget>>
 
+<<widget "HeroSlavesCleanup">>
+<<run $heroSlaves.forEach(function(s) {
+	/* Nationalities, races, surnames random fill */
+	if(!s.nationality) {
+		s.nationality = setup.nationalityPoolSelector[Object.keys(setup.nationalityPoolSelector).random()].random();
+		/* Check for a pre-set race and if the nationality fits, else regenerate */
+		while(s.race && setup.raceSelector[s.nationality] && !setup.raceSelector[s.nationality].includes(s.race)) {
+			s.nationality = setup.nationalityPoolSelector[Object.keys(setup.nationalityPoolSelector).random()].random();
+		}
+	}
+	if(!s.race) {
+		s.race = (setup.raceSelector[s.nationality] || setup.raceSelector[""]).random();
+	}
+	if(!s.birthSurname) {
+		s.birthSurname = (setup.surnamePoolSelector[s.nationality + "." + s.race]
+			|| setup.surnamePoolSelector[s.nationality]
+			|| setup.whiteAmericanSlaveSurnames).random();
+	}
+})>>
+<</widget>>
+
 /* 
  Penetrative ability, ability to become pregnant, and canBreed() must be checked outside of this. Designed to assume .eggType == "human".
  $args[0] is the target to get pregnant.
