@@ -1,0 +1,2988 @@
+:: Slave Summary Widgets [nobr widget]
+
+/* Try to use cached summary */
+<<run setup.summaryCache = {}>>
+<<widget "SlaveSummary">>
+<<if $useSummaryCache>>
+	<<set _Slave = $args[0]>>
+	<<if !setup.summaryCache[_Slave.ID]>>
+		<<run setup.summaryCache[_Slave.ID] = new Wikifier(undefined, '<<SlaveSummaryUncached $args[0]>>').output>>
+	<</if>>
+	<<script>>
+		/*
+		 * NOTE: This is for text passages only. Links inside it need to have their events re-attached
+		 * Example basic code to do so:
+		 * jQuery(summary).find('.link-internal').each(function() {
+		 *   var el = jQuery(this);
+		 *   el.ariaClick({ one : true }, () => Engine.play(el.attr('data-passage')));
+		 * });
+		 */
+		this.output.append(setup.summaryCache[State.temporary.Slave.ID].cloneNode(true))<</script>>
+<<else>>
+	<<SlaveSummaryUncached $args[0]>>
+<</if>>
+<</widget>>
+
+<<widget "ClearSummaryCache">>
+<<if !$args[0]>>
+	<<set setup.summaryCache = {}>>
+<<elseif _.isObject($args[0]) && _.isFinite($args[0].ID)>>
+	<<set setup.summaryCache[$args[0].ID] = undefined>>
+<<else>>
+	<<set setup.summaryCache[$args[0]] = undefined>>
+<</if>>
+<</widget>>
+
+<<widget "SlaveSummaryUncached">>
+<<set _Slave = $args[0]>>
+<<if $abbreviateDevotion == 1>>
+	<<if _Slave.fetish == "mindbroken">>@@.red;MB@@
+	<<elseif _Slave.devotion < -95>>@@.darkviolet;VHate<<if $summaryStats>>[_Slave.devotion]<</if>>@@
+	<<elseif _Slave.devotion < -50>>@@.darkviolet;Hate<<if $summaryStats>>[_Slave.devotion]<</if>>@@
+	<<elseif _Slave.devotion < -20>>@@.mediumorchid;Res<<if $summaryStats>>[_Slave.devotion]<</if>>@@
+	<<elseif _Slave.devotion <= 20>>@@.yellow;Ambiv<<if $summaryStats>>[_Slave.devotion]<</if>>@@
+	<<elseif _Slave.devotion <= 50>>@@.hotpink;Accept<<if $summaryStats>>[_Slave.devotion]<</if>>@@
+	<<elseif _Slave.devotion <= 95>>@@.deeppink;Devo<<if $summaryStats>>[_Slave.devotion]<</if>>@@
+	<<else>>@@.magenta;Wor<<if $summaryStats>>[_Slave.devotion]<</if>>@@
+	<</if>>
+	<<if _Slave.fetish == "mindbroken">>
+	<<elseif _Slave.trust < -95>>@@.darkgoldenrod;ETerr<<if $summaryStats>>[_Slave.trust]<</if>>
+	<<elseif _Slave.trust < -50>>@@.goldenrod;Terr<<if $summaryStats>>[_Slave.trust]<</if>>
+	<<elseif _Slave.trust < -20>>@@.gold;Fright<<if $summaryStats>>[_Slave.trust]<</if>>
+	<<elseif _Slave.trust <= 20>>@@.yellow;Fear<<if $summaryStats>>[_Slave.trust]<</if>>
+	<<elseif _Slave.trust <= 50>>@@.mediumaquamarine;Caref<<if $summaryStats>>[_Slave.trust]<</if>>
+	<<elseif _Slave.trust < 95>>@@.mediumseagreen;Trust<<if $summaryStats>>[_Slave.trust]<</if>>
+	<<else>>@@.seagreen;VTrust <<if $summaryStats>>[_Slave.trust]<</if>>
+	<</if>>
+<<elseif $abbreviateDevotion == 2>>
+	<<if _Slave.fetish == "mindbroken">>@@.red;Mindbroken.@@
+	<<elseif _Slave.devotion < -95>>@@.darkviolet;Very hateful<<if $summaryStats>> [_Slave.devotion]<</if>>.@@
+	<<elseif _Slave.devotion < -50>>@@.darkviolet;Hateful<<if $summaryStats>> [_Slave.devotion]<</if>>.@@
+	<<elseif _Slave.devotion < -20>>@@.mediumorchid;Resistant<<if $summaryStats>> [_Slave.devotion]<</if>>.@@
+	<<elseif _Slave.devotion <= 20>>@@.yellow;Ambivalent<<if $summaryStats>> [_Slave.devotion]<</if>>.@@
+	<<elseif _Slave.devotion <= 50>>@@.hotpink;Accepting<<if $summaryStats>> [_Slave.devotion]<</if>>.@@
+	<<elseif _Slave.devotion <= 95>>@@.deeppink;Devoted<<if $summaryStats>> [_Slave.devotion]<</if>>.@@
+	<<else>>@@.magenta;Worshipful<<if $summaryStats>> [_Slave.devotion]<</if>>.@@
+	<</if>>
+	<<if _Slave.fetish == "mindbroken">>
+	<<elseif _Slave.trust < -95>>@@.darkgoldenrod;Extremely terrified<<if $summaryStats>> [_Slave.trust]<</if>>.@@
+	<<elseif _Slave.trust < -50>>@@.goldenrod;Terrified<<if $summaryStats>> [_Slave.trust]<</if>>.@@
+	<<elseif _Slave.trust < -20>>@@.gold;Frightened<<if $summaryStats>> [_Slave.trust]<</if>>.@@
+	<<elseif _Slave.trust <= 20>>@@.yellow;Fearful<<if $summaryStats>> [_Slave.trust]<</if>>.@@
+	<<elseif _Slave.trust <= 50>>@@.mediumaquamarine;Careful<<if $summaryStats>> [_Slave.trust]<</if>>.@@
+	<<elseif _Slave.trust < 95>>@@.mediumseagreen;Trusting<<if $summaryStats>> [_Slave.trust]<</if>>.@@
+	<<else>>@@.seagreen;Profoundly trusting<<if $summaryStats>> [_Slave.trust]<</if>>.@@
+	<</if>>
+<</if>>
+
+<<if _Slave.fuckdoll == 0>>
+<<if $abbreviateRules == 1>>
+<<switch _Slave.livingRules>>
+<<case "luxurious">>
+	''LS:Lux''
+<<case "normal">>
+	''LS:Nor''
+<<default>>
+	''LS:Spa''
+<</switch>>
+<<if canTalk(_Slave)>>
+<<switch _Slave.speechRules>>
+<<case "permissive">>
+	''SpR:P''
+<<case "accent elimination">>
+	''SpR:NoAcc''
+<<case "language lessons">>
+	''SpR:LL''
+<<default>>
+	''SpR:R''
+<</switch>>
+<</if>>
+<<switch _Slave.relationshipRules>>
+<<case "permissive">>
+	''ReR:P''
+<<case "just friends">>
+	''ReR:Fr''
+<<default>>
+	''ReR:R''
+<</switch>>
+<<switch _Slave.standardPunishment>>
+<<case "confinement">>
+	''Pun:Conf''
+<<case "whipping">>
+	''Pun:Whip''
+<<case "chastity">>
+	''Pun:Chas''
+<<default>>
+	''Pun:Situ''
+<</switch>>
+<<switch _Slave.standardReward>>
+<<case "relaxation">>
+	''Rew:Relx''
+<<case "drugs">>
+	''Rew:Drug''
+<<case "orgasm">>
+	''Rew:Orga''
+<<default>>
+	''Rew:Situ''
+<</switch>>
+<<switch _Slave.releaseRules>>
+<<case "permissive">>
+	''MaR:P''
+<<case "sapphic">>
+	''MaR:S''
+<<default>>
+	''MaR:R''
+<</switch>>
+<<elseif $abbreviateRules == 2>>
+Living standard: _Slave.livingRules.
+<<if canTalk(_Slave)>>Speech rules: _Slave.speechRules.<</if>>
+Relationship rules: _Slave.relationshipRules.
+Typical punishment: _Slave.standardPunishment.
+Typical reward: _Slave.standardReward.
+Release rules: _Slave.releaseRules.
+<</if>>
+<</if>>
+
+<<if _Slave.tired != 0>>Tired.<</if>>
+
+<<if $abbreviateDiet == 1>>
+	<<if _Slave.weight < -95>>
+		''@@.red;W---<<if $summaryStats>>[_Slave.weight]<</if>>@@''
+	<<elseif _Slave.weight < -30>>
+		<<if _Slave.hips < -1>>
+			''W--<<if $summaryStats>>[_Slave.weight]<</if>>''
+		<<else>>
+			''@@.red;W--<<if $summaryStats>>[_Slave.weight]<</if>>@@''
+		<</if>>
+	<<elseif _Slave.weight < -10>>
+		''W-<<if $summaryStats>>[_Slave.weight]<</if>>''
+	<<elseif _Slave.weight <= 10 >>
+		''W<<if $summaryStats>>[_Slave.weight]<</if>>''
+	<<elseif _Slave.weight <= 30>>
+		''W+<<if $summaryStats>>[_Slave.weight]<</if>>''
+	<<elseif _Slave.weight <= 95>>
+		<<if _Slave.hips > 1 || $arcologies[0].FSHedonisticDecadence != "unset">>
+			''W++<<if $summaryStats>>[_Slave.weight]<</if>>''
+		<<else>>
+			''@@.red;W++<<if $summaryStats>>[_Slave.weight]<</if>>@@''
+		<</if>>
+	<<elseif _Slave.weight <= 130>>
+		<<if _Slave.hips >= 2 || $arcologies[0].FSHedonisticDecadence != "unset">>
+			''W+++<<if $summaryStats>>[_Slave.weight]<</if>>''
+		<<else>>
+		''@@.red;W+++<<if $summaryStats>>[_Slave.weight]<</if>>@@''
+		<</if>>
+	<<elseif _Slave.weight <= 160>>
+		<<if $arcologies[0].FSHedonisticDecadence != "unset">>
+			''W++++<<if $summaryStats>>[_Slave.weight]<</if>>''
+		<<else>>
+			''@@.red;W++++<<if $summaryStats>>[_Slave.weight]<</if>>@@''
+		<</if>>
+	<<elseif _Slave.weight <= 190>>
+		<<if $arcologies[0].FSHedonisticDecadence != "unset">>
+			''W+++++<<if $summaryStats>>[_Slave.weight]<</if>>''
+		<<else>>
+			''@@.red;W+++++<<if $summaryStats>>[_Slave.weight]<</if>>@@''
+		<</if>>
+	<<else>>
+		<<if $arcologies[0].FSHedonisticDecadence != "unset">>
+			''W++++++<<if $summaryStats>>[_Slave.weight]<</if>>''
+		<<else>>
+			''@@.red;W++++++<<if $summaryStats>>[_Slave.weight]<</if>>@@''
+		<</if>>
+	<</if>>
+<<elseif $abbreviateDiet == 2>>
+	<<if _Slave.weight < -95>>
+		@@.red;Emaciated<<if $summaryStats>> [_Slave.weight]<</if>>.@@
+	<<elseif _Slave.weight < -30>>
+		<<if _Slave.hips < -1>>
+			Model-thin<<if $summaryStats>> [_Slave.weight]<</if>>.
+		<<else>>
+			@@.red;Very thin<<if $summaryStats>> [_Slave.weight]<</if>>.@@
+		<</if>>
+	<<elseif _Slave.weight < -10>>
+		Thin<<if $summaryStats>> [_Slave.weight]<</if>>.
+	<<elseif _Slave.weight <= 10 >>
+		Trim<<if $summaryStats>> [_Slave.weight]<</if>>.
+	<<elseif _Slave.weight <= 30>>
+		Plush<<if $summaryStats>> [_Slave.weight]<</if>>.
+	<<elseif _Slave.weight <= 95>>
+		<<if _Slave.hips > 1 || $arcologies[0].FSHedonisticDecadence != "unset">>
+			Nicely chubby<<if $summaryStats>> [_Slave.weight]<</if>>.
+		<<else>>
+			@@.red;Overweight<<if $summaryStats>> [_Slave.weight]<</if>>.@@
+		<</if>>
+	<<elseif _Slave.weight <= 130>>
+		<<if _Slave.hips >= 2 || $arcologies[0].FSHedonisticDecadence != "unset">>
+			Pleasantly soft and shapely<<if $summaryStats>> [_Slave.weight]<</if>>.
+		<<else>>
+		@@.red;Fat<<if $summaryStats>> [_Slave.weight]<</if>>.@@
+		<</if>>
+	<<elseif _Slave.weight <= 160>>
+		<<if $arcologies[0].FSHedonisticDecadence != "unset">>
+			Amazingly voluptuous<<if $summaryStats>> [_Slave.weight]<</if>>.
+		<<else>>
+		@@.red;Obese<<if $summaryStats>> [_Slave.weight]<</if>>.@@
+		<</if>>
+	<<elseif _Slave.weight <= 190>>
+		<<if $arcologies[0].FSHedonisticDecadence != "unset">>
+			SSBBW<<if $summaryStats>> [_Slave.weight]<</if>>.
+		<<else>>
+		@@.red;Super Obese<<if $summaryStats>> [_Slave.weight]<</if>>.@@
+		<</if>>
+	<<else>>
+		<<if $arcologies[0].FSHedonisticDecadence != "unset">>
+			Perfectly massive<<if $summaryStats>> [_Slave.weight]<</if>>.
+		<<else>>
+		@@.red;Dangerously Obese<<if $summaryStats>> [_Slave.weight]<</if>>.@@
+		<</if>>
+	<</if>>
+<</if>>
+
+<<if $abbreviateDiet == 1>>
+	<<switch _Slave.diet>>
+	<<case "restricted">>
+		''Di:W-''
+	<<case "fattening">>
+		''Di:W+''
+	<<case "XX">>
+		''Di:XX+''
+	<<case "XY">>
+		''Di:XY+''
+	<<case "XXY">>
+		''Di:XXY+''
+	<<case "muscle building">>
+		''Di:M+''
+	<<case "slimming">>
+		''Di:M-''
+	<<case "cum production">>
+		''Di:C+''
+	<<case "cleansing">>
+		''Di:H+''
+	<</switch>>
+	<<if _Slave.dietCum == 2>>
+		''Cum++''
+	<<elseif ((_Slave.dietCum == 1) && (_Slave.dietMilk == 0))>>
+		''Cum+''
+	<<elseif ((_Slave.dietCum == 1) && (_Slave.dietMilk == 1))>>
+		''Cum+ Milk+''
+	<<elseif ((_Slave.dietCum == 0) && (_Slave.dietMilk == 1))>>
+		''Milk+''
+	<<elseif (_Slave.dietMilk == 2)>>
+		''Milk++''
+	<</if>>
+<<elseif $abbreviateDiet == 2>>
+	<<switch _Slave.diet>>
+	<<case "restricted">>
+		Dieting.
+	<<case "fattening">>
+		Gaining weight.
+	<<case "XX">>
+		Estrogen rich.
+	<<case "XY">>
+		Testosterone rich.
+	<<case "XXY">>
+		Futanari mix.
+	<<case "muscle building">>
+		Pumping iron.
+	<<case "slimming">>
+		Slimming down.
+	<<case "cum production">>
+		Cum production.
+	<<case "cleansing">>
+		Cleansing.
+	<</switch>>
+	<<if _Slave.dietCum == 2>>
+		Diet Base: @@.cyan;Cum Based.@@
+	<<elseif ((_Slave.dietCum == 1) && (_Slave.dietMilk == 0))>>
+		Diet Base: Cum Added.
+	<<elseif ((_Slave.dietCum == 1) && (_Slave.dietMilk == 1))>>
+		Diet Base: Milk & Cum Added.
+	<<elseif ((_Slave.dietCum == 0) && (_Slave.dietMilk == 1))>>
+		Diet Base: Milk Added.
+	<<elseif (_Slave.dietMilk == 2)>>
+		Diet Base: @@.cyan;Milk Based.@@
+	<</if>>
+<</if>>
+
+<<if $abbreviateHealth == 1>>
+	<<if _Slave.health < -20>>
+		''@@.red;H<<if $summaryStats>>[_Slave.health]<</if>>@@''
+	<<elseif _Slave.health <= 20>>
+		''@@.yellow;H<<if $summaryStats>>[_Slave.health]<</if>>@@''
+	<<elseif _Slave.health > 20>>
+		''@@.green;H<<if $summaryStats>>[_Slave.health]<</if>>@@''
+	<</if>>
+<<elseif $abbreviateHealth == 2>>
+	<<if _Slave.health < -90>>
+		@@.red;On the edge of death<<if $summaryStats>> [_Slave.health]<</if>>.@@
+	<<elseif _Slave.health < -50>>
+		@@.red;Extremely unhealthy<<if $summaryStats>> [_Slave.health]<</if>>.@@
+	<<elseif _Slave.health < -20>>
+		@@.red;Unhealthy<<if $summaryStats>> [_Slave.health]<</if>>.@@
+	<<elseif _Slave.health <= 20>>
+		@@.yellow;Healthy<<if $summaryStats>> [_Slave.health]<</if>>.@@
+	<<elseif _Slave.health <= 50>>
+		@@.green;Very healthy<<if $summaryStats>> [_Slave.health]<</if>>.@@
+	<<elseif _Slave.health <= 90>>
+		@@.green;Extremely healthy<<if $summaryStats>> [_Slave.health]<</if>>.@@
+	<<else>>
+		@@.green;Unnaturally healthy<<if $summaryStats>> [_Slave.health]<</if>>.@@
+	<</if>>
+<</if>>
+
+<<if $abbreviateDrugs == 1>>
+	<<switch _Slave.drugs>>
+	<<case "breast injections">>
+		''Dr:Boobs+''
+	<<case "hyper breast injections">>
+		''Dr:Boobs++''
+	<<case "butt injections">>
+		''Dr:Butt+''
+	<<case "hyper butt injections">>
+		''Dr:Butt++''
+	<<case "lip injections">>
+		''Dr:Lip+''
+	<<case "fertility drugs">>
+		''Dr:Fert+''
+	<<case "super fertility drugs">>
+		''Dr:Fert++''
+	<<case "penis enhancement">>
+		''Dr:Dick+''
+	<<case "hyper penis enhancement">>
+		''Dr:Dick++''
+	<<case "testicle enhancement">>
+		''Dr:Balls+''
+	<<case "hyper testicle enhancement">>
+		''Dr:Balls++''
+	<<case "psychosuppressants">>
+		''Dr:Psych''
+	<<case "steroids">>
+		''Dr:Ster''
+	<<case "female hormone injections">>
+		''Dr:HormXX++''
+	<<case "male hormone injections">>
+		''Dr:HormXY++''
+	<<case "hormone enhancers">>
+		''Dr:Horm+''
+	<<case "anti-aging cream">>
+		''Dr:Age-''
+	<<case "appetite suppressors">>
+		''Dr:ApSup''
+	<<case "penis atrophiers">>
+		''Dr:Dick-''
+	<<case "testicle atrophiers">>
+		''Dr:Balls-''
+	<<case "clitoris atrophiers">>
+		''Dr:Clit-''
+	<<case "labia atrophiers">>
+		''Dr:Labia-''
+	<<case "nipple atrophiers">>
+		''Dr:Nipple-''
+	<<case "lip atrophiers">>
+		''Dr:Lip-''
+	<<case "breast redistributors">>
+		''Dr:Breast-''
+	<<case "butt redistributors">>
+		''Dr:Butt-''
+	<<case "sag-B-gone">>
+		''Dr:AntiSag''
+	<</switch>>
+	<<if _Slave.curatives == 2>>
+		''Cura''
+	<<elseif _Slave.curatives == 1>>
+		''Prev''
+	<</if>>
+	<<if _Slave.aphrodisiacs != 0>>
+	<<if _Slave.aphrodisiacs == 1>>
+		''Aph''
+	<<elseif _Slave.aphrodisiacs == 2>>
+		''Aph++''
+	<<else>>
+		''Anaph''
+	<</if>>
+	<</if>>
+	<<if _Slave.addict != 0>>
+		<<switch _Slave.aphrodisiacs>>
+		<<case 0>>
+		@@.cyan;Add@@
+		<<case 1>>
+			@@.cyan;Aph@@
+		<<case 2>>
+			@@.cyan;Aph++@@
+		<</switch>>
+	<<else>>
+		<<switch _Slave.aphrodisiacs>>
+		<<case 1>>
+			Aph
+		<<case 2>>
+			Aph++
+		<<case -1>>
+			Anaph
+		<</switch>>
+	<</if>>
+	<<if _Slave.hormones > 1>>
+		''Ho:F+''
+	<<elseif _Slave.hormones > 0>>
+		''Ho:F''
+	<<elseif _Slave.hormones < -1>>
+		''Ho:M+''
+	<<elseif _Slave.hormones < 0>>
+		''Ho:M''
+	<</if>>
+	<<if (_Slave.bellyImplant > 0)>>
+		''Belly Imp''
+	<<elseif ((_Slave.preg <= -2) || (_Slave.ovaries == 0)) && (_Slave.vagina != -1)>>
+		''Barr''
+	<<elseif _Slave.pubertyXX == 0 && (_Slave.ovaries == 1 || _Slave.mpreg == 1)>>
+		''Prepub''
+	<<elseif _Slave.physicalAge >= 47 && (_Slave.ovaries == 1 || _Slave.mpreg == 1)>>
+		''Meno''
+	<<elseif _Slave.preg == -1>>
+		''CC''
+	<<elseif _Slave.preg == 0 && (_Slave.ovaries == 1 || _Slave.mpreg == 1)>>
+		''Fert+''
+	<<elseif (_Slave.preg < 4) && (_Slave.preg > 0)>>
+		''Preg?''
+	<<elseif (_Slave.preg > 30) && (_Slave.pregType >= 50)>>
+		''Perm preg''
+	<<elseif _Slave.preg >= 4>>
+		''_Slave.preg wks preg''
+	<</if>>
+	<<if _Slave.induce == 1>>
+		''Early Labor''
+	<</if>>
+	<<if _Slave.pubertyXY == 0 && _Slave.balls > 0>>
+		''Prepub balls''
+	<</if>>
+	<<if _Slave.inflation == 3>>
+		''8 ltr _Slave.inflationType''
+	<<elseif _Slave.inflation == 2>>
+		''4 ltr _Slave.inflationType''
+	<<elseif _Slave.inflation == 1>>
+		''2 ltr _Slave.inflationType''
+	<</if>>
+<<elseif $abbreviateDrugs == 2>>
+	<<if (_Slave.drugs != "no drugs") && (_Slave.drugs != "none")>>
+		On _Slave.drugs.
+	<</if>>
+	<<if _Slave.curatives == 2>>
+		On curatives.
+	<<elseif _Slave.curatives == 1>>
+		On preventatives.
+	<</if>>
+	<<if _Slave.aphrodisiacs > 0>>
+		On <<if _Slave.aphrodisiacs > 1>>extreme <</if>>aphrodisiacs.
+	<<elseif _Slave.aphrodisiacs === -1>>
+		On anaphrodisiacs.
+	<</if>>
+	<<if _Slave.addict != 0>>
+		@@.cyan;Addict.@@
+	<</if>>
+	<<if _Slave.hormones > 1>>
+		''Heavy female hormones.''
+	<<elseif _Slave.hormones > 0>>
+		''Female hormones.''
+	<<elseif _Slave.hormones < -1>>
+		''Heavy male hormones.''
+	<<elseif _Slave.hormones < 0>>
+		''Male hormones.''
+	<</if>>
+	<<if (_Slave.bellyImplant > 0)>>
+		Belly Implant.
+	<<elseif ((_Slave.preg <= -2) || (_Slave.ovaries == 0)) && (_Slave.vagina != -1)>>
+		Barren.
+	<<elseif _Slave.pubertyXX == 0 && (_Slave.ovaries == 1 || _Slave.mpreg == 1)>>
+		Not ovulating yet.
+	<<elseif _Slave.physicalAge >= 47 && (_Slave.ovaries == 1 || _Slave.mpreg == 1)>>
+		Menopausal.
+	<<elseif _Slave.preg == -1>>
+		On contraceptives.
+	<<elseif _Slave.preg == 0 && (_Slave.ovaries == 1 || _Slave.mpreg == 1)>>
+		Fertile.
+	<<elseif (_Slave.preg < 4) && (_Slave.preg > 0)>>
+		May be pregnant.
+	<<elseif (_Slave.preg > 30) && (_Slave.pregType >= 50)>>
+		Permenantly pregnant.
+	<<elseif _Slave.preg >= 4>>
+		<<if _Slave.pregType < 2 || _Slave.pregType >= 50>>
+		_Slave.preg weeks pregnant.
+		<<else>>
+		_Slave.preg weeks pregnant with
+		<<if _Slave.pregType >= 20>>
+		a brood of offspring.
+		<<elseif _Slave.pregType >= 10>>
+		_Slave.pregType babies.
+		<<elseif _Slave.pregType > 4>>
+		quintuplets.
+		<<elseif _Slave.pregType == 4>>
+		quadruplets.
+		<<elseif _Slave.pregType == 3>>
+		triplets.
+		<<else>>
+		twins.
+		<</if>>
+		<</if>>
+	<</if>>
+	<<if _Slave.induce == 1>>
+		Showing signs of early labor.
+	<</if>>
+	<<if _Slave.pubertyXY == 0 && _Slave.balls > 0>>
+		Has not had first ejaculation.
+	<</if>>
+	<<if _Slave.inflation == 3>>
+		''Filled with 8 liters of _Slave.inflationType.''
+	<<elseif _Slave.inflation == 2>>
+		''Filled with 4 liters of _Slave.inflationType.''
+	<<elseif _Slave.inflation == 1>>
+		''Filled with 2 liters of _Slave.inflationType.''
+	<</if>>
+<</if>>
+
+<<if $abbreviateNationality+$abbreviateGenitalia+$abbreviatePhysicals+$abbreviateSkills+$abbreviateMental != 0>>
+	<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
+<</if>>
+
+<<SlaveTitle _Slave>>
+<<set $seed = $desc.substring(0,1)>>
+<<set $seed = $seed.toUpperCase()>>
+<<set $desc = $seed + $desc.substring(1)>>
+''@@.coral;$desc<<if $abbreviatePhysicals == 2>>.<</if>>@@''
+
+<<if $seeRace == 1>>
+@@.tan;
+<<if $abbreviateRace == 1>>
+<<switch _Slave.race>>
+<<case "white">>
+	C
+<<case "asian">>
+	A
+<<case "indo-aryan">>
+	I
+<<case "latina">>
+	L
+<<case "middle eastern">>
+	ME
+<<case "black">>
+	B
+<<case "pacific islander">>
+	PI
+<<case "malay">>
+	M
+<<case "amerindian">>
+	AI
+<<case "semitic">>
+	S
+<<case "southern european">>
+	SE
+<<case "mixed race">>
+	MR
+<<default>>
+	<<print _Slave.race.charAt(0).toUpperCase() + _Slave.race.charAt(1) + _Slave.race.charAt(2)>>
+<</switch>>
+<<elseif $abbreviateRace == 2>>
+<<switch _Slave.race>>
+<<case "white">>
+	Caucasian.
+<<case "asian">>
+	Asian.
+<<case "indo-aryan">>
+	Indo-aryan.
+<<case "latina">>
+	Latina.
+<<case "middle eastern">>
+	Middle Eastern.
+<<case "black">>
+	Black.
+<<case "pacific islander">>
+	Pacific Islander.
+<<case "malay">>
+	Malay.
+<<case "amerindian">>
+	Amerindian.
+<<case "semitic">>
+	Semitic.
+<<case "southern european">>
+	Southern European.
+<<case "mixed race">>
+	Mixed race.
+<<default>>
+	<<print _Slave.race.charAt(0).toUpperCase() + _Slave.race.slice(1)>>.
+<</switch>>
+<</if>>
+@@
+<</if>>
+
+<<if $abbreviateNationality == 1>>
+@@.tan;
+<<switch _Slave.nationality>>
+<<case "American">>
+	US
+<<case "Canadian">>
+	Can
+<<case "Puerto Rican">>
+	PR
+<<case "Cuban">>
+	Cub
+<<case "Haitian">>
+	Hai
+<<case "Jamaican">>
+	Jam
+<<case "Mexican">>
+	Mex
+<<case "Dominican">>
+	Dom
+<<case "Peruvian">>
+	Per
+<<case "Venezuelan">>
+	Ven
+<<case "Bolivian">>
+	Bol
+<<case "Guatemalan">>
+	Gtm
+<<case "Brazilian">>
+	Bra
+<<case "Argentinian">>
+	Arg
+<<case "Chilean">>
+	Chl
+<<case "Colombian">>
+	Col
+<<case "Egyptian">>
+	Egy
+<<case "Turkish">>
+	Tur
+<<case "Iranian">>
+	Irn
+<<case "Armenian">>
+	Arm
+<<case "Israeli">>
+	Isr
+<<case "Saudi">>
+	Sau
+<<case "Moroccan">>
+	Mor
+<<case "Nigerian">>
+	Ng
+<<case "Kenyan">>
+	Ken
+<<case "Zimbabwean">>
+	<<if _Slave.race == "white">>
+		Rho
+	<<else>>
+		Zwe
+	<</if>>
+<<case "Ugandan">>
+	Uga
+<<case "Tanzanian">>
+	Tza
+<<case "Ghanan">>
+	Gha
+<<case "Congolese">>
+	Cog
+<<case "Ethiopian">>
+	Eth
+<<case "South African">>
+	RSA
+<<case "Chinese">>
+	Chi
+<<case "Korean">>
+	Kor
+<<case "Japanese">>
+	Jpn
+<<case "Thai">>
+	Tha
+<<case "Vietnamese">>
+	Vnm
+<<case "Indonesian">>
+	Idn
+<<case "Filipina">>
+	Phl
+<<case "Burmese">>
+	Bur
+<<case "Nepalese">>
+	Npl
+<<case "Uzbek">>
+	Uzb
+<<case "Afghan">>
+	Afg
+<<case "Algerian">>
+	Alg
+<<case "Libyan">>
+	Lby
+<<case "Tunisian">>
+	Tun
+<<case "Lebanese">>
+	Lbn
+<<case "Jordanian">>
+	Jor
+<<case "Emirati">>
+	AE
+<<case "Omani">>
+	Omn
+<<case "Malian">>
+	Mal
+<<case "Sudanese">>
+	Sud
+<<case "Yemeni">>
+	Yem
+<<case "Iraqi">>
+	Irq
+<<case "Indian">>
+	Ind
+<<case "Malaysian">>
+	Mys
+<<case "Kazakh">>
+	Kaz
+<<case "Pakistani">>
+	Pak
+<<case "Bangladeshi">>
+	Bgd
+<<case "Belarusian">>
+	BeR
+<<case "Russian">>
+	Rus
+<<case "Ukrainian">>
+	Ukr
+<<case "Irish">>
+	Irl
+<<case "Icelandic">>
+	Isl
+<<case "Finnish">>
+	Fin
+<<case "Swiss">>
+	Swi
+<<case "Danish">>
+	Dan
+<<case "Norwegian">>
+	Nor
+<<case "Austrian">>
+	Aut
+<<case "Slovak">>
+	Svk
+<<case "Dutch">>
+	Nld
+<<case "Belgian">>
+	Bel
+<<case "Czech">>
+	Cze
+<<case "Serbian">>
+	Srb
+<<case "Portuguese">>
+	Por
+<<case "Hungarian">>
+	Hun
+<<case "Estonian">>
+	Est
+<<case "Polish">>
+	Pol
+<<case "Lithuanian">>
+	Lit
+<<case "Romanian">>
+	Rom
+<<case "German">>
+	Ger
+<<case "Swedish">>
+	Swe
+<<case "French">>
+	Fra
+<<case "Scottish">>
+	Sco
+<<case "Italian">>
+	Ita
+<<case "Greek">>
+	Gre
+<<case "Spanish">>
+	Spa
+<<case "British">>
+	GB
+<<case "Australian">>
+	Aus
+<<case "a New Zealander">>
+	NZ
+<<case "Ancient Egyptian Revivalist">>
+	Egy Rev
+<<case "Ancient Chinese Revivalist">>
+	Chi Rev
+<<case "Edo Revivalist">>
+	Edo Rev
+<<case "Roman Revivalist">>
+	Rom Rev
+<<case "Aztec Revivalist">>
+	Azt Rev
+<<case "Arabian Revivalist">>
+	Ara Rev
+<<case "slave" "none" "" "Stateless">>
+	None
+<<default>>
+	<<print _Slave.nationality.charAt(0) + _Slave.nationality.charAt(1) + _Slave.nationality.charAt(2)>>
+<</switch>>
+@@
+<<elseif $abbreviateNationality == 2>>
+@@.tan;
+<<switch _Slave.nationality>>
+<<case "Zimbabwean">>
+	<<if _Slave.race == "white">>
+		Rhodesian.
+	<<else>>
+		_Slave.nationality.
+	<</if>>
+<<case "slave" "none" "" "Stateless">>
+	Stateless.
+<<default>>
+	_Slave.nationality.
+<</switch>>
+@@
+<</if>>
+
+<<if $abbreviatePhysicals == 1>>
+@@.pink;
+	<<switch _Slave.skin>>
+	<<case "light brown">>
+		L. Br
+	<<case "extremely pale">>
+		Ex. Pa
+	<<case "tanned">>
+		Tan
+	<<case "dark" "fair" "pale">>
+		<<print _Slave.skin.charAt(0).toUpperCase() + _Slave.skin.slice(1)>>
+	<<default>>
+		<<print _Slave.skin.charAt(0).toUpperCase() + _Slave.skin.charAt(1) + _Slave.skin.charAt(2)>>
+	<</switch>>
+<<else>>
+<<print _Slave.skin.charAt(0).toUpperCase() + _Slave.skin.slice(1)>> skin.
+@@
+<</if>>
+<<if $abbreviateGenitalia == 1>>
+<<if _Slave.dick > 0>>
+@@.pink;
+<<if _Slave.balls == 0>>
+	Geld
+<</if>>
+<<if (_Slave.dick > 8) && (_Slave.balls > 5)>>
+	Junk+++
+<<elseif (_Slave.dick > 5) && (_Slave.balls > 5)>>
+	Junk++
+<<elseif (_Slave.dick > 4) && (_Slave.balls > 4)>>
+	Junk+
+<<elseif (_Slave.dick > 3) && (_Slave.balls > 3)>>
+	Junk
+<<elseif _Slave.dick > 8>>
+	Dick+++
+<<elseif _Slave.dick > 5>>
+	Dick++
+<<elseif _Slave.dick > 4>>
+	Dick+
+<<elseif _Slave.dick > 3>>
+	Dick
+<<elseif _Slave.balls > 10>>
+	Balls+++
+<<elseif _Slave.balls > 5>>
+	Balls++
+<<elseif _Slave.balls > 4>>
+	Balls+
+<<elseif _Slave.balls > 3>>
+	Balls
+<</if>>
+@@
+<</if>>
+<<if _Slave.vagina == 0>>
+	@@.lime;VV@@
+<<elseif (_Slave.preg > 0) && canWalk(_Slave) && (_Slave.clothes == "no clothing" || _Slave.clothes == "body oil") && (_Slave.shoes == "none")>>
+	@@.pink;NBP@@
+<</if>>
+<<if _Slave.anus == 0>>
+	@@.lime;AV@@
+<</if>>
+@@.pink;
+<<if (_Slave.vagina > 3) && (_Slave.anus > 3)>>
+	V++A++
+<<elseif (_Slave.vagina > 2) && (_Slave.anus > 2)>>
+	V+A+
+<<elseif _Slave.vagina > 3>>
+	V++
+<<elseif _Slave.vagina > 2>>
+	V+
+<<elseif _Slave.anus > 3>>
+	A++
+<<elseif _Slave.anus > 2>>
+	A+
+<</if>>
+@@
+<<elseif $abbreviateGenitalia == 2>>
+<<if _Slave.dick > 0>>
+@@.pink;
+<<if _Slave.balls == 0>>
+	Gelded.
+<</if>>
+<<if (_Slave.dick > 8) && (_Slave.balls > 5)>>
+	Hyper dick & balls.
+<<elseif (_Slave.dick > 5) && (_Slave.balls > 5)>>
+	Monster dick & balls.
+<<elseif (_Slave.dick > 4) && (_Slave.balls > 4)>>
+	Huge dick & balls.
+<<elseif (_Slave.dick > 3) && (_Slave.balls > 3)>>
+	Big dick & balls.
+<<elseif _Slave.dick > 8>>
+	Hyper dong.
+<<elseif _Slave.dick > 5>>
+	Monster dong.
+<<elseif _Slave.dick > 4>>
+	Huge dick.
+<<elseif _Slave.dick > 3>>
+	Big dick.
+<<elseif _Slave.balls > 5>>
+	Monstrous balls.
+<<elseif _Slave.balls > 4>>
+	Huge balls.
+<<elseif _Slave.balls > 3>>
+	Big balls.
+<</if>>
+@@
+<</if>>
+<<if _Slave.vagina == 0>>
+	@@.lime;Virgin.@@
+<<elseif (_Slave.preg > 0) && canWalk(_Slave) && (_Slave.clothes == "no clothing" || _Slave.clothes == "body oil") && (_Slave.shoes == "none")>>
+	@@.pink;Naked, barefoot, and pregnant.@@
+<</if>>
+<<if _Slave.anus == 0>>
+	@@.lime;Anal virgin.@@
+<</if>>
+@@.pink;
+<<if (_Slave.vagina > 3) && (_Slave.anus > 3)>>
+	Blown out holes.
+<<elseif (_Slave.vagina > 2) && (_Slave.anus > 2)>>
+	High mileage.
+<<elseif _Slave.vagina > 3>>
+	Cavernous pussy.
+<<elseif _Slave.vagina > 2>>
+	Loose pussy.
+<<elseif _Slave.anus > 3>>
+	Permagaped anus.
+<<elseif _Slave.anus > 2>>
+	Gaping anus.
+<</if>>
+@@
+<</if>>
+
+<<if $abbreviatePhysicals == 1>>
+@@.pink;
+<<if $showAgeDetail == 1>>
+	_Slave.actualAge
+<<elseif _Slave.actualAge >= 40>>
+	40s
+<<elseif _Slave.actualAge >= 35>>
+	Lt30s
+<<elseif _Slave.actualAge >= 30>>
+	Ea30s
+<<elseif _Slave.actualAge >= 25>>
+	Lt20s
+<<elseif _Slave.actualAge >= 20>>
+	Ea20s
+<<elseif _Slave.actualAge >= 18>>
+	_Slave.actualAge
+<</if>>
+<<if _Slave.actualAge != _Slave.physicalAge>>
+	<<print _Slave.physicalAge>>y-bdy
+<</if>>
+<<if _Slave.visualAge != _Slave.physicalAge>>
+	Lks<<print _Slave.visualAge>>
+<</if>>
+<<if _Slave.face < -95>>
+	@@.red;Face---<<if $summaryStats>>[_Slave.face]<</if>>@@
+<<elseif _Slave.face < -40>>
+	@@.red;Face--<<if $summaryStats>>[_Slave.face]<</if>>@@
+<<elseif _Slave.face < -10>>
+	@@.red;Face-<<if $summaryStats>>[_Slave.face]<</if>>@@
+<<elseif _Slave.face <= 10>>
+	Face<<if $summaryStats>>[_Slave.face]<</if>>
+<<elseif _Slave.face <= 40>>
+	@@.pink;Face+<<if $summaryStats>>[_Slave.face]<</if>>@@
+<<elseif _Slave.face <= 95>>
+	@@.pink;Face++<<if $summaryStats>>[_Slave.face]<</if>>@@
+<<else>>
+	@@.pink;Face+++<<if $summaryStats>>[_Slave.face]<</if>>@@
+<</if>>
+<<if _Slave.eyes == -2>>
+	@@.red;Blind@@
+<<elseif _Slave.eyes == -1 && (_Slave.eyewear != "corrective glasses") && (_Slave.eyewear != "corrective contacts")>>
+	@@.yellow;Sight-@@
+<</if>>
+
+<<if _Slave.markings != "none">>
+	Markings
+<</if>>
+
+<<if _Slave.lips > 95>>
+	Facepussy
+<<elseif _Slave.lips > 70>>
+	Lips+++<<if $summaryStats>>[_Slave.lips]<</if>>
+<<elseif _Slave.lips > 40>>
+	Lips++<<if $summaryStats>>[_Slave.lips]<</if>>
+<<elseif _Slave.lips > 20>>
+	Lips+<<if $summaryStats>>[_Slave.lips]<</if>>
+<<elseif _Slave.lips > 10>>
+	Lips<<if $summaryStats>>[_Slave.lips]<</if>>
+<<else>>
+	@@.red;Lips-@@<<if $summaryStats>>[_Slave.lips]<</if>>
+<</if>>
+<<if _Slave.teeth == "crooked">>
+	@@.yellow;Cr Teeth@@
+<<elseif _Slave.teeth == "cosmetic braces">>
+	Cos Braces
+<<elseif _Slave.teeth == "straightening braces">>
+	Braces
+<<elseif _Slave.teeth == "removable">>
+	Rem Teeth
+<<elseif _Slave.teeth == "pointy">>
+	Fangs
+<</if>>
+<<if _Slave.muscles > 95>>
+	Musc++<<if $summaryStats>>[_Slave.muscles]<</if>>
+<<elseif _Slave.muscles > 50>>
+	Musc+<<if $summaryStats>>[_Slave.muscles]<</if>>
+<<elseif _Slave.muscles > 5>>
+	Fit<<if $summaryStats>>[_Slave.muscles]<</if>>
+<<elseif _Slave.muscles > -6>>
+	Soft<<if $summaryStats>>[_Slave.muscles]<</if>>
+<<elseif _Slave.muscles > -31>>
+	<<if $arcologies[0].FSPhysicalIdealist == "unset">>
+		@@.red;Weak@@<<if $summaryStats>>[_Slave.muscles]<</if>>
+	<<else>>
+		Soft<<if $summaryStats>>[_Slave.muscles]<</if>>
+	<</if>>
+<<elseif _Slave.muscles > -96>>
+	<<if $arcologies[0].FSPhysicalIdealist == "unset">>
+		@@.red;Weak+@@<<if $summaryStats>>[_Slave.muscles]<</if>>
+	<<else>>
+		Soft+<<if $summaryStats>>[_Slave.muscles]<</if>>
+	<</if>>
+<<else>>
+	@@.red;Weak++@@<<if $summaryStats>>[_Slave.muscles]<</if>>
+<</if>>
+<<if _Slave.amp != 0>>
+  <<if _Slave.amp == -1>>
+	P-Limbs
+  <<elseif _Slave.amp == -2>>
+	Sex P-Limbs
+  <<elseif _Slave.amp == -3>>
+	Beauty P-Limbs
+  <<elseif _Slave.amp == -4>>
+	Combat P-Limbs
+  <<elseif _Slave.amp == -5>>
+	Cyber P-Limbs
+  <<else>>
+	Amp
+  <</if>>
+<</if>>
+<<if !canWalk(_Slave)>>
+	Immob
+<</if>>
+<<if _Slave.heels == 1>>
+	Heel
+<</if>>
+@@
+<<if _Slave.voice == 0>>
+	@@.pink;Mute@@
+<<else>>
+	<<if _Slave.accent == 3>>
+		@@.red;Acc--@@
+	<<elseif _Slave.accent == 2>>
+		Acc-
+	<<elseif _Slave.accent == 4>>
+		Acc--
+	<<elseif _Slave.accent == 1>>
+		@@.pink;Acc@@
+	<</if>>
+<</if>>
+@@.pink;
+<<if (_Slave.boobs >= 10000) && (_Slave.butt > 9)>>
+	T&A+++
+<<elseif (_Slave.boobs > 4000) && (_Slave.butt > 8)>>
+	T&A++
+<<elseif (_Slave.boobs > 2000) && (_Slave.butt > 6)>>
+	T&A+
+<<elseif (_Slave.boobs > 800) && (_Slave.butt > 4)>>
+	T&A
+<<elseif (_Slave.boobs < 500) && (_Slave.butt < 3) && (_Slave.weight <= 10) && (_Slave.muscles <= 30)>>
+	Girlish
+<<elseif _Slave.boobs >= 10000>>
+	Boobs+++
+<<elseif _Slave.boobs > 4000>>
+	Boobs++
+<<elseif _Slave.boobs > 2000>>
+	Boobs+
+<<elseif _Slave.boobs > 800>>
+	Boobs
+<<elseif _Slave.butt > 9>>
+	Ass+++
+<<elseif _Slave.butt > 8>>
+	Ass++
+<<elseif _Slave.butt > 6>>
+	Ass+
+<<elseif _Slave.butt > 4>>
+	Ass
+<</if>>
+@@
+@@.red;
+<<if _Slave.hips < -1>>
+<<if _Slave.butt > 2 && $arcologies[0].FSTransformationFetishist < 20 && $arcologies[0].FSHedonisticDecadence < 20>>
+	Disp
+<</if>>
+<<elseif _Slave.hips < 0>>
+<<if _Slave.butt > 4 && $arcologies[0].FSTransformationFetishist < 20 && $arcologies[0].FSHedonisticDecadence < 20>>
+	Disp
+<</if>>
+<<elseif _Slave.hips > 2>>
+<<if _Slave.butt <= 8>>
+	Disp
+<</if>>
+<<elseif _Slave.hips > 1>>
+<<if _Slave.butt <= 3>>
+	Disp
+<</if>>
+<<elseif _Slave.hips > 0>>
+<<if _Slave.butt > 8>>
+<<if $arcologies[0].FSTransformationFetishist < 20 && $arcologies[0].FSHedonisticDecadence < 20>>
+	Disp
+<</if>>
+<<elseif _Slave.butt <= 2>>
+	Disp
+<</if>>
+<<else>>
+<<if _Slave.butt > 6>>
+<<if $arcologies[0].FSTransformationFetishist < 20 && $arcologies[0].FSHedonisticDecadence < 20>>
+	Disp
+<</if>>
+<<elseif _Slave.butt <= 1>>
+	Disp
+<</if>>
+<</if>>
+@@
+<<if _Slave.waist > 95>>@@.red;Wst---<<if $summaryStats>>[_Slave.waist]<</if>>@@
+<<elseif _Slave.waist > 40>>@@.red;Wst--<<if $summaryStats>>[_Slave.waist]<</if>>@@
+<<elseif _Slave.waist > 10>>@@.red;Wst-<<if $summaryStats>>[_Slave.waist]<</if>>@@
+<<elseif _Slave.waist >= -10>>Wst<<if $summaryStats>>[_Slave.waist]<</if>>
+<<elseif _Slave.waist >= -40>>@@.pink;Wst+<<if $summaryStats>>[_Slave.waist]<</if>>@@
+<<elseif _Slave.waist >= -95>>@@.pink;Wst++<<if $summaryStats>>[_Slave.waist]<</if>>@@
+<<else>>@@.pink;Wst+++<<if $summaryStats>>[_Slave.waist]<</if>>@@
+<</if>>
+@@.pink;
+<<if (_Slave.boobsImplant == 0) && (_Slave.buttImplant == 0) && (_Slave.waist >= -95) && (_Slave.lipsImplant == 0) && (_Slave.faceImplant < 2) && (_Slave.bellyImplant == 0)>>
+	Natr
+<<else>>
+	Impl
+<</if>>
+<<if _Slave.lactation == 1>>
+	Lact
+<<elseif _Slave.lactation == 2>>
+	Lact++
+<</if>>
+<<modScore _Slave>>
+<<if _Slave.corsetPiercing == 0 && $piercingScore < 3 && $tatScore < 2>>
+<<elseif $modScore > 15 || ($piercingScore > 8 && $tatScore > 5)>>
+	Mods++
+<<elseif $modScore > 7>>
+	Mods+
+<<else>>
+	Mods
+<</if>>
+<<if _Slave.brand != 0>>
+	Br
+<</if>>
+@@
+<<elseif $abbreviatePhysicals == 2>>
+@@.pink;
+<<if $showAgeDetail == 1>>
+	Age _Slave.actualAge.
+<<elseif _Slave.actualAge >= 40>>
+	Forties.
+<<elseif _Slave.actualAge >= 35>>
+	Late thirties.
+<<elseif _Slave.actualAge >= 30>>
+	Early thirties.
+<<elseif _Slave.actualAge >= 25>>
+	Late twenties.
+<<elseif _Slave.actualAge >= 20>>
+	Early twenties.
+<<elseif _Slave.actualAge >= 19>>
+	Nineteen.
+<<elseif _Slave.actualAge >= 18>>
+	Eighteen.
+<<else>>
+	Underage.
+<</if>>
+<<if _Slave.actualAge != _Slave.physicalAge>>
+	_Slave.visualAge year old body.
+<</if>>
+<<if _Slave.visualAge != _Slave.physicalAge>>
+	Looks _Slave.visualAge.
+<</if>>
+<<if _Slave.face < -95>>
+	@@.red;Very ugly<<if $summaryStats>> [_Slave.face]<</if>>@@
+<<elseif _Slave.face < -40>>
+	@@.red;Ugly<<if $summaryStats>> [_Slave.face]<</if>>@@
+<<elseif _Slave.face < -10>>
+	@@.red;Unattractive<<if $summaryStats>> [_Slave.face]<</if>>@@
+<<elseif _Slave.face <= 10>>
+	Average<<if $summaryStats>> [_Slave.face]<</if>>
+<<elseif _Slave.face <= 40>>
+	@@.pink;Attractive<<if $summaryStats>> [_Slave.face]<</if>>@@
+<<elseif _Slave.face <= 95>>
+	@@.pink;Beautiful<<if $summaryStats>> [_Slave.face]<</if>>@@
+<<else>>
+	@@.pink;Very beautiful<<if $summaryStats>> [_Slave.face]<</if>>@@
+<</if>>
+_Slave.faceShape face.
+<<if _Slave.eyes <= -2>>
+	@@.red;Blind.@@
+<<elseif _Slave.eyes <= -1>>
+	@@.yellow;Nearsighted.@@
+<</if>>
+<<if _Slave.lips > 95>>
+	Facepussy<<if $summaryStats>> [_Slave.lips]<</if>>.
+<<elseif _Slave.lips > 70>>
+	Huge lips<<if $summaryStats>> [_Slave.lips]<</if>>.
+<<elseif _Slave.lips > 40>>
+	Big lips<<if $summaryStats>> [_Slave.lips]<</if>>.
+<<elseif _Slave.lips > 20>>
+	Pretty lips<<if $summaryStats>> [_Slave.lips]<</if>>.
+<<elseif _Slave.lips > 10>>
+	Normal lips<<if $summaryStats>> [_Slave.lips]<</if>>.
+<<else>>
+	@@.red;Thin lips<<if $summaryStats>> [_Slave.lips]<</if>>.@@
+<</if>>
+<<if _Slave.teeth == "crooked">>
+	@@.yellow;Crooked teeth.@@
+<<elseif _Slave.teeth == "cosmetic braces">>
+	Cosmetic braces.
+<<elseif _Slave.teeth == "straightening braces">>
+	Braces.
+<<elseif _Slave.teeth == "removable">>
+	Removable teeth.
+<<elseif _Slave.teeth == "pointy">>
+	Sharp fangs.
+<</if>>
+<<if _Slave.muscles > 95>>
+	Hugely muscular<<if $summaryStats>> [_Slave.muscles]<</if>>.
+<<elseif _Slave.muscles > 50>>
+	Muscular<<if $summaryStats>> [_Slave.muscles]<</if>>.
+<<elseif _Slave.muscles > 5>>
+	Fit<<if $summaryStats>> [_Slave.muscles]<</if>>.
+<<elseif _Slave.muscles > -6>>
+	Soft<<if $summaryStats>> [_Slave.muscles]<</if>>.
+<<elseif _Slave.muscles > -31>>
+	<<if $arcologies[0].FSPhysicalIdealist == "unset">>
+		@@.red;Weak<<if $summaryStats>> [_Slave.muscles]<</if>>.@@
+	<<else>>
+		Weak<<if $summaryStats>> [_Slave.muscles]<</if>>.
+	<</if>>
+<<elseif _Slave.muscles > -96>>
+	<<if $arcologies[0].FSPhysicalIdealist == "unset">>
+		@@.red;Very weak<<if $summaryStats>> [_Slave.muscles]<</if>>.@@
+	<<else>>
+		Very weak<<if $summaryStats>> [_Slave.muscles]<</if>>.
+	<</if>>
+<<else>>
+	@@.red;Frail<<if $summaryStats>> [_Slave.muscles]<</if>>.@@
+<</if>>
+<<if _Slave.amp != 0>>
+	<<if _Slave.amp == -1>>
+	Prosthetic limbs.
+	<<elseif _Slave.amp == -2>>
+	Sexy prosthetic limbs.
+	<<elseif _Slave.amp == -3>>
+	Beautiful prosthetic limbs.
+	<<elseif _Slave.amp == -4>>
+	Deadly prosthetic limbs.
+	<<elseif _Slave.amp == -5>>
+	Cyber prosthetic limbs.
+	<<else>>
+	Amputee.
+	<</if>>
+<</if>>
+<<if !canWalk(_Slave)>>
+	Immobile.
+<</if>>
+<<if _Slave.heels == 1>>
+	Heeled.
+<</if>>
+@@
+<<if _Slave.voice == 0>>
+	@@.pink;Mute.@@
+<<else>>
+	<<if _Slave.accent == 3>>
+		@@.red;Bad accent.@@
+	<<elseif _Slave.accent == 4>>
+		@@.red;No language skills.@@
+	<<elseif _Slave.accent == 2>>
+		Accent.
+	<<elseif _Slave.accent == 1>>
+		@@.pink;Cute accent.@@
+	<</if>>
+<</if>>
+@@.pink;
+<<if (_Slave.boobs >= 10000) && (_Slave.butt > 9)>>
+	Hyper T&A.
+<<elseif (_Slave.boobs > 4000) && (_Slave.butt > 8)>>
+	Enormous T&A.
+<<elseif (_Slave.boobs > 2000) && (_Slave.butt > 6)>>
+	Huge T&A.
+<<elseif (_Slave.boobs > 800) && (_Slave.butt > 4)>>
+	Big T&A.
+<<elseif (_Slave.boobs < 500) && (_Slave.butt < 3) && (_Slave.weight <= 10) && (_Slave.muscles <= 30)>>
+	Girlish figure.
+<<elseif _Slave.boobs >= 10000>>
+	Immobilizing tits.
+<<elseif _Slave.boobs > 4000>>
+	Monstrous tits.
+<<elseif _Slave.boobs > 2000>>
+	Huge tits.
+<<elseif _Slave.boobs > 800>>
+	Big tits.
+<<elseif _Slave.butt > 9>>
+	Hyper ass.
+<<elseif _Slave.butt > 8>>
+	Titanic ass.
+<<elseif _Slave.butt > 6>>
+	Huge ass.
+<<elseif _Slave.butt > 4>>
+	Big ass.
+<</if>>
+@@
+@@.red;
+<<if _Slave.hips < -1>>
+<<if _Slave.butt > 2 && $arcologies[0].FSTransformationFetishist < 20 && $arcologies[0].FSHedonisticDecadence < 20>>
+	Disproportionately big butt.
+<</if>>
+<<elseif _Slave.hips < 0>>
+<<if _Slave.butt > 4 && $arcologies[0].FSTransformationFetishist < 20 && $arcologies[0].FSHedonisticDecadence < 20>>
+	Disproportionately big butt.
+<</if>>
+<<elseif _Slave.hips > 2>>
+<<if _Slave.butt <= 8>>
+	Disproportionately small butt.
+<</if>>
+<<elseif _Slave.hips > 1>>
+<<if _Slave.butt <= 3>>
+	Disproportionately small butt.
+<</if>>
+<<elseif _Slave.hips > 0>>
+<<if _Slave.butt > 8>>
+<<if $arcologies[0].FSTransformationFetishist < 20 && $arcologies[0].FSHedonisticDecadence < 20>>
+	Disproportionately big butt.
+<</if>>
+<<elseif _Slave.butt <= 2>>
+	Disproportionately small butt.
+<</if>>
+<<else>>
+<<if _Slave.butt > 6>>
+<<if $arcologies[0].FSTransformationFetishist < 20 && $arcologies[0].FSHedonisticDecadence < 20>>
+	Disproportionately big butt.
+<</if>>
+<<elseif _Slave.butt <= 1>>
+	Disproportionately small butt.
+<</if>>
+<</if>>
+@@
+<<if _Slave.waist > 95>>
+@@.red;Masculine waist<<if $summaryStats>> [_Slave.waist]<</if>>.@@
+<<elseif _Slave.waist > 40>>@@.red;Ugly waist<<if $summaryStats>> [_Slave.waist]<</if>>.@@
+<<elseif _Slave.waist > 10>>@@.red;Unattractive waist<<if $summaryStats>> [_Slave.waist]<</if>>.@@
+<<elseif _Slave.waist >= -10>>Average waist<<if $summaryStats>> [_Slave.waist]<</if>>.
+<<elseif _Slave.waist >= -40>>@@.pink;Feminine waist<<if $summaryStats>> [_Slave.waist]<</if>>.@@
+<<elseif _Slave.waist >= -95>>@@.pink;Hourglass waist<<if $summaryStats>> [_Slave.waist]<</if>>.@@
+<<else>>@@.pink;Absurdly narrow waist<<if $summaryStats>> [_Slave.waist]<</if>>.@@
+<</if>>
+@@.pink;
+<<if (_Slave.boobsImplant != 0) || (_Slave.buttImplant != 0) || (_Slave.lipsImplant != 0) || (_Slave.bellyImplant != 0)>>
+	Implants.
+<<elseif (_Slave.faceImplant >= 2) || (_Slave.waist < -95)>>
+	Surgery enhanced.
+<<else>>
+	All natural.
+<</if>>
+<<if _Slave.lactation == 1>>
+	Lactating naturally.
+<<elseif _Slave.lactation == 2>>
+	Heavy lactation.
+<</if>>
+<<modScore _Slave>>
+<<if _Slave.corsetPiercing == 0 && $piercingScore < 3 && $tatScore < 2>>
+<<elseif $modScore > 15 || ($piercingScore > 8 && $tatScore > 5)>>
+	Extensive body mods.
+<<elseif $modScore > 7>>
+	Noticeable body mods.
+<<else>>
+	Light body mods.
+<</if>>
+<<if _Slave.brand != 0>>
+	Branded.
+<</if>>
+@@
+<</if>>
+
+<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
+
+<<if $abbreviateSkills == 1>>
+<<if _Slave.fetish == "mindbroken">>
+<<elseif _Slave.intelligenceImplant == 1>>
+<<switch _Slave.intelligence>>
+<<case 3>>
+	@@.deepskyblue;I+++(e)@@
+<<case 2>>
+	@@.deepskyblue;I++(e)@@
+<<case 1>>
+	@@.deepskyblue;I+(e)@@
+<<case -1>>
+	@@.orangered;I-(e)@@
+<<case -2>>
+	@@.orangered;I--(e)@@
+<<case -3>>
+	@@.orangered;I---(e)@@
+<<default>>
+	I(e)
+<</switch>>
+<<else>>
+<<switch _Slave.intelligence>>
+<<case 3>>
+	@@.deepskyblue;I+++@@
+<<case 2>>
+	@@.deepskyblue;I++@@
+<<case 1>>
+	@@.deepskyblue;I+@@
+<<case -1>>
+	@@.orangered;I-@@
+<<case -2>>
+	@@.orangered;I--@@
+<<case -3>>
+	@@.orangered;I---@@
+<<default>>
+	I
+<</switch>>
+<</if>>
+
+<<set _SSkills = _Slave.analSkill+_Slave.oralSkill>>
+@@.aquamarine;
+<<if ((_SSkills+_Slave.whoreSkill+_Slave.entertainSkill) >= 400) && ((_Slave.vagina < 0) || (_Slave.vaginalSkill >= 100))>>
+	MSS
+<<else>>
+	<<set _SSkills += _Slave.vaginalSkill>>
+	<<set _SSkills = Math.trunc(_SSkills)>>
+	<<if _SSkills > 180>>S++
+		<<elseif (_SSkills > 120) && (_Slave.vagina < 0)>>Sh++
+		<<elseif _SSkills > 90>>S+
+		<<elseif _SSkills > 30>>S
+		<<else>>S-
+	<</if>>
+	<<if $summaryStats>>[_SSkills]<</if>>
+	<<if _Slave.whoreSkill >= 100>>W+++
+		<<elseif _Slave.whoreSkill > 60>>W++
+		<<elseif _Slave.whoreSkill > 30>>W+
+		<<elseif _Slave.whoreSkill > 10>>W
+	<</if>>
+	<<if _Slave.whoreSkill > 10>>
+		<<if $summaryStats>>[_Slave.whoreSkill]<</if>>
+	<</if>>
+	<<if _Slave.entertainSkill >= 100>>E+++
+		<<elseif _Slave.entertainSkill > 60>>E++
+		<<elseif _Slave.entertainSkill > 30>>E+
+		<<elseif _Slave.entertainSkill > 10>>E
+	<</if>>
+	<<if _Slave.entertainSkill > 10>>
+		<<if $summaryStats>>[_Slave.entertainSkill]<</if>>
+	<</if>>
+<</if>>
+<<if _Slave.combatSkill > 0>>
+	C
+<</if>>
+@@
+<<if _Slave.prestige > 0>>
+@@.green;
+<<if _Slave.prestige > 2>>
+	Prest++
+<<elseif _Slave.prestige == 2>>
+	Prest+
+<<elseif _Slave.prestige == 1>>
+	Prest
+<</if>>
+@@
+<</if>>
+<<elseif $abbreviateSkills == 2>>
+<<if _Slave.fetish == "mindbroken">>
+<<elseif _Slave.intelligenceImplant == 1>>
+<<switch _Slave.intelligence>>
+<<case 3>>
+	@@.deepskyblue;Brilliant, educated.@@
+<<case 2>>
+	@@.deepskyblue;Very smart, educated.@@
+<<case 1>>
+	@@.deepskyblue;Smart, educated.@@
+<<case -1>>
+	@@.orangered;Slow, educated.@@
+<<case -2>>
+	@@.orangered;Very slow, educated.@@
+<<case -3>>
+	@@.orangered;Moronic, educated.@@
+<<default>>
+	Average intelligence, educated.
+<</switch>>
+<<else>>
+<<switch _Slave.intelligence>>
+<<case 3>>
+	@@.deepskyblue;Brilliant.@@
+<<case 2>>
+	@@.deepskyblue;Very smart.@@
+<<case 1>>
+	@@.deepskyblue;Smart.@@
+<<case -1>>
+	@@.orangered;Slow.@@
+<<case -2>>
+	@@.orangered;Very slow.@@
+<<case -3>>
+	@@.orangered;Moronic.@@
+<<default>>
+	Average intelligence.
+<</switch>>
+<</if>>
+<<set _SSkills = (_Slave.analSkill+_Slave.oralSkill)>>
+@@.aquamarine;
+<<if ((_SSkills+_Slave.whoreSkill+_Slave.entertainSkill) >= 400) && ((_Slave.vagina < 0) || (_Slave.vaginalSkill >= 100))>>
+	Masterful Sex Slave.
+<<else>>
+	<<set _SSkills += _Slave.vaginalSkill>>
+	<<if _SSkills > 180>>
+		Sex master<<if $summaryStats>><<set _SSkills = Math.trunc(_SSkills)>> [_SSkills]<</if>>.
+	<<elseif (_SSkills > 120) && (_Slave.vagina < 0)>>
+		Masterful shemale<<if $summaryStats>><<set _SSkills = Math.trunc(_SSkills)>> [_SSkills]<</if>>.
+	<<elseif _SSkills > 90>>
+		Sexual expert<<if $summaryStats>><<set _SSkills = Math.trunc(_SSkills)>> [_SSkills]<</if>>.
+	<<elseif _SSkills > 30>>
+		Sexually skilled<<if $summaryStats>><<set _SSkills = Math.trunc(_SSkills)>> [_SSkills]<</if>>.
+	<<else>>
+		Sexually unskilled<<if $summaryStats>><<set _SSkills = Math.trunc(_SSkills)>> [_SSkills]<</if>>.
+	<</if>>
+	<<if _Slave.whoreSkill >= 100>>
+		Masterful whore<<if $summaryStats>> [_Slave.whoreSkill]<</if>>.
+	<<elseif _Slave.whoreSkill >= 60>>
+		Expert whore<<if $summaryStats>> [_Slave.whoreSkill]<</if>>.
+	<<elseif _Slave.whoreSkill >= 30>>
+		Skilled whore<<if $summaryStats>> [_Slave.whoreSkill]<</if>>.
+	<<elseif _Slave.whoreSkill >= 10>>
+		Basic whore<<if $summaryStats>> [_Slave.whoreSkill]<</if>>.
+	<</if>>
+	<<if _Slave.entertainSkill >= 100>>
+		Masterful entertainer<<if $summaryStats>> [_Slave.entertainSkill]<</if>>.
+	<<elseif _Slave.entertainSkill >= 60>>
+		Expert entertainer<<if $summaryStats>> [_Slave.entertainSkill]<</if>>.
+	<<elseif _Slave.entertainSkill >= 30>>
+		Skilled entertainer<<if $summaryStats>> [_Slave.entertainSkill]<</if>>.
+	<<elseif _Slave.entertainSkill >= 10>>
+		Basic entertainer<<if $summaryStats>> [_Slave.entertainSkill]<</if>>.
+	<</if>>
+<</if>>
+<<if _Slave.combatSkill > 0>>
+	Trained fighter.
+<</if>>
+@@
+<<if _Slave.prestige > 0>>
+@@.green;
+<<if _Slave.prestige > 2>>
+	Extremely prestigious.
+<<elseif _Slave.prestige == 2>>
+	Very prestigious.
+<<elseif _Slave.prestige == 1>>
+	Prestigious.
+<</if>>
+@@
+<</if>>
+<</if>>
+
+<<if $abbreviateMental == 1>>
+	<<if _Slave.fetish != "mindbroken">>
+	<<if _Slave.fetishKnown == 1>>
+	@@.lightcoral;
+	<<switch _Slave.fetish>>
+	<<case "submissive">>
+	<<if _Slave.fetishStrength > 95>>
+		Sub++
+	<<elseif _Slave.fetishStrength > 60>>
+		Sub+
+	<<else>>
+		Sub
+	<</if>>
+	<<case "cumslut">>
+	<<if _Slave.fetishStrength > 95>>
+		Oral++
+	<<elseif _Slave.fetishStrength > 60>>
+		Oral+
+	<<else>>
+		Oral
+	<</if>>
+	<<case "humiliation">>
+	<<if _Slave.fetishStrength > 95>>
+		Humil++
+	<<elseif _Slave.fetishStrength > 60>>
+		Humil+
+	<<else>>
+		Humil
+	<</if>>
+	<<case "buttslut">>
+	<<if _Slave.fetishStrength > 95>>
+		Anal++
+	<<elseif _Slave.fetishStrength > 60>>
+		Anal+
+	<<else>>
+		Anal
+	<</if>>
+	<<case "boobs">>
+	<<if _Slave.fetishStrength > 95>>
+		Boobs++
+	<<elseif _Slave.fetishStrength > 60>>
+		Boobs+
+	<<else>>
+		Boobs
+	<</if>>
+	<<case "sadist">>
+	<<if _Slave.fetishStrength > 95>>
+		Sadist++
+	<<elseif _Slave.fetishStrength > 60>>
+		Sadist+
+	<<else>>
+		Sadist
+	<</if>>
+	<<case "masochist">>
+	<<if _Slave.fetishStrength > 95>>
+		Pain++
+	<<elseif _Slave.fetishStrength > 60>>
+		Pain+
+	<<else>>
+		Pain
+	<</if>>
+	<<case "dom">>
+	<<if _Slave.fetishStrength > 95>>
+		Dom++
+	<<elseif _Slave.fetishStrength > 60>>
+		Dom+
+	<<else>>
+		Dom
+	<</if>>
+	<<case "pregnancy">>
+	<<if _Slave.fetishStrength > 95>>
+		Preg++
+	<<elseif _Slave.fetishStrength > 60>>
+		Preg+
+	<<else>>
+		Preg
+	<</if>>
+	<<default>>
+		Vanilla
+	<</switch>>
+	<<if $summaryStats>>[_Slave.fetishStrength]<</if>>
+	@@
+	<</if>>
+	<<if _Slave.attrKnown == 1>>
+	<<if _Slave.attrXY <= 5>>
+		@@.red;XY---<<if $summaryStats>>[_Slave.attrXY]<</if>>@@
+	<<elseif _Slave.attrXY <= 15>>
+		@@.red;XY--<<if $summaryStats>>[_Slave.attrXY]<</if>>@@
+	<<elseif _Slave.attrXY <= 35>>
+		@@.red;XY-<<if $summaryStats>>[_Slave.attrXY]<</if>>@@
+	<<elseif _Slave.attrXY <= 65>>
+		XY<<if $summaryStats>>[_Slave.attrXY]<</if>>
+	<<elseif _Slave.attrXY <= 85>>
+		@@.green;XY+<<if $summaryStats>>[_Slave.attrXY]<</if>>@@
+	<<elseif _Slave.attrXY <= 95>>
+		@@.green;XY++<<if $summaryStats>>[_Slave.attrXY]<</if>>@@
+	<<elseif _Slave.attrXX > 95>>
+		<<if _Slave.energy <= 95>>
+			@@.green;Omni!@@
+		<<else>>
+			@@.green;Omni+Nympho!!@@
+		<</if>>
+	<<else>>
+		@@.green;XY+++<<if $summaryStats>>[_Slave.attrXY]<</if>>@@
+	<</if>>
+	<<if _Slave.attrXX <= 5>>
+		@@.red;XX---<<if $summaryStats>>[_Slave.attrXX]<</if>>@@
+	<<elseif _Slave.attrXX <= 15>>
+		@@.red;XX--<<if $summaryStats>>[_Slave.attrXX]<</if>>@@
+	<<elseif _Slave.attrXX <= 35>>
+		@@.red;XX-<<if $summaryStats>>[_Slave.attrXX]<</if>>@@
+	<<elseif _Slave.attrXX <= 65>>
+		XX<<if $summaryStats>>[_Slave.attrXX]<</if>>
+	<<elseif _Slave.attrXX <= 85>>
+		@@.green;XX+<<if $summaryStats>>[_Slave.attrXX]<</if>>@@
+	<<elseif _Slave.attrXX <= 95>>
+		@@.green;XX++<<if $summaryStats>>[_Slave.attrXX]<</if>>@@
+	<<elseif _Slave.attrXY <= 95>>
+		@@.green;XX+++<<if $summaryStats>>[_Slave.attrXX]<</if>>@@
+	<</if>>
+	<<if _Slave.energy > 95>>
+		<<if (_Slave.attrXY <= 95) || (_Slave.attrXX <= 95)>>
+			@@.green;Nympho!@@
+		<</if>>
+	<<elseif _Slave.energy > 80>>
+		@@.green;SD++<<if $summaryStats>>[_Slave.energy]<</if>>@@
+	<<elseif _Slave.energy > 60>>
+		@@.green;SD+<<if $summaryStats>>[_Slave.energy]<</if>>@@
+	<<elseif _Slave.energy > 40>>
+		@@.yellow;SD<<if $summaryStats>>[_Slave.energy]<</if>>@@
+	<<elseif _Slave.energy > 20>>
+		@@.red;SD-<<if $summaryStats>>[_Slave.energy]<</if>>@@
+	<<else>>
+		@@.red;SD--<<if $summaryStats>>[_Slave.energy]<</if>>@@
+		<</if>>
+	<</if>>
+	<</if>>
+	<<if _Slave.clitPiercing == 3>>
+	<<if _Slave.fetishKnown == 1>>
+	<<if _Slave.clitSetting == "off">>
+		SP-
+	<<elseif ((_Slave.fetish != "submissive") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "submissive")>>
+		SP:sub
+	<<elseif ((_Slave.fetish != "cumslut") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "oral")>>
+		SP:oral
+	<<elseif ((_Slave.fetish != "humiliation") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "humiliation")>>
+		SP:humil
+	<<elseif ((_Slave.fetish != "buttslut") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "anal")>>
+		SP:anal
+	<<elseif ((_Slave.fetish != "boobs") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "boobs")>>
+		SP:boobs
+	<<elseif ((_Slave.fetish != "sadist") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "sadist")>>
+		SP:sade
+	<<elseif ((_Slave.fetish != "masochist") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "masochist")>>
+		SP:pain
+	<<elseif ((_Slave.fetish != "dom") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "dom")>>
+		SP:dom
+	<<elseif ((_Slave.fetish != "pregnancy") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "pregnancy")>>
+		SP:preg
+	<<elseif ((_Slave.fetish != "none") && (_Slave.clitSetting == "vanilla"))>>
+		SP:vanilla
+	<<elseif (_Slave.energy <= 95) && (_Slave.clitSetting == "all")>>
+		SP:all
+	<<elseif (_Slave.energy > 5) && (_Slave.clitSetting == "none")>>
+		SP:none
+	<</if>>
+	<<else>>
+	<<switch _Slave.clitSetting>>
+	<<case "off">>
+		SP-
+	<<case "submissive">>
+		SP:sub
+	<<case "lesbian">>
+		SP:les
+	<<case "oral">>
+		SP:oral
+	<<case "humiliation">>
+		SP:humil
+	<<case "anal">>
+		SP:anal
+	<<case "boobs">>
+		SP:boobs
+	<<case "sadist">>
+		SP:sade
+	<<case "masochist">>
+		SP:pain
+	<<case "dom">>
+		SP:dom
+	<<case "pregnancy">>
+		SP:pregnancy
+	<<case "vanilla">>
+		SP:vanilla
+	<<case "all">>
+		SP:all
+	<<case "none">>
+		SP:none
+	<</switch>>
+	<</if>>
+	<<if _Slave.attrKnown == 1>>
+		<<if _Slave.clitSetting == "women">>
+			<<if _Slave.attrXX < 95>>SP:women<</if>>
+		<<elseif _Slave.clitSetting == "men">>
+			<<if _Slave.attrXY < 95>>SP:men<</if>>
+		<<elseif _Slave.clitSetting == "anti-women">>
+			<<if _Slave.attrXX > 0>>SP:anti-women<</if>>
+		<<elseif _Slave.clitSetting == "anti-men">>
+			<<if _Slave.attrXY > 0>>SP:anti-men<</if>>
+		<</if>>
+	<<else>>
+		<<if _Slave.clitSetting == "women">>
+			SP:women
+		<<elseif _Slave.clitSetting == "men">>
+			SP:men
+		<<elseif _Slave.clitSetting == "anti-women">>
+			SP:anti-women
+		<<elseif _Slave.clitSetting == "anti-men">>
+			SP:anti-men
+		<</if>>
+	<</if>>
+	<</if>>
+	@@.red;
+	<<switch _Slave.behavioralFlaw>>
+	<<case "arrogant">>
+		Arrog
+	<<case "bitchy">>
+		Bitchy
+	<<case "odd">>
+		Odd
+	<<case "hates men">>
+		Men-
+	<<case "hates women">>
+		Women-
+	<<case "gluttonous">>
+		Glut
+	<<case "anorexic">>
+		Ano
+	<<case "devout">>
+		Dev
+	<<case "liberated">>
+		Lib
+	<<default>>
+		<<set _Slave.behavioralFlaw = "none">>
+	<</switch>>
+	@@
+	<<switch _Slave.sexualFlaw>>
+	<<case "hates oral">>
+		@@.red;Oral-@@
+	<<case "hates anal">>
+		@@.red;Anal-@@
+	<<case "hates penetration">>
+		@@.red;Fuck-@@
+	<<case "shamefast">>
+		@@.red;Shame@@
+	<<case "idealistic">>
+		@@.red;Ideal@@
+	<<case "repressed">>
+		@@.red;Repre@@
+	<<case "apathetic">>
+		@@.red;Apath@@
+	<<case "crude">>
+		@@.red;Crude@@
+	<<case "judgemental">>
+		@@.red;Judge@@
+	<<case "cum addict">>
+		@@.yellow;CumAdd@@
+	<<case "anal addict">>
+		@@.yellow;AnalAdd@@
+	<<case "attention whore">>
+		@@.yellow;Attention@@
+	<<case "breast growth">>
+		@@.yellow;BoobObsess@@
+	<<case "abusive">>
+		@@.yellow;Abusive@@
+	<<case "malicious">>
+		@@.yellow;Malice@@
+	<<case "self hating">>
+		@@.yellow;SelfHatr@@
+	<<case "neglectful">>
+		@@.yellow;SelfNeglect@@
+	<<case "breeder">>
+		@@.yellow;BreedObsess@@
+	<<default>>
+		<<set _Slave.sexualFlaw = "none">>
+	<</switch>>
+	@@.green;
+	<<switch _Slave.behavioralQuirk>>
+	<<case "confident">>
+		Confid
+	<<case "cutting">>
+		Cutting
+	<<case "funny">>
+		Funny
+	<<case "fitness">>
+		Fit
+	<<case "adores women">>
+		Women+
+	<<case "adores men">>
+		Men+
+	<<case "insecure">>
+		Insec
+	<<case "sinful">>
+		Sinf
+	<<case "advocate">>
+		Advoc
+	<<default>>
+		<<set _Slave.behavioralQuirk = "none">>
+	<</switch>>
+	<<switch _Slave.sexualQuirk>>
+	<<case "gagfuck queen">>
+		Gagfuck
+	<<case "painal queen">>
+		Painal
+	<<case "strugglefuck queen">>
+		Struggle
+	<<case "tease">>
+		Tease
+	<<case "romantic">>
+		Romantic
+	<<case "perverted">>
+		Perverted
+	<<case "caring">>
+		Caring
+	<<case "unflinching">>
+		Unflinch
+	<<case "size queen">>
+		SizeQ
+	<<default>>
+		<<set _Slave.sexualQuirk = "none">>
+	<</switch>>
+	@@
+<<elseif $abbreviateMental == 2>>
+	<<if _Slave.fetish != "mindbroken">>
+	<<if _Slave.fetishKnown == 1>>
+		@@.lightcoral;
+		<<switch _Slave.fetish>>
+		<<case "submissive">>
+			<<if _Slave.fetishStrength > 95>>
+				Complete submissive<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<elseif _Slave.fetishStrength > 60>>
+				Submissive<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<else>>
+				Submissive tendencies<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<</if>>
+		<<case "cumslut">>
+			<<if _Slave.fetishStrength > 95>>
+				Cumslut<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<elseif _Slave.fetishStrength > 60>>
+				Oral fixation<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<else>>
+				Prefers oral<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<</if>>
+		<<case "humiliation">>
+			<<if _Slave.fetishStrength > 95>>
+				Humiliation slut<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<elseif _Slave.fetishStrength > 60>>
+				Exhibitionist<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<else>>
+				Interest in humiliation<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<</if>>
+		<<case "buttslut">>
+			<<if _Slave.fetishStrength > 95>>
+				Buttslut<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<elseif _Slave.fetishStrength > 60>>
+				Anal fixation<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<else>>
+				Prefers anal<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<</if>>
+		<<case "boobs">>
+			<<if _Slave.fetishStrength > 95>>
+				Boobslut<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<elseif _Slave.fetishStrength > 60>>
+				Breast fixation<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<else>>
+				Loves boobs<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<</if>>
+		<<case "sadist">>
+			<<if _Slave.fetishStrength > 95>>
+				Complete sadist<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<elseif _Slave.fetishStrength > 60>>
+				Sadist<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<else>>
+				Sadistic tendencies<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<</if>>
+		<<case "masochist">>
+			<<if _Slave.fetishStrength > 95>>
+				Complete masochist<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<elseif _Slave.fetishStrength > 60>>
+				Masochist<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<else>>
+				Masochistic tendencies<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<</if>>
+		<<case "dom">>
+			<<if _Slave.fetishStrength > 95>>
+				Complete dom<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<elseif _Slave.fetishStrength > 60>>
+				Dominant<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<else>>
+				Dominant tendencies<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<</if>>
+		<<case "pregnancy">>
+			<<if _Slave.fetishStrength > 95>>
+				Pregnancy fetish<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<elseif _Slave.fetishStrength > 60>>
+				Pregnancy kink<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<<else>>
+				Interest in impregnation<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+			<</if>>
+		<<default>>
+			Sexually vanilla<<if $summaryStats>> [_Slave.fetishStrength]<</if>>.
+		<</switch>>
+		@@
+	<</if>>
+	<</if>>
+	<<if _Slave.attrKnown == 1>>
+		<<if _Slave.attrXY <= 5>>
+			@@.red;Disgusted by men<<if $summaryStats>> [_Slave.attrXY]<</if>>,@@
+		<<elseif _Slave.attrXY <= 15>>
+			@@.red;Turned off by men<<if $summaryStats>> [_Slave.attrXY]<</if>>,@@
+		<<elseif _Slave.attrXY <= 35>>
+			@@.red;Not attracted to men<<if $summaryStats>> [_Slave.attrXY]<</if>>,@@
+		<<elseif _Slave.attrXY <= 65>>
+			Indifferent to men<<if $summaryStats>> [_Slave.attrXY]<</if>>,
+		<<elseif _Slave.attrXY <= 85>>
+			@@.green;Attracted to men<<if $summaryStats>> [_Slave.attrXY]<</if>>,@@
+		<<elseif _Slave.attrXY <= 95>>
+			@@.green;Aroused by men<<if $summaryStats>> [_Slave.attrXY]<</if>>,@@
+		<<elseif _Slave.attrXX > 95>>
+			<<if _Slave.energy <= 95>>
+				@@.green;Omnisexual!@@
+			<<else>>
+				@@.green;Omnisexual nymphomaniac!@@
+			<</if>>
+		<<else>>
+			@@.green;Passionate about men<<if $summaryStats>> [_Slave.attrXY]<</if>>,@@
+		<</if>>
+		<<if _Slave.attrXX <= 5>>
+			@@.red;disgusted by women<<if $summaryStats>> [_Slave.attrXX]<</if>>.@@
+		<<elseif _Slave.attrXX <= 15>>
+			@@.red;turned off by women<<if $summaryStats>> [_Slave.attrXX]<</if>>.@@
+		<<elseif _Slave.attrXX <= 35>>
+			@@.red;not attracted to women<<if $summaryStats>> [_Slave.attrXX]<</if>>.@@
+		<<elseif _Slave.attrXX <= 65>>
+			indifferent to women<<if $summaryStats>> [_Slave.attrXX]<</if>>. 
+		<<elseif _Slave.attrXX <= 85>>
+			@@.green;attracted to women<<if $summaryStats>> [_Slave.attrXX]<</if>>.@@
+		<<elseif _Slave.attrXX <= 95>>
+			@@.green;aroused by women<<if $summaryStats>> [_Slave.attrXX]<</if>>.@@
+		<<elseif _Slave.attrXY <= 95>>
+			@@.green;passionate about women<<if $summaryStats>> [_Slave.attrXX]<</if>>.@@
+		<</if>>
+		<<if _Slave.energy > 95>>
+			<<if (_Slave.attrXY <= 95) || (_Slave.attrXX <= 95)>>
+				@@.green;Nymphomaniac!@@
+			<</if>>
+		<<elseif _Slave.energy > 80>>
+			@@.green;Powerful sex drive<<if $summaryStats>> [_Slave.energy]<</if>>.@@
+		<<elseif _Slave.energy > 60>>
+			@@.green;Good sex drive<<if $summaryStats>> [_Slave.energy]<</if>>.@@
+		<<elseif _Slave.energy > 40>>
+			@@.yellow;Average sex drive<<if $summaryStats>> [_Slave.energy]<</if>>.@@
+		<<elseif _Slave.energy > 20>>
+			@@.red;Poor sex drive<<if $summaryStats>> [_Slave.energy]<</if>>.@@
+		<<else>>
+			@@.red;No sex drive<<if $summaryStats>> [_Slave.energy]<</if>>.@@
+		<</if>>
+	<</if>>
+	<<if _Slave.clitPiercing == 3>>
+		<<if _Slave.fetishKnown == 1>>
+			<<if _Slave.clitSetting == "off">>
+				SP off.
+			<<elseif ((_Slave.fetish != "submissive") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "submissive")>>
+				SP: submissive.
+			<<elseif ((_Slave.fetish != "cumslut") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "oral")>>
+				SP: oral.
+			<<elseif ((_Slave.fetish != "humiliation") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "humiliation")>>
+				SP: humiliation.
+			<<elseif ((_Slave.fetish != "buttslut") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "anal")>>
+				SP: anal.
+			<<elseif ((_Slave.fetish != "boobs") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "boobs")>>
+				SP: breasts.
+			<<elseif ((_Slave.fetish != "sadist") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "sadist")>>
+				SP: sadism.
+			<<elseif ((_Slave.fetish != "masochist") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "masochist")>>
+				SP: masochism.
+			<<elseif ((_Slave.fetish != "dom") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "dom")>>
+				SP: dominance.
+			<<elseif ((_Slave.fetish != "pregnancy") || (_Slave.fetishStrength <= 95)) && (_Slave.clitSetting == "pregnancy")>>
+				SP: pregnancy.
+			<<elseif (_Slave.fetish != "none") && (_Slave.clitSetting == "vanilla")>>
+				SP: vanilla.
+			<<elseif (_Slave.energy <= 95) && (_Slave.clitSetting == "all")>>
+				SP: all.
+			<<elseif (_Slave.energy > 5) && (_Slave.clitSetting == "none")>>
+				SP: none.
+			<</if>>
+		<<else>>
+			<<switch _Slave.clitSetting>>
+			<<case "off">>
+				SP off.
+			<<case "submissive">>
+				SP: submissive.
+			<<case "oral">>
+				SP: oral.
+			<<case "humiliation">>
+				SP: humiliation.
+			<<case "anal">>
+				SP: anal.
+			<<case "boobs">>
+				SP: breasts.
+			<<case "sadist">>
+				SP: sadism.
+			<<case "masochist">>
+				SP: masochism.
+			<<case "dom">>
+				SP: dominance.
+			<<case "pregnancy">>
+				SP: pregnancy.
+			<<case "vanilla">>
+				SP: vanilla.
+			<<case "all">>
+				SP: all.
+			<<case "none">>
+				SP: none.
+			<</switch>>
+		<</if>>
+		<<if _Slave.attrKnown == 1>>
+			<<if (_Slave.attrXX < 100) && (_Slave.clitSetting == "women")>>
+				SP: women.
+			<<elseif (_Slave.attrXY < 100) && (_Slave.clitSetting == "men")>>
+				SP: men.
+			<</if>>
+		<<else>>
+			<<if _Slave.clitSetting == "women">>
+				SP: women.
+			<<elseif _Slave.clitSetting == "men">>
+				SP: men.
+			<</if>>
+		<</if>>
+	<</if>>
+	@@.red;
+	<<switch _Slave.behavioralFlaw>>
+	<<case "arrogant">>
+		Arrogant.
+	<<case "bitchy">>
+		Bitchy.
+	<<case "odd">>
+		Odd.
+	<<case "hates men">>
+		Hates men.
+	<<case "hates women">>
+		Hates women.
+	<<case "gluttonous">>
+		Stress eater.
+	<<case "anorexic">>
+		Anorexic.
+	<<case "devout">>
+		Devoutly religious.
+	<<case "liberated">>
+		Mentally liberated.
+	<<default>>
+		<<set _Slave.behavioralFlaw = "none">>
+	<</switch>>
+	@@
+	<<switch _Slave.sexualFlaw>>
+	<<case "hates oral">>
+		@@.red;Hates oral.@@
+	<<case "hates anal">>
+		@@.red;Hates anal.@@
+	<<case "hates penetration">>
+		@@.red;Hates penetration.@@
+	<<case "shamefast">>
+		@@.red;Shamefast.@@
+	<<case "idealistic">>
+		@@.red;Sexually idealistic.@@
+	<<case "repressed">>
+		@@.red;Sexually repressed.@@
+	<<case "apathetic">>
+		@@.red;Sexually apathetic.@@
+	<<case "crude">>
+		@@.red;Sexually crude.@@
+	<<case "judgemental">>
+		@@.red;Sexually judgemental.@@
+	<<case "cum addict">>
+		@@.yellow;Cum addict.@@
+	<<case "anal addict">>
+		@@.yellow;Anal addict.@@
+	<<case "attention whore">>
+		@@.yellow;Attention whore.@@
+	<<case "breast growth">>
+		@@.yellow;Breast obsession.@@
+	<<case "abusive">>
+		@@.yellow;Sexually abusive.@@
+	<<case "malicious">>
+		@@.yellow;Sexually malicious.@@
+	<<case "self hating">>
+		@@.yellow;Self hatred.@@
+	<<case "neglectful">>
+		@@.yellow;Self neglectful.@@
+	<<case "breeder">>
+		@@.yellow;Breeding obsession.@@
+	<<default>>
+		<<set _Slave.sexualFlaw = "none">>
+	<</switch>>
+	@@.green;
+	<<switch _Slave.behavioralQuirk>>
+	<<case "confident">>
+		Confident.
+	<<case "cutting">>
+		Cutting.
+	<<case "funny">>
+		Funny.
+	<<case "fitness">>
+		Fitness.
+	<<case "adores women">>
+		Adores women.
+	<<case "adores men">>
+		Adores men.
+	<<case "insecure">>
+		Insecure.
+	<<case "sinful">>
+		Sinful.
+	<<case "advocate">>
+		Advocate.
+	<<default>>
+		<<set _Slave.behavioralQuirk = "none">>
+	<</switch>>
+	<<switch _Slave.sexualQuirk>>
+	<<case "gagfuck queen">>
+		Gagfuck queen.
+	<<case "painal queen">>
+		Painal queen.
+	<<case "strugglefuck queen">>
+		Strugglefuck queen.
+	<<case "tease">>
+		Tease.
+	<<case "romantic">>
+		Romantic.
+	<<case "perverted">>
+		Perverted.
+	<<case "caring">>
+		Caring.
+	<<case "unflinching">>
+		Unflinching.
+	<<case "size queen">>
+		Size queen.
+	<<default>>
+		<<set _Slave.sexualQuirk = "none">>
+	<</switch>>
+	@@
+<</if>>
+
+<<if _Slave.customLabel != "">>''@@.yellow;_Slave.customLabel@@''<</if>>
+
+<<if (_Slave.relationship != 0) || (_Slave.relation != 0) || ($abbreviateClothes == 2) || ($abbreviateRulesets == 2)>>
+	<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
+<</if>>
+
+<<if $abbreviateMental == 1>>
+@@.lightgreen;
+<<if $familyTesting == 1>>
+	<<for _ssj = 0; _ssj < _SL; _ssj++>>
+		<<if _Slave.mother == $slaves[_ssj].ID>>
+			<<switch $slaves[_ssj].nationality>>
+			<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+				<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+			<<default>>
+				$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+			<</switch>>
+			daughter<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> & friend<<elseif _Slave.relationship == 2>> & BFF<<elseif _Slave.relationship == 3>> & FWB<<elseif _Slave.relationship == 4>> & lover<<else>> & wife<</if>><<set _relationshipHandled = 1>><</if>>
+		<</if>>
+		<<if _Slave.father == $slaves[_ssj].ID>>
+			<<switch $slaves[_ssj].nationality>>
+			<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+				<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+			<<default>>
+				$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+			<</switch>>
+			daughter<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> & friend<<elseif _Slave.relationship == 2>> & BFF<<elseif _Slave.relationship == 3>> & FWB<<elseif _Slave.relationship == 4>> & lover<<else>> & wife<</if>><<set _relationshipHandled = 1>><</if>>
+		<</if>>
+	<</for>>
+	<<if _Slave.daughters == 1>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if $slaves[_ssj].mother == _Slave.ID>>
+				<<switch $slaves[_ssj].nationality>>
+				<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+					<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+				<<default>>
+					$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+				<</switch>>
+				mother<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> & friend<<elseif _Slave.relationship == 2>> & BFF<<elseif _Slave.relationship == 3>> & FWB<<elseif _Slave.relationship == 4>> & lover<<else>> & wife<</if>><<set _relationshipHandled = 1>><</if>>
+				<<break>>
+			<</if>>
+			<<if $slaves[_ssj].father == _Slave.ID>>
+				<<switch $slaves[_ssj].nationality>>
+				<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+					<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+				<<default>>
+					$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+				<</switch>>
+				father<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> & friend<<elseif _Slave.relationship == 2>> & BFF<<elseif _Slave.relationship == 3>> & FWB<<elseif _Slave.relationship == 4>> & lover<<else>> & wife<</if>><<set _relationshipHandled = 1>><</if>>
+				<<break>>
+			<</if>>
+		<</for>>
+	<<elseif _Slave.daughters > 1>>
+		multiple daughters
+	<</if>>
+	<<if _Slave.sisters == 1>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if areSisters($slaves[_ssj], _Slave.ID) > 0>>
+				<<switch $slaves[_ssj].nationality>>
+				<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+					<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+				<<default>>
+					$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+				<</switch>>
+				sister<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> & friend<<elseif _Slave.relationship == 2>> & BFF<<elseif _Slave.relationship == 3>> & FWB<<elseif _Slave.relationship == 4>> & lover<<else>> & wife<</if>><<set _relationshipHandled = 1>><</if>>
+				<<break>>
+			<</if>>
+		<</for>>
+	<<elseif _Slave.sisters > 1>>
+		multiple sisters
+	<</if>>
+	<<if _Slave.relationship > 0 && _relationshipHandled != 1>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if _Slave.relationshipTarget == $slaves[_ssj].ID>>
+				<<switch _Slave.relationship>>
+				<<case 1>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					friend
+				<<case 2>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					BFF
+				<<case 3>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					FWB
+				<<case 4>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					lover
+				<<case 5>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					 wife
+				<</switch>>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<<break>>
+			<</if>>
+		<</for>>
+	<<elseif _Slave.relationship == -3>>
+		Your wife
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<<elseif _Slave.relationship == -2>>
+		E Bonded
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<<elseif _Slave.relationship == -1>>
+		E Slut
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<</if>>
+<<else>>
+	<<if _Slave.relation != 0>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if _Slave.relationTarget == $slaves[_ssj].ID>>
+				<<switch $slaves[_ssj].nationality>>
+				<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+					<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+				<<default>>
+					$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+				<</switch>>
+				_Slave.relation
+				<<if _Slave.relationship <= 0>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
+				<<break>>
+			<</if>>
+		<</for>>
+	<</if>>
+	<<if _Slave.relationship > 0>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if _Slave.relationshipTarget == $slaves[_ssj].ID>>
+				<<switch _Slave.relationship>>
+				<<case 1>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>&<</if>> friend
+				<<case 2>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>&<</if>> BFF
+				<<case 3>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>&<</if>> FWB
+				<<case 4>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>&<</if>> lover
+				<<case 5>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>&<</if>> wife
+				<</switch>>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<<break>>
+			<</if>>
+		<</for>>
+	<<elseif _Slave.relationship == -3>>
+		Your wife
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<<elseif _Slave.relationship == -2>>
+		E Bonded
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<<elseif _Slave.relationship == -1>>
+		E Slut
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<</if>>
+<</if>>
+@@
+<<set _relationshipHandled = 0>>
+<<if _Slave.rivalry != 0>>
+<<for _ssj = 0; _ssj < _SL; _ssj++>>
+<<if _Slave.rivalryTarget == $slaves[_ssj].ID>>
+@@.lightsalmon;
+<<if _Slave.rivalry <= 1>>
+	Disl
+	<<switch $slaves[_ssj].nationality>>
+	<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+		<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName
+	<<default>>
+		$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>
+	<</switch>>
+<<elseif _Slave.rivalry <= 2>>
+	<<switch $slaves[_ssj].nationality>>
+	<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+		<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+	<<default>>
+		$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+	<</switch>>
+	rival
+<<else>>
+	Hates
+	<<switch $slaves[_ssj].nationality>>
+	<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+		<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName
+	<<default>>
+		$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>
+	<</switch>>
+<</if>>
+&nbsp;&nbsp;&nbsp;&nbsp;
+@@
+<<break>>
+<</if>>
+<</for>>
+<</if>>
+<<elseif $abbreviateMental == 2>>
+<<if $familyTesting == 1>>
+	<<for _ssj = 0; _ssj < _SL; _ssj++>>
+		<<if _Slave.mother == $slaves[_ssj].ID>>
+			<<switch $slaves[_ssj].nationality>>
+			<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+				<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+			<<default>>
+				$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+			<</switch>>
+			@@.lightgreen;daughter<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> and friend<<elseif _Slave.relationship == 2>> and best friend<<elseif _Slave.relationship == 3>> and FWB<<elseif _Slave.relationship == 4>> and lover<<else>> and wife<</if>><<set _relationshipHandled = 1>><</if>>.@@
+		<</if>>
+		<<if _Slave.father == $slaves[_ssj].ID>>
+			<<switch $slaves[_ssj].nationality>>
+			<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+				<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+			<<default>>
+				$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+			<</switch>>
+			@@.lightgreen;daughter<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> and friend<<elseif _Slave.relationship == 2>> and best friend<<elseif _Slave.relationship == 3>> and FWB<<elseif _Slave.relationship == 4>> and lover<<else>> and wife<</if>><<set _relationshipHandled = 1>><</if>>.@@
+		<</if>>
+	<</for>>
+	<<if _Slave.daughters == 1>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if $slaves[_ssj].mother == _Slave.ID>>
+				<<switch $slaves[_ssj].nationality>>
+				<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+					<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+				<<default>>
+					$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+				<</switch>>
+				@@.lightgreen;mother<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> and friend<<elseif _Slave.relationship == 2>> and best friend<<elseif _Slave.relationship == 3>> and FWB<<elseif _Slave.relationship == 4>> and lover<<else>> and wife<</if>><<set _relationshipHandled = 1>><</if>>.@@
+				<<break>>
+			<</if>>
+			<<if $slaves[_ssj].father == _Slave.ID>>
+				<<switch $slaves[_ssj].nationality>>
+				<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+					<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+				<<default>>
+					$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+				<</switch>>
+				@@.lightgreen;father<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> and friend<<elseif _Slave.relationship == 2>> and best friend<<elseif _Slave.relationship == 3>> and FWB<<elseif _Slave.relationship == 4>> and lover<<else>> and wife<</if>><<set _relationshipHandled = 1>><</if>>.@@
+				<<break>>
+			<</if>>
+		<</for>>
+	<<elseif _Slave.daughters > 1>>
+		<<if _Slave.daughters > 10>>
+			@@.lightgreen;Has tons of daughters.@@
+		<<elseif _Slave.daughters > 5>>
+			@@.lightgreen;Has many daughters.@@
+		<<else>>
+			@@.lightgreen;Has several daughters.@@
+		<</if>>
+	<</if>>
+	<<if _Slave.sisters == 1>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if areSisters($slaves[_ssj], _Slave) > 0>>
+				<<switch $slaves[_ssj].nationality>>
+				<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+					<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+				<<default>>
+					$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+				<</switch>>
+				@@.lightgreen;sister<<if _Slave.relationshipTarget == $slaves[_ssj].ID>><<if _Slave.relationship == 1>> and friend<<elseif _Slave.relationship == 2>> and best friend<<elseif _Slave.relationship == 3>> and FWB<<elseif _Slave.relationship == 4>> and lover<<else>> and wife<</if>><<set _relationshipHandled = 1>><</if>>.@@
+				<<break>>
+			<</if>>
+		<</for>>
+	<<elseif _Slave.sisters > 1>>
+		<<if _Slave.sisters > 10>>
+			@@.lightgreen;One of many sisters.@@
+		<<elseif _Slave.sisters > 5>>
+			@@.lightgreen;Has many sisters.@@
+		<<else>>
+			@@.lightgreen;Has several sisters.@@
+		<</if>>
+	<</if>>
+	<<if _Slave.relationship > 0 && _relationshipHandled != 1>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if _Slave.relationshipTarget == $slaves[_ssj].ID>>
+				<<switch _Slave.relationship>>
+				<<case 1>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					@@.lightgreen;friend.@@
+				<<case 2>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					@@.lightgreen;best friend.@@
+				<<case 3>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					@@.lightgreen;FWB.@@
+				<<case 4>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					@@.lightgreen;lover.@@
+				<<case 5>>
+					<<switch $slaves[_ssj].nationality>>
+					<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+						<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+					<<default>>
+						$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+					<</switch>>
+					@@.lightgreen;slave wife.@@
+				<</switch>>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<<break>>
+			<</if>>
+		<</for>>
+	<<elseif _Slave.relationship == -3>>
+		@@.lightgreen;Your wife.@@
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<<elseif _Slave.relationship == -2>>
+		@@.lightgreen;Emotionally bonded to you.@@
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<<elseif _Slave.relationship == -1>>
+		@@.lightgreen;Emotional slut.@@
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<</if>>
+<<else>>
+	<<if _Slave.relation != 0>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if _Slave.relationTarget == $slaves[_ssj].ID>>
+				<<switch $slaves[_ssj].nationality>>
+				<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+					<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+				<<default>>
+					$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+				<</switch>>
+				<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+					@@.lightgreen;_Slave.relation@@.
+				<<else>>
+					@@.lightgreen;_Slave.relation@@
+				<</if>>
+				<<if _Slave.relationship <= 0>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
+				<<break>>
+			<</if>>
+		<</for>>
+	<</if>>
+	<<if _Slave.relationship > 0>>
+		<<for _ssj = 0; _ssj < _SL; _ssj++>>
+			<<if _Slave.relationshipTarget == $slaves[_ssj].ID>>
+				<<switch _Slave.relationship>>
+				<<case 1>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>and<</if>> @@.lightgreen;friend.@@
+				<<case 2>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>and<</if>> @@.lightgreen;best friend.@@
+				<<case 3>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>and<</if>> @@.lightgreen;FWB.@@
+				<<case 4>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>and<</if>> @@.lightgreen;lover.@@
+				<<case 5>>
+					<<if _Slave.relationshipTarget != _Slave.relationTarget>>
+						<<switch $slaves[_ssj].nationality>>
+						<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+							<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+						<<default>>
+							$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+						<</switch>>
+					<<else>>and<</if>> @@.lightgreen;slave wife.@@
+				<</switch>>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<<break>>
+			<</if>>
+		<</for>>
+	<<elseif _Slave.relationship == -3>>
+		@@.lightgreen;Your wife.@@
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<<elseif _Slave.relationship == -2>>
+		@@.lightgreen;Emotionally bonded to you.@@
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<<elseif _Slave.relationship == -1>>
+		@@.lightgreen;Emotional slut.@@
+		&nbsp;&nbsp;&nbsp;&nbsp;
+	<</if>>
+<</if>>
+<<set _relationshipHandled = 0>>
+<<if _Slave.rivalry != 0>>
+<<for _ssj = 0; _ssj < _SL; _ssj++>>
+<<if _Slave.rivalryTarget == $slaves[_ssj].ID>>
+<<if _Slave.rivalry <= 1>>
+	@@.lightsalmon;Dislikes@@ 
+	<<switch $slaves[_ssj].nationality>>
+	<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+		<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName.
+	<<default>>
+		$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>.
+	<</switch>>
+	&nbsp;&nbsp;&nbsp;&nbsp;
+<<elseif _Slave.rivalry <= 2>>
+	<<switch $slaves[_ssj].nationality>>
+	<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+		<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName's
+	<<default>>
+		$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>'s
+	<</switch>>
+	@@.lightsalmon;rival.@@
+	&nbsp;&nbsp;&nbsp;&nbsp;
+<<else>>
+	@@.lightsalmon;Hates@@ 
+	<<switch $slaves[_ssj].nationality>>
+	<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian">>
+		<<if $slaves[_ssj].slaveSurname>>$slaves[_ssj].slaveSurname <</if>>$slaves[_ssj].slaveName.
+	<<default>>
+		$slaves[_ssj].slaveName<<if $slaves[_ssj].slaveSurname>> $slaves[_ssj].slaveSurname<</if>>.
+	<</switch>>
+	&nbsp;&nbsp;&nbsp;&nbsp;
+<</if>>
+<<break>>
+<</if>>
+<</for>>
+<</if>>
+<</if>>
+
+<<if _Slave.fuckdoll == 0>>
+<<if $abbreviateClothes == 2>>
+<<if _Slave.choosesOwnClothes == 1>>
+	Dressing herself.
+<</if>>
+<<switch _Slave.clothes>>
+<<case "attractive lingerie">>
+	Lingerie.
+<<case "a succubus outfit">>
+	Succubus outfit.
+<<case "a string bikini">>
+	String bikini.
+<<case "cutoffs and a t-shirt">>
+	Cutoffs, t-shirt.
+<<case "a slutty outfit">>
+	Slutty outfit.
+<<case "uncomfortable straps">>
+	Leather straps.
+<<case "a fallen nuns habit">>
+	Slutty habit.
+<<case "a chattel habit">>
+	Chattel habit.
+<<case "a penitent nuns habit">>
+	Cilice.
+<<case "slutty jewelry">>
+	Bangles.
+<<case "attractive lingerie for a pregnant woman">>
+	Preggo lingerie.
+<<case "a maternity dress">>
+	Maternity dress.
+<<case "stretch pants and a crop-top">>
+	Comfortable clothing.
+<<case "harem gauze">>
+	Harem outfit.
+<<case "a slave gown">>
+	Gown.
+<<case "a halter top dress">>
+	Halter top dress.
+<<case "a mini dress">>
+	Mini dress.
+<<case "a ball gown">>
+	Ball gown.
+<<case "slutty business attire">>
+	Slutty suit.
+<<case "nice business attire">>
+	Nice suit.
+<<case "a comfortable bodysuit">>
+	Bodysuit.
+<<case "a military uniform">>
+	Military uniform.
+<<case "a leotard">>
+	Leotard.
+<<case "a bunny outfit">>
+	Bunny outfit.
+<<case "a slutty maid outfit">>
+	Slutty maid.
+<<case "a nice maid outfit">>
+	Nice maid.
+<<case "a slutty nurse outfit">>
+	Slutty nurse.
+<<case "a nice nurse outfit">>
+	Nice nurse.
+<<case "a schoolgirl outfit">>
+	Schoolgirl outfit.
+<<case "a kimono">>
+	Kimono.
+<<case "a hijab and abaya">>
+	Hijab and abaya.
+<<case "battledress">>
+	Battledress.
+<<case "a latex catsuit">>
+	Nice latex.
+<<case "restrictive latex">>
+	Bondage latex.
+<<case "conservative clothing">>
+	Conservative clothing.
+<<case "chains">>
+	Chains.
+<<case "a cheerleader outfit">>
+	Cheerleader.
+<<case "clubslut netting">>
+	Netting.
+<<case "shibari ropes">>
+	Shibari.
+<<case "Western clothing">>
+	Chaps.
+<<case "body oil">>
+	Body oil.
+<<case "a toga">>
+	Toga.
+<<case "a huipil">>
+	Huipil.
+<<case "a slutty qipao">>
+	Qipao.
+<<default>>
+	Naked.
+<</switch>>
+<<switch _Slave.collar>>
+<<case "uncomfortable leather">>
+	Leather collar.
+<<case "tight steel">>
+	Steel collar.
+<<case "preg biometrics">>
+	Pregnancy biometrics collar.
+<<case "cruel retirement counter">>
+	Cruel counter collar.
+<<case "shock punishment">>
+	Shock collar.
+<<case "dildo gag">>
+	Dildo gag.
+<<case "massive dildo gag">>
+	Throat-bulging dildo gag.
+<<case "neck corset">>
+	Neck corset.
+<<case "stylish leather">>
+	Stylish leather collar.
+<<case "satin choker">>
+	Satin choker.
+<<case "silk ribbon">>
+	Silken ribbon.
+<<case "heavy gold">>
+	Gold collar.
+<<case "bowtie">>
+	Bowtie collar.
+<<case "pretty jewelry">>
+	Pretty collar.
+<<case "nice retirement counter">>
+	Nice counter collar.
+<<case "leather with cowbell">>
+	Cowbell collar.
+<<case "ancient Egyptian">>
+	Wesekh.
+<<case "ball gag">>
+	Ball gag.
+<<case "bit gag">>
+	Bit gag.
+<</switch>>
+<<switch _Slave.bellyAccessory>>
+<<case "shapewear">>
+	Shapewear.
+<<case "a small empathy belly">>
+	Small fake belly.
+<<case "a medium empathy belly">>
+	Medium fake belly.
+<<case "a large empathy belly">>
+	Large fake belly.
+<<case "a huge empathy belly">>
+	Huge fake belly.
+<<case "a corset">>
+	Corset.
+<<case "an extreme corset">>
+	Extreme corsetage.
+<</switch>>
+<<if canWalk(_Slave)>>
+<<if _Slave.shoes == "heels">>
+	Heels.
+<<elseif _Slave.shoes == "extreme heels">>
+	Extreme heels.
+<<elseif _Slave.shoes == "boots">>
+	Boots.
+<<elseif _Slave.heels == 1>>
+	@@.yellow;Crawling.@@
+<<elseif _Slave.shoes == "flats">>
+	Flats.
+<</if>>
+<</if>>
+<<switch _Slave.vaginalAccessory>>
+<<case "chastity belt">>
+	Vaginal chastity.
+<<case "combined chastity">>
+	Combined chastity.
+<<case "anal chastity">>
+	Anal chastity.
+<<case "dildo">>
+	Vaginal dildo.
+<<case "large dildo">>
+	Large vaginal dildo.
+<<case "huge dildo">>
+	Huge vaginal dildo.
+<<case "long dildo">>
+	Long vaginal dildo.
+<<case "long, large dildo">>
+	Long and large vaginal dildo.
+<<case "long, huge dildo">>
+	Long and wide vaginal dildo.
+<</switch>>
+<<if _Slave.dickAccessory == "chastity">>
+	Chastity cage.
+<<elseif _Slave.dickAccessory == "combined chastity">>
+	Combined chastity.
+<<elseif _Slave.dickAccessory == "anal chastity">>
+	Anal chastity.
+<</if>>
+<<switch _Slave.buttplug>>
+<<case "plug">>
+	Buttplug.
+<<case "large plug">>
+	Large buttplug.
+<<case "huge plug">>
+	Huge buttplug.
+<<case "long plug">>
+	Long buttplug.
+<<case "long, large plug">>
+	Large, long buttplug.
+<<case "long, huge plug">>
+	Enormous buttplug.
+<</switch>>
+<<switch _Slave.buttplugAttachment>>
+<<case "tail">>
+	Attached tail.
+<</switch>>
+<</if>>
+<</if>>
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+<<if _Slave.useRulesAssistant == 0>>
+	@@.lightgreen;RA-Exempt@@
+<<elseif $abbreviateRulesets == 2 && (def _Slave.currentRules) && (_Slave.currentRules.length > 0)>>
+	<<for _s = 0; _s < $defaultRules.length; _s++>>
+		<<set _currentRule = $defaultRules[_s], _num = (_s+1)>>
+		<<if ruleApplied(_Slave, _currentRule.ID)>>
+			Rule _num (_currentRule.name).
+		<</if>>
+	<</for>>
+<</if>>
+
+<<if $abbreviateOrigins == 2 && _Slave.origin != 0>>
+	<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
+    @@.gray;_Slave.origin@@
+<</if>>
+<</widget>>
