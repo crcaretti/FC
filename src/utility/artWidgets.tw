@@ -49,7 +49,8 @@ $args[1]: Image size/center.
 $args[2]: icon UI Display for vector art, 1 for on.
 %/
 <<widget "SlaveArt">>
-
+/* This is a nasty workaround for Chrome not rendering overlaid SVG images properly */
+<<run setTimeout(function() { jQuery('.imageRef').fadeTo(1, 0.999); }, 1000)>>
 <<if ndef $args[0].customImage>><<set $args[0].customImage = 0>><</if>>
 <<if $args[0].customImage != 0>>
 
@@ -69,6 +70,7 @@ $args[2]: icon UI Display for vector art, 1 for on.
 <</if>>
 
 <<elseif $imageChoice == 1>> /* VECTOR ART BY NOX */
+<<SVGFilters>>
 
 /* 000-250-006 */
 /* <div class="imageRef"> */
@@ -77,21 +79,18 @@ $args[2]: icon UI Display for vector art, 1 for on.
 <<set _folderLoc = "'resources/vector">>
 
 <<if $args[2] == 1>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/test ui.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/test ui.svg'" + "/>">>
 <</if>>
 
 /% Set skin colour %/
-<<set _imgSkinLoc = _folderLoc + "/body/">>
-<<switch $args[0].skin>>
-<<case "light" "white" "fair" "lightened" "extremely pale" "pale">>
-	<<set _imgSkinLoc = _imgSkinLoc + "white">>
-<<case "light brown" "dark">>
-	<<set _imgSkinLoc = _imgSkinLoc + "brown">>
-<<case "brown" "black">>
-	<<set _imgSkinLoc = _imgSkinLoc + "dark brown">>
-<<default>>
-	<<set _imgSkinLoc = _imgSkinLoc + "tanned">>
-<</switch>>
+<<set _skinFilter = "filter: url(#skin-" + _.kebabCase($args[0].skin) + ");">>
+/% Set hair colour %/
+<<set _hairFilter = "filter: url(#hair-" + _.kebabCase($args[0].hColor) + ");">>
+<<set _pubesFilter = "filter: url(#hair-" + _.kebabCase($args[0].pubicHColor) + ");">>
+<<set _axillaryFilter = "filter: url(#hair-" + _.kebabCase($args[0].underArmHColor) + ");">>
+<<set _hairStyle = ["neat", "ponytail", "messy"].includes($args[0].hStyle) ? $args[0].hStyle : "neat">>
+
+<<set _imgSkinLoc = _folderLoc + "/body/white">>
 
 /% Shoulder width and arm or no arm %/
 <<if $args[0].amp != 1>>
@@ -114,23 +113,21 @@ $args[2]: icon UI Display for vector art, 1 for on.
 	<<set _rightArmType = "mid">>
 <</if>>
 <<if $args[0].fuckdoll == 0 && $args[0].clothes != "restrictive latex" && $args[0].clothes != "a latex catsuit">>
-	<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/arm left " + _leftArmType + ".svg'" + "/></object>">>
-	<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/arm right " + _rightArmType + ".svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/arm left " + _leftArmType + ".svg'" + " style='"+ _skinFilter + "'>">>
+	<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/arm right " + _rightArmType + ".svg'" + " style='"+ _skinFilter + "'>">>
 <<else>>
 	<<if $args[0].fuckdoll != 0>>
 		<<set _leftArmType = "mid">>
 		<<set _rightArmType = "mid">>
 	<</if>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/arm left " + _leftArmType + " latex.svg'" + "/></object>">>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/arm right " + _rightArmType + " latex.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/arm left " + _leftArmType + " latex.svg'" + "/>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/arm right " + _rightArmType + " latex.svg'" + "/>">>
 <</if>>
 <</if>>
 
 /% Hair Aft %/
-<<if $args[0].hStyle != "shaved">>
-<<if $args[0].fuckdoll == 0>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/hair aft neat " + $args[0].hColor + ".svg'" + "/></object>">>
-<</if>>
+<<if $args[0].hStyle != "shaved" && $args[0].fuckdoll == 0>>
+	<<= "<img class='paperdoll' src=" + _folderLoc + "/hair/" + _hairStyle + " back.svg'" + " style='" + _hairFilter + "'/>">>
 <</if>>
 
 /% Butt %/
@@ -147,7 +144,7 @@ $args[2]: icon UI Display for vector art, 1 for on.
 <<if $args[0].fuckdoll != 0 || $args[0].clothes == "restrictive latex" || $args[0].clothes == "a latex catsuit">>
 	<<set _buttSize = _buttSize + " latex">>
 <</if>>
-<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/butt " + _buttSize + ".svg'" + "/></object>">>
+<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/butt " + _buttSize + ".svg'" + " style='"+ _skinFilter + "'>">>
 <</if>>
 
 /% Leg + 1 size up when chubby or fat%/
@@ -171,9 +168,9 @@ $args[2]: icon UI Display for vector art, 1 for on.
 <</if>>
 <<if ($args[0].fuckdoll != 0 || $args[0].clothes == "restrictive latex" || $args[0].clothes == "a latex catsuit") && $args[0].amp != 1>>
 	<<set _legSize = _legSize + " latex">>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/leg " + _legSize + ".svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/leg " + _legSize + ".svg'" + "/>">>
 <<else>>
-	<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/leg " + _legSize + ".svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/leg " + _legSize + ".svg'" + " style='"+ _skinFilter + "'>">>
 <</if>>
 
 /% Feet %/
@@ -195,20 +192,20 @@ $args[2]: icon UI Display for vector art, 1 for on.
 <<elseif $args[0].shoes == "flats">>
 	<<set _shoesType = "flat">>
 <<else>>
-	<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/feet.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/feet.svg'" + " style='"+ _skinFilter + "'>">>
 <</if>>
 <<if $args[0].shoes == "extreme heels" or $args[0].shoes == "boots">>
 	<<if $args[0].fuckdoll != 0 || $args[0].clothes == "restrictive latex" || $args[0].clothes == "a latex catsuit">>
 		<<set _shoesType = _shoesType + " latex">>
 	<</if>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/" + _shoesType + ".svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/" + _shoesType + ".svg'" + "/>">>
 <</if>>
 <<if $args[0].shoes == "heels" or $args[0].shoes == "flats">>
 	<<if $args[0].fuckdoll != 0 || $args[0].clothes == "restrictive latex" || $args[0].clothes == "a latex catsuit">>
 		<<set _shoesType = _shoesType + " latex">>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/" + _shoesType + ".svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/" + _shoesType + ".svg'" + "/>">>
 	<<else>>
-		<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/" + _shoesType + ".svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/" + _shoesType + ".svg'" + " style='"+ _skinFilter + "'>">>
 	<</if>>
 <</if>>
 <</if>>
@@ -229,38 +226,38 @@ $args[2]: icon UI Display for vector art, 1 for on.
 <<else>>/*Normal*/
 	<<set _torsoSize = "normal">>
 <</if>>
-<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/torso " + _torsoSize + ".svg'" + "/></object>">>
+<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/torso " + _torsoSize + ".svg'" + " style='"+ _skinFilter + "'>">>
 <<if $args[0].fuckdoll != 0 || $args[0].clothes == "restrictive latex" || $args[0].clothes == "a latex catsuit">>
 	<<set _torsoOutfit = " latex">>
 <<elseif $args[0].clothes == "uncomfortable straps">>
 	<<set _torsoOutfit = " straps">>
 <</if>>
 <<if _torsoOutfit>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/torso " + _torsoSize + _torsoOutfit + ".svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/torso " + _torsoSize + _torsoOutfit + ".svg'" + "/>">>
 <</if>>
 
 /*Navel Piercing*/
 <<if $args[0].navelPiercing >= 1>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/navel piercing.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/navel piercing.svg'" + "/>">>
 <</if>>
 <<if $args[0].navelPiercing == 2>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/navel piercing heavy.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/navel piercing heavy.svg'" + "/>">>
 <</if>>
 
 /% Vagina %/
 <<if $args[0].vagina >= 0>>
-	<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/vagina.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/vagina.svg'" + " style='"+ _skinFilter + "'>">>
 	<<if $args[0].clitPiercing == 1>>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/clit piercing.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/clit piercing.svg'" + "/>">>
 	<<elseif $args[0].clitPiercing == 2>>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/clit piercing heavy.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/clit piercing heavy.svg'" + "/>">>
 	<<elseif $args[0].clitPiercing == 3>>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/clit piercing smart.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/clit piercing smart.svg'" + "/>">>
 	<</if>>
 	<<if $args[0].vaginaPiercing == 1>>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/pussy piercing.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/pussy piercing.svg'" + "/>">>
 	<<elseif $args[0].vaginaPiercing == 2>>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/pussy piercing heavy.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/pussy piercing heavy.svg'" + "/>">>
 	<</if>>
 <</if>>
 
@@ -269,67 +266,45 @@ $args[2]: icon UI Display for vector art, 1 for on.
 <<case "bowtie">>
 <<case "ancient Egyptian">>
 <<case "nice retirement counter" "cruel retirement counter" "leather with cowbell" "pretty jewelry" "heavy gold" "satin choker" "stylish leather" "neck corset" "shock punishment" "tight steel" "uncomfortable leather" "dildo gag">>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/" + $args[0].collar + ".svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/" + $args[0].collar + ".svg'" + "/>">>
 <</switch>>
 
 /% Head base image %/
 <<if $args[0].fuckdoll != 0 || $args[0].clothes == "restrictive latex" || $args[0].clothes == "a latex catsuit">>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/head latex.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/head latex.svg'" + "/>">>
 <<else>>
-	<<print "<object type='image/svg+xml' data=" +_imgSkinLoc + "/head.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" +_imgSkinLoc + "/head.svg'" + " style='"+ _skinFilter + "'>">>
 <</if>>
 
 /% Glasses %/
 <<if $args[0].eyewear == "corrective glasses" or $args[0].eyewear == "glasses" or $args[0].eyewear == "blurring glasses">>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/glasses.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/glasses.svg'" + "/>">>
 <</if>>
 
 /% Chastity belt or Pubic hair %/
 <<if $args[0].dickAccessory == "chastity" || $args[0].dickAccessory == "anal chastity" || $args[0].dickAccessory == "combined chastity" || $args[0].vaginalAccessory == "chastity belt" || $args[0].vaginalAccessory == "anal chastity" || $args[0].vaginalAccessory == "combined chastity">>
 	<<if $args[0].dickAccessory == "chastity" || $args[0].dickAccessory == "combined chastity">>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/chastity male aft.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/chastity male aft.svg'" + "/>">>
 	<</if>>
 	<<if $args[0].vaginalAccessory == "chastity belt" || $args[0].vaginalAccessory == "combined chastity">>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/chastity female.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/chastity female.svg'" + "/>">>
 	<</if>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/chastity base.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/chastity base.svg'" + "/>">>
 <<else>>
 	<<if $args[0].pubicHStyle != "waxed">>
-		<<switch $args[0].pubicHColor>>
-		<<case "black">>
-			<<set _pubicHColor = "black">>
-		<<case "blonde">>
-			<<set _pubicHColor = "blonde">>
-		<<case "blue">>
-			<<set _pubicHColor = "blue">>
-		<<case "brown">>
-			<<set _pubicHColor = "brown">>
-		<<case "green">>
-			<<set _pubicHColor = "green">>
-		<<case "pink">>
-			<<set _pubicHColor = "pink">>
-		<<case "red">>
-			<<set _pubicHColor = "red">>
-		<<default>>
-			<<set _pubicHColor = "brown">>
-		<</switch>>
-		<<if $args[0].pubicHStyle == "in a strip">>
-			<<set _pubicHStyle = "strip">>
-		<<else>>
-			<<set _pubicHStyle = $args[0].pubicHStyle>>
-		<</if>>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/" + _pubicHStyle + " " + _pubicHColor +".svg'" + "/></object>">>
+		<<set _pubicHStyle = ($args[0].pubicHStyle == "in a strip" ? "strip" : $args[0].pubicHStyle)>>
+		<<= "<img class='paperdoll' src=" + _folderLoc + "/hair/pubes " + _pubicHStyle + ".svg' style='" + _pubesFilter + "'/>">>
 	<</if>>
 <</if>>
 
 /%if pregnant%/
 <<if $args[0].preg > 0>>
-	<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/preg belly.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/preg belly.svg'" + " style='"+ _skinFilter + "'>">>
 	<<if $args[0].navelPiercing >= 1>>/*Navel Piercing*/
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/preg navel piercing.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/preg navel piercing.svg'" + "/>">>
 	<</if>>
 	<<if $args[0].navelPiercing == 2>>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/preg navel piercing heavy.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/preg navel piercing heavy.svg'" + "/>">>
 	<</if>>
 <</if>>
 
@@ -396,18 +371,18 @@ $args[2]: icon UI Display for vector art, 1 for on.
 		<<set _boobOutfit = " latex" >>
 	<</if>>
 	<<if _boobOutfit >>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/boob " +_boobSize + _boobOutfit + ".svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/boob " +_boobSize + _boobOutfit + ".svg'" + "/>">>
 		<<if $args[0].lactation > 0>>
-			<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/boob " +_boobSize + " areola.svg'" + "/></object>">>
+			<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/boob " +_boobSize + " areola.svg'" + " style='"+ _skinFilter + "'>">>
 		<</if>>
 	<<else>>
-		<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/boob " +_boobSize +".svg'" + "/></object>">>
-		<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/boob " +_boobSize + " areola.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/boob " +_boobSize +".svg'" + " style='"+ _skinFilter + "'>">>
+		<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/boob " +_boobSize + " areola.svg'" + " style='"+ _skinFilter + "'>">>
 	<</if>>
 	/* special case: straps are actually dawn over the boobs */
 	<<if $args[0].clothes == "uncomfortable straps">>
 		<<set _boobOutfit = " straps" >>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/boob " +_boobSize + _boobOutfit + ".svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/boob " +_boobSize + _boobOutfit + ".svg'" + "/>">>
 	<</if>>
 	<<set _needBoobs = 0>>
 <</if>>
@@ -417,14 +392,14 @@ $args[2]: icon UI Display for vector art, 1 for on.
 	<<if $args[0].dick > 0>>
 		<div class="highPenis">
 		<<if $args[0].scrotum > 0>>
-			<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/ball " + _ballSize + ".svg'" + "/></object>">>
+			<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/ball " + _ballSize + ".svg'" + " style='"+ _skinFilter + "'>">>
 		<</if>>
 		<<if canAchieveErection($args[0])>>
-			<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/penis " + _penisSize + ".svg'" + "/></object>">>
+			<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/penis " + _penisSize + ".svg'" + " style='"+ _skinFilter + "'>">>
 		<<else>>
-			<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/flaccid " + _penisSize + ".svg'" + "/></object>">>
+			<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/flaccid " + _penisSize + ".svg'" + " style='"+ _skinFilter + "'>">>
 			<<if $args[0].dickAccessory == "chastity" || $args[0].dickAccessory == "combined chastity">>
-				<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/chastity male fore " + _penisSize + ".svg'" + "/></object>">>
+				<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/chastity male fore " + _penisSize + ".svg'" + "/>">>
 			<</if>>
 		<</if>>
 		</div>
@@ -433,14 +408,14 @@ $args[2]: icon UI Display for vector art, 1 for on.
 	<<if $args[0].dick > 0>>
 		<div class="lowPenis">
 		<<if $args[0].scrotum > 0>>
-			<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/ball " + _ballSize + ".svg'" + "/></object>">>
+			<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/ball " + _ballSize + ".svg'" + " style='"+ _skinFilter + "'>">>
 		<</if>>
 		<<if canAchieveErection($args[0])>>
-			<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/penis " + _penisSize + ".svg'" + "/></object>">>
+			<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/penis " + _penisSize + ".svg'" + " style='"+ _skinFilter + "'>">>
 		<<else>>
-			<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/flaccid " + _penisSize + ".svg'" + "/></object>">>
+			<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/flaccid " + _penisSize + ".svg'" + " style='"+ _skinFilter + "'>">>
 			<<if $args[0].dickAccessory == "chastity" || $args[0].dickAccessory == "combined chastity">>
-				<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/chastity male fore " + _penisSize + ".svg'" + "/></object>">>
+				<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/chastity male fore " + _penisSize + ".svg'" + "/>">>
 			<</if>>
 		<</if>>
 		</div>
@@ -448,37 +423,35 @@ $args[2]: icon UI Display for vector art, 1 for on.
 <</if>>
 <<if _needBoobs>>
 	<<if $args[0].fuckdoll != 0 || $args[0].clothes == "restrictive latex" || $args[0].clothes == "a latex catsuit">>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/boob " +_boobSize +" latex.svg'" + "/></object>">>
-		<<if $args[0].lactation > 0>><<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/boob " +_boobSize + " areola.svg'" + "/></object>">><</if>>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/boob " +_boobSize +" latex.svg'" + "/>">>
+		<<if $args[0].lactation > 0>><<print "<img class='paperdoll' src=" + _imgSkinLoc + "/boob " +_boobSize + " areola.svg'" + " style='"+ _skinFilter + "'>">><</if>>
 	<<else>>
-		<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/boob " +_boobSize +".svg'" + "/></object>">>
-		<<print "<object type='image/svg+xml' data=" + _imgSkinLoc + "/boob " +_boobSize + " areola.svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/boob " +_boobSize +".svg'" + " style='"+ _skinFilter + "'>">>
+		<<print "<img class='paperdoll' src=" + _imgSkinLoc + "/boob " +_boobSize + " areola.svg'" + " style='"+ _skinFilter + "'>">>
 	<</if>>
 	/* special case: straps are actually dawn over the boobs */
 	<<if $args[0].clothes == "uncomfortable straps">>
 		<<set _boobOutfit = " straps" >>
-		<<print "<object type='image/svg+xml' data=" + _folderLoc + "/outfit/boob " +_boobSize + _boobOutfit + ".svg'" + "/></object>">>
+		<<print "<img class='paperdoll' src=" + _folderLoc + "/outfit/boob " +_boobSize + _boobOutfit + ".svg'" + "/>">>
 	<</if>>
 <</if>>
 
 /% piercings %/
 <<if $args[0].nipplesPiercing == 1>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/boob " +_boobSize +" piercing.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/boob " +_boobSize +" piercing.svg'" + "/>">>
 <<elseif $args[0].nipplesPiercing == 2>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/boob " +_boobSize +" piercing heavy.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/boob " +_boobSize +" piercing heavy.svg'" + "/>">>
 <</if>>
 <<if $args[0].areolaePiercing == 1>>
-	<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/boob " +_boobSize +" areola piercing.svg'" + "/></object>">>
+	<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/boob " +_boobSize +" areola piercing.svg'" + "/>">>
 <</if>>
 
 /% clavicle %/
-<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/clavicle.svg'" + "/></object>">>
+<<print "<img class='paperdoll' src=" + _folderLoc + "/body/addon/clavicle.svg'" + "/>">>
 
-/% Hair Foreground%/
-<<if $args[0].hStyle != "shaved">>
-<<if $args[0].fuckdoll == 0>>
-<<print "<object type='image/svg+xml' data=" + _folderLoc + "/body/addon/hair fore neat " + $args[0].hColor + ".svg'" + "/></object>">>
-<</if>>
+/% Hair Foreground %/
+<<if $args[0].hStyle != "shaved" && $args[0].fuckdoll == 0>>
+	<<= "<img class='paperdoll' src=" + _folderLoc + "/hair/" + _hairStyle + " front.svg'" + " style='" + _hairFilter + "'/>">>
 <</if>>
 
 <<else>> /* RENDERED IMAGES BY SHOKUSHU */
