@@ -1,0 +1,36 @@
+:: Market Widgets [widget nobr]
+
+/*
+ * Look for widgets in passages tagged with "market:marketname" which
+ * end in "Populate" and calls them all with the second argument
+ * (an "origins" array) as argument.
+ *
+ * Call like <<AddMarketOrigins "marketname" _possibleOrigins>>
+ */
+<<widget "AddMarketOrigins">>
+<<if _.isString($args[0]) && _.isArray($args[1])>>
+	<<set _widgets = _(Story.widgets)
+		.filter(function(wp) { return wp.tags.includes('market:' + $args[0]); })
+		.flatMap(function(wp) {
+			var re = RegExp('<<widget\\s+"([^"]+Populate)"\\s*>>', 'g');
+			var match, result = [];
+			while(match = re.exec(wp.text)) { result.push(match[1]); }
+			return result; })
+		.value()>>
+	<<silently>><<foreach _widget of _widgets>>
+		<<= "<<" + _widget + " $args[1]>>">>
+	<</foreach>><</silently>>
+<</if>>
+<</widget>>
+
+<<widget "GenerateMarketSlave">>
+<<silently>>
+	<<if _.isObject($args[0]) && _.isString($args[0].widget)>>
+		<<= "<<" + $args[0].widget + " $args[0]>>">>
+	<<elseif _.isString($args[0])>>
+		<<= "<<" + $args[0] + " $args[0]>>">>
+	<<else>>
+		<<include "Generate Random Slave">>
+	<</if>>
+<</silently>>
+<</widget>>
