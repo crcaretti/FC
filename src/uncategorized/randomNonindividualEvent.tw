@@ -17,7 +17,7 @@
 <<else>>
 <<silently>>
 /* initialize event lists as arrays [], not objects {} */
-<<set $events = [], $RecETSevent = [], $REFIevent = [], $PESSevent = [], $PETSevent = [], $REFSevent = [], $activeSlave = 0, $groomSlave = 0, $brideSlave = 0>>
+<<set $events = [], $RecETSevent = [], $REFIevent = [], $PESSevent = [], $PETSevent = [], $REFSevent = [], $activeSlave = 0, $groomSlave = 0, $brideSlave = 0, $recruiterSlave = 0>>
 
 <<set $seed = 0>>
 
@@ -76,37 +76,43 @@
 
 <<if $familyTesting == 0>>
 
-<<set $devMother = $slaves.find(function(s) { return s.relation == "mother" && s.devotion > 50 && s.anus != 0 && s.relationshipTarget != s.relationTarget && canWalk(s); })>>
-<<if (def $devMother)>>
-	<<set $devDaughter = $slaves.find(function(s) { return s.ID == $devMother.relationTarget && s.devotion > 50 && s.anus != 0 && canWalk(s); })>>
+<<set _relatedSlaves = $slaves.filter(function(s) { return s.relation != 0; })>>
+
+<<set _devMothers = _relatedSlaves.filter(function(s) { return s.relation == "mother" && s.devotion > 50 && s.anus != 0 && s.relationshipTarget != s.relationTarget && canWalk(s); })>>
+<<for _devMothers.length > 0>>
+	<<set $devMother = _devMothers.pluck()>>
+	<<set $devDaughter = _relatedSlaves.find(function(s) { return s.ID == $devMother.relationTarget && s.devotion > 50 && s.anus != 0 && canWalk(s); })>>
 	<<if (def $devDaughter)>>
 		<<set $events.push("RE devoted mother daughter")>>
 	<</if>>
-<</if>>
+<</for>>
 
-<<set $mother = $slaves.find(function(s) { return s.relation == "mother" && s.devotion < 10 && s.anus != 0 && s.relationshipTarget != s.relationTarget && canWalk(s); })>>
-<<if (def $mother)>>
-	<<set $daughter = $slaves.find(function(s) { return s.ID == $mother.relationTarget && s.devotion < 10 && s.anus != 0 && canWalk(s); })>>
+<<set _resMothers = _relatedSlaves.filter(function(s) { return s.relation == "mother" && s.devotion < 10 && s.anus != 0 && s.relationshipTarget != s.relationTarget && canWalk(s); })>>
+<<for _resMothers.length > 0>>
+	<<set $mother = _resMothers.pluck()>>
+	<<set $daughter = _relatedSlaves.find(function(s) { return s.ID == $mother.relationTarget && s.devotion < 10 && s.anus != 0 && canWalk(s); })>>
 	<<if (def $daughter)>>
 		<<set $events.push("RE resistant mother daughter")>>
 	<</if>>
-<</if>>
+<</for>>
 
-<<set $youngerSister = $slaves.find(function(s) { return s.relation == "sister" && canPenetrate(s); })>>
-<<if (def $youngerSister)>>
-	<<set $olderSister = $slaves.find(function(s) { return s.ID == $youngerSister.relationTarget && s.anus == 0 && $youngerSister.devotion > (s.devotion+20); })>>
+<<set _youngerSisters = _relatedSlaves.filter(function(s) { return s.relation == "sister" && canPenetrate(s); })>>
+<<for _youngerSisters.length > 0>>
+	<<set $youngerSister = _youngerSisters.pluck()>>
+	<<set $olderSister = _relatedSlaves.find(function(s) { return s.ID == $youngerSister.relationTarget && s.anus == 0 && $youngerSister.devotion > (s.devotion+20); })>>
 	<<if (def $olderSister)>>
 		<<set $events.push("RE sibling revenge")>>
 	<</if>>
-<</if>>
+<</for>>
 
-<<set $alphaTwin = $slaves.find(function(s) { return s.relation == "twin" && s.anus > 0 && s.devotion > 50 && canWalk(s); })>>
-<<if (def $alphaTwin)>>
-	<<set $betaTwin = $slaves.find(function(s) { return s.ID == $alphaTwin.relationTarget && s.anus > 0 && s.devotion > 50 && canWalk(s); })>>
+<<set _twins = _relatedSlaves.filter(function(s) { return s.relation == "twin" && s.anus > 0 && s.devotion > 50 && canWalk(s); })>>
+<<for _twins.length > 0>>
+	<<set $alphaTwin = _twins.pluck()>>
+	<<set $betaTwin = _relatedSlaves.find(function(s) { return s.ID == $alphaTwin.relationTarget && s.anus > 0 && s.devotion > 50 && canWalk(s); })>>
 	<<if (def $betaTwin)>>
 		<<set $events.push("RE devoted twins")>>
 	<</if>>
-<</if>>
+<</for>>
 
 <<else>> /* $familyTesting == 1 */
 
@@ -598,14 +604,18 @@
 
 <<else>> /* extended family mode == 0 */
 
-<<set $i = $slaves.findIndex(function(s) { return s.recruiter != 0 && s.relation == 0 && s.fuckdoll == 0 && s.canRecruit == 1 && s.devotion > 50 && canWalk(s); })>>
-<<if $i != -1>>
-	<<set $j = $genePool.findIndex(function(o) { return o.ID == $slaves[$i].ID; })>>
-	<<if $j != -1>>
-		<<set $events.push("RE relative recruiter")>>
-	<<else>> /* no matching slave object in the genePool array */
-		<<set $slaves[$i].recruiter = 0>>
-	<</if>>
+<<set _recruiterSlaves = $slaves.filter(function(s) { return s.recruiter != 0 && s.fuckdoll == 0 && s.devotion > 50 && s.relation == 0 && canWalk(s); }), $j = -1>>
+<<if def _recruiterSlaves[0]>>
+	<<for _recruiterSlaves.length > 0 && $j == -1>>
+		<<set $recruiterSlave = _recruiterSlaves.pluck()>>
+		<<set $j = $genePool.findIndex(function(o) { return o.ID == $recruiterSlave.ID; })>>
+		<<if $j != -1>>
+			<<set $events.push("RE relative recruiter")>>
+		<<else>> /* no matching slave object in the genePool array */
+			<<set $i = $slaves.findIndex(function(o) { return o.ID == $recruiterSlave.ID; })>>
+			<<set $slaves[$i].recruiter = 0>>
+		<</if>>
+	<</for>>
 <</if>>
 
 <</if>> /* closes extended family mode */
