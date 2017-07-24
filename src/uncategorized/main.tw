@@ -37,7 +37,7 @@
 
 <<SlaveSort $slaves>>
 
-<<set $dormitoryPopulation = 0, $roomsPopulation = 0, $slavesVisible = 0, _PA = -1, _HG = -1, _RC = -1, _BG = -1, _SL = $slaves.length>>
+<<set _SL = $slaves.length>>
 
 /* extra sanity checks and repair */
 <<if $slaves.includes(null)>>
@@ -45,123 +45,55 @@
 <</if>>
 /* end extra sanity checks and repair */
 
-<<for $i = 0; $i < _SL; $i++>>
-	<<for _i = $i + 1; _i < _SL; _i++>>
-		<<if $slaves[$i].ID == $slaves[_i].ID>>
-			<br><br>@@.red;Duplicate slave ID $slaves[$i].ID at index $i - $slaves[$i].slaveName ($slaves[$i].assignment) and index _i - $slaves[_i].slaveName ($slaves[_i].assignment)@@<br><br>
-		<</if>>
-	<</for>>
-	<<if $slaves[$i].assignmentVisible == 1>>
-		<<set $slavesVisible++>>
-		<<if $slaves[$i].livingRules == "luxurious">>
-			<<if $slaves[$i].relationship >= 4>>
-			  <<set $roomsPopulation += 0.5>>
-			<<else>>
-			  <<set $roomsPopulation++>>
-			<</if>>
-		<<else>>
-			<<set $dormitoryPopulation++>>
-		<</if>>
-	<</if>>
-	<<set _ID = $slaves[$i].ID>>
-	<<if $personalAttention == _ID>>
-		<<set _PA = $i>>
-	<</if>>
-	<<if $HeadGirl.ID == _ID>>
-		<<set _HG = $i>>
-	<<elseif $Recruiter.ID == _ID>>
-		<<set _RC = $i>>
-	<<elseif $Bodyguard.ID == _ID>>
-		<<set _BG = $i>>
-	<</if>>
-<</for>>
+<<set _duplicateSlaves = _($slaves).countBy(s => s.ID).pickBy(v => v > 1).keys().map(v => Number(v)).value()>>
+<<foreach _i of _duplicateSlaves>>
+	<br><br>@@.red;Duplicate slave ID _i at indices
+	<<= _($slaves)
+		.map((s, idx) => ({ID: s.ID, idx: idx, name: s.slaveName, assignment: s.assignment}))
+		.filter(s => s.ID === _i).map(s => s.idx + ' - ' + s.name + ' (' + s.assignment + ')').join(', ')>>@@
+<</foreach>>
+<<set _visibleSlaves = $slaves.filter(s => s.assignmentVisible == 1),
+	$slavesVisible = _visibleSlaves.length,
+	$dormitoryPopulation = _visibleSlaves.filter(s => s.livingRules != "luxurious").length,
+	$roomsPopulation = $slavesVisible - $dormitoryPopulation - _visibleSlaves.filter(s => s.livingRules == "luxurious" && s.relationship >= 4).length * 0.5,
+	_PA = $slaves.findIndex(s => s.ID == $personalAttention),
+	_HG = $slaves.findIndex(s => s.ID == $HeadGirl.ID),
+	_RC = $slaves.findIndex(s => s.ID == $Recruiter.ID),
+	_BG = $slaves.findIndex(s => s.ID == $Bodyguard.ID)>>
 
 <<set $nextButton = "END WEEK", $nextLink = "End Week", $showEncyclopedia = 1, $encyclopedia = "How to Play">>
 <<include "Costs">>
 
-<<if ($arcologies[0].name == "")>>
-	<<set $arcologies[0].name = "Arcology X-4">>
-<</if>>
+<<set
+	$arcologies[0].name = $arcologies[0].name || "Arcology X-4",
+	$brothelName = $brothelName || "the Brothel",
+	$brothelNameCaps = $brothelNameCaps || "The Brothel",
+	$dairyName = $dairyName || "the Dairy",
+	$dairyNameCaps = $dairyNameCaps || "The Dairy",
+	$clubName = $clubName || "the Club",
+	$clubNameCaps = $clubNameCaps || "The Club",
+	$servantsQuartersName = $servantsQuartersName || "the Servants' Quarters",
+	$servantsQuartersNameCaps = $servantsQuartersNameCaps || "The Servants' Quarters",
+	$schoolroomName = $schoolroomName || "the Schoolroom",
+	$schoolroomNameCaps = $schoolroomNameCaps || "The Schoolroom",
+	$spaName = $spaName || "the Spa",
+	$spaNameCaps = $spaNameCaps || "The Spa",
+	$clinicName = $clinicName || "the Clinic",
+	$clinicNameCaps = $clinicNameCaps || "The Clinic",
+	$arcadeName = $arcadeName || "the Arcade",
+	$arcadeNameCaps = $arcadeNameCaps || "The Arcade",
+	$cellblockName = $cellblockName || "the Cellblock",
+	$cellblockNameCaps = $cellblockNameCaps || "The Cellblock",
+	$masterSuiteName = $masterSuiteName || "the Master Suite",
+	$masterSuiteNameCaps = $masterSuiteNameCaps || "The Master Suite",
+	$HGSuiteName = $HGSuiteName || "the Head Girl Suite",
+	$HGSuiteNameCaps = $HGSuiteNameCaps || "The Head Girl Suite",
+	$pitName = $pitName || "the Pit",
+	$pitNameCaps = $pitNameCaps || "The Pit",
+	$incubatorName = $incubatorName || "the Incubator",
+	$incubatorNameCaps = $incubatorNameCaps || "The Incubator">>
 <<if ($PC.customTitle == "")>>
 	<<set $PC.customTitle = undefined, $PC.customTitleLisp = undefined>>
-<</if>>
-<<if ($brothelName == "")>>
-	<<set $brothelName = "the Brothel">>
-<</if>>
-<<if ($brothelNameCaps == "")>>
-	<<set $brothelNameCaps = "The Brothel">>
-<</if>>
-<<if ($dairyName == "")>>
-	<<set $dairyName = "the Dairy">>
-<</if>>
-<<if ($dairyNameCaps == "")>>
-	<<set $dairyNameCaps = "The Dairy">>
-<</if>>
-<<if ($clubName == "")>>
-	<<set $clubName = "the Club">>
-<</if>>
-<<if ($clubNameCaps == "")>>
-	<<set $clubNameCaps = "The Club">>
-<</if>>
-<<if ($servantsQuartersName == "")>>
-	<<set $servantsQuartersName = "the Servants' Quarters">>
-<</if>>
-<<if ($servantsQuartersNameCaps == "")>>
-	<<set $servantsQuartersNameCaps = "The Servants' Quarters">>
-<</if>>
-<<if ($schoolroomName == "")>>
-	<<set $schoolroomName = "the Schoolroom">>
-<</if>>
-<<if ($schoolroomNameCaps == "")>>
-	<<set $schoolroomNameCaps = "The Schoolroom">>
-<</if>>
-<<if ($spaName == "")>>
-	<<set $spaName = "the Spa">>
-<</if>>
-<<if ($spaNameCaps == "")>>
-	<<set $spaNameCaps = "The Spa">>
-<</if>>
-<<if ($clinicName == "")>>
-	<<set $clinicName = "the Clinic">>
-<</if>>
-<<if ($clinicNameCaps == "")>>
-	<<set $clinicNameCaps = "The Clinic">>
-<</if>>
-<<if ($arcadeName == "")>>
-	<<set $arcadeName = "the Arcade">>
-<</if>>
-<<if ($arcadeNameCaps == "")>>
-	<<set $arcadeNameCaps = "The Arcade">>
-<</if>>
-<<if ($cellblockName == "")>>
-	<<set $cellblockName = "the Cellblock">>
-<</if>>
-<<if ($cellblockNameCaps == "")>>
-	<<set $cellblockNameCaps = "The Cellblock">>
-<</if>>
-<<if ($masterSuiteName == "")>>
-	<<set $masterSuiteName = "the Master Suite">>
-<</if>>
-<<if ($masterSuiteNameCaps == "")>>
-	<<set $masterSuiteNameCaps = "The Master Suite">>
-<</if>>
-<<if ($HGSuiteName == "")>>
-	<<set $HGSuiteName = "the Head Girl Suite">>
-<</if>>
-<<if ($HGSuiteNameCaps == "")>>
-	<<set $HGSuiteNameCaps = "The Head Girl Suite">>
-<</if>>
-<<if ($pitName == "")>>
-	<<set $pitName = "the Pit">>
-<</if>>
-<<if ($pitNameCaps == "")>>
-	<<set $pitNameCaps = "The Pit">>
-<</if>>
-<<if ($incubatorName == "")>>
-	<<set $incubatorName = "the Incubator">>
-<</if>>
-<<if ($incubatorNameCaps == "")>>
-	<<set $incubatorNameCaps = "The Incubator">>
 <</if>>
 
 /* Saves use the first eight printed words to make the "file name", the below line cheats and makes saves here nicer named. */
