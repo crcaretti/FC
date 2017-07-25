@@ -4,7 +4,199 @@ window.LivingRule = Object.freeze({LUXURIOUS: 'luxurious', NORMAL: 'normal', SPA
 window.Job = Object.freeze({
 	DAIRY: 'work in the dairy', MASTER_SUITE: 'serve in the master suite', CONCUBINE: 'be your concubine',
 	BABY_FACTORY: 'labor in the production line', BROTHEL: 'work in the brothel', ARCADE: 'be confined in the arcade'});
+window.PersonalAttention = Object.freeze({TRADE: 'trading', WAR: 'warfare', SLAVEING: 'slaving', ENGINEERING: 'engineering', MEDICINE: 'medicine', MAID: 'upkeep'});
 
+window.getCost = function(array) {
+	var rulesCost = State.variables.rulesCost;
+	var foodCost = State.variables.foodCost;
+	var drugsCost = State.variables.drugsCost;
+	var facilityCost = State.variables.facilityCost;
+	var economy = State.variables.economy;
+	var brothel = State.variables.brothel;
+	var arcade = State.variables.arcade;
+	var club = State.variables.club;
+	var dairy = State.variables.dairy;
+	var servantsQuarters = State.variables.servantsQuarters;
+	var incubator = State.variables.incubator;
+	var mercCosts = State.variables.mercenaries * 2000;
+	var costs = (State.variables.brothel * facilityCost)
+		+ (State.variables.arcade * facilityCost * 0.5)
+		+ (State.variables.club * facilityCost)
+		+ (State.variables.dairy * facilityCost)
+		+ (State.variables.incubator * facilityCost * 10);
+		
+	//facility expenses
+	costs += (0.1 * State.variables.brothelUpgradeDrugs * brothel * facilityCost)
+	+ (0.2 * State.variables.arcadeUpgradeInjectors * arcade * facilityCost)
+	+ (0.2 * State.variables.arcadeUpgradeCollectors * arcade * facilityCost)
+	+ (0.2 * State.variables.clubUpgradePDAs * club * facilityCost)
+	+ (0.2 * State.variables.dairyFeedersUpgrade * dairy * facilityCost)
+	+ (0.1 * State.variables.dairyPregUpgrade * dairy * facilityCost)
+	+ (0.2 * State.variables.dairyStimulatorsUpgrade * facilityCost)
+	+ (0.2 * State.variables.servantsQuartersUpgradeMonitoring *  servantsQuarters * facilityCost)
+	+ (0.2 * State.variables.incubatorUpgradeWeight * incubator * facilityCost)
+	+ (0.2 * State.variables.incubatorUpgradeMuscles * incubator * facilityCost)
+	+ (0.2 * State.variables.incubatorUpgradeReproduction * incubator * facilityCost)
+	+ (0.5 * State.variables.incubatorUpgradeSpeed * incubator * facilityCost);
+	
+	if(dairy > 0) {
+		costs += ((State.variables.bioreactorsXY + State.variables.bioreactorsXX + State.variables.bioreactorsHerm + State.variables.bioreactorsBarren) * 100);
+	}
+	if(brothel > 0) {
+		costs += State.variables.brothelAdsSpending;
+	}
+	if(club > 0) {
+		costs += State.variables.clubAdsSpending;
+	}
+	if(incubator > 0) {
+		costs += ((State.variables.incubatorWeightSetting + State.variables.incubatorMusclesSetting + State.variables.incubatorReproductionSetting) * 500);
+	}
+	if(State.variables.masterSuitePregnancySlaveLuxuries === 1) {
+		costs += 500;
+	}
+	if(State.variables.masterSuitePregnancyFertilitySupplements === 1) {
+		costs += 1000;
+	}
+	
+	//general arcology costs
+	costs += (State.variables.girls * (250 + (economy * 500)));
+	
+	if(State.variables.arcologies[0].FSRepopulationFocusLaw === 1 && State.variables.PC.preg > 4) {
+		costs -= 500;
+	}
+	
+	costs += State.variables.citizenOrphanageTotal * 100;
+	costs += State.variables.privateOrphanageTotal * 500;
+	if(State.variables.breederOrphanageTotal > 0) {
+		costs += 50;
+	}
+	
+	if(State.variables.mercenaries > 0) {
+		if(State.variables.barracks) {
+			mercCosts *= 0.5;
+		}
+		if((State.variables.PC.warfare >= 100) || (State.variables.PC.career === 'arcology owner')) {
+			mercCosts *= 0.5;
+		}
+		costs += mercCosts;
+	}
+
+	costs += State.variables.FSSpending;
+	
+	//slave expenses
+	for (var e = 0; e < array.length; e++) {
+		costs += getSlaveCost(e);
+	}
+	
+	// policy and other expenses
+	if(State.variables.Recruiter !== 0) {
+		costs += 250;
+	}
+	if(State.variables.TSS.schoolPresent === 1) {
+		costs += 1000;
+	}
+	if(State.variables.GRI.schoolPresent === 1) {
+		costs += 1000;
+	}
+	if(State.variables.SCP.schoolPresent === 1) {
+		costs += 1000;
+	}
+	if(State.variables.LDE.schoolPresent === 1) {
+		costs += 1000;
+	}
+	if(State.variables.TGA.schoolPresent === 1) {
+		costs += 1000;
+	}
+	if((State.variables.TFS.schoolPresent === 1) && ((State.variables.PC.dick === 0) || (State.variables.PC.vagina === 0) || (State.variables.PC.boobs === 0))) {
+		costs += 1000;
+	}
+	if(State.variables.TSS.subsidize !== 0) {
+		costs += 1000;
+	}
+	if(State.variables.GRI.subsidize !== 0) {
+		costs += 1000;
+	}
+	if(State.variables.SCP.subsidize !== 0) {
+		costs += 1000;
+	}
+	if(State.variables.LDE.subsidize !== 0) {
+		costs += 1000;
+	}
+	if(State.variables.TGA.subsidize !== 0) {
+		costs += 1000;
+	}
+	if(State.variables.TFS.subsidize !== 0) {
+		costs += 1000;
+	}
+
+	if(State.variables.alwaysSubsidizeGrowth === 1) {
+		costs += $policyCost;
+	}
+	if(State.variables.alwaysSubsidizeRep === 1) {
+		costs += $policyCost;
+	}
+	if(State.variables.RegularParties === 1) {
+		costs += $policyCost;
+	}
+
+	if(State.variables.ProImmigrationCash === 1) {
+		costs += $policyCost;
+	}
+	if(State.variables.AntiEnslavementCash === 1) {
+		costs += $policyCost;
+	}
+
+	if(State.variables.CoursingAssociation === 1) {
+		costs += 1000;
+	}
+
+	if(State.variables.personalAttention === PersonalAttention.TRADE) {
+		costs += 10000;
+	} else if(State.variables.personalAttention === PersonalAttention.WAR) {
+		costs += 10000;
+	} else if(State.variables.personalAttention === PersonalAttention.SLAVING) {
+		costs += 10000;
+	} else if(State.variables.personalAttention === PersonalAttention.ENGINEERING) {
+		costs += 10000;
+	} else if(State.variables.personalAttention === PersonalAttention.MEDICINE) {
+		costs += 10000;
+	}
+
+	if($cyberMod !== 0 && $researchLab.built === 'true') {
+		costs += ((100 * State.variables.researchLab.maxSpace) + (300 * State.variables.researchLab.hired) + (100 * State.variables.researchLab.hired));
+	}
+
+	//player expenses
+
+	if(State.variables.PC.preg === -1) {
+		costs += 25;
+	} else if(State.variables.PC.preg >= 16) {
+		costs += 100;
+	}
+
+	if(State.variables.PC.career === 'servant') {
+		if(State.variables.personalAttention === PersonalAttention.MAID) {
+			if(State.variables.PC.preg >= 20) {
+				costs *= 0.80;
+			} else {
+				costs *= 0.75;
+			}
+		} else {
+			costs *= 0.9;
+		}
+	}
+
+	
+	// clean up
+	if(costs < 0) {
+		costs = 0;
+	} else {
+		costs = Math.trunc(costs);
+	}
+	
+	return costs;
+}
+	
 window.getSlaveCost = function(s) {
 	if(!s) { return 0; }
 	// Data duplicated from Cost Report
