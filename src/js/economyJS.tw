@@ -3,7 +3,8 @@
 window.LivingRule = Object.freeze({LUXURIOUS: 'luxurious', NORMAL: 'normal', SPARSE: 'sparse'});
 window.Job = Object.freeze({
 	DAIRY: 'work in the dairy', MASTER_SUITE: 'serve in the master suite', CONCUBINE: 'be your concubine',
-	BABY_FACTORY: 'labor in the production line', BROTHEL: 'work in the brothel', ARCADE: 'be confined in the arcade'});
+	BABY_FACTORY: 'labor in the production line', BROTHEL: 'work in the brothel', ARCADE: 'be confined in the arcade',
+	SERVANT: 'work as a servant', SERVER: 'be a servant'});
 window.PersonalAttention = Object.freeze({TRADE: 'trading', WAR: 'warfare', SLAVEING: 'slaving', ENGINEERING: 'engineering', MEDICINE: 'medicine', MAID: 'upkeep'});
 
 window.getCost = function(array) {
@@ -90,6 +91,35 @@ window.getCost = function(array) {
 	//slave expenses
 	for (var slave of array) {
 		costs += getSlaveCost(slave);
+		if(slave.assignment === Job.SERVANT || slave.assignment === Job.SERVER) {
+			if(slave.trust < -20) {
+				costs -= rulesCost * 4;
+			} else if(slave.devotion < -20) {
+				costs -= rulesCost * 2;
+			} else if(slave.devotion <= 20) {
+				costs -= rulesCost * 3;
+			} else if(slave.devotion <= 50) {
+				costs -= rulesCost * 4;
+			} else {
+				costs -= rulesCost * 5;
+			}
+			if(slave.fetish === 'submissive') {
+				costs -= rulesCost;
+			} else if(slave.fetish === 'dom') {
+				costs += rulesCost;
+			}
+			if(slave.relationship < -1) {
+				costs -= rulesCost;
+			}
+			if(slave.energy < 20) {
+				costs -= rulesCost;
+			} else if(slave.energy < 40) {
+				costs -= rulesCost / 2;
+			}
+			if(slave.lactation > 0) {
+				costs -= 25;
+			}
+		}
 	}
 	
 	// policy and other expenses
@@ -228,7 +258,6 @@ window.getSlaveCost = function(s) {
 	switch(s.diet) {
 		case 'fattening': case 'muscle building':
 			cost += foodCost;
-			break;
 		case 'restricted': case 'slimming':
 			cost -= foodCost;
 	}
@@ -243,7 +272,7 @@ window.getSlaveCost = function(s) {
 		cost -= foodCost;
 	}
 	if(s.lactation > 0) {
-		cost += foodCost * (1 + s.lactation * (1 + Math.trunc(s.boobs/10000)));
+		cost += foodCost * s.lactation * (1 + Math.trunc(s.boobs/10000));
 	}
 	if(s.preg > 5) {
 		if(s.assignment === Job.DAIRY && State.variables.dairyFeedersSetting > 0) {
@@ -259,6 +288,8 @@ window.getSlaveCost = function(s) {
 	}
 	if(s.diet === 'XX' || s.diet === 'XY') {
 		cost += 25;
+	} else if(s.diet === 'cleansing') {
+		cost += 50;
 	} else if(s.diet === 'XXY') {
 		cost += 75;
 	}
@@ -284,7 +315,7 @@ window.getSlaveCost = function(s) {
 	}
 	if(!canSee(s) && (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
 		cost += 50;
-	} else if(s.eyes <= -1) {
+	} else if(s.eyes <= -1 &&	s.eyewear !== 'corrective glasses' && s.eyewear !== 'corrective contacts') {
 		cost += 25;
 	} else if(s.eyewear === 'blurring glasses' || s.eyewear === 'blurring contacts') {
 		cost += 25;
@@ -309,7 +340,7 @@ window.getSlaveCost = function(s) {
 		cost += 50;
 	}
 	if((s.assignment !== Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment !== Job.ARCADE)) {
-		if(s.preg > 25 && s.universalRulesBirthing === 1) {
+		if(s.preg > 25 && State.variables.universalRulesBirthing === 1) {
 			cost += 50;
 		}
 	}
@@ -324,34 +355,28 @@ window.getSlaveCost = function(s) {
 		switch(s.inflationType) {
 		case "water":
 			cost += 100;
-			break;
 		case "curative":
 		case "aphrodisiac":
 		case "tightener":
 			cost += (100 + (drugsCost * 2));
-			break;
 		}
 	} else if(s.inflation === 2) {
 		switch(s.inflationType) {
 		case "water":
 			cost += 50;
-			break;
 		case "curative":
 		case "aphrodisiac":
 		case "tightener":
 			cost += (50 + (drugsCost * 2));
-			break;
 		}
 	} else if(s.inflation === 1) {
 		switch(s.inflationType) {
 		case "water":
 			cost += 25;
-			break;
 		case "curative":
 		case "aphrodisiac":
 		case "tightener":
 			cost += (25 + (drugsCost * 2));
-			break;
 		}
 	}
 
@@ -363,19 +388,19 @@ window.getSlaveCost = function(s) {
 	} else if(s.drugs === 'sag-B-gone') {
 		cost += drugsCost * .1;
 	} else if(s.drugs != 'no drugs') {
-		cost += drugsCost + 2;
+		cost += drugsCost * 2;
 	}
-	if(s.curatives > 0) {
-		cost += drugsCost * (1 + s.curatives);
+	if(s.curatives > 0 && s.assignmentVisible === 1) {
+		cost += drugsCost * s.curatives;
 	}
 	if(s.aphrodisiacs !== 0) {
 		cost += drugsCost * Math.abs(s.aphrodisiacs);
 	}
 	if(s.hormones !== 0) {
-		cost += Math.trunc(drugsCost * Math.abs(s.hormones) * 0.5);
+		cost += (drugsCost * Math.abs(s.hormones) * 0.5);
 	}
 	if(s.preg === -1 && isFertile(s)) {
-		cost += Math.trunc(drugsCost * 0.5);
+		cost += (drugsCost * 0.5);
 	}
 	
 	// Promotion costs
