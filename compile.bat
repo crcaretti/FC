@@ -1,4 +1,4 @@
-::@echo off
+@echo off
 :: Free Cities Basic Compiler - Windows
 
 :: See if we can find a git installation
