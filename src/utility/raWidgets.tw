@@ -3387,7 +3387,7 @@ Your brand design is ''$brandDesign.''
 <<widget "DefaultRules">>
 <<set _combinedRule = {}>>
 <<for _r = 0; _r < $defaultRules.length; _r++>>
-	<<set _currentRule = $defaultRules[_r]>>
+	<<set _currentRule = clone($defaultRules[_r])>>
 	/% skip inapplicable rules %/
 	<<if !ruleApplied($args[0], _currentRule.ID)>>
 		<<continue>>
@@ -3414,7 +3414,7 @@ Your brand design is ''$brandDesign.''
 		<</if>>
 
 	<<case "mastersuite">>
-		<<if ($masterSuite > $masterSuiteSlaves) && ($args[0].devotion > 20) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50)>>
+		<<if ($masterSuite > $masterSuiteSlaves) && (($args[0].devotion > 20) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50))>>
 			<<if ($args[0].assignment != "serve in the master suite")>>
 				<br>$args[0].slaveName has been automatically assigned to $masterSuiteName.
 				<<assignJob $args[0] _currentRule.assignFacility>>
@@ -3424,7 +3424,7 @@ Your brand design is ''$brandDesign.''
 		<</if>>
 
 	<<case "clinic">>
-		<<if ($clinic > $clinicSlaves) && ($args[0].health < 20) || (($Nurse != 0) && ($args[0].chem > 15) && ($clinicUpgradeFilters == 1)) || (($args[0].bellyImplant > -1) && ($bellyImplants == 1)) || $args[0].preg > 1>>
+		<<if ($clinic > $clinicSlaves) && (($args[0].health < 20) || (($Nurse != 0) && ($args[0].chem > 15) && ($clinicUpgradeFilters == 1)) || (($args[0].bellyImplant > -1) && ($bellyImplants == 1)) || $args[0].preg > 1)>>
 			<<if ($args[0].assignment != "get treatment in the clinic")>>
 				<br>$args[0].slaveName has been automatically assigned to get treatment in $clinicName.
 				<<assignJob $args[0] _currentRule.assignFacility>>
@@ -3434,7 +3434,7 @@ Your brand design is ''$brandDesign.''
 		<</if>>
 
 	<<case "spa">>
-		<<if ($spa > $spaSlaves) && ($args[0].health < 20) || ($args[0].trust < 60) || ($args[0].devotion <= 60) || ($args[0].fetish == "mindbroken") && ($args[0].devotion >= -20)>>
+		<<if ($spa > $spaSlaves) && (($args[0].health < 20) || ($args[0].trust < 60) || ($args[0].devotion <= 60) || ($args[0].fetish == "mindbroken") && ($args[0].devotion >= -20))>>
 			<<if ($args[0].assignment != "rest in the spa")>>
 				<br>$args[0].slaveName has been automatically assigned to rest in $spaName.
 				<<assignJob $args[0] _currentRule.assignFacility>>
@@ -3811,155 +3811,155 @@ check if a rule attribute, any one, is defined and otherwise skip everything.
 <</if>>
 
 <</if>> /* CLOSES FUCKDOLL CHECK */
+/* < -------------------------------------------------------------------------Drug Assignment -------------------------------------------------------------------------------------------> */
+/* Fertility */
+<<if isFertile($args[0])>>
+	<<if (def _combinedRule.preg) && (_combinedRule.preg !== "no default setting")>>
+		<<if (_combinedRule.preg == -1)>>
+			<<if $args[0].preg !== -1>>
+				<br>$args[0].slaveName is fertile, so she has been put on the appropriate contraceptive regime.
+				<<set $args[0].preg = -1>>
+			<</if>>
+			<<if $args[0].drugs == "fertility drugs" || $args[0].drugs == "super fertility drugs">>
+				<<set $args[0].drugs = "no drugs">>
+			<</if>>
+		<<elseif (_combinedRule.preg == 0)>>
+			<<if $args[0].preg !== 0>>
+				<br>$args[0].slaveName is fertile, so she has been taken off contraceptives.
+				<<set $args[0].preg = 0>>
+			<</if>>
+			<<if $args[0].drugs == "fertility drugs" || $args[0].drugs == "super fertility drugs">>
+				<<set $args[0].drugs = "no drugs">>
+			<</if>>
+		<<elseif (_combinedRule.preg == 1)>>
+			<<if $args[0].preg !== 0 || $args[0].drugs !== "fertility drugs" || $args[0].hormones !== 0>>
+				<<set $args[0].preg = 0>>
+				<<set $args[0].drugs = "fertility drugs">>
+				<<set $args[0].hormones = 0>>
+				<br>$args[0].slaveName is fertile, so she has been put on the appropriate fertility regime.
+			<</if>>
+		<<elseif (_combinedRule.preg == 2)>>
+			<<if $args[0].preg !== 0 || $args[0].drugs !== "fertility drugs" || $args[0].hormones !== 2>>
+				<<set $args[0].preg = 0>>
+				<<set $args[0].drugs = "fertility drugs">>
+				<<set $args[0].hormones = 2>>
+				<br>$args[0].slaveName is fertile, so she has been put on the appropriate fertility regime.
+			<</if>>
+		<<elseif (_combinedRule.preg == 3) and $args[0].indentureRestrictions < 1>>
+			<<if $args[0].preg !== 0 || $args[0].drugs !== "super fertility drugs" || $args[0].hormones !== 0>>
+				<<set $args[0].preg = 0>>
+				<<set $args[0].drugs = "super fertility drugs">>
+				<<set $args[0].hormones = 0>>
+				<br>$args[0].slaveName is fertile, so she has been put on the appropriate fertility regime.
+			<</if>>
+		<<elseif (_combinedRule.preg == 4) and $args[0].indentureRestrictions < 1>>
+			<<if $args[0].preg !== 0 || $args[0].drugs !== "super fertility drugs" || $args[0].hormones !== 2>>
+				<<set $args[0].preg = 0>>
+				<<set $args[0].drugs = "super fertility drugs">>
+				<<set $args[0].hormones = 2>>
+				<br>$args[0].slaveName is fertile, so she has been put on the appropriate fertility regime.
+			<</if>>
+		<</if>>
+	<</if>>
+<</if>>
 
-<<for _g = 0; _g < 1; _g++>> /* Growth drugs. Single loop broken when we find a drug to apply, or that a currently active drug is working on an unsatisfied growth target. Please advise if cleaner or more efficient code is possible. */
-
-<<if $args[0].drugs == "psychosuppressants" || $args[0].drugs == "fertility drugs" || $args[0].drugs == "steroids" || $args[0].drugs == "hormone enhancers">>
+/* Asset Growth */
+	<<set _tempAssetGrowthDrugs = ["breast injections", "breast redistributors", "butt injections", "butt redistributors", "lip injections", "lip atrophiers","penis enhancement", "penis atrophiers", "testicle enhancement", "testicle atrophiers", "hyper breast injections", "hyper butt injections", "hyper penis enhancement", "hyper testicle enhancement"]>>
+	<<for _g = 0; _g < 1; _g++>> /* Growth drugs. Single loop broken when we find a drug to apply, or that a currently active drug is working on an unsatisfied growth target. Please advise if cleaner or more efficient code is possible. */
+	<<if $args[0].drugs == "super fertility drugs" || $args[0].drugs == "fertility drugs">>
 	<br>$args[0].slaveName is on $args[0].drugs and will not be considered for drug enhancement until that regime is complete.
 	<<break>>
-<</if>>
-<<if $args[0].assignmentVisible>> /* More resource intensive version with prioritizing. Possible to give this a toggle rather than basing it on visibility. */
-	<<set _priorities = []>>
-	<<if _combinedRule.growth.boobs != "no default setting">>
-		<<if $args[0].boobs < _combinedRule.growth.boobs>>
-			<<set _priority = {drug: "breast injections", weight: (_combinedRule.growth.boobs-$args[0].boobs)/_combinedRule.growth.boobs}, _priorities.push(_priority)>>
-		<<elseif ($args[0].boobs > _combinedRule.growth.boobs) && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
-			<<set _priority = {drug: "breast redistributors", weight: (1+(($args[0].boobs-_combinedRule.growth.boobs)/_combinedRule.growth.boobs))}, _priorities.push(_priority)>>
-		<</if>>
 	<</if>>
-	<<if _combinedRule.growth.butt != "no default setting">>
-		<<if $args[0].butt < _combinedRule.growth.butt>>
-			<<set _priority = {drug: "butt injections", weight: (_combinedRule.growth.butt-$args[0].butt)/_combinedRule.growth.butt}, _priorities.push(_priority)>>
-		<<elseif ($args[0].butt > _combinedRule.growth.butt) && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
-			<<set _priority = {drug: "butt redistributors", weight: (1+(($args[0].butt-_combinedRule.growth.butt)/_combinedRule.growth.butt))}, _priorities.push(_priority)>>
-		<</if>>
-	<</if>>
-	<<if _combinedRule.growth.lips != "no default setting">>
-		<<if $args[0].lips < _combinedRule.growth.lips>>
-			<<set _priority = {drug: "lip injections", weight: (_combinedRule.growth.lips-$args[0].lips)/_combinedRule.growth.lips}, _priorities.push(_priority)>>
-		<<elseif ($args[0].lips > _combinedRule.growth.lips) && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
-			<<set _priority = {drug: "lip atrophiers", weight: (1+(($args[0].lips-_combinedRule.growth.lips)/_combinedRule.growth.lips))}, _priorities.push(_priority)>>
-		<</if>>
-	<</if>>
-	<<if _combinedRule.growth.dick != "no default setting">>
-		<<if $args[0].dick>>
-		<<if $args[0].dick < _combinedRule.growth.dick>>
-			<<set _priority = {drug: "penis enhancement", weight: (_combinedRule.growth.dick-$args[0].dick)/_combinedRule.growth.dick}, _priorities.push(_priority)>>
-		<<elseif ($args[0].dick > _combinedRule.growth.dick) && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
-			<<set _priority = {drug: "penis atrophiers", weight: (1+(($args[0].dick-_combinedRule.growth.dick)/_combinedRule.growth.dick))}, _priorities.push(_priority)>>
-		<</if>>
-		<</if>>
-	<</if>>
-	<<if _combinedRule.growth.balls != "no default setting">>
-		<<if $args[0].balls>>
-		<<if $args[0].balls < _combinedRule.growth.balls>>
-			<<set _priority = {drug: "testicle enhancement", weight: (_combinedRule.growth.balls-$args[0].balls)/_combinedRule.growth.balls}, _priorities.push(_priority)>>
-		<<elseif ($args[0].balls > _combinedRule.growth.balls) && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
-			<<set _priority = {drug: "testicle atrophiers", weight: (1+(($args[0].balls-_combinedRule.growth.balls)/_combinedRule.growth.balls))}, _priorities.push(_priority)>>
-		<</if>>
-		<</if>>
-	<</if>>
-	<<if _priorities.length > 1>>
-		<<set _priorities = _priorities.sort(function(a, b){if(a.weight > b.weight) return -1; if(a.weight < b.weight) return 1; return 0;})>>
-		<<if $args[0].drugs != _priorities[0].drug>>
-			<<set $args[0].drugs = _priorities[0].drug>>
-			<br>$args[0].slaveName has been put on _priorities[0].drug, since that part of her body is <<print (Math.trunc(_priorities[0].weight*100) % 100)>>% 
-			<<if _priorities[0].weight < 1>>below
-			<<else>>above
-			<</if>>
-			 the targeted size.
-		<</if>>
-		<<break>>
-	<<elseif _priorities.length > 0>>
-		<<if $args[0].drugs != _priorities[0].drug>>
-			<<set $args[0].drugs = _priorities[0].drug>>
-			<br>$args[0].slaveName has been put on _priorities[0].drug, since that is the only part of her body that does not meet the targeted size.
-		<</if>>
-		<<break>>
-	<<elseif $args[0].drugs != "no drugs">>
-		<<set $args[0].drugs = "no drugs">>
-		<br>$args[0].slaveName's body has met all relevant growth targets, so her pharmaceutical regime has been ended.
-		<<break>>
-	<</if>>	
-<<else>>
-	<<if $arcologies[0].FSAssetExpansionistResearch == 1>>	
-		<<set _hyper = "hyper ">>
-	<<else>>
-		<<set _hyper = "">>
-	<</if>>
-	<<if _combinedRule.growth.boobs != "no default setting">>
-		<<if $args[0].boobs < _combinedRule.growth.boobs>>
-			<<if $args[0].drugs != _hyper + "breast injections">>
-				<<set $args[0].drugs = _hyper + "breast injections">>
-				<br>$args[0].slaveName has been put on $args[0].drugs.
-			<</if>>
-			<<break>>
-		<</if>>
-	<</if>>
-	<<if _combinedRule.growth.butt != "no default setting">>
-		<<if $args[0].butt < _combinedRule.growth.butt>>
-			<<if $args[0].drugs != _hyper + "butt injections">>
-				<<set $args[0].drugs = _hyper + "butt injections">>
-				<br>$args[0].slaveName has been put on $args[0].drugs.
-			<</if>>
-			<<break>>
-		<</if>>
-	<</if>>
-	<<if _combinedRule.growth.lips != "no default setting">>
-		<<if $args[0].lips < _combinedRule.growth.lips>>
-			<<if $args[0].drugs != "lip injections">>
-				<<set $args[0].drugs = "lip injections">>
-				<br>$args[0].slaveName has been put on $args[0].drugs.
-			<</if>>
-			<<break>>
-		<</if>>
-	<</if>>
-	<<if _combinedRule.growth.dick != "no default setting">>
-		<<if $args[0].dick>>
-		<<if $args[0].dick < _combinedRule.growth.dick>>
-			<<if $args[0].drugs != _hyper + "penis enhancement">>
-				<<set $args[0].drugs = _hyper + "penis enhancement">>
-				<br>$args[0].slaveName has been put on $args[0].drugs.
-			<</if>>
-			<<break>>
-		<</if>>
-		<</if>>
-	<</if>>
-	<<if _combinedRule.growth.balls != "no default setting">>
-		<<if $args[0].balls>>
-		<<if $args[0].balls < _combinedRule.growth.balls>>
-			<<if $args[0].drugs != _hyper + "testicle enhancement">>
-				<<set $args[0].drugs = _hyper + "testicle enhancement">>
-				<br>$args[0].slaveName has been put on $args[0].drugs.
-			<</if>>
-			<<break>>
-		<</if>>
-		<</if>>
-	<</if>>
-	<<if $arcologies[0].FSSlimnessEnthusiastResearch == 1>>
-		/*
+	<<if $args[0].assignmentVisible>> /* More resource intensive version with prioritizing. Possible to give this a toggle rather than basing it on visibility. */
+		<<set _priorities = []>>
 		<<if _combinedRule.growth.boobs != "no default setting">>
-			<<if $args[0].boobs > _combinedRule.growth.boobs>>
-				<<if $args[0].drugs != "breast redistributors">>
-					<<set $args[0].drugs = "breast redistributors">>
+			<<if $args[0].boobs < _combinedRule.growth.boobs>>
+				<<set _priority = {drug: "breast injections", weight: (_combinedRule.growth.boobs-$args[0].boobs)/_combinedRule.growth.boobs}, _priorities.push(_priority)>>
+			<<elseif ($args[0].boobs > _combinedRule.growth.boobs+200) && $args[0].weight < 100 && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
+				<<set _priority = {drug: "breast redistributors", weight: (1+(($args[0].boobs-_combinedRule.growth.boobs)/_combinedRule.growth.boobs))}, _priorities.push(_priority)>>
+			<</if>>
+		<</if>>
+		<<if _combinedRule.growth.butt != "no default setting">>
+			<<if $args[0].butt < _combinedRule.growth.butt>>
+				<<set _priority = {drug: "butt injections", weight: (_combinedRule.growth.butt-$args[0].butt)/_combinedRule.growth.butt}, _priorities.push(_priority)>>
+			<<elseif ($args[0].butt > _combinedRule.growth.butt) && $args[0].weight < 100 && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
+				<<set _priority = {drug: "butt redistributors", weight: (1+(($args[0].butt-_combinedRule.growth.butt)/_combinedRule.growth.butt))}, _priorities.push(_priority)>>
+			<</if>>
+		<</if>>
+		<<if _combinedRule.growth.lips != "no default setting">>
+			<<if $args[0].lips < _combinedRule.growth.lips>>
+				<<set _priority = {drug: "lip injections", weight: (_combinedRule.growth.lips-$args[0].lips)/_combinedRule.growth.lips}, _priorities.push(_priority)>>
+			<<elseif ($args[0].lips > _combinedRule.growth.lips) && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
+				<<set _priority = {drug: "lip atrophiers", weight: (1+(($args[0].lips-_combinedRule.growth.lips)/_combinedRule.growth.lips))}, _priorities.push(_priority)>>
+			<</if>>
+		<</if>>
+		<<if _combinedRule.growth.dick != "no default setting">>
+			<<if $args[0].dick>>
+			<<if $args[0].dick < _combinedRule.growth.dick>>
+				<<set _priority = {drug: "penis enhancement", weight: (_combinedRule.growth.dick-$args[0].dick)/_combinedRule.growth.dick}, _priorities.push(_priority)>>
+			<<elseif ($args[0].dick > _combinedRule.growth.dick) && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
+				<<set _priority = {drug: "penis atrophiers", weight: (1+(($args[0].dick-_combinedRule.growth.dick)/_combinedRule.growth.dick))}, _priorities.push(_priority)>>
+			<</if>>
+			<</if>>
+		<</if>>
+		<<if _combinedRule.growth.balls != "no default setting">>
+			<<if $args[0].balls>>
+			<<if $args[0].balls < _combinedRule.growth.balls>>
+				<<set _priority = {drug: "testicle enhancement", weight: (_combinedRule.growth.balls-$args[0].balls)/_combinedRule.growth.balls}, _priorities.push(_priority)>>
+			<<elseif ($args[0].balls > _combinedRule.growth.balls) && ($arcologies[0].FSSlimnessEnthusiastResearch == 1)>>
+				<<set _priority = {drug: "testicle atrophiers", weight: (1+(($args[0].balls-_combinedRule.growth.balls)/_combinedRule.growth.balls))}, _priorities.push(_priority)>>
+			<</if>>
+			<</if>>
+		<</if>>
+		<<if _priorities.length > 1>>
+			<<set _priorities = _priorities.sort(function(a, b){if(a.weight > b.weight) return -1; if(a.weight < b.weight) return 1; return 0;})>>
+			<<if $args[0].drugs != _priorities[0].drug>>
+				<<set $args[0].drugs = _priorities[0].drug>>
+				<br>$args[0].slaveName has been put on _priorities[0].drug, since that part of her body is <<print (Math.trunc(_priorities[0].weight*100) % 100)>>% 
+				<<if _priorities[0].weight < 1>>below
+				<<else>>above
+				<</if>>
+				 the targeted size.
+			<</if>>
+			<<break>>
+		<<elseif _priorities.length > 0>>
+			<<if $args[0].drugs != _priorities[0].drug>>
+				<<set $args[0].drugs = _priorities[0].drug>>
+				<br>$args[0].slaveName has been put on _priorities[0].drug, since that is the only part of her body that does not meet the targeted size.
+			<</if>>
+			<<break>>
+		<<elseif (_tempAssetGrowthDrugs.includes($args[0].drugs))>>
+			<<set $args[0].drugs = "no drugs">>
+			<br>$args[0].slaveName's body has met all relevant growth targets, so her pharmaceutical regime has been ended.
+			<<break>>
+		<</if>>	
+	<<else>>
+		<<if $arcologies[0].FSAssetExpansionistResearch == 1>>	
+			<<set _hyper = "hyper ">>
+		<<else>>
+			<<set _hyper = "">>
+		<</if>>
+		<<if _combinedRule.growth.boobs != "no default setting">>
+			<<if $args[0].boobs < _combinedRule.growth.boobs>>
+				<<if $args[0].drugs != _hyper + "breast injections">>
+					<<set $args[0].drugs = _hyper + "breast injections">>
 					<br>$args[0].slaveName has been put on $args[0].drugs.
 				<</if>>
 				<<break>>
 			<</if>>
 		<</if>>
 		<<if _combinedRule.growth.butt != "no default setting">>
-			<<if $args[0].butt > _combinedRule.growth.butt>>
-				<<if $args[0].drugs != "butt redistributors">>
-					<<set $args[0].drugs = "butt redistributors">>
+			<<if $args[0].butt < _combinedRule.growth.butt>>
+				<<if $args[0].drugs != _hyper + "butt injections">>
+					<<set $args[0].drugs = _hyper + "butt injections">>
 					<br>$args[0].slaveName has been put on $args[0].drugs.
 				<</if>>
 				<<break>>
 			<</if>>
 		<</if>>
-		*/
 		<<if _combinedRule.growth.lips != "no default setting">>
-			<<if $args[0].lips > _combinedRule.growth.lips>>
-				<<if $args[0].drugs != "lip atrophiers">>
+			<<if $args[0].lips < _combinedRule.growth.lips>>
+				<<if $args[0].drugs != "lip injections">>
 					<<set $args[0].drugs = "lip injections">>
 					<br>$args[0].slaveName has been put on $args[0].drugs.
 				<</if>>
@@ -3968,9 +3968,9 @@ check if a rule attribute, any one, is defined and otherwise skip everything.
 		<</if>>
 		<<if _combinedRule.growth.dick != "no default setting">>
 			<<if $args[0].dick>>
-			<<if $args[0].dick > _combinedRule.growth.dick>>
-				<<if $args[0].drugs != "penis atrophiers">>
-					<<set $args[0].drugs = "penis atrophiers">>
+			<<if $args[0].dick < _combinedRule.growth.dick>>
+				<<if $args[0].drugs != _hyper + "penis enhancement">>
+					<<set $args[0].drugs = _hyper + "penis enhancement">>
 					<br>$args[0].slaveName has been put on $args[0].drugs.
 				<</if>>
 				<<break>>
@@ -3979,240 +3979,82 @@ check if a rule attribute, any one, is defined and otherwise skip everything.
 		<</if>>
 		<<if _combinedRule.growth.balls != "no default setting">>
 			<<if $args[0].balls>>
-			<<if $args[0].balls > _combinedRule.growth.balls>>
-				<<if $args[0].drugs != "testicle atrophiers">>
-					<<set $args[0].drugs = "testicle atrophiers">>
+			<<if $args[0].balls < _combinedRule.growth.balls>>
+				<<if $args[0].drugs != _hyper + "testicle enhancement">>
+					<<set $args[0].drugs = _hyper + "testicle enhancement">>
 					<br>$args[0].slaveName has been put on $args[0].drugs.
 				<</if>>
 				<<break>>
 			<</if>>
 			<</if>>
 		<</if>>
-	<</if>>
-	/*
-	<<if $args[0].drugs != "no drugs">>
-		<<set $args[0].drugs = "no drugs">>
-		<br>$args[0].slaveName has met all relevant growth targets, so her pharmaceutical regime has been ended.
-		<<break>>
-	<</if>>
-	*/
-<</if>>
-
-<</for>> /* Closes single for loop for growth drugs. */
-
-<<if (def _combinedRule.curatives) && (_combinedRule.curatives != "no default setting")>>
-<<if $args[0].curatives != _combinedRule.curatives>>
-	<<if _combinedRule.curatives == 2>>
-		<<if $args[0].health > 100>>
-			<br>$args[0].slaveName has been	put on preventatives, since curatives cannot improve her health further.
-			<<set $args[0].curatives = 1>>
-		<<else>>
-			<br>$args[0].slaveName has been	put on curatives.
-			<<set $args[0].curatives = _combinedRule.curatives>>
+		<<if $arcologies[0].FSSlimnessEnthusiastResearch == 1>>
+			<<if _combinedRule.growth.boobs != "no default setting">>
+				<<if $args[0].boobs > _combinedRule.growth.boobs+200 && $args[0].weight < 100>>
+					<<if $args[0].drugs != "breast redistributors">>
+						<<set $args[0].drugs = "breast redistributors">>
+						<br>$args[0].slaveName has been put on $args[0].drugs.
+					<</if>>
+					<<break>>
+				<</if>>
+			<</if>>
+			<<if _combinedRule.growth.butt != "no default setting">>
+				<<if $args[0].butt > _combinedRule.growth.butt && $args[0].weight < 100>>
+					<<if $args[0].drugs != "butt redistributors">>
+						<<set $args[0].drugs = "butt redistributors">>
+						<br>$args[0].slaveName has been put on $args[0].drugs.
+					<</if>>
+					<<break>>
+				<</if>>
+			<</if>>
+			<<if _combinedRule.growth.lips != "no default setting">>
+				<<if $args[0].lips > _combinedRule.growth.lips>>
+					<<if $args[0].drugs != "lip atrophiers">>
+						<<set $args[0].drugs = "lip injections">>
+						<br>$args[0].slaveName has been put on $args[0].drugs.
+					<</if>>
+					<<break>>
+				<</if>>
+			<</if>>
+			<<if _combinedRule.growth.dick != "no default setting">>
+				<<if $args[0].dick>>
+				<<if $args[0].dick > _combinedRule.growth.dick>>
+					<<if $args[0].drugs != "penis atrophiers">>
+						<<set $args[0].drugs = "penis atrophiers">>
+						<br>$args[0].slaveName has been put on $args[0].drugs.
+					<</if>>
+					<<break>>
+				<</if>>
+				<</if>>
+			<</if>>
+			<<if _combinedRule.growth.balls != "no default setting">>
+				<<if $args[0].balls>>
+				<<if $args[0].balls > _combinedRule.growth.balls>>
+					<<if $args[0].drugs != "testicle atrophiers">>
+						<<set $args[0].drugs = "testicle atrophiers">>
+						<br>$args[0].slaveName has been put on $args[0].drugs.
+					<</if>>
+					<<break>>
+				<</if>>
+				<</if>>
+			<</if>>
 		<</if>>
-	<<else>>
-		<br>$args[0].slaveName has been	<<if _combinedRule.curatives > 0>>put on preventatives<<else>>taken off health drugs<</if>>.
-		<<set $args[0].curatives = _combinedRule.curatives>>
-	<</if>>
-<</if>>
-<</if>>
-
-<<if (def _combinedRule.aphrodisiacs) && (_combinedRule.aphrodisiacs != "no default setting")>>
-<<if $args[0].aphrodisiacs != _combinedRule.aphrodisiacs>>
-	<br>$args[0].slaveName has been	<<if _combinedRule.aphrodisiacs > 0>>put on the proper<<else>>taken off<</if>> aphrodisiacs.
-	<<set $args[0].aphrodisiacs = _combinedRule.aphrodisiacs>>
-<</if>>
-<</if>>
-
-<<if ($args[0].dick > 0)>>
-<<if ($args[0].balls == 0)>>
-<<if (def _combinedRule.gelding) && (_combinedRule.gelding !== "no default setting")>>
-<<if ($args[0].hormones !== _combinedRule.gelding)>>
-	<<set $args[0].hormones = _combinedRule.gelding>>
-	<<if $args[0].indentureRestrictions >= 2>>
-		<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
-	<</if>>
-	<br>$args[0].slaveName is a gelding, so she has been put on the appropriate hormonal regime.
-<</if>>
-<</if>>
-<<elseif ($args[0].balls > 0)>>
-<<if (def _combinedRule.XY) && (_combinedRule.XY !== "no default setting")>>
-<<if ($args[0].hormones !== _combinedRule.XY)>>
-<<if ($args[0].assignment != "recruit girls")>>
-<<if ($args[0].assignment != "be the Wardeness")>>
-<<if ($args[0].assignment != "be the Madam")>>
-	<<set $args[0].hormones = _combinedRule.XY>>
-	<<if $args[0].indentureRestrictions >= 2>>
-		<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
-	<</if>>
-	<br>$args[0].slaveName is a shemale, so she has been put on the appropriate hormonal regime.
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-<</if>>
-
-<<if ($args[0].vagina > -1) && ($args[0].dick == 0) && (def _combinedRule.XX) && (_combinedRule.XX !== "no default setting")>>
-	<<if ($args[0].hormones !== _combinedRule.XX)>>
-		<<set $args[0].hormones = _combinedRule.XX>>
-		<<if $args[0].indentureRestrictions >= 2>>
-			<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
-		<</if>>
-		<br>$args[0].slaveName is a female, so she has been put on the appropriate hormonal regime.
-	<</if>>
-<</if>>
-
-<<if isFertile($args[0])>>
-	<<if (def _combinedRule.preg) && (_combinedRule.preg !== "no default setting")>>
-	<<if (_combinedRule.preg == -1)>>
-		<<if $args[0].preg !== -1>>
-			<br>$args[0].slaveName is fertile, so she has been put on the appropriate contraceptive regime.
-			<<set $args[0].preg = -1>>
-		<</if>>
-		<<if $args[0].drugs == "fertility drugs" || $args[0].drugs == "super fertility drugs">>
+		<<if (_tempAssetGrowthDrugs.includes($args[0].drugs))>>
 			<<set $args[0].drugs = "no drugs">>
-		<</if>>
-	<<elseif (_combinedRule.preg == 0)>>
-		<<if $args[0].preg !== 0>>
-			<br>$args[0].slaveName is fertile, so she has been taken off contraceptives.
-			<<set $args[0].preg = 0>>
-		<</if>>
-		<<if $args[0].drugs == "fertility drugs" || $args[0].drugs == "super fertility drugs">>
-			<<set $args[0].drugs = "no drugs">>
-		<</if>>
-	<<elseif (_combinedRule.preg == 1)>>
-		<<if $args[0].preg !== 0 || $args[0].drugs !== "fertility drugs" || $args[0].hormones !== 0>>
-			<<set $args[0].preg = 0>>
-			<<set $args[0].drugs = "fertility drugs">>
-			<<set $args[0].hormones = 0>>
-			<br>$args[0].slaveName is fertile, so she has been put on the appropriate fertility regime.
-		<</if>>
-	<<elseif (_combinedRule.preg == 2)>>
-		<<if $args[0].preg !== 0 || $args[0].drugs !== "fertility drugs" || $args[0].hormones !== 2>>
-			<<set $args[0].preg = 0>>
-			<<set $args[0].drugs = "fertility drugs">>
-			<<set $args[0].hormones = 2>>
-			<br>$args[0].slaveName is fertile, so she has been put on the appropriate fertility regime.
-		<</if>>
-	<<elseif (_combinedRule.preg == 3) and $args[0].indentureRestrictions < 1>>
-		<<if $args[0].preg !== 0 || $args[0].drugs !== "super fertility drugs" || $args[0].hormones !== 0>>
-			<<set $args[0].preg = 0>>
-			<<set $args[0].drugs = "super fertility drugs">>
-			<<set $args[0].hormones = 0>>
-			<br>$args[0].slaveName is fertile, so she has been put on the appropriate fertility regime.
-		<</if>>
-	<<elseif (_combinedRule.preg == 4) and $args[0].indentureRestrictions < 1>>
-		<<if $args[0].preg !== 0 || $args[0].drugs !== "super fertility drugs" || $args[0].hormones !== 2>>
-			<<set $args[0].preg = 0>>
-			<<set $args[0].drugs = "super fertility drugs">>
-			<<set $args[0].hormones = 2>>
-			<br>$args[0].slaveName is fertile, so she has been put on the appropriate fertility regime.
+			<br>$args[0].slaveName has met all relevant growth targets, so her pharmaceutical regime has been ended.
+			<<break>>
 		<</if>>
 	<</if>>
-	<</if>>
+
+	<</for>> /* Closes single for loop for growth drugs. */
+
+/* Other Drugs */
+<<if $args[0].drugs == "none" && ((_combinedRule.drugs != "psychosuppressants") || (_combinedRule.drugs != "steroids") || (_combinedRule.drugs != "hormone enhancers"))>>
+	<<set $args[0].drugs = _combinedRule.drugs >>
+	<br> $$args[0].slaveName has been put on $args[0].drugs.
 <</if>>
 
-<<if $args[0].preg > 3 && _combinedRule.pregSpeed != "nds" && $args[0].breedingMark != 1 && $args[0].indentureRestrictions < 1 && $args[0].pregType < 50>>
-	<<if _combinedRule.pregSpeed == "slow" && $args[0].preg < 31>>
-		<<set $args[0].pregControl = "slow gestation">>
-		<br>$args[0].slaveName is pregnant, so she has been put on the gestation slowing agents.
-	<<elseif _combinedRule.pregSpeed == "fast" && $args[0].preg < 31 && $args[0].health > -50>>
-		<<set $args[0].pregControl = "speed up">>
-		<br>$args[0].slaveName is pregnant, so she has been put on rapid gestation  agents. CAUTION! Can be dangerous. Clinic supervision is recommended.
-	<<elseif _combinedRule.pregSpeed == "supress" && $args[0].preg > 30 && $args[0].health > -50>>
-		<<set $args[0].pregControl = "labor supressors">>
-		<br>$args[0].slaveName is ready to birth, so she has been put on labor supressing agents.
-	<<elseif _combinedRule.pregSpeed == "stimulate" && $args[0].preg >= 31 && $args[0].health > -50>>
-		<<set $args[0].labor = 1,$args[0].induce = 1,$birthee = 1>>
-		<br>$args[0].slaveName is ready to birth, so her labor has been stimulated.
-	<<elseif _combinedRule.pregSpeed == "fast" && $args[0].pregControl == "speed up" && $args[0].health <= -50>>
-		<<set $args[0].pregControl = "none">>
-		<br>$args[0].slaveName is on rapid gestation agents and dangerously unhealthy, so her agent regimen has been stopped. 
-	<<elseif _combinedRule.pregSpeed == "supress" && $args[0].pregControl == "labor supressors" && $args[0].health <= -50>>
-		<<set $args[0].pregControl = "none">>
-		<br>$args[0].slaveName is on labor supression agents and unhealthy, so her agent regimen has been stopped. 
-	<</if>>
-<</if>>
-
-<<if $args[0].fuckdoll == 0>>
-
-<<if (def _combinedRule.livingRules) && (_combinedRule.livingRules !== "no default setting")>>
-<<if ($args[0].fetish == "mindbroken")>>
-	<<if ($args[0].livingRules !== "spare")>>
-	<<set $args[0].livingRules = "spare">>
-	<br>Since $args[0].slaveName is mindbroken her living standard has been set to spare.
-	<</if>>
-<<elseif $args[0].livingRules !== _combinedRule.livingRules>>
-	<<if _combinedRule.livingRules !== "luxurious">>
-		<<if $roomsPopulation <= $rooms-0.5>>
-			<<set $args[0].livingRules = _combinedRule.livingRules>>
-			<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
-			<<if $args[0].relationship >= 4>><<set $roomsPopulation += 0.5>><<else>><<set $roomsPopulation += 1>><</if>>
-		<<else>>
-			<<set $args[0].livingRules = "normal">>
-			<br>$args[0].slaveName's living standard has been set to normal, since there is no room for her to occupy.
-		<</if>>
-	<<else>>
-		<<set $args[0].livingRules = _combinedRule.livingRules>>
-		<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
-	<</if>>
-<</if>>
-<</if>>
-
-<<if (def _combinedRule.speechRules) && (_combinedRule.speechRules !== "no default setting")>>
-<<if ($args[0].fetish == "mindbroken")>>
-	<<if ($args[0].speechRules !== "restrictive")>>
-	<<set $args[0].speechRules = "restrictive">>
-	<br>Since $args[0].slaveName is mindbroken her speech rules have been set to restrictive.
-	<</if>>
-<<elseif ($args[0].speechRules !== _combinedRule.speechRules)>>
-	<<set $args[0].speechRules = _combinedRule.speechRules>>
-	<br>$args[0].slaveName's speech rules have been set to _combinedRule.speechRules.
-<</if>>
-<</if>>
-
-<<if ($args[0].fetish !== "mindbroken")>>
- <<if (def _combinedRule.relationshipRules) && (_combinedRule.relationshipRules !== "no default setting")>>
- <<if ($args[0].relationshipRules !== _combinedRule.relationshipRules )>>
- 	<<set $args[0].relationshipRules = _combinedRule.relationshipRules >>
- 	<br>$args[0].slaveName's relationship rules have been set to _combinedRule.relationshipRules.
- <</if>>
- <</if>>
-<</if>>
-
-<<if (def _combinedRule.releaseRules) && (_combinedRule.releaseRules !== "no default setting")>>
-	<<if (_combinedRule.releaseRules == "restrictive")>>
-	<<SexualRelease $args[0]>>
-	<<else>>
-		<<set $release = 1>>
-	<</if>>
-	<<if ($args[0].fetish == "mindbroken") && ($args[0].releaseRules !== "permissive")>>
-		<<set $args[0].releaseRules = "permissive">>
-		<br>Since $args[0].slaveName is mindbroken her masturbation rules have been set to permissive.
-	<<elseif ($release != 0) && ($args[0].releaseRules !== _combinedRule.releaseRules)>>
-	  <<set $args[0].releaseRules = _combinedRule.releaseRules>>
-	  <br>$args[0].slaveName's masturbation rules have been set to _combinedRule.releaseRules.
-	<</if>>
-<</if>>
-
-<<if (def _combinedRule.standardPunishment) && (_combinedRule.standardPunishment !== "no default setting")>>
- <<if ($args[0].standardPunishment !== _combinedRule.standardPunishment)>>
- 	<<set $args[0].standardPunishment = _combinedRule.standardPunishment >>
- 	<br>$args[0].slaveName's typical punishment has been updated to _combinedRule.standardPunishment.
- <</if>>
-<</if>>
-
-<<if (def _combinedRule.standardReward) && (_combinedRule.standardReward !== "no default setting")>>
- <<if ($args[0].standardReward !== _combinedRule.standardReward)>>
- 	<<set $args[0].standardReward = _combinedRule.standardReward >>
- 	<br>$args[0].slaveName's typical reward has been updated to _combinedRule.standardReward.
- <</if>>
-<</if>>
-
-<</if>> /* CLOSES FUCKDOLL CHECK */
-
+/* Diet Setting */
 <<if (def _combinedRule.diet) && (_combinedRule.diet !== "no default setting")>>
 	<<if ($args[0].boobs >= 1600) && ($args[0].muscles <= 5) && ($args[0].amp != 1) && ((_combinedRule.muscles == "no default setting") || (_combinedRule.muscles == 0))>>
 		<<if ($args[0].diet !== "muscle building")>>
@@ -4455,6 +4297,173 @@ check if a rule attribute, any one, is defined and otherwise skip everything.
 		<</if>>
 	<</if>>
 <</if>>
+
+/* <-------------------------------------------------------------- End of Drugs ----------------------------------------------------------------------------------------------> */
+
+<<if (def _combinedRule.curatives) && (_combinedRule.curatives != "no default setting")>>
+<<if $args[0].curatives != _combinedRule.curatives>>
+	<<if _combinedRule.curatives == 2>>
+		<<if $args[0].health > 100>>
+			<<if ($args[0].curatives != 1)>>
+			<br>$args[0].slaveName has been	put on preventatives, since curatives cannot improve her health further.
+			<<set $args[0].curatives = 1>>
+			<</if>>
+		<<else>>
+			<br>$args[0].slaveName has been	put on curatives.
+			<<set $args[0].curatives = _combinedRule.curatives>>
+		<</if>>
+	<<else>>
+		<br>$args[0].slaveName has been	<<if _combinedRule.curatives > 0>>put on preventatives<<else>>taken off health drugs<</if>>.
+		<<set $args[0].curatives = _combinedRule.curatives>>
+	<</if>>
+<</if>>
+<</if>>
+
+<<if (def _combinedRule.aphrodisiacs) && (_combinedRule.aphrodisiacs != "no default setting")>>
+<<if $args[0].aphrodisiacs != _combinedRule.aphrodisiacs>>
+	<br>$args[0].slaveName has been	<<if _combinedRule.aphrodisiacs > 0>>put on the proper<<else>>taken off<</if>> aphrodisiacs.
+	<<set $args[0].aphrodisiacs = _combinedRule.aphrodisiacs>>
+<</if>>
+<</if>>
+
+<<if ($args[0].dick > 0)>>
+<<if ($args[0].balls == 0)>>
+<<if (def _combinedRule.gelding) && (_combinedRule.gelding !== "no default setting")>>
+<<if ($args[0].hormones !== _combinedRule.gelding)>>
+	<<set $args[0].hormones = _combinedRule.gelding>>
+	<<if $args[0].indentureRestrictions >= 2>>
+		<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
+	<</if>>
+	<br>$args[0].slaveName is a gelding, so she has been put on the appropriate hormonal regime.
+<</if>>
+<</if>>
+<<elseif ($args[0].balls > 0)>>
+<<if (def _combinedRule.XY) && (_combinedRule.XY !== "no default setting")>>
+<<if ($args[0].hormones !== _combinedRule.XY)>>
+<<if ($args[0].assignment != "recruit girls")>>
+<<if ($args[0].assignment != "be the Wardeness")>>
+<<if ($args[0].assignment != "be the Madam")>>
+	<<set $args[0].hormones = _combinedRule.XY>>
+	<<if $args[0].indentureRestrictions >= 2>>
+		<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
+	<</if>>
+	<br>$args[0].slaveName is a shemale, so she has been put on the appropriate hormonal regime.
+<</if>>
+<</if>>
+<</if>>
+<</if>>
+<</if>>
+<</if>>
+<</if>>
+
+<<if ($args[0].vagina > -1) && ($args[0].dick == 0) && (def _combinedRule.XX) && (_combinedRule.XX !== "no default setting")>>
+	<<if ($args[0].hormones !== _combinedRule.XX)>>
+		<<set $args[0].hormones = _combinedRule.XX>>
+		<<if $args[0].indentureRestrictions >= 2>>
+			<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
+		<</if>>
+		<br>$args[0].slaveName is a female, so she has been put on the appropriate hormonal regime.
+	<</if>>
+<</if>>
+
+<<if $args[0].preg > 3 && _combinedRule.pregSpeed != "nds" && $args[0].breedingMark != 1 && $args[0].indentureRestrictions < 1 && $args[0].pregType < 50>>
+	<<if _combinedRule.pregSpeed == "slow" && $args[0].preg < 31>>
+		<<set $args[0].pregControl = "slow gestation">>
+		<br>$args[0].slaveName is pregnant, so she has been put on the gestation slowing agents.
+	<<elseif _combinedRule.pregSpeed == "fast" && $args[0].preg < 31 && $args[0].health > -50>>
+		<<set $args[0].pregControl = "speed up">>
+		<br>$args[0].slaveName is pregnant, so she has been put on rapid gestation  agents. CAUTION! Can be dangerous. Clinic supervision is recommended.
+	<<elseif _combinedRule.pregSpeed == "supress" && $args[0].preg > 30 && $args[0].health > -50>>
+		<<set $args[0].pregControl = "labor supressors">>
+		<br>$args[0].slaveName is ready to birth, so she has been put on labor supressing agents.
+	<<elseif _combinedRule.pregSpeed == "stimulate" && $args[0].preg >= 31 && $args[0].health > -50>>
+		<<set $args[0].labor = 1,$args[0].induce = 1,$birthee = 1>>
+		<br>$args[0].slaveName is ready to birth, so her labor has been stimulated.
+	<<elseif _combinedRule.pregSpeed == "fast" && $args[0].pregControl == "speed up" && $args[0].health <= -50>>
+		<<set $args[0].pregControl = "none">>
+		<br>$args[0].slaveName is on rapid gestation agents and dangerously unhealthy, so her agent regimen has been stopped. 
+	<<elseif _combinedRule.pregSpeed == "supress" && $args[0].pregControl == "labor supressors" && $args[0].health <= -50>>
+		<<set $args[0].pregControl = "none">>
+		<br>$args[0].slaveName is on labor supression agents and unhealthy, so her agent regimen has been stopped. 
+	<</if>>
+<</if>>
+
+<<if $args[0].fuckdoll == 0>>
+
+<<if (def _combinedRule.livingRules) && (_combinedRule.livingRules !== "no default setting")>>
+<<if ($args[0].fetish == "mindbroken")>>
+	<<if ($args[0].livingRules !== "spare")>>
+	<<set $args[0].livingRules = "spare">>
+	<br>Since $args[0].slaveName is mindbroken her living standard has been set to spare.
+	<</if>>
+<<elseif $args[0].livingRules !== _combinedRule.livingRules>>
+	<<if _combinedRule.livingRules !== "luxurious">>
+		<<if $roomsPopulation <= $rooms-0.5>>
+			<<set $args[0].livingRules = _combinedRule.livingRules>>
+			<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
+			<<if $args[0].relationship >= 4>><<set $roomsPopulation += 0.5>><<else>><<set $roomsPopulation += 1>><</if>>
+		<<else>>
+			<<set $args[0].livingRules = "normal">>
+			<br>$args[0].slaveName's living standard has been set to normal, since there is no room for her to occupy.
+		<</if>>
+	<<else>>
+		<<set $args[0].livingRules = _combinedRule.livingRules>>
+		<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
+	<</if>>
+<</if>>
+<</if>>
+
+<<if (def _combinedRule.speechRules) && (_combinedRule.speechRules !== "no default setting")>>
+<<if ($args[0].fetish == "mindbroken")>>
+	<<if ($args[0].speechRules !== "restrictive")>>
+	<<set $args[0].speechRules = "restrictive">>
+	<br>Since $args[0].slaveName is mindbroken her speech rules have been set to restrictive.
+	<</if>>
+<<elseif ($args[0].speechRules !== _combinedRule.speechRules)>>
+	<<set $args[0].speechRules = _combinedRule.speechRules>>
+	<br>$args[0].slaveName's speech rules have been set to _combinedRule.speechRules.
+<</if>>
+<</if>>
+
+<<if ($args[0].fetish !== "mindbroken")>>
+ <<if (def _combinedRule.relationshipRules) && (_combinedRule.relationshipRules !== "no default setting")>>
+ <<if ($args[0].relationshipRules !== _combinedRule.relationshipRules )>>
+ 	<<set $args[0].relationshipRules = _combinedRule.relationshipRules >>
+ 	<br>$args[0].slaveName's relationship rules have been set to _combinedRule.relationshipRules.
+ <</if>>
+ <</if>>
+<</if>>
+
+<<if (def _combinedRule.releaseRules) && (_combinedRule.releaseRules !== "no default setting")>>
+	<<if (_combinedRule.releaseRules == "restrictive")>>
+	<<SexualRelease $args[0]>>
+	<<else>>
+		<<set $release = 1>>
+	<</if>>
+	<<if ($args[0].fetish == "mindbroken") && ($args[0].releaseRules !== "permissive")>>
+		<<set $args[0].releaseRules = "permissive">>
+		<br>Since $args[0].slaveName is mindbroken her masturbation rules have been set to permissive.
+	<<elseif ($release != 0) && ($args[0].releaseRules !== _combinedRule.releaseRules)>>
+	  <<set $args[0].releaseRules = _combinedRule.releaseRules>>
+	  <br>$args[0].slaveName's masturbation rules have been set to _combinedRule.releaseRules.
+	<</if>>
+<</if>>
+
+<<if (def _combinedRule.standardPunishment) && (_combinedRule.standardPunishment !== "no default setting")>>
+ <<if ($args[0].standardPunishment !== _combinedRule.standardPunishment)>>
+ 	<<set $args[0].standardPunishment = _combinedRule.standardPunishment >>
+ 	<br>$args[0].slaveName's typical punishment has been updated to _combinedRule.standardPunishment.
+ <</if>>
+<</if>>
+
+<<if (def _combinedRule.standardReward) && (_combinedRule.standardReward !== "no default setting")>>
+ <<if ($args[0].standardReward !== _combinedRule.standardReward)>>
+ 	<<set $args[0].standardReward = _combinedRule.standardReward >>
+ 	<br>$args[0].slaveName's typical reward has been updated to _combinedRule.standardReward.
+ <</if>>
+<</if>>
+
+<</if>> /* CLOSES FUCKDOLL CHECK */
 
 <<if (def _combinedRule.dietCum) && (_combinedRule.dietCum !== "no default setting")>>
 	<<if $args[0].dietCum != _combinedRule.dietCum>>
