@@ -88,11 +88,57 @@ Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $
 	<br>
 	//You have no pregnant slaves bearing eligible children.//
 <</if>>
-<<if $PC.preg > 4 && $PC.pregSource != -1>>
-	<<if $reservedChildren < $freeTanks>>
-		<br>''@@.pink;You're pregnant@@'' and have an unreserved tank. If it is @@.lime;still available when you give birth, you can place your child into it.@@
-	<<else>>
-		<br>''@@.pink;You're pregnant@@'' but have no unreserved tanks. If a tank is @@.red;not available when you give birth, you will not be able to keep your child.@@
+<<if $PC.pregKnown == 1 && $PC.pregSource != -1>>
+	<br>''@@.pink;You're pregnant@@'' and going to have
+		<<switch $PC.pregType>>
+		<<case 1>>
+			a baby.
+		<<case 2>>
+			twins.
+		<<case 3>>
+			triplets.
+		<<case 4>>
+			quadruplets.
+		<<case 5>>
+			quintuplets.
+		<<case 6>>
+			sextuplets.
+		<<case 7>>
+			septuplets.
+		<<case 8>>
+			octuplets.
+		<</switch>>
+	<<if $PC.reservedChildren > 0>>
+		$PC.reservedChildren of your children will be placed in $incubatorName.
+		<<if ($PC.reservedChildren < $PC.pregType) && ($reservedChildren < $freeTanks)>>
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;
+			<<print "[[Keep another child|Incubator][$PC.reservedChildren += 1, $reservedChildren += 1]]">>
+			<<if $PC.reservedChildren > 0>>
+				| <<print "[[Keep one less child|Incubator][$PC.reservedChildren -= 1, $reservedChildren -= 1]]">>
+			<</if>>
+			<<if $PC.reservedChildren > 1>>
+				| <<print "[[Keep none of your children|Incubator][$reservedChildren -= $PC.reservedChildren, $PC.reservedChildren = 0]]">>
+			<</if>>
+			<<if ($reservedChildren + $PC.pregType - $PC.reservedChildren) <= $freeTanks>>
+				| <<print "[[Keep the rest of your children|Incubator][$reservedChildren += ($PC.pregType - $PC.reservedChildren), $PC.reservedChildren += ($PC.pregType - $PC.reservedChildren)]]">>
+			<</if>>
+		<<elseif ($PC.reservedChildren == $PC.pregType) || ($reservedChildren == $freeTanks)>>
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;
+			<<print "[[Keep one less child|Incubator][$PC.reservedChildren -= 1, $reservedChildren -= 1]]">>
+			<<if $PC.reservedChildren > 1>>
+				| <<print "[[Keep none of your children|Incubator][$reservedChildren -= $PC.reservedChildren, $PC.reservedChildren = 0]]">>
+			<</if>>
+		<</if>>
+	<<elseif $reservedChildren < $freeTanks>>
+		You have <<if $freeTanks == 1>>an<</if>> @@.lime;available aging tank<<if $freeTanks > 1>>s<</if>>.@@
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;
+		<<print "[[Keep "+ (($PC.pregType > 1) ? "a" : "your") +" child|Incubator][$PC.reservedChildren += 1, $reservedChildren += 1]]">>
+		<<if ($PC.pregType > 1) && ($reservedChildren + $PC.pregType - $PC.reservedChildren) <= $freeTanks>>
+			| <<print "[[Keep all of your children|Incubator][$reservedChildren += $PC.pregType, $PC.reservedChildren += $PC.pregType]]">>
+		<</if>>
+	<<elseif $reservedChildren == $freeTanks>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;
+		You have @@.red;no room for your offspring.@@
 	<</if>>
 <</if>>
 <<if $reservedChildren != 0>> /* the oops I made it go negative somehow button */
@@ -103,6 +149,7 @@ Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $
 				<<set $slaves[_u].reservedChildren = 0>>
 			<</if>>
 		<</for>>
+		<<set $PC.reservedChildren = 0>>
 		<<set $reservedChildren = 0>>
 		<<goto "Incubator">>
 	 <</link>>
