@@ -10,13 +10,12 @@ Usage Example:
 python3 vector_layer_split.py vector_source.svg tw ../src/art/vector/layers/
 '''
 
-# TODO: this should automatically invoke fixup first (as a module, after loading input)
-
 import lxml.etree as etree
 import sys
 import os
 import copy
 import re
+import inkscape_svg_fixup
 
 input_file = sys.argv[1]
 output_format = sys.argv[2]
@@ -31,6 +30,7 @@ ns = {
 }
 
 tree = etree.parse(input_file)
+inkscape_svg_fixup.fix(tree)
 
 # prepare output template
 template = copy.deepcopy(tree)
@@ -62,6 +62,7 @@ for e in root:
 
 # prepare regex for later use
 regex_xmlns = re.compile(' xmlns[^ ]+',)
+regex_space = re.compile('[>][ ]+[<]',)
 
 # find all groups
 layers = tree.xpath('//svg:g',namespaces=ns)
@@ -97,6 +98,7 @@ for layer in layers:
     svg = regex_xmlns.sub('',svg)
     svg = svg.replace(' inkscape:connector-curvature="0"','') # this just saves space
     svg = svg.replace('\n','').replace('\r','') # print cannot be multi-line
+    svg = regex_space.sub('><',svg) # remove indentaion
     svg = svg.replace('svg:','') # svg namespace was removed
     svg = svg.replace('<g ','<g transform="\'+_art_transform+\'"') # internal groups are used for scaling
     svg = svg.encode('utf-8')

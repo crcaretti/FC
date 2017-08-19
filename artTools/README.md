@@ -8,7 +8,6 @@ Note: This does not actually describe how to be an artist.
 ## TL;DR
 
     killall inkscape
-    artTools/inkscape_svg_fixup.py artTools/vector_source.svg
     artTools/vector_layer_split.py artTools/vector_source.svg tw src/art/vector/layers/
     compile
 
@@ -36,7 +35,7 @@ While editing, keep the Layers in mind.
   Use them if your asset should be changed upon display. 
   Do not set the style directly in the object.
 
-## 3. Fix the document (Inkscape only)
+## 3. Fix the document (before commiting, Inkscape only)
 
 Inkscape shows weird behaviour in some regards.
 If you use Inkscape, close the document and run
