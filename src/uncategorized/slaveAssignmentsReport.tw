@@ -1,8 +1,8 @@
 :: Slave Assignments Report [nobr]
 
-<h1> <<print $arcologies[0].name + " Weekly Slave Report - Week " + $week>></h1>
-
 <<set $nextLink = "Economics", $nextButton = "Continue", _SL = $slaves.length>>
+
+<h1>$arcologies[0].name Weekly Slave Report - Week $week</h1>
 
 <<for $i = 0; $i < _SL; $i++>>
 
@@ -60,15 +60,14 @@
 	<</if>>
 	<<if $HeadGirl != 0>>
 		<<set $HGEnergy++>>
-		<<if $arcologies[0].FSChineseRevivalistLaw == 1>>
-			<<set $HGEnergy++>>
-		<</if>>
 		<<if $personalAttention == "HG">>
+			<<set $HGEnergy++>>
 			<<if $HeadGirl.trust > 95>>
-				<<set $HGEnergy += 2>>
-			<<else>>
 				<<set $HGEnergy++>>
 			<</if>>
+		<</if>>
+		<<if $arcologies[0].FSChineseRevivalistLaw == 1>>
+			<<set $HGEnergy++>>
 		<</if>>
 		<<if canAchieveErection($HeadGirl)>>
 			<<set $HGCum = 2+Math.trunc(($HeadGirl.balls/5)+($HeadGirl.energy/95)+($HeadGirl.health/95)+($HeadGirl.devotion/95))>>
@@ -77,7 +76,7 @@
 		<<removeJob $slaves[$i] "be your Head Girl">>
 	<</if>>
 <<case "live with your Head Girl">>
-	<<if random(-30,20) <= $slaves[$i].devotion>>
+	<<if $slaves[$i].devotion >= random(-30,20)>>
 		<<set $HGSlaveSuccess++, $HGEnergy++>>
 	<<else>>
 		<<set $HGSlaveSuccess-->>
@@ -303,11 +302,8 @@
 	<</if>>
 <</if>>
 
-<<if $slaves[$i].origin>>
-<<set $toSearch = $slaves[$i].origin>>
-<<if $toSearch.indexOf("Slave Shelter") != -1>>
+<<if $slaves[$i].origin && $slaves[$i].origin.includes("Slave Shelter")>>
 	<<set $shelterGirlsIDs.push($slaves[$i].ID)>>
-<</if>>
 <</if>>
 
 <<if $slaves[$i].bellyPain != 0>>
@@ -357,62 +353,58 @@
 	<</if>>
 <</for>>
 
-<<set $HGTrainSlavesIDs = []>>
-<<set _HGPossibleSlaves = $slaves.filter(function(s) { return s.assignmentVisible == 1 && s.fuckdoll == 0 && (s.fetish != "mindbroken") && ($personalAttention != s.ID) && (s.assignment != "guard you") && $HeadGirl.ID != s.ID; })>>
-<<for $i = 0; ($i < _HGPossibleSlaves.length && $HGEnergy > 0); $i++>>
-	<<if ($headGirlTrainsHealth != 0) && (_HGPossibleSlaves[$i].health < -20)>>
-		<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "health"])>>
-		<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-	<</if>>
+<<set _HGPossibleSlaves = [[], [], [], [], [], []]>>
+<<for $i = 0; $i < _SL; $i++>>
+    <<set _Slave = $slaves[$i]>>
+    <<if (_Slave.fuckdoll == 1 || _Slave.fetish == "mindbroken" || _Slave.ID == $personalAttention || _Slave.ID == $Bodyguard.ID || _Slave.ID == $HeadGirl.ID || _Slave.assignmentVisible == 0)>>
+        <<continue>>
+    <</if>>
+
+    <<if ($headGirlTrainsHealth && _Slave.health < -20)>>
+        <<set _HGPossibleSlaves[0].push({ID: _Slave.ID, training: "health"})>>
+        <<continue>>
+    <</if>>
+
+    <<set _hasParaphilia = (["cum addict", "anal addict", "attention whore", "breast growth", "abusive", "malicious", "self hating", "neglectful", "breeder"].includes(_Slave.sexualFlaw))>>
+    <<if ($headGirlTrainsParaphilias && _hasParaphilia)>>
+        <<set _HGPossibleSlaves[1].push({ID: _Slave.ID, training: "paraphilia"})>>
+        <<continue>>
+    <</if>>
+
+    <<if ($headGirlTrainsFlaws == 1 && _Slave.behavioralFlaw != "none" || (_Slave.sexualFlaw != "none" && !_hasParaphilia))>>
+        <<set _HGPossibleSlaves[2].push({ID: _Slave.ID, training: "flaw"})>>
+        <<continue>>
+    <</if>>
+
+    <<if ($headGirlTrainsFlaws == 2 && _Slave.devotion > 20 && _Slave.behavioralFlaw != "none" || (_Slave.sexualFlaw != "none" && !_hasParaphilia))>>
+        <<if ((_Slave.behavioralFlaw != "none" && _Slave.behavioralQuirk == "none") || (_Slave.sexualFlaw != "none" && _Slave.sexualQuirk == "none"))>>
+            <<set _HGPossibleSlaves[3].push({ID: _Slave.ID, training: "soften"})>>
+        <<else>>
+            <<set _HGPossibleSlaves[3].push({ID: _Slave.ID, training: "flaw"})>>
+        <</if>>
+        <<continue>>
+    <</if>>
+
+    <<if ($headGirlTrainsObedience && _Slave.devotion <= 20 && _Slave.trust > -20)>>
+        <<set _HGPossibleSlaves[4].push({ID: _Slave.ID, training: "obedience"})>>
+        <<continue>>
+    <</if>>
+
+    <<if ($headGirlTrainsSkills)>>
+        <<if (_Slave.oralSkill < $HeadGirl.oralSkill)>>
+            <<set _HGPossibleSlaves[5].push({ID: _Slave.ID, training: "oral skill"})>>
+        <<elseif (_Slave.vaginalSkill < $HeadGirl.vaginalSkill) && (_Slave.vagina > 0) && (canDoVaginal(_Slave))>>
+            <<set _HGPossibleSlaves[5].push({ID: _Slave.ID, training: "fuck skill"})>>
+        <<elseif (_Slave.analSkill < $HeadGirl.analSkill) && (_Slave.anus > 0) && (canDoAnal(_Slave))>>
+            <<set _HGPossibleSlaves[5].push({ID: _Slave.ID, training: "anal skill"})>>
+        <<elseif (_Slave.whoreSkill < $HeadGirl.whoreSkill)>>
+            <<set _HGPossibleSlaves[5].push({ID: _Slave.ID, training: "whore skill"})>>
+        <<elseif (_Slave.entertainSkill < $HeadGirl.entertainSkill) && (_Slave.amp != 1)>>
+            <<set _HGPossibleSlaves[5].push({ID: _Slave.ID, training: "entertain skill"})>>
+        <</if>>
+    <</if>>
 <</for>>
-<<for $i = 0; ($i < _HGPossibleSlaves.length && $HGEnergy > 0); $i++>>
-	<<if (["cum addict", "anal addict", "attention whore", "breast growth", "abusive", "malicious", "self hating", "neglectful", "breeder"].includes(_HGPossibleSlaves[$i].sexualFlaw) == true) && ($headGirlTrainsParaphilias == 1)>>
-		<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "flaw"])>>
-		<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-	<</if>>
-<</for>>
-<<for $i = 0; ($i < _HGPossibleSlaves.length && $HGEnergy > 0); $i++>>
-	<<if (["cum addict", "anal addict", "attention whore", "breast growth", "abusive", "malicious", "self hating", "neglectful", "breeder"].includes(_HGPossibleSlaves[$i].sexualFlaw) == false) && ($headGirlTrainsFlaws == 1) && ((_HGPossibleSlaves[$i].behavioralFlaw != "none") || (_HGPossibleSlaves[$i].sexualFlaw != "none"))>>
-		<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "flaw"])>>
-		<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-	<</if>>
-<</for>>
-<<for $i = 0; ($i < _HGPossibleSlaves.length && $HGEnergy > 0); $i++>>
-	<<if (["cum addict", "anal addict", "attention whore", "breast growth", "abusive", "malicious", "self hating", "neglectful", "breeder"].includes(_HGPossibleSlaves[$i].sexualFlaw) == false) && ($headGirlTrainsFlaws == 2) && (_HGPossibleSlaves[$i].devotion > 20) && ((_HGPossibleSlaves[$i].behavioralFlaw != "none") || (_HGPossibleSlaves[$i].sexualFlaw != "none"))>>
-		<<if (((_HGPossibleSlaves[$i].behavioralFlaw != "none") && (_HGPossibleSlaves[$i].behavioralQuirk == "none")) || ((_HGPossibleSlaves[$i].sexualFlaw != "none") && (_HGPossibleSlaves[$i].sexualQuirk == "none")))>>
-			<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "soften"])>>
-		<<else>>
-			<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "flaw"])>>
-		<</if>>
-		<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-	<</if>>
-<</for>>
-<<for $i = 0; ($i < _HGPossibleSlaves.length && $HGEnergy > 0); $i++>>
-	<<if ($headGirlTrainsObedience != 0) && (_HGPossibleSlaves[$i].devotion <= 20) && (_HGPossibleSlaves[$i].trust > -20)>>
-		<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "obedience"])>>
-		<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-	<</if>>
-<</for>>
-<<for $i = 0; ($i < _HGPossibleSlaves.length && $HGEnergy > 0); $i++>>
-	<<if ($headGirlTrainsSkills != 0)>>
-		<<if (_HGPossibleSlaves[$i].oralSkill < $HeadGirl.oralSkill)>>
-			<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "oral skill"])>>
-			<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-		<<elseif (_HGPossibleSlaves[$i].vaginalSkill < $HeadGirl.vaginalSkill) && (_HGPossibleSlaves[$i].vagina > 0) && (canDoVaginal(_HGPossibleSlaves[$i]))>>
-			<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "fuck skill"])>>
-			<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-		<<elseif (_HGPossibleSlaves[$i].analSkill < $HeadGirl.analSkill) && (_HGPossibleSlaves[$i].anus > 0) && (canDoAnal(_HGPossibleSlaves[$i]))>>
-			<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "anal skill"])>>
-			<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-		<<elseif (_HGPossibleSlaves[$i].whoreSkill < $HeadGirl.whoreSkill)>>
-			<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "whore skill"])>>
-			<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-		<<elseif (_HGPossibleSlaves[$i].entertainSkill < $HeadGirl.entertainSkill) && (_HGPossibleSlaves[$i].amp != 1)>>
-			<<set $HGTrainSlavesIDs.push([_HGPossibleSlaves[$i].ID, "entertain skill"])>>
-			<<set _HGPossibleSlaves.deleteAt($i), $i--, $HGEnergy-->>
-		<</if>>
-	<</if>>
-<</for>>
+<<set $HGTrainSlavesIDs = _HGPossibleSlaves.flatten().slice(0, $HGEnergy)>>
 
 /**
  * Accordion

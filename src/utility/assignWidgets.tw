@@ -10,32 +10,32 @@
 <<widget assignJob>>
 <<if ($args[1] != "Pit") && ($args[1] != "Coursing Association")>>
 
-	<<removeJob $args[0] $args[0].assignment>> /* sets _wID and _SL */
+	<<removeJob $args[0] $args[0].assignment>> /* sets _wID and _wi */
 
 	/% use .toLowerCase() to get rid of a few dupe conditions. %/
 	<<switch $args[1].toLowerCase()>>
 		<<case "be confined in the arcade" "arcade">>
-			<<set $args[0].assignment = "be confined in the arcade",    $args[0].assignmentVisible = 0, $arcadeSlaves++, $ArcadeiIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "be confined in the arcade",    $args[0].assignmentVisible = 0, $arcadeSlaves++, $ArcadeiIDs.push(_wID)>>
 		<<case "work in the brothel" "brothel">>
-			<<set $args[0].assignment = "work in the brothel",          $args[0].assignmentVisible = 0, $brothelSlaves++, $BrothiIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "work in the brothel",          $args[0].assignmentVisible = 0, $brothelSlaves++, $BrothiIDs.push(_wID)>>
 		<<case "be confined in the cellblock" "cellblock">>
-			<<set $args[0].assignment = "be confined in the cellblock", $args[0].assignmentVisible = 0, $cellblockSlaves++, $CellBiIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "be confined in the cellblock", $args[0].assignmentVisible = 0, $cellblockSlaves++, $CellBiIDs.push(_wID)>>
 		<<case "get treatment in the clinic" "clinic">>
-			<<set $args[0].assignment = "get treatment in the clinic",  $args[0].assignmentVisible = 0, $clinicSlaves++, $CliniciIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "get treatment in the clinic",  $args[0].assignmentVisible = 0, $clinicSlaves++, $CliniciIDs.push({_wID)>>
 		<<case "serve in the club" "club">>
-			<<set $args[0].assignment = "serve in the club",            $args[0].assignmentVisible = 0, $clubSlaves++, $ClubiIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "serve in the club",            $args[0].assignmentVisible = 0, $clubSlaves++, $ClubiIDs.push(_wID)>>
 		<<case "work in the dairy" "dairy">>
-			<<set $args[0].assignment = "work in the dairy",            $args[0].assignmentVisible = 0, $dairySlaves++, $DairyiIDs.push({ID: _wID, Index: _wi})>>
-		<<case "live with your head girl" "head girl suite" "hgsuite">>
-			<<set $args[0].assignment = "live with your Head Girl",     $args[0].assignmentVisible = 0, $HGSuiteSlaves++, $HGSuiteiIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "work in the dairy",            $args[0].assignmentVisible = 0, $dairySlaves++, $DairyiIDs.push(_wID)>>
+		<<case "live with your head girl" "live with your Head Girl" "head girl suite" "hgsuite">>
+			<<set $args[0].assignment = "live with your Head Girl",     $args[0].assignmentVisible = 0, $HGSuiteSlaves++, $HGSuiteiIDs.push(_wID)>>
 		<<case "serve in the master suite" "master suite" "mastersuite">>
-			<<set $args[0].assignment = "serve in the master suite",    $args[0].assignmentVisible = 0, $masterSuiteSlaves++, $MastSiIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "serve in the master suite",    $args[0].assignmentVisible = 0, $masterSuiteSlaves++, $MastSiIDs.push(_wID)>>
 		<<case "learn in the schoolroom" "schoolroom">>
-			<<set $args[0].assignment = "learn in the schoolroom",      $args[0].assignmentVisible = 0, $schoolroomSlaves++, $SchlRiIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "learn in the schoolroom",      $args[0].assignmentVisible = 0, $schoolroomSlaves++, $SchlRiIDs.push(_wID)>>
 		<<case "work as a servant" "servants' quarters" "servantsquarters">>
-			<<set $args[0].assignment = "work as a servant",            $args[0].assignmentVisible = 0, $servantsQuartersSlaves++, $ServQiIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "work as a servant",            $args[0].assignmentVisible = 0, $servantsQuartersSlaves++, $ServQiIDs.push(_wID)>>
 		<<case "rest in the spa" "spa">>
-			<<set $args[0].assignment = "rest in the spa",              $args[0].assignmentVisible = 0, $spaSlaves++, $SpaiIDs.push({ID: _wID, Index: _wi})>>
+			<<set $args[0].assignment = "rest in the spa",              $args[0].assignmentVisible = 0, $spaSlaves++, $SpaiIDs.push(_wID)>>
 		<<case "be the attendant" "be your concubine" "be the dj" "be the madam" "be the milkmaid" "be the nurse" "be the schoolteacher" "be the stewardess" "be the wardeness">>
 			<<set $args[0].assignment = $args[1],                       $args[0].assignmentVisible = 0>>     /* non-visible leadership roles */
 		<<case "be your agent" "live with your agent">>
@@ -57,18 +57,7 @@
 		$args[0].slaveName no longer has your personal attention; you plan to focus on $personalAttention.
 	<</if>>
 
-	/% Get slaves[_wi] index # %/
-	<<if $i > 0 && $i < _SL && _wID == $slaves[$i].ID>>
-		<<set _wi = $i>>
-	<<else>>
-		<<for _wi = 0; _wi < _SL; _wi++>>
-			<<if _wID == $slaves[_wi].ID>>
-				<<break>>
-			<</if>>
-		<</for>>
-	<</if>>
-
-	<<if _wi < _SL>>
+	<<if _wi >= 0>>
 		<<set $slaves[_wi] = $args[0]>> /* save changes to slave array */
 	<</if>>
 
@@ -84,7 +73,8 @@
 	Retrieve overrides the 'rest' in most cases.
 %/
 <<widget removeJob>>
-<<set _wID = $args[0].ID, _SL = $slaves.length>>
+<<set _wID = $args[0].ID>>
+<<set _wi = $slaves.findIndex(function(s) { return s.ID === _wID; })>>
 
 <<if ($args[1] == "Pit")>>
 	<<set $fighterIDs.delete(_wID)>>
@@ -108,96 +98,41 @@
 	<<if $Concubine != 0     && _wID == $Concubine.ID>><<set $Concubine = 0>><</if>>
 	<<if $Collectrix != 0    && _wID == $Collectrix.ID>><<set $Collectrix = 0>><</if>>
 
-	/% Get slaves[_wi] index # %/
-	<<if $i > 0 && $i < _SL && _wID == $slaves[$i].ID>>
-		<<set _wi = $i>>
-	<<else>>
-		<<for _wi = 0; _wi < _SL; _wi++>>
-			<<if _wID == $slaves[_wi].ID>>
-				<<break>>
-			<</if>>
-		<</for>>
-	<</if>>
-	
 	/% use .toLowerCase() to get rid of a few dupe conditions. %/
 	<<switch $args[1].toLowerCase()>>
 		<<case "be confined in the arcade" "arcade">>
 			<<set $args[0].assignment = "work a glory hole">>
-			<<for _awi = 0; _awi < $ArcadeiIDs.length; _awi++>>
-				<<if $ArcadeiIDs[_awi].ID == _wID>>
-					<<set $ArcadeiIDs.deleteAt(_awi), _awi--, $arcadeSlaves-->>
-				<</if>>
-			<</for>>
+			<<set $ArcadeiIDs.delete(_wID), $arcadeSlaves-->>
 		<<case "work in the brothel" "brothel">>
 			<<set $args[0].assignment = "whore">>
-			<<for _awi = 0; _awi < $BrothiIDs.length; _awi++>>
-				<<if $BrothiIDs[_awi].ID == _wID>>
-					<<set $BrothiIDs.deleteAt(_awi), _awi--, $brothelSlaves-->>
-				<</if>>
-			<</for>>
+			<<set $BrothiIDs.delete(_wID), $brothelSlaves-->>
 		<<case "be confined in the cellblock" "cellblock">>
 			<<set $args[0].assignment = "rest">>
-			<<for _awi = 0; _awi < $CellBiIDs.length; _awi++>>
-				<<if $CellBiIDs[_awi].ID == _wID>>
-					<<set $CellBiIDs.deleteAt(_awi), _awi--, $cellblockSlaves-->>
-				<</if>>
-			<</for>>
+			<<set $CellBiIDs.delete(_wID), $cellblockSlaves-->>
 		<<case "get treatment in the clinic" "clinic">>
 			<<set $args[0].assignment = "rest">>
-			<<for _awi = 0; _awi < $CliniciIDs.length; _awi++>>
-				<<if $CliniciIDs[_awi].ID == _wID>>
-					<<set $CliniciIDs.deleteAt(_awi), _awi--, $clinicSlaves-->>
-				<</if>>
-			<</for>>
+			<<set $CliniciIDs.delete(_wID), $clinicSlaves-->>
 		<<case "serve in the club" "club">>
 			<<set $args[0].assignment = "serve the public">>
-			<<for _awi = 0; _awi < $ClubiIDs.length; _awi++>>
-				<<if $ClubiIDs[_awi].ID == _wID>>
-					<<set $ClubiIDs.deleteAt(_awi), _awi--, $clubSlaves-->>
-				<</if>>
-			<</for>>
+			<<set $ClubiIDs.delete(_wID), $clubSlaves-->>
 		<<case "work in the dairy" "dairy">>
 			<<set $args[0].assignment = "get milked">>
-			<<for _awi = 0; _awi < $DairyiIDs.length; _awi++>>
-				<<if $DairyiIDs[_awi].ID == _wID>>
-					<<set $DairyiIDs.deleteAt(_awi), _awi--, $dairySlaves-->>
-				<</if>>
-			<</for>>
+			<<set $DairyiIDs.delete(_wID), $dairySlaves-->>
 		<<case "learn in the schoolroom" "schoolroom">>
 			<<set $args[0].assignment = "rest">>
-			<<for _awi = 0; _awi < $SchlRiIDs.length; _awi++>>
-				<<if $SchlRiIDs[_awi].ID == _wID>>
-					<<set $SchlRiIDs.deleteAt(_awi), _awi--, $schoolroomSlaves-->>
-				<</if>>
-			<</for>>
+			<<set $SchlRiIDs.delete(_wID), $schoolroomSlaves-->>
 		<<case "rest in the spa" "spa">>
 			<<set $args[0].assignment = "rest">>
-			<<for _awi = 0; _awi < $SpaiIDs.length; _awi++>>
-				<<if $SpaiIDs[_awi].ID == _wID>>
-					<<set $SpaiIDs.deleteAt(_awi), _awi--, $spaSlaves-->>
-				<</if>>
-			<</for>>
+			<<set $SpaiIDs.delete(_wID), $spaSlaves-->>
 		<<case "work as a servant" "servants' quarters" "servantsquarters">>
 			<<set $args[0].assignment = "be a servant">>
-			<<for _awi = 0; _awi < $ServQiIDs.length; _awi++>>
-				<<if $ServQiIDs[_awi].ID == _wID>>
-					<<set $ServQiIDs.deleteAt(_awi), _awi--, $servantsQuartersSlaves-->>
-				<</if>>
-			<</for>>
+			<<set $ServQiIDs.delete(_wID), $servantsQuartersSlaves-->>
 		<<case "serve in the master suite" "master suite" "mastersuite">>
 			<<set $args[0].assignment = "please you">>
-			<<for _awi = 0; _awi < $MastSiIDs.length; _awi++>>
-				<<if $MastSiIDs[_awi].ID == _wID>>
-					<<set $MastSiIDs.deleteAt(_awi), _awi--, $masterSuiteSlaves-->>
-				<</if>>
-			<</for>>
-		<<case "live with your head girl" "head girl suite" "hgsuite">>
+			<<set $MastSiIDs.delete(_wID), $masterSuiteSlaves-->>
+		<<case "live with your head girl" "live with your Head Girl" "head girl suite" "hgsuite">>
 			<<set $args[0].assignment = "rest">>
-			<<for _awi = 0; _awi < $HGSuiteiIDs.length; _awi++>>
-				<<if $HGSuiteiIDs[_awi].ID == _wID>>
-					<<set $HGSuiteiIDs.deleteAt(_awi), _awi--, $HGSuiteSlaves-->>
-				<</if>>
-			<</for>>
+			<<set $HGSuiteiIDs.delete(_wID), $HGSuiteSlaves-->>
 		<<case "be your head girl">>
 			<<set $args[0].assignment = "rest">>
 			<<if $HGSuiteEquality == 0 && $personalAttention == "HG">>
@@ -216,9 +151,9 @@
 
 	<<set $args[0].assignmentVisible = 1, $args[0].choosesOwnAssignment = 0, $args[0].sentence = 0>>
 
-	<<if _wi < _SL>>
+	<<if _wi >= 0>>
 		<<set $slaves[_wi] = $args[0]>> /* save changes to slave array */
 	<</if>>
 
-<</if>>
+<</if>> /* not Pit or Coursing Association */
 <</widget>>

@@ -1,25 +1,17 @@
 :: Dairy [nobr]
 
-<<set $nextButton = "Back to Main", $nextLink = "Main", $returnTo = "Dairy", $showEncyclopedia = 1, $encyclopedia = "Dairy", _DL = $DairyiIDs.length, $dairySlaves = _DL, _SL = $slaves.length>>
+<<set $nextButton = "Back to Main", $nextLink = "Main", $returnTo = "Dairy", $showEncyclopedia = 1, $encyclopedia = "Dairy", _SL = $slaves.length>>
+
 <<silently>>
 DairyRestraintsSetting($dairyRestraintsSetting)
 <</silently>>
+
+<<SlaveSort $DairyiIDs>>
+<<set _DL = $DairyiIDs.length, $dairySlaves = _DL>>
 <<dairyAssignmentFilter>>
 <<if $dairyName != "the Dairy">>
 	<<set $dairyNameCaps = $dairyName.replace("the ", "The ")>>
 <</if>>
-
-<<for _Di = 0; _Di < _DL; _Di++>>
-<<set _i = $DairyiIDs[_Di].Index, _ID = $DairyiIDs[_Di].ID>>
-<<if _i >= _SL || _ID != $slaves[_i].ID>>
-	<<for _i = 0; _i < _SL; _i++>>
-	<<if _ID == $slaves[_i].ID>>
-		<<set $DairyiIDs[_Di].Index = _i>>
-		<<break>>
-	<</if>>
-	<</for>>
-<</if>>
-<</for>>
 
 <<if ($dairyRestraintsSetting != 2) || ($dairyRestraintsUpgrade != 1)>>
 	<<if $dairyStimulatorsSetting == 2>>
@@ -34,13 +26,9 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <</if>>
 
 <<if ($Milkmaid != 0) && ($dairyRestraintsSetting == 2)>>
-<<for _i = 0; _i < _SL; _i++>>
-<<if $slaves[_i].assignment == "be the Milkmaid">>
-	$slaves[_i].slaveName has been removed from her position as Milkmaid, since an industrialized dairy automates her duties.
-	<<removeJob $slaves[_i] "be the Milkmaid">>
+	$Milkmaid.slaveName has been removed from her position as Milkmaid, since an industrialized dairy automates her duties.
+	<<removeJob $Milkmaid "be the Milkmaid">>
 	<br><br>
-<</if>>
-<</for>>
 <</if>>
 
 <<if ($dairySlaves > 1)>>
@@ -51,7 +39,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 	<</if>>
 	<<if $dairyPregSettingChanged == 1>>
 		<<for _Di = 0; _Di < _DL; _Di++>>
-			<<set _i = $DairyiIDs[_Di].Index>>
+			<<set _i = $slaveIndices[$DairyiIDs[_Di]]>>
 			<<if ($slaves[_i].vagina > -1) && ($slaves[_i].vagina < 3)>>
 				$slaves[_i].slaveName's milking machine ejects her, since it cannot fit the mandated dildo into her tight cunt.
 				<<removeJob $slaves[_i] "work in the dairy">>
@@ -84,7 +72,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 	<</if>>
 	<<if $dairyStimulatorsSettingChanged == 1>>
 		<<for _Di = 0; _Di < _DL; _Di++>>
-			<<set _i = $DairyiIDs[_Di].Index>>
+			<<set _i = $slaveIndices[$DairyiIDs[_Di]]>>
 			<<if ($slaves[_i].anus < 3)>>
 				$slaves[_i].slaveName's milking machine ejects her, since it cannot fit its massive anal dildo up her tight asshole.
 				<<removeJob $slaves[_i] "work in the dairy">>
@@ -110,7 +98,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 	<<if $dairyRestraintsSettingChanged == 1>>
 		<<if $dairyRestraintsSetting == 1>>
 			<<for _Di = 0; _Di < _DL; _Di++>>
-				<<set _i = $DairyiIDs[_Di].Index>>
+				<<set _i = $slaveIndices[$DairyiIDs[_Di]]>>
 				<<if ($slaves[_i].indentureRestrictions >= 2)>>
 					$slaves[_i].slaveName's milking machine declines to restrain her, since she is encoded as an indentured servant protected from restraint for milking.
 					<<removeJob $slaves[_i] "work in the dairy">>
@@ -125,7 +113,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 	<<elseif $dairyRestraintsSettingChanged == -1>>
 		<<if $dairyRestraintsSetting == 1>>
 			<<for _Di = 0; _Di < _DL; _Di++>>
-				<<set _i = $DairyiIDs[_Di].Index>>
+				<<set _i = $slaveIndices[$DairyiIDs[_Di]]>>
 				<<if ($slaves[_i].indentureRestrictions >= 1)>>
 					$slaves[_i].slaveName's milking machine declines to restrain her, since she is encoded as an indentured servant protected from being restrained for milking.
 					<<removeJob $slaves[_i] "work in the dairy">>
@@ -481,7 +469,7 @@ $dairyNameCaps
 	<<link "''Send a slave to $dairyName''">>
 		<<replace #ComingGoing>>
 			<<resetAssignmentFilter>>
-			<<set $Flag to 0>>
+			<<set $Flag = 0>>
 			<<include "Slave Summary">>
 		<</replace>>
 	<</link>>
