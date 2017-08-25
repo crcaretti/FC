@@ -2246,9 +2246,13 @@
 <<if ($slaves[$i].heels == 1)>>
 <<if ($slaves[$i].shoes != "heels") && ($slaves[$i].shoes != "boots") && ($slaves[$i].shoes != "extreme heels")>>
 <<if $slaves[$i].fetish != "submissive">>
+<<if $slaves[$i].career == "a dairy cow" || $slaves[$i].career == "a breeding bull">>
+	Since she sees herself as an animal, she is perfectly content walking on all fours.
+<<else>>
 <<if $fetishChangeChance > random(0,100)>>
 	Living as a sex slave on all fours @@.lightcoral;turns her into a sexual submissive.@@
 	<<set $slaves[$i].fetish = "submissive", $slaves[$i].fetishKnown = 1, $slaves[$i].fetishStrength = 65>>
+<</if>>
 <</if>>
 <<elseif ($slaves[$i].fetish == "submissive") && ($slaves[$i].fetishStrength <= 95)>>
 	Living as a sex slave on all fours @@.lightcoral;pushes her deeper into submission.@@
@@ -2258,16 +2262,37 @@
 <</if>>
 <</if>>
 
-<<if $slaves[$i].career == "a slave">>
+<<switch $slaves[$i].career>>
+<<case "a slave">>
 	She has been a slave so long that she can barely remember making decisions for herself, and @@.hotpink;feels naturally drawn@@ to her <<if $PC.title == 1>>Master<<else>>Mistress<</if>>.
 	<<set $slaves[$i].devotion += 1>>
-<<elseif $slaves[$i].career == "a Fuckdoll">>
+<<case "a Fuckdoll">>
 	She was once a Fuckdoll, leaving her @@.hotpink;willing to obey on an instinctual level.@@
 	<<set $slaves[$i].devotion += 5>>
-<<elseif $slaves[$i].career == "a slave since birth">>
+<<case "a dairy cow">>
+	Her mental conditioning @@.hotpink;leaves her mellow@@ and @@.mediumaquamarine;trusting.@@
+	<<set $slaves[$i].trust += 1, $slaves[$i].devotion += 1>>
+	<<if $slaves[$i].lactation == 0>>
+		However, she is @@.gold;reduced to a state of sheer panic@@ over her dried up breasts.
+		<<set $slaves[$i].trust -= 10>>
+	<<elseif $slaves[$i].preg < 1 || $slaves[$i].bellyImplant < 2000>>
+		However, she is @@.gold;reduced to a state of panic@@ that her milk will dry up if she doesn't get pregnant again soon.
+		<<set $slaves[$i].trust -= 2>>
+	<</if>>
+<<case "a breeding bull">>
+	Her mental conditioning @@.hotpink;leaves her mellow@@ and @@.mediumaquamarine;trusting.@@
+	<<set $slaves[$i].trust += 1, $slaves[$i].devotion += 1>>
+	<<if !canAchieveErection($slaves[$i])>>
+		However, she is @@.gold;reduced to a state of sheer panic@@ over her inability to get hard.
+		<<set $slaves[$i].trust -= 10>>
+	<<elseif !canPenetrate($slaves[$i])>>
+		However, she is @@.mediumorchid;disapointed@@ that she is unable to mount and fuck others any more.
+		<<set $slaves[$i].devotion -= 2>>
+	<</if>>
+<<case "a slave since birth">>
 	The tank's imprinting left a lasting impression on her; deep down she @@.hotpink;knows you are to be obeyed@@ and @@.mediumaquamarine;trusted,@@ even if she can't understand why.
 	<<set $slaves[$i].devotion += 3, $slaves[$i].trust += 3>>
-<<elseif $slaves[$i].career == "a breeder">>
+<<case "a breeder">>
 	<<if $slaves[$i].preg > 3 && $arcologies[0].FSRepopulation != "unset">>
 		Her life used to revolve around being pregnant all the time and nothing has changed. However, being surrounded with happy, heavily pregnant women leaves her  @@.hotpink;slightly more accepting@@ of her fate and @@.mediumaquamarine;hopeful@@ that her trained body will be useful to you.
 		<<set $slaves[$i].trust += 1, $slaves[$i].devotion += 1>>
@@ -2281,10 +2306,10 @@
 		She remembers how her womb used to be swollen with children as often as possible, and is @@.hotpink;thankful@@ and @@.mediumaquamarine;grateful@@ that she isn't just meat to fuck pregnant anymore.
 		<<set $slaves[$i].trust += 1, $slaves[$i].devotion += 1>>
 	<</if>>
-<<elseif $slaves[$i].career == "a bioreactor">>
+<<case "a bioreactor">>
 	She remembers what it was like to be a living, breathing, milk-jetting,<<if isFertile($slaves[$i]) && ($dairyPregUpgrade > 0)>> baby-filled,<</if>><<if ($slaves[$i].balls != 0)>> cum-squirting,<</if>> drug-filled piece of industrial equipment, and is @@.hotpink;thankful@@ and @@.mediumaquamarine;grateful@@ that she isn't any more.
 	<<set $slaves[$i].trust += 1, $slaves[$i].devotion += 1>>
-<<elseif $slaves[$i].career == "a Futanari Sister">>
+<<case "a Futanari Sister">>
 	<<if $masterSuiteUpgradeLuxury is 2>>
 	<<if $slaves[$i].assignment == "serve in the master suite">>
 	She knows that $masterSuiteName features a fuckpit much like the one she spent years enjoying as a Futanari Sister, and @@.hotpink;does her best@@ to be a good girl in the hope you'll send her there someday.
@@ -2294,7 +2319,7 @@
 	<<set $slaves[$i].trust += 1>>
 	<</if>>
 	<</if>>
-<<else>>
+<<default>>
 	<<if $slaves[$i].trust >= -50>>
 		<<if setup.gratefulCareers.includes($slaves[$i].career)>>
 		<<set $slaves[$i].trust += 1>>
@@ -2321,7 +2346,7 @@
 		<</if>>
 		<</if>>
 	<</if>>
-<</if>>
+<</switch>>
 
 <</if>> /* CLOSES FUCKDOLL CHECK FOR MENTAL DEVELOPMENT */
 <</if>> /* CLOSES MINDBROKEN CHECK FOR MENTAL DEVELOPMENT */
@@ -3630,7 +3655,9 @@
 
 	<<if ($slaves[$i].preg >= 10)>>
 		<<if ($slaves[$i].fuckdoll == 0) && ($slaves[$i].fetish != "mindbroken")>>
-			<<if ($slaves[$i].devotion <= 20) && ($slaves[$i].pregSource == -1)>>
+			<<if $slaves[$i].career == "a dairy cow" && ($slaves[$i].devotion <= 50)>>
+				She @@.aquamarine;feels right@@ to be growing heavy with child. To her, a growing baby means better milk.
+			<<elseif ($slaves[$i].devotion <= 20) && ($slaves[$i].pregSource == -1)>>
 				She is filled with a feeling of @@.mediumorchid;revulsion@@ that your child is growing within her body.
 				<<set $slaves[$i].devotion -= 1>>
 				<<if $slaves[$i].relationship == -3>>
@@ -3890,6 +3917,9 @@
 				The opportunity @@.green;strengthens her pregnancy fetish@@ by indulgence.
 				<<set $HeadGirl.fetishStrength += 4>>
 			<</if>>
+		<<elseif $HeadGirl.career == "a breeding bull">>
+			Head girl feels @@.hotpink;she was meant for.@@
+			<<set $HeadGirl.devotion += 1>>
 		<<elseif ($HeadGirl.attrXX > 65) && ($HeadGirl.attrKnown == 1)>>
 			<<if $slaves[$i].mpreg == 1>>ass<<else>>pussy<</if>>-hungry Head Girl is @@.hotpink;happy@@ to take on.
 			<<set $HeadGirl.devotion += 1>>
@@ -3898,7 +3928,9 @@
 		<</if>>
 
 		<<if ($slaves[$i].fuckdoll == 0) && ($slaves[$i].fetish != "mindbroken")>>
-			<<if ($slaves[$i].devotion <= 20) && ($slaves[$i].trust > -20)>>
+			<<if $slaves[$i].career == "a dairy cow" && ($slaves[$i].devotion <= 20)>>
+				$slaves[$i].slaveName feels a need to be bred by the Head Girl, and takes her superior's cock bareback until @@.lime;conception@@ is verified.
+			<<elseif ($slaves[$i].devotion <= 20) && ($slaves[$i].trust > -20)>>
 				<<if (($HeadGirl.fetish == "sadist") || ($HeadGirl.fetish == "dom")) && ($HeadGirl.fetishKnown == 1) && ($HeadGirl.fetishStrength > 60)>>
 					Her interest is piqued, however, when $slaves[$i].slaveName shows signs of resistance. $HeadGirl.slaveName @@.hotpink;enthusiastically@@ @@.mediumorchid;rapes the poor girl@@ pregnant, ejaculating inside her victim more often than is really necessary for @@.lime;conception.@@
 					<<set $HeadGirl.devotion += 2, $slaves[$i].devotion -= 5>>
