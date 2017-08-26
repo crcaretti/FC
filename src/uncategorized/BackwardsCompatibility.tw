@@ -393,52 +393,131 @@
 <</if>>
 
 <<for _bci = 0; _bci < $defaultRules.length; _bci++>>
+	<<if ndef $defaultRules[_bci].condition>>
+		<<set _activation = $defaultRules[_bci].activation>>
+		<<if _activation == "sex drive">>
+			<<set _activation = "energy">>
+		<</if>>
 
-    <<if ndef $defaultRules[_bci].condition>>
-        <<set _activation = $defaultRules[_bci].activation>>
-        <<if _activation == "sex drive">>
-            <<set _activation = "energy">>
-        <</if>>
+		<<if _activation == "none">>
+			<<set $defaultRules[_bci].condition = {id: "false"}>>
+		<<elseif _activation == "always">>
+			<<set $defaultRules[_bci].condition = {id: "true"}>>
 
-        <<if _activation == "none">>
-            <<set $defaultRules[_bci].condition = {id: "false"}>>
-        <<elseif _activation == "always">>
-            <<set $defaultRules[_bci].condition = {id: "true"}>>
+		<<elseif $defaultRules[_bci].thresholdLower != "none" && $defaultRules[_bci].thresholdUpper != "none">>
+			<<set $defaultRules[_bci].condition = {
+				id: "&&",
+				first: {
+					id: $defaultRules[_bci].eqUpper ? "<=" : "<",
+					first: {id: "(name)", name: _activation},
+					second: {id: "(number)", value: $defaultRules[_bci].thresholdUpper}
+				},
+				second: {
+					id: $defaultRules[_bci].eqLower ? ">=" : ">",
+					first: {id: "(name)", name: _activation},
+					second: {id: "(number)", value: $defaultRules[_bci].thresholdLower},
+				},
+			}>>
 
-        <<elseif $defaultRules[_bci].thresholdLower != "none" && $defaultRules[_bci].thresholdUpper != "none">>
-            <<set $defaultRules[_bci].condition = {
-                id: "&&",
-                first: {
-                    id: $defaultRules[_bci].eqUpper ? "<=" : "<",
-                    first: {id: "(name)", name: _activation},
-                    second: {id: "(number)", value: $defaultRules[_bci].thresholdUpper}
-                },
-                second: {
-                    id: $defaultRules[_bci].eqLower ? ">=" : ">",
-                    first: {id: "(name)", name: _activation},
-                    second: {id: "(number)", value: $defaultRules[_bci].thresholdLower},
-                },
-            }>>
+		<<elseif $defaultRules[_bci].thresholdLower != "none">>
+			<<set $defaultRules[_bci].condition = {
+				id: $defaultRules[_bci].eqLower ? ">=" : ">",
+				first: {id: "(name)", name: _activation},
+				second: {id: "(number)", value: $defaultRules[_bci].thresholdLower},
+			}>>
 
-        <<elseif $defaultRules[_bci].thresholdLower != "none">>
-            <<set $defaultRules[_bci].condition = {
-                id: $defaultRules[_bci].eqLower ? ">=" : ">",
-                first: {id: "(name)", name: _activation},
-                second: {id: "(number)", value: $defaultRules[_bci].thresholdLower},
-            }>>
+		<<elseif $defaultRules[_bci].thresholdUpper != "none">>
+			<<set $defaultRules[_bci].condition = {
+				id: $defaultRules[_bci].eqUpper ? "<=" : "<",
+				first: {id: "(name)", name: _activation},
+				second: {id: "(number)", value: $defaultRules[_bci].thresholdUpper},
+			}>>
 
-        <<elseif $defaultRules[_bci].thresholdUpper != "none">>
-            <<set $defaultRules[_bci].condition = {
-                id: $defaultRules[_bci].eqUpper ? "<=" : "<",
-                first: {id: "(name)", name: _activation},
-                second: {id: "(number)", value: $defaultRules[_bci].thresholdUpper},
-            }>>
+		<<else>>
+			/% both thresholds are "none", same as activation being none %/
+			<<set $defaultRules[_bci].condition = {id: "false"}>>
+		<</if>>
+	<</if>>
 
-        <<else>>
-            /% both thresholds are "none", same as activation being none
-            <<set $defaultRules[_bci].condition = {id: "false"}>>
-        <</if>>
-    <</if>>
+	<<if $defaultRules[_bci].setAssignment == "none">>
+		<<set $defaultRules[_bci].setAssignment = "no default setting">>
+	<</if>>
+
+	<<if $defaultRules[_bci].assignFacility>>
+		<<switch $defaultRules[_bci].assignFacility>>
+		<<case "spa">>          <<set $defaultRules[_bci].setAssignment = "rest in the spa">>
+		<<case "club">>         <<set $defaultRules[_bci].setAssignment = "serve in the club">>
+		<<case "dairy">>        <<set $defaultRules[_bci].setAssignment = "work in the dairy">>
+		<<case "clinic">>       <<set $defaultRules[_bci].setAssignment = "get treatment in the clinic">>
+		<<case "arcade">>       <<set $defaultRules[_bci].setAssignment = "be confined in the arcade">>
+		<<case "hgsuite">>      <<set $defaultRules[_bci].setAssignment = "live with your Head Girl">>
+		<<case "brothel">>      <<set $defaultRules[_bci].setAssignment = "work in the brothel">>
+		<<case "cellblock">>    <<set $defaultRules[_bci].setAssignment = "be confined in the cellblock">>
+		<<case "schoolroom">>   <<set $defaultRules[_bci].setAssignment = "learn in the schoolroom">>
+		<<case "mastersuite">>  <<set $defaultRules[_bci].setAssignment = "serve in the master suite">>
+		<<case "servantsquarters">> <<set $defaultRules[_bci].setAssignment = "work as a servant">>
+		<</switch>>
+	<</if>>
+
+	<<set $defaultRules[_bci].facility = $defaultRules[_bci].facility.map(function(x) {
+		switch (x) {
+		case "spa": return "rest in the spa";
+		case "club": return "serve in the club";
+		case "dairy": return "work in the dairy";
+		case "clinic": return "get treatment in the clinic";
+		case "arcade": return "be confined in the arcade";
+		case "hgsuite": return "live with your Head Girl";
+		case "brothel": return "work in the brothel";
+		case "cellblock": return "be confined in the cellblock";
+		case "schoolroom": return "learn in the schoolroom";
+		case "mastersuite": return "serve in the master suite";
+		case "servantsquarters": return "work as a servant";
+		}
+	})>>
+
+	<<set $defaultRules[_bci].excludeFacility = $defaultRules[_bci].excludeFacility.map(function(x) {
+		switch (x) {
+		case "spa": return "rest in the spa";
+		case "club": return "serve in the club";
+		case "dairy": return "work in the dairy";
+		case "clinic": return "get treatment in the clinic";
+		case "arcade": return "be confined in the arcade";
+		case "hgsuite": return "live with your Head Girl";
+		case "brothel": return "work in the brothel";
+		case "cellblock": return "be confined in the cellblock";
+		case "schoolroom": return "learn in the schoolroom";
+		case "mastersuite": return "serve in the master suite";
+		case "servantsquarters": return "work as a servant";
+		}
+	})>>
+
+	<<if ndef $defaultRules[_bci].aphrodisiacs>>
+		<<set $defaultRules[_bci].aphrodisiacs = 0>>
+	<</if>>
+	<<if $defaultRules[_bci].curatives == "applied">>
+		<<set $defaultRules[_bci].curatives = 2>>
+	<</if>>
+	<<if $defaultRules[_bci].drugs == "curatives">>
+		<<set $defaultRules[_bci].curatives = 2>>
+		<<set $defaultRules[_bci].drugs = "no drugs">>
+	<<elseif $defaultRules[_bci].drugs == "preventatives">>
+		<<set $defaultRules[_bci].curatives = 1>>
+		<<set $defaultRules[_bci].drugs = "no drugs">>
+	<<elseif $defaultRules[_bci].drugs == "aphrodisiacs">>
+		<<set $defaultRules[_bci].aphrodisiacs = 1>>
+		<<set $defaultRules[_bci].drugs = "no drugs">>
+	<<elseif $defaultRules[_bci].drugs == "extreme aphrodisiacs">>
+		<<set $defaultRules[_bci].aphrodisiacs = 2>>
+		<<set $defaultRules[_bci].drugs = "no drugs">>
+	<</if>>
+
+	<<if $defaultRules[_bci].muscles >= 3 && $defaultRules[_bci].muscles <= 6>>
+		<<set $defaultRules[_bci].muscles = 100>>
+	<<elseif $defaultRules[_bci].muscles >= 2 && $defaultRules[_bci].muscles <= 6>>
+		<<set $defaultRules[_bci].muscles = 50>>
+	<<elseif $defaultRules[_bci].muscles >= 1 && $defaultRules[_bci].muscles <= 6>>
+		<<set $defaultRules[_bci].muscles = 20>>
+	<</if>>
 
 	<<if ndef $defaultRules[_bci].standardReward>>
 		<<set $defaultRules[_bci].standardReward = "no default setting">>
@@ -454,27 +533,6 @@
 	<</if>>
 	<<if ndef $defaultRules[_bci].aVirginButtplug>>
 		<<set $defaultRules[_bci].aVirginButtplug = "no default setting">>
-	<</if>>
-	<<if ndef $defaultRules[_bci].surgery>>
-		<<set $defaultRules[_bci].surgery = {lactation: "no default setting", cosmetic: 0, accent: "no default setting", shoulders: "no default setting", shouldersImplant: "no default setting", boobs: "no default setting", hips: "no default setting", hipsImplant: "no default setting", butt: "no default setting", faceShape: "no default setting", lips: "no default setting", holes: 0}>>
-	<</if>>
-	<<if $releaseID < 1018>>
-		<<if $defaultRules[_bci].growth == "none">>
-			<<set $defaultRules[_bci].growth = {boobs: 0, butt: 0, lips: 0, dick: 0, balls: 0}>>
-		<<elseif $defaultRules[_bci].growth == "girlish">>
-			<<set $defaultRules[_bci].growth = {boobs: 350, butt: 2, lips: 25, dick: 0, balls: 0}>>
-		<<elseif $defaultRules[_bci].growth == "stacked">>
-			<<set $defaultRules[_bci].growth = {boobs: 1000, butt: 4, lips: 25, dick: 4, balls: 4}>>
-		<<elseif $defaultRules[_bci].growth == "functional">>
-			<<set $defaultRules[_bci].growth = {boobs: 9000, butt: 10, lips: 45, dick: 6, balls: 6}>>
-		<<elseif $defaultRules[_bci].growth == "unlimited">>
-			<<set $defaultRules[_bci].growth = {boobs: 24000, butt: 10, lips: 100, dick: 10, balls: 6}>>
-		<<else>>
-			<<set $defaultRules[_bci].growth = {boobs: "no default setting", butt: "no default setting", lips: "no default setting", dick: "no default setting", balls: "no default setting"}>>
-		<</if>>
-	<</if>>
-	<<if ndef $defaultRules[_bci].surgery.prostate>>
-		<<set $defaultRules[_bci].surgery.prostate = "no default setting">>
 	<</if>>
 	<<if ndef $defaultRules[_bci].dietMilk>>
 		<<set $defaultRules[_bci].dietMilk = 0>>
@@ -501,6 +559,27 @@
 	<<case "women">>
 		<<set $defaultRules[_bci].clitSetting = "no default setting", $defaultRules[_bci].clitSettingXX = 100>>
 	<</switch>>
+	<<if ndef $defaultRules[_bci].surgery>>
+		<<set $defaultRules[_bci].surgery = {lactation: "no default setting", cosmetic: 0, accent: "no default setting", shoulders: "no default setting", shouldersImplant: "no default setting", boobs: "no default setting", hips: "no default setting", hipsImplant: "no default setting", butt: "no default setting", faceShape: "no default setting", lips: "no default setting", holes: 0}>>
+	<</if>>
+	<<if ndef $defaultRules[_bci].surgery.prostate>>
+		<<set $defaultRules[_bci].surgery.prostate = "no default setting">>
+	<</if>>
+	<<if $releaseID < 1018>>
+		<<if $defaultRules[_bci].growth == "none">>
+			<<set $defaultRules[_bci].growth = {boobs: 0, butt: 0, lips: 0, dick: 0, balls: 0}>>
+		<<elseif $defaultRules[_bci].growth == "girlish">>
+			<<set $defaultRules[_bci].growth = {boobs: 350, butt: 2, lips: 25, dick: 0, balls: 0}>>
+		<<elseif $defaultRules[_bci].growth == "stacked">>
+			<<set $defaultRules[_bci].growth = {boobs: 1000, butt: 4, lips: 25, dick: 4, balls: 4}>>
+		<<elseif $defaultRules[_bci].growth == "functional">>
+			<<set $defaultRules[_bci].growth = {boobs: 9000, butt: 10, lips: 45, dick: 6, balls: 6}>>
+		<<elseif $defaultRules[_bci].growth == "unlimited">>
+			<<set $defaultRules[_bci].growth = {boobs: 24000, butt: 10, lips: 100, dick: 10, balls: 6}>>
+		<<else>>
+			<<set $defaultRules[_bci].growth = {boobs: "no default setting", butt: "no default setting", lips: "no default setting", dick: "no default setting", balls: "no default setting"}>>
+		<</if>>
+	<</if>>
 <</for>>
 
 <<if ndef $month>>
