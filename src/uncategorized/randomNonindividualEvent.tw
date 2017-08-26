@@ -120,37 +120,47 @@
 
 <<else>> /* $familyTesting == 1 */
 
-<<set $devMother = $slaves.find(function(s) { return s.daughters > 0 && s.devotion > 50 && s.anus != 0 && canWalk(s); })>>
-<<if (def $devMother)>>
+<<set _relatedSlaves = $slaves.filter(function(s) { return s.daughters > 0 || s.sisters > 0; })>>
+
+<<set _devMothers = _relatedSlaves.filter(function(s) { return s.daughters > 0 && s.devotion > 50 && s.anus != 0 && canWalk(s); })>>
+<<for _devMothers.length > 0>>
+	<<set $devMother = _devMothers.pluck()>>
 	<<set $devDaughter = randomDaughter($devMother)>>
 	<<if (def $devDaughter) && ($devDaughter.devotion > 50) && ($devDaughter.anus != 0) && canWalk($devDaughter)>>
 		<<set $events.push("RE devoted mother daughter")>>
+		<<break>>
 	<</if>>
-<</if>>
+<</for>>
 
-<<set $mother = $slaves.find(function(s) { return s.daughters > 0 && s.devotion < 10 && s.anus != 0 && canWalk(s); })>>
-<<if (def $mother)>>
+<<set _resMothers = _relatedSlaves.filter(function(s) { return s.daughters > 0 && s.devotion < 10 && s.anus != 0 && canWalk(s); })>>
+<<for _resMothers.length > 0>>
+	<<set $mother = _resMothers.pluck()>>
 	<<set $daughter = randomDaughter($mother)>>
 	<<if (def $daughter) && ($daughter.devotion < 10) && ($daughter.anus != 0) && canWalk($daughter)>>
 		<<set $events.push("RE resistant mother daughter")>>
+		<<break>>
 	<</if>>
-<</if>>
+<</for>>
 
-<<set $youngerSister = $slaves.find(function(s) { return s.sisters > 0 && canPenetrate(s); })>>
-<<if (def $youngerSister)>>
+<<set _youngerSisters = _relatedSlaves.filter(function(s) { return s.sisters > 0 && canPenetrate(s); })>>
+<<for _youngerSisters.length > 0>>
+	<<set $youngerSister = _youngerSisters.pluck()>>
 	<<set $olderSister = randomSister($youngerSister)>>
 	<<if (def $olderSister) && ($olderSister.anus == 0) && $youngerSister.devotion > ($olderSister.devotion+20)>>
 		<<set $events.push("RE sibling revenge")>>
+		<<break>>
 	<</if>>
-<</if>>
+<</for>>
 
-<<set $alphaTwin = $slaves.find(function(s) { return s.sisters > 0 && s.anus > 0 && s.devotion > 50 && canWalk(s); })>>
-<<if (def $alphaTwin)>>
+<<set _twins = _relatedSlaves.filter(function(s) { return s.sisters > 0 && s.anus > 0 && s.devotion > 50 && canWalk(s); })>>
+<<for _twins.length > 0>>
+	<<set $alphaTwin = _twins.pluck()>>
 	<<set $betaTwin = randomTwinSister($alphaTwin)>>
 	<<if (def $betaTwin) && ($betaTwin.anus > 0) && ($betaTwin.devotion > 50) && canWalk($betaTwin)>>
 		<<set $events.push("RE devoted twins")>>
+		<<break>>
 	<</if>>
-<</if>>
+<</for>>
 
 <</if>>  /* closes extended family mode */
 
@@ -599,17 +609,20 @@
 
 <<if $familyTesting == 1>>
 
-<<set $i = $slaves.findIndex(function(s) { return s.fuckdoll == 0 && s.canRecruit == 1 && s.devotion > 50 && canWalk(s); })>>
-<<if $i != -1>>
-	<<if random(1,100) > 90+(totalRelatives($slaves[$i])*2)>>
+<<set _recruiterSlaves = $slaves.filter(function(s) { return s.fuckdoll == 0 && s.canRecruit == 1 && s.devotion > 50 && canWalk(s); })>>
+<<for _recruiterSlaves.length > 0>>
+	<<set $recruiterSlave = _recruiterSlaves.pluck()>>
+	<<if random(1,100) > 90+(totalRelatives($recruiterSlave)*2)>>
 		<<set $j = $genePool.findIndex(function(o) { return o.ID == $slaves[$i].ID; })>>
 		<<if $j != -1>>
 			<<set $events.push("RE relative recruiter")>>
-		<<else>> /* no matching slave object in the genePool array */
+			<<break>>
+		<<else>> /* no matching slave object in the slavesOriginal array */
+			<<set $i = $slaves.findIndex(function(o) { return o.ID == $recruiterSlave.ID; })>>
 			<<set $slaves[$i].canRecruit = 0>>
 		<</if>>
 	<</if>>
-<</if>>
+<</for>>
 
 <<else>> /* extended family mode == 0 */
 
