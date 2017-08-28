@@ -427,7 +427,7 @@
 	<<elseif $activeSlave.physicalAge >= 47 && $activeSlave.preg < 1>>
 		//She is too old to become pregnant//
 		<<if $activeSlave.preg == -1>>
-			<<set $activeSlave.preg = 0>>
+			<<set $activeSlave.preg = 0, $activeSlave.bellyPreg = 0>>
 		<</if>>
 		<<elseif ($activeSlave.preg >= -1)>>
 	__Contraception__: <span id="fertility"><strong><<if $activeSlave.preg == -1>><<print "using contraceptives">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong></span>.
@@ -437,9 +437,9 @@
 		<<link "Let her get pregnant">><<set $activeSlave.preg = 0>><<SlaveInteractImpreg>><<SlaveInteractFertility>><</link>>
 	<<elseif $activeSlave.induce == 1>>
 		//Hormones are being slipped into her food, she will give birth suddenly and rapidly this week//
-	<<elseif ($activeSlave.preg > 30) && ($activeSlave.pregType < 50) && ($activeSlave.labor == 0)>>
+	<<elseif ($activeSlave.preg > 38) && ($activeSlave.pregType < 50) && ($activeSlave.labor == 0)>>
 		[[Induce labor|Slave Interact][$activeSlave.labor = 1,$activeSlave.induce = 1,$birthee = 1]]
-	<<elseif ($activeSlave.pregType == 50) && ($activeSlave.preg > 30)>>
+	<<elseif ($activeSlave.pregType == 50) && ($activeSlave.preg > 38)>>
 		[[Induce mass childbirth|BirthStorm]]
 	<<elseif ($activeSlave.preg > 0) && ($activeSlave.pregType < 50) && $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
 		//You are forbidden from aborting an elite child//
@@ -460,24 +460,24 @@
 		<<link "Use contraceptives">><<set $activeSlave.preg = -1>><<SlaveInteractFertility>><</link>>
 	<<elseif ($activeSlave.preg == -1)>>
 		<<link "Let her get pregnant">><<set $activeSlave.preg = 0>><<SlaveInteractFertility>><</link>>
-	<<elseif ($activeSlave.pregType == 50) && ($activeSlave.preg > 30)>>
+	<<elseif ($activeSlave.pregType == 50) && ($activeSlave.preg > 38)>>
 		[[Induce mass childbirth|BirthStorm]]
 	<<elseif ($activeSlave.preg > 0) && ($activeSlave.pregType < 50)>>
 		[[Abort her pregnancy|Abort]]
 	<</if>>
 	<</if>>
 <</if>>
-<<if ($activeSlave.preg > 1) && ($pregSpeedControl == 1) && ($activeSlave.breedingMark != 1) && ($activeSlave.indentureRestrictions < 1) && ($activeSlave.pregType < 50)>>
+<<if ($activeSlave.pregKnown == 1) && ($pregSpeedControl == 1) && ($activeSlave.breedingMark != 1) && ($activeSlave.indentureRestrictions < 1) && ($activeSlave.pregType < 50)>>
 <br>&nbsp;&nbsp;&nbsp;&nbsp;
 	__Pregnancy control__: <span id="pregControl"><<if $activeSlave.pregControl == "labor supressors">>Labor is suppressed<<elseif $activeSlave.pregControl == "slow gestation">>Slowed gestation<<elseif $activeSlave.pregControl == "speed up">>Faster gestation<<else>>Normal gestation<</if>></span>
-	<<if ($activeSlave.preg >= 30)>>
+	<<if ($activeSlave.preg >= 38)>>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;
 		<<if $activeSlave.pregControl == "labor supressors">>
 			<<link "Normal Birth">><<set $activeSlave.pregControl = "none">><<replace "#pregControl">>natural birth<</replace>><</link>>
 		<<else>>
 			<<link "Supress Labor">><<set $activeSlave.pregControl = "labor supressors">><<replace "#pregControl">>labor will be suppressed<</replace>><</link>>
 		<</if>>
-	<<elseif ($activeSlave.preg < 30)>>
+	<<elseif ($activeSlave.preg < 40)>>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;
 		<<if $activeSlave.pregControl != "none">>
 			<<link "Normal Gestation">><<set $activeSlave.pregControl = "none">><<replace "#pregControl">>normal gestation speed<</replace>><</link>> |
@@ -1382,6 +1382,12 @@
 
 <<if $surnamesForbidden == 1>>
 	<<set $args[0].slaveSurname = 0>>
+<</if>>
+
+<<if $args[0].preg > 0>>
+	<<set $args[0].pregWeek = $args[0].preg>>
+<<else>>
+	<<set $args[0].pregWeek = 0>>
 <</if>>
 
 <<if $familyTesting == 1>>
@@ -2656,6 +2662,9 @@ This experience
 		<<if $args[0].mpreg === $args[2]>>
 			<<set $args[0].preg = 1>>
 			<<set $args[0].pregSource = $args[3] || 0>>
+			<<if $args[0].ID != -1>>
+				<<set $args[0].pregWeek = 1>>
+			<</if>>
 			<<SetPregType $args[0]>>
 			<<if $menstruation == 1>>
 			<<else>>
@@ -2671,6 +2680,9 @@ This experience
 		<<elseif $args[2] == 2>>
 			<<set $args[0].preg = 1>>
 			<<set $args[0].pregSource = $args[3] || 0>>
+			<<if $args[0].ID != -1>>
+				<<set $args[0].pregWeek = 1>>
+			<</if>>
 			<<SetPregType $args[0]>>
 			<<if $menstruation == 1>>
 			<<else>>
@@ -2685,6 +2697,31 @@ This experience
 			<</if>>
 		<</if>>
 	<</if>>
+<</widget>>
+
+/*
+ Call as <<SetBellySize>>
+ $args[0]: Slave.
+*/
+<<widget "SetBellySize">>
+	<<if $args[0].preg > 5>>
+		<<set $args[0].bellyPreg = getPregBellySize($args[0])>>
+	<<else>>
+		<<set $args[0].bellyPreg = 0>>
+	<</if>>
+	/* inflation will change
+	<<if $args[0].inflation == 3>>	
+		<<set $args[0].bellyFluid = 10000>>
+	<<elseif $args[0].inflation == 2>>
+		<<set $args[0].bellyFluid = 5000>>
+	<<elseif $args[0].inflation == 1>>
+		<<set $args[0].bellyFluid = 2000>>
+	<<else>>
+		<<set $args[0].bellyFluid = 0>>
+	<</if>>
+	*/
+	<<set $args[0].bellyFluid = 0>>
+	<<set $args[0].belly = $args[0].bellyPreg+$args[0].bellyFluid>>
 <</widget>>
 
 /* see how they are on a single line? This permits "."s and other things to be appended directly onto the widget result */
@@ -2838,7 +2875,7 @@ This experience
 <<if ($args[0].pregType >= 10) && ($args[0].preg > 20)>>
 	<<set $prefixes.push("Squirming", "Bulging")>>
 <</if>>
-<<if ($args[0].preg > 5)>>
+<<if ($args[0].bellyPreg > 5000)>>
 	<<set _names.push("Preg")>>
 <</if>>
 <<if ($args[0].dick > 4)>>
@@ -2993,7 +3030,7 @@ This experience
 <<if ($args[0].amp == 1)>>
 	<<set _suffixes.push("Stumpy")>>
 <</if>>
-<<if ($args[0].preg > 5)>>
+<<if ($args[0].bellyPreg > 5000)>>
 	<<set _suffixes.push("Belly", "Mommy")>>
 <</if>>
 <<if visibleBelly($args[0])>>

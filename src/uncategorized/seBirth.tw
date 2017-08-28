@@ -69,26 +69,37 @@
 <<if $slaves[$i].tired > 0>>
 	<<set $birthDamage += 2>>
 <</if>>
-<<if $slaves[$i].preg > 40>>
+<<if $slaves[$i].preg >= 59>> /* better get her a c-sec*/
 	<<if $slaves[$i].physicalAge < 6>>
-		<<set $birthDamage += 5>>
+		<<set $birthDamage += 50>>
 	<<elseif $slaves[$i].physicalAge < 9>>
-		<<set $birthDamage += 3>>
+		<<set $birthDamage += 30>>
 	<<elseif $slaves[$i].physicalAge < 13>>
-		<<set $birthDamage += 1>>
+		<<set $birthDamage += 20>>
+	<</if>>
+	<<if $slaves[$i].hips < 0>>
+		<<set $birthDamage += (20-$slaves[$i].hips)>>
+	<</if>>
+<<elseif $slaves[$i].preg > 50>>
+	<<if $slaves[$i].physicalAge < 6>>
+		<<set $birthDamage += 10>>
+	<<elseif $slaves[$i].physicalAge < 9>>
+		<<set $birthDamage += 6>>
+	<<else>>
+		<<set $birthDamage += 2>>
 	<</if>>
 	<<if $slaves[$i].hips < 0>>
 		<<set $birthDamage += (2-$slaves[$i].hips)>>
 	<</if>>
 <</if>>
 <<if $slaves[$i].mpreg == 1>>
-<<if $slaves[$i].anus >= 2>>
-	<<set $birthDamage -= 2>>
-<</if>>
+	<<if $slaves[$i].anus >= 2>>
+		<<set $birthDamage -= 2>>
+	<</if>>
 <<else>>
-<<if $slaves[$i].vagina >= 2>>
-	<<set $birthDamage -= 2>>
-<</if>>
+	<<if $slaves[$i].vagina >= 2>>
+		<<set $birthDamage -= 2>>
+	<</if>>
 <</if>>
 <<if $slaves[$i].hips > 0>>
 	<<set $birthDamage -= $slaves[$i].hips>>
@@ -256,7 +267,7 @@
 		<<set $csec = 1>>
 		$slaves[$i].slaveName's suit's systems alert that it is ready to give birth. Since it fails to qualify as a birthing model, it is quickly taken to the remote surgery to have its child<<if $slaves[$i].pregType > 1>>ren<</if>> extracted and to be cleaned up.
 	<<else>>
-		$slaves[$i].slaveName's suit's systems alert you that it is ready to give birth. You carefully pose it as it labors on binging its child<<if $slaves[$i].pregType > 1>>ren<</if>> into the world and sit back to enjoy yourself as its <<if $slaves[$i].pregType > 1>>first<</if>> baby starts to crown. Once both it and yourself are finished, you send its offspring off and it to the autosurgery for cleaning.
+		$slaves[$i].slaveName's suit's systems alert you that it is ready to give birth. You carefully pose it as it labors on bringing its child<<if $slaves[$i].pregType > 1>>ren<</if>> into the world and sit back to enjoy yourself as its <<if $slaves[$i].pregType > 1>>first<</if>> baby starts to crown. Once both it and yourself are finished, you send its offspring off and it to the autosurgery for cleaning.
 	<</if>>
 	It barely comprehends what has happened, nor will it realize when another child is conceived in it.
 <</if>> /* close fuckdoll birth */
@@ -267,21 +278,29 @@
 <br>
 As a human cow, she @@.orange;gave birth@@<<if $slaves[$i].pregType >= 50>> but her overfilled womb barely lost any size. Her body gave life <</if>>
 <<if $slaves[$i].pregType == 50>>
-  to nearly a dozen calves throughout the week.
+	to nearly a dozen calves throughout the week.
 <<elseif $slaves[$i].pregType <= 1>>
-  to a single calf.
+	to a single calf.
 <<elseif $slaves[$i].pregType >= 20>>
-  to a brood of $slaves[$i].pregType calves.  After several hours of constant, birthing, her belly sags softly.
+	to a brood of $slaves[$i].pregType calves.  After several hours of constant, birthing, her belly sags softly.
 <<elseif $slaves[$i].pregType >= 10>>
-  to a squirming pile of $slaves[$i].pregType calves.
+	to a squirming pile of $slaves[$i].pregType calves.
+<<elseif $slaves[$i].pregType == 9>>
+	to calf nonuplets.
+<<elseif $slaves[$i].pregType == 8>>
+	to calf octuplets.
+<<elseif $slaves[$i].pregType == 7>>
+	to calf septuplets.
+<<elseif $slaves[$i].pregType == 6>>
+	to calf sextuplets.
 <<elseif $slaves[$i].pregType == 5>>
-  to calf quintuplets.
+	to calf quintuplets.
 <<elseif $slaves[$i].pregType == 4>>
-  to calf quadruplets.
+	to calf quadruplets.
 <<elseif $slaves[$i].pregType == 3>>
-  to calf triplets.
+	to calf triplets.
 <<else>>
-  to calf twins.
+	to calf twins.
 <</if>>
 
 <<if $slaves[$i].pregType == 50>>
@@ -296,6 +315,9 @@ As a human cow, she @@.orange;gave birth@@<<if $slaves[$i].pregType >= 50>> but 
 	<<set $birthsTotal += $slaves[$i].pregType>>
 	<<set $slaves[$i].pregType = 0>>
 	<<set $slaves[$i].pregSource = 0>>
+	<<set $slaves[$i].pregKnown = 0>>
+	<<set $slaves[$i].pregWeek = 0>>
+	<<SetBellySize $slaves[$i]>>
 <</if>>
 
 <br><br>
@@ -332,44 +354,50 @@ Childbirth has @@.lime;stretched out her vagina.@@
 
 <<if $csec == 1>>
 
-<<for $j = 0; $j < $slaves.length; $j++>>
-	<<if $slaves[$i].pregSource == $slaves[$j].ID>>
-	<<set $daddy = $slaves[$j].slaveName>>
-	<<break>>
-	<</if>>
-<</for>>
+<<set _getFather = $slaves.find(function(s) { return s.ID == $slaves[$i].pregSource; })>>
+<<if def _getFather>>
+	<<set $daddy = _getFather.slaveName>>
+<</if>>
 
 <br>
 <br>
 $pronounCap was given @@.orange;a cesarean section@@ due to health concerns. From $possessive womb,
 <<if $slaves[$i].pregType <= 1>>
-  a single baby,
+	a single baby,
 <<elseif $slaves[$i].pregType >= 20>>
-  a brood of $slaves[$i].pregType babies,
+	a brood of $slaves[$i].pregType babies,
 <<elseif $slaves[$i].pregType >= 10>>
-  a squirming pile of $slaves[$i].pregType babies,
+	a squirming pile of $slaves[$i].pregType babies,
+<<elseif $slaves[$i].pregType == 9>>
+	nonuplets,
+<<elseif $slaves[$i].pregType == 8>>
+	octuplets,
+<<elseif $slaves[$i].pregType == 7>>
+	septuplets,
+<<elseif $slaves[$i].pregType == 6>>
+	sextuplets,
 <<elseif $slaves[$i].pregType == 5>>
-  quintuplets,
+	quintuplets,
 <<elseif $slaves[$i].pregType == 4>>
-  quadruplets,
+	quadruplets,
 <<elseif $slaves[$i].pregType == 3>>
-  triplets,
+	triplets,
 <<else>>
-  twins,
+	twins,
 <</if>>
 created by
 <<if $slaves[$i].pregSource == -1>>
-your magnificent dick,
+	your magnificent dick,
 <<elseif $slaves[$i].pregSource == -2>>
-your arcology's eager citizens,
+	your arcology's eager citizens,
 <<elseif $slaves[$i].pregSource == -3>>
-the Societal Elite,
+	the Societal Elite,
 <<elseif $slaves[$i].pregSource == 0>>
-an unknown father,
+	an unknown father,
 <<elseif $slaves[$i].ID == $daddy.ID>>
-$possessive own curiosity over if $pronoun could fuck <<print $possessive>>self,
+	$possessive own curiosity over if $pronoun could fuck <<print $possessive>>self,
 <<else>>
-$daddy's virile cock and balls,
+	$daddy's virile cock and balls,
 <</if>>
 entered the world.
 
@@ -526,20 +554,20 @@ Since $possessive <<if $slaves[$i].mpreg == 1>>ass<<else>>vagina<</if>> was spar
 <</if>>
 <<set $slaves[$i].pregType = 0>>
 <<set $slaves[$i].pregSource = 0>>
+<<set $slaves[$i].pregKnown = 0>>
+<<set $slaves[$i].pregWeek = 0>>
+<<SetBellySize $slaves[$i]>>
 <<set $csec = 0>>
 
 <<else>> /* normal birth */
 
-<<for $j = 0; $j < $slaves.length; $j++>>
-	<<if $slaves[$i].pregSource == $slaves[$j].ID>>
-	<<set $daddy = $slaves[$j].slaveName>>
-	<<break>>
-	<</if>>
-<</for>>
+<<set _getFather = $slaves.find(function(s) { return s.ID == $slaves[$i].pregSource; })>>
+<<if def _getFather>>
+	<<set $daddy = _getFather.slaveName>>
+<</if>>
 
 <<if $humiliation == 1>>
-<br>
-<br>
+	<br><br>
 	Giving birth in such a manner was completely humiliating,
 	<<if $slaves[$i].fetish == "humiliation">>
 		and a complete turn on to $object. $possessiveCap humiliation fetish @@.lightcoral;strengthens@@ as $pronoun eagerly fantasizes about giving birth in public again.
@@ -558,35 +586,43 @@ Since $possessive <<if $slaves[$i].mpreg == 1>>ass<<else>>vagina<</if>> was spar
 <br>
 She @@.orange;gave birth@@<<if $slaves[$i].pregType >= 50>> but her overfilled womb barely lost any size. Her body gave life <</if>>
 <<if $slaves[$i].pregType == 50>>
-  to nearly a dozen babies throughout the week,
+	to nearly a dozen babies throughout the week,
 <<elseif $slaves[$i].pregType <= 1>>
-  to a single baby,
+	to a single baby,
 <<elseif $slaves[$i].pregType >= 20>>
-  to a brood of $slaves[$i].pregType babies,
+	to a brood of $slaves[$i].pregType babies,
 <<elseif $slaves[$i].pregType >= 10>>
-  to a squirming pile of $slaves[$i].pregType babies,
+	to a squirming pile of $slaves[$i].pregType babies,
+<<elseif $slaves[$i].pregType == 9>>
+	to nonuplets,
+<<elseif $slaves[$i].pregType == 8>>
+	to octuplets,
+<<elseif $slaves[$i].pregType == 7>>
+	to septuplets,
+<<elseif $slaves[$i].pregType == 6>>
+	to sextuplets,
 <<elseif $slaves[$i].pregType == 5>>
-  to quintuplets,
+	to quintuplets,
 <<elseif $slaves[$i].pregType == 4>>
-  to quadruplets,
+	to quadruplets,
 <<elseif $slaves[$i].pregType == 3>>
-  to triplets,
+	to triplets,
 <<else>>
-  to twins,
+	to twins,
 <</if>>
 created by
 <<if $slaves[$i].pregSource == -1>>
-your magnificent dick.
+	your magnificent dick.
 <<elseif $slaves[$i].pregSource == -2>>
-your arcology's eager citizens.
+	your arcology's eager citizens.
 <<elseif $slaves[$i].pregSource == -3>>
-the Societal Elite.
+	the Societal Elite.
 <<elseif $slaves[$i].pregSource == 0>>
-an unknown father.
+	an unknown father.
 <<elseif $slaves[$i].ID == $daddy.ID>>
-$possessive own curiosity over if $pronoun could fuck <<print $possessive>>self.
+	$possessive own curiosity over if $pronoun could fuck <<print $possessive>>self.
 <<else>>
-$daddy's virile cock and balls.
+	$daddy's virile cock and balls.
 <</if>>
 <<if $slaves[$i].pregType >= 20>>
 	After several hours of constant birthing, $possessive belly sags softly.
@@ -684,7 +720,7 @@ $daddy's virile cock and balls.
 <br>
 	$possessiveCap weak body @@.red;struggled to push@@ out $possessive child.
 <</if>>
-<<if $slaves[$i].preg > 40>>
+<<if $slaves[$i].preg > 50>>
 <br>
 	$possessiveCap's child had extra time to grow @@.red;greatly complicating childbirth@@.
 <</if>>
@@ -936,14 +972,17 @@ Childbirth has @@.lime;stretched out $possessive vagina.@@
 	<</if>>
 	<<set $slaves[$i].pregType = 0>>
 	<<set $slaves[$i].pregSource = 0>>
+	<<set $slaves[$i].pregKnown = 0>>
+	<<set $slaves[$i].pregWeek = 0>>
+	<<SetBellySize $slaves[$i]>>
 	<<if $slaves[$i].mpreg == 1>>
-	<<if $slaves[$i].anus < 3>>
-	<<set $slaves[$i].anus = 3>>
-	<</if>>
+		<<if $slaves[$i].anus < 3>>
+			<<set $slaves[$i].anus = 3>>
+		<</if>>
 	<<else>>
-	<<if $slaves[$i].vagina < 3>>
-	<<set $slaves[$i].vagina = 3>>
-	<</if>>
+		<<if $slaves[$i].vagina < 3>>
+			<<set $slaves[$i].vagina = 3>>
+		<</if>>
 	<</if>>
 <</if>>
 
