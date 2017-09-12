@@ -799,31 +799,43 @@ Her appearance attracted $beauty customers (<<print Math.trunc($beauty/7)>> a da
 
 <<if ($slaves[$i].fetishKnown == 1)>>
 <<if ($slaves[$i].fetishStrength > 60)>>
-<<if ($slaves[$i].fetish == "submissive")>>
-	She receives extra ¤ for her eagerness to submit to customers.
-<<elseif ($slaves[$i].fetish == "cumslut")>>
-	She receives extra ¤ for her eagerness to give oral.
-<<elseif ($slaves[$i].fetish == "humiliation")>>
-	She receives extra ¤ for her eagerness to be humiliated by customers.
-<<elseif ($slaves[$i].fetish == "buttslut")>>
-	She receives extra ¤ for her eagerness to be buttfucked.
-<<elseif ($slaves[$i].fetish == "dom")>>
-	She receives some extra ¤ for her enthusiasm dominating other slaves in group sex.
-<<elseif ($slaves[$i].fetish == "masochist")>>
-	She receives extra ¤ for her obvious enjoyment of pain.
-<<elseif ($slaves[$i].fetish == "sadist")>>
-	She receives some extra ¤ for her willingness to abuse other slaves.
-<<elseif ($slaves[$i].fetish == "mindbroken")>>
-	She receives less ¤ because she just lies there, mind broken.
-<<elseif ($slaves[$i].fetish == "pregnancy") && ($slaves[$i].vagina > 0) && ($slaves[$i].vaginalAccessory != "chastity belt")>>
-	As an impregnation fetishist she's very enthusiastic about vaginal sex.
-<</if>>
+<<switch $slaves[$i].fetish>>
+<<case "submissive">>
+	She gets more ¤ for her eagerness to submit.
+<<case "cumslut">>
+	She gets more ¤ for her enjoyment of cum.
+<<case "humiliation">>
+	She gets more ¤ for her eagerness to be humiliated by citizens.
+<<case "buttslut">>
+	<<if canDoAnal($slaves[$i])>>
+		She gets more ¤ for her obvious enjoyment of buttsex.
+	<</if>>
+<<case "dom">>
+	She gets some more ¤ for her enthusiasm dominating other slaves in group sex.
+<<case "masochist">>
+	She gets more ¤ for her obvious enjoyment of pain.
+<<case "sadist">>
+	She gets some more ¤ for her willingness to abuse other slaves.
+<<case "pregnancy">>
+	<<if $slaves[$i].mpreg == 0>>
+	<<if canDoVaginal($slaves[$i])>>
+		As an impregnation fetishist she's very enthusiastic about vaginal sex.
+	<</if>>
+	<<else>>
+		<<if canDoAnal($slaves[$i])>>
+			As an impregnation fetishist she's very enthusiastic about anal sex.
+		<</if>>
+	<</if>>
+<<case "mindbroken">>
+	She gets less ¤ because she just lies there, mind broken.
+<</switch>>
 <</if>>
 <</if>>
 
 <<if ($slaves[$i].attrKnown == 1)>>
 <<if ($slaves[$i].energy > 95)>>
-	As a nymphomaniac she enjoys every transaction and is wildly successful.
+	As a nymphomaniac she gets sexual release from every transaction and is wildly successful.
+	<<set $slaves[$i].need -= $beauty>>
 <<elseif ($slaves[$i].energy > 80)>>
 	With her powerful sex drive she rarely has to fake an orgasm.
 <<elseif ($slaves[$i].energy > 60)>>
@@ -1053,55 +1065,19 @@ In total, you were paid @@.yellowgreen;¤<<print Math.trunc($beauty*$FResult)>>@
 <</if>>
 <</if>>
 
-/* SEX ACT COUNTS */
+/* SEX ACT COUNTS AND SEXUAL SATISFACTION */
 
-<<set $oralUseWeight = 5>>
-<<set $oralUseWeight += ($slaves[$i].oralSkill/30)+$slaves[$i].lips>>
-<<if $OralEncouragement == 1>>
-	<<set $oralUseWeight += 0.2*$oralUseWeight>>
-<</if>>
-<<if $OralDiscouragement == 1>>
-	<<set $oralUseWeight -= 0.2*$oralUseWeight>>
-<</if>>
-
-<<set $analUseWeight = 0>>
-<<if canDoAnal($slaves[$i])>>
-	<<set $analUseWeight += 5+($slaves[$i].analSkill/30)-$slaves[$i].anus>>
-<</if>>
-<<if $AnalEncouragement == 1>>
-	<<set $analUseWeight += 0.2*$analUseWeight>>
-<</if>>
-<<if $AnalDiscouragement == 1>>
-	<<set $analUseWeight -= 0.2*$analUseWeight>>
-<</if>>
-
-<<set $vaginalUseWeight = 0>>
-<<if ($slaves[$i].vagina != -1)>>
-<<if canDoVaginal($slaves[$i])>>
-	<<set $vaginalUseWeight += 5+($slaves[$i].vaginalSkill/30)-$slaves[$i].vagina>>
-<</if>>
-<</if>>
-<<if $VaginalEncouragement == 1>>
-	<<set $vaginalUseWeight += 0.2*$vaginalUseWeight>>
-<</if>>
-<<if $VaginalDiscouragement == 1>>
-	<<set $vaginalUseWeight -= 0.2*$vaginalUseWeight>>
-<</if>>
-
-<<set $mammaryUseWeight = 1>>
-<<if ($slaves[$i].boobs > 3000)>>
-	<<set $mammaryUseWeight += 3>>
-<<elseif ($slaves[$i].boobs > 800)>>
-	<<set $mammaryUseWeight += $slaves[$i].boobs/1000>>
-<</if>>
-
-<<set $penetrativeUseWeight = 1>>
-<<if ($slaves[$i].clit > 1)>>
-	<<set $penetrativeUseWeight += ($slaves[$i].vaginalSkill/30)+$slaves[$i].clit>>
-<</if>>
-<<if ($slaves[$i].dick > 0)>>
-<<if ($slaves[$i].balls > 0) || canAchieveErection($slaves[$i])>>
-<<if ($slaves[$i].hormones <= 0)>>
+<<set _oralUse = $oralUseWeight+($slaves[$i].oralSkill/30)+$slaves[$i].lips>>
+<<set _analUse = 0>>
+<<if canDoAnal($slaves[$i])>><<set _analUse =  $analUseWeight+($slaves[$i].analSkill/30)-$slaves[$i].anus>><</if>>
+<<set _vaginalUse = 0>>
+<<if canDoVaginal($slaves[$i])>><<set _analUse =  $vaginalUseWeight+($slaves[$i].vaginalSkill/30)-$slaves[$i].vagina>><</if>>
+<<set _mammaryUse = $mammaryUseWeight>>
+<<if $slaves[$i].boobs > 10000>><<set $mammaryUseWeight += 5>><<elseif $slaves[$i].boobs > 2000>><<set $mammaryUseWeight += $slaves[$i].boobs/2000>><</if>>
+<<set _penetrativeUse = $penetrativeUseWeight>>
+<<if $slaves[$i].clit > 1>><<set $penetrativeUseWeight += ($slaves[$i].vaginalSkill/30)+$slaves[$i].clit>><</if>>
+<<if $slaves[$i].dick>>
+<<if canAchieveErection($slaves[$i])>>
 <<if ($slaves[$i].dickAccessory != "chastity belt")>>
 	<<set $penetrativeUseWeight += ($slaves[$i].dick+$slaves[$i].balls)/4>>
 <<if ($slaves[$i].drugs == "hyper testicle enhancement")>>
@@ -1110,39 +1086,62 @@ In total, you were paid @@.yellowgreen;¤<<print Math.trunc($beauty*$FResult)>>@
 <</if>>
 <</if>>
 <</if>>
-<</if>>
 
-<<set $seed = $oralUseWeight+$analUseWeight+$vaginalUseWeight+$mammaryUseWeight+$penetrativeUseWeight>>
-<<set $oralUseWeight = $oralUseWeight/$seed>>
-<<set $analUseWeight = $analUseWeight/$seed>>
-<<set $vaginalUseWeight = $vaginalUseWeight/$seed>>
-<<set $mammaryUseWeight = $mammaryUseWeight/$seed>>
-<<set $penetrativeUseWeight = $penetrativeUseWeight/$seed>>
+<<set _demand = _oralUse+_analUse+_vaginalUse+_mammaryUse+_penetrativeUse>>
+<<set _oralUse = Math.trunc((_oralUse/_demand)*$beauty)>>
+<<set _analUse = Math.trunc((_analUse/_demand)*$beauty)>>
+<<set _vaginalUse = Math.trunc((_vaginalUse/_demand)*$beauty)>>
+<<set _mammaryUse = Math.trunc((_mammaryUse/_demand)*$beauty)>>
+<<set _penetrativeUse = Math.trunc((_penetrativeUse/_demand)*$beauty)>>
+<<set _cervixPump = _vaginalUse>>
 
-<<if ndef $slaves[$i].publicCount>>
-	<<set $slaves[$i].publicCount to 0>>
-<</if>>
+<<set $slaves[$i].oralCount += _oralUse, $slaves[$i].publicCount += _oralUse, $oralTotal += _oralUse>>
+<<set $slaves[$i].analCount += _analUse, $slaves[$i].publicCount += _analUse, $analTotal += _analUse>>
+<<set $slaves[$i].vaginalCount += _vaginalUse, $slaves[$i].publicCount += _vaginalUse, $vaginalTotal += _vaginalUse>>
+<<set $slaves[$i].mammaryCount += _mammaryUse, $slaves[$i].publicCount += _mammaryUse, $mammaryTotal += _mammaryUse>>
+<<set $slaves[$i].penetrativeCount += _penetrativeUse, $slaves[$i].publicCount += _penetrativeUse, $penetrativeTotal += _penetrativeUse>>
 
-<<set $slaves[$i].oralCount += Math.trunc($beauty*$oralUseWeight)>>
-<<set $slaves[$i].publicCount += Math.trunc($beauty*$oralUseWeight)>>
-<<set $oralTotal += Math.trunc($beauty*$oralUseWeight)>>
-<<if canDoAnal($slaves[$i])>>
-	<<set $slaves[$i].analCount += Math.trunc($beauty*$analUseWeight)>>
-	<<set $slaves[$i].publicCount += Math.trunc($beauty*$analUseWeight)>>
-	<<set $analTotal += Math.trunc($beauty*$analUseWeight)>>
+<<if $slaves[$i].need>>
+<<if $slaves[$i].fetishKnown>>
+<<switch $slaves[$i].fetish>>
+<<case "submissive" "masochist">>
+	<<if _analUse+_vaginalUse > 0>>
+		She enjoys being fucked, and got sexual satisfaction from the <<print _analUse+_vaginalUse>> dicks stuck inside her this week.
+		<<set $slaves[$i].need -= _analUse+_vaginalUse>>
+	<</if>>
+<<case "dom" "sadist">>
+	<<if _penetrativeUse > 0>>
+		She enjoys being on top, and got special sexual satisfaction from the _penetrativeUse times she got to fuck someone this week.
+		<<set $slaves[$i].need -= 2*_penetrativeUse>>
+	<</if>>
+<<case "cumslut">>
+	<<if _oralUse > 0>>
+		She enjoys sucking, and got sexual satisfaction from the _oralUse blowjobs she gave this week.
+		<<set $slaves[$i].need -= _oralUse>>
+	<</if>>
+<<case "buttslut">>
+	<<if _analUse > 0>>
+		She enjoys getting buttfucked, and got sexual satisfaction from the _analUse times she was sodomized this week.
+		<<set $slaves[$i].need -= _analUse>>
+	<</if>>
+<<case "pregnancy">>
+	<<if $slaves[$i].mpreg == 0>>
+	<<if _vaginalUse > 0>>
+		She enjoys having her pussy fucked, and got sexual satisfaction from the _vaginalUse times she got dick this week.
+		<<set $slaves[$i].need -= _vaginalUse>>
+	<</if>>
+	<<else>>
+		<<if _analUse > 0>>
+			She enjoys having her ass fucked, and got sexual satisfaction from the _analUse times she got dick this week.
+			<<set $slaves[$i].need -= _analUse>>
+		<</if>>
+	<</if>>
+<<case "humiliation">>
+	She enjoys the humiliation of being a public slut, and got a bit of sexual satisfaction from every sex act she performed this week.
+	<<set $slaves[$i].need -= $beauty>>
+<</switch>>
 <</if>>
-<<if canDoVaginal($slaves[$i])>>
-	<<set $slaves[$i].vaginalCount += Math.trunc($beauty*$vaginalUseWeight)>>
-	<<set $slaves[$i].publicCount += Math.trunc($beauty*$vaginalUseWeight)>>
-	<<set $vaginalTotal += Math.trunc($beauty*$vaginalUseWeight)>>
-	<<set _cervixPump = Math.trunc($beauty*$vaginalUseWeight)>>
 <</if>>
-<<set $slaves[$i].mammaryCount += Math.trunc($beauty*$mammaryUseWeight)>>
-<<set $slaves[$i].publicCount += Math.trunc($beauty*$mammaryUseWeight)>>
-<<set $mammaryTotal += Math.trunc($beauty*$mammaryUseWeight)>>
-<<set $slaves[$i].penetrativeCount += Math.trunc($beauty*$penetrativeUseWeight)>>
-<<set $slaves[$i].publicCount += Math.trunc($beauty*$penetrativeUseWeight)>>
-<<set $penetrativeTotal += Math.trunc($beauty*$penetrativeUseWeight)>>
 
 /* VIGNETTES */
 

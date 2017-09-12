@@ -144,7 +144,7 @@
  % Call as <<RACommonAssignmentVariables>>
  %/
 <<widget "RACommonAssignmentVariables">>
-	<<set _assignments = [
+    <<set _penthouseAssignments = [
 		"rest",
 		"whore",
 		"please you",
@@ -154,7 +154,7 @@
 		"stay confined",
 		"serve the public",
 		"work a glory hore",
-		"be a subordinate slave",
+		"be a subordinate slave"
 	]>>
 
 	<<set _facilityAssignments = [
@@ -168,7 +168,7 @@
 		"be confined in the arcade",
 		"serve in the master suite",
 		"get treatment in the clinic",
-		"be confined in the cellblock",
+		"be confined in the cellblock"
 	]>>
 <</widget>>
 
@@ -610,6 +610,20 @@
 		<<RANormalizeAssignments "excludeAssignment">>
 	<</link>>
 <</if>>
+|
+<<link "Exclude all">>
+	<<set $currentRule.excludeAssignment.push("work a glory hole")>>
+	<<set $currentRule.excludeAssignment.push("get milked")>>
+	<<set $currentRule.excludeAssignment.push("take classes")>>
+	<<set $currentRule.excludeAssignment.push("serve the public")>>
+	<<set $currentRule.excludeAssignment.push("whore")>>
+	<<set $currentRule.excludeAssignment.push("stay confined")>>
+	<<set $currentRule.excludeAssignment.push("be a servant")>>
+	<<set $currentRule.excludeAssignment.push("be a subordinate slave")>>
+	<<set $currentRule.excludeAssignment.push("please you")>>
+	<<set $currentRule.excludeAssignment.push("rest")>>
+	<<RANormalizeAssignments "excludeAssignment">>
+<</link>>
 <</replace>>
 <</widget>>
 
@@ -987,6 +1001,21 @@
 	<</link>>
 <</if>>
 <</if>>
+|
+<<link "Exclude all">>
+	<<set $currentRule.excludeFacility.push("be confined in the cellblock")>>
+	<<set $currentRule.excludeFacility.push("get treatment in the clinic")>>
+	<<set $currentRule.excludeFacility.push("rest in the spa")>>
+	<<set $currentRule.excludeFacility.push("learn in the schoolroom")>>
+	<<set $currentRule.excludeFacility.push("serve in the master suite")>>
+	<<set $currentRule.excludeFacility.push("work as a servant")>>
+	<<set $currentRule.excludeFacility.push("work in the dairy")>>
+	<<set $currentRule.excludeFacility.push("be confined in the arcade")>>
+	<<set $currentRule.excludeFacility.push("serve in the club")>>
+	<<set $currentRule.excludeFacility.push("work in the brothel")>>
+	<<set $currentRule.excludeFacility.push("live with your Head Girl")>>
+	<<RANormalizeAssignments "excludeFacility">>
+<</link>>
 <</if>>
 <</replace>>
 <</widget>>
@@ -1002,7 +1031,7 @@
 
 <<replace #setassignment>>
 <br><br>
-<<if _assignments.includes($currentRule.setAssignment)>>
+<<if _penthouseAssignments.includes($currentRule.setAssignment)>>
 	Automatically set assignment:
 	<<link "None">>
 		<<set $currentRule.setAssignment = "no default setting">>
@@ -3887,15 +3916,44 @@ Your brand design is ''$brandDesign.''
 <</if>>
 
 <<if (def _combinedRule.releaseRules) && (_combinedRule.releaseRules !== "no default setting")>>
+	<<set _release = 0>>
 	<<if (_combinedRule.releaseRules == "restrictive")>>
-	<<SexualRelease $args[0]>>
+		<<if ($args[0].assignment != "serve the public")>>
+		<<if ($args[0].assignment != "serve in the club")>>
+		<<if ($args[0].assignment != "whore")>>
+		<<if ($args[0].assignment != "work in the brothel")>>
+		<<if ($args[0].assignment != "please you")>>
+		<<if ($args[0].assignment != "serve in the master suite")>>
+		<<if ($args[0].assignment != "be a subordinate slave")>>
+		<<if ($args[0].assignment != "work a glory hole")>>
+		<<if ($args[0].assignment != "be confined in the arcade")>>
+		<<if ($args[0].assignment != "get milked") || (($args[0].fetish != "boobs") || ($args[0].energy <= 95))>>
+		<<if ($args[0].assignment != "work in the dairy") || (($args[0].fetish != "boobs") || ($args[0].energy <= 95))>>
+		<<if ($args[0].assignment != "get milked") || $args[0].balls = 0>>
+		<<if ($args[0].assignment != "work in the dairy") || $args[0].balls == 0>>
+		<<if ($args[0].assignment != "be your Head Girl")>>
+			<<set _release = 1>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
+		<</if>>
 	<<else>>
-		<<set $release = 1>>
+		<<set _release = 1>>
 	<</if>>
 	<<if ($args[0].fetish == "mindbroken") && ($args[0].releaseRules !== "permissive")>>
 		<<set $args[0].releaseRules = "permissive">>
 		<br>Since $args[0].slaveName is mindbroken her masturbation rules have been set to permissive.
-	<<elseif ($release != 0) && ($args[0].releaseRules !== _combinedRule.releaseRules)>>
+	<<elseif (_release != 0) && ($args[0].releaseRules !== _combinedRule.releaseRules)>>
 	  <<set $args[0].releaseRules = _combinedRule.releaseRules>>
 	  <br>$args[0].slaveName's masturbation rules have been set to _combinedRule.releaseRules.
 	<</if>>
@@ -4438,48 +4496,28 @@ is now _combinedRule.hLength cm long.
 
 		<<if _ruleAppliesToThisSlave && _currentRule.excludeSpecialSlaves>>
 			<<for _L = 0; _L < _leaders.length; _L++>>
-				<<if (def _leaders[_L].ID) && (_leaders[_L].ID == $args[0].ID)>>
+		<<if (def _leaders[_L].ID && _leaders[_L].ID == $args[0].ID)>>
 					<<set _ruleAppliesToThisSlave = false>>
 					<<break>>
 				<</if>>
 			<</for>>
 		<</if>>
 
-		/% facility and excludeFacility only include some of the
-		 % assignments we're searching for; namely, they don't include
-		 % the leader roles, so we fill these out temporarily
-		 %/
-		<<if (def _currentRule.facility)>>
-			<<set _facility = expandFacilityAssignments(_currentRule.facility)>>
-		<</if>>
-		<<if (def _currentRule.excludeFacility)>>
-			<<set _excludeFacility = expandFacilityAssignments(_currentRule.excludeFacility)>>
-		<</if>>
-
 		/% check exclusion/inclusion %/
 		<<if _ruleAppliesToThisSlave>>
-			/% first we check if a slave is in a facility she shouldn't be in %/
-			<<if (_facility.length > 0)>>
-				<<set _ruleAppliesToThisSlave = _facility.includes($args[0].assignment)>>
-			<<elseif (_excludeFacility.length > 0)>>
-				<<set _ruleAppliesToThisSlave = !_excludeFacility.includes($args[0].assignment)>>
+	    <<if (_currentRule.assignment.length > 0 || _currentRule.facility.length > 0)>>
+		<<set _ruleAppliesToThisSlave = ruleAssignmentSelected($args[0], _currentRule)>>
+	    <<elseif (_currentRule.excludeAssignment.length > 0 || _currentRule.excludeFacility.length > 0)>>
+		<<set _ruleAppliesToThisSlave = !ruleAssignmentExcluded($args[0], _currentRule)>>
 			<</if>>
 
-			/% and same thing with the assignments; since actual
-			 % assignments and facility assignments are different
-			 % either the previous if was executed or this one will
-			 % be but not both
+	    /% We then check if a slave is specifically included or
+	     % excluded.  This takes precedence over any assignment
+	     % checks.
 			 %/
-			<<if (def _currentRule.assignment && _currentRule.assignment.length > 0)>>
-				<<set _ruleAppliesToThisSlave = _currentRule.assignment.includes($args[0].assignment)>>
-			<<elseif (def _currentRule.excludeAssignment && _currentRule.excludeAssignment.length > 0)>>
-				<<set _ruleAppliesToThisSlave = !_currentRule.excludeAssignment.includes($args[0].assignment)>>
-			<</if>>
-
-			/% last but not least, we make sure the slave herself is not excluded %/
-			<<if (def _currentRule.selectedSlaves && _currentRule.selectedSlaves.length > 0)>>
+	    <<if (_currentRule.selectedSlaves.length > 0)>>
 				<<set _ruleAppliesToThisSlave = ruleSlaveSelected($args[0], _currentRule)>>
-			<<elseif (def _currentRule.excludedSlaves && _currentRule.excludedSlaves.length > 0)>>
+	    <<elseif (_currentRule.excludedSlaves.length > 0)>>
 				<<set _ruleAppliesToThisSlave = !ruleSlaveExcluded($args[0], _currentRule)>>
 			<</if>>
 		<</if>>
