@@ -186,39 +186,67 @@ $possessiveCap feelings, skills, and appearance do not matter. $pronounCap is co
 <</switch>>
 <</if>>
 
-/* SEX ACT COUNTS */
+/* SEX ACT COUNTS AND SEXUAL SATISFACTION */
 
-<<if ndef $slaves[$i].publicCount>>
-	<<set $slaves[$i].publicCount to 0>>
+<<set _oralUse = $oralUseWeight+$slaves[$i].lips>>
+<<set _analUse = 0>>
+<<if canDoAnal($slaves[$i])>><<set _analUse =  $analUseWeight-$slaves[$i].anus>><</if>>
+<<set _vaginalUse = 0>>
+<<if canDoVaginal($slaves[$i])>><<set _analUse =  $vaginalUseWeight-$slaves[$i].vagina>><</if>>
+
+<<set _demand = _oralUse+_analUse+_vaginalUse>>
+<<set _oralUse = Math.trunc((_oralUse/_demand)*$beauty)>>
+<<set _analUse = Math.trunc((_analUse/_demand)*$beauty)>>
+<<set _vaginalUse = Math.trunc((_vaginalUse/_demand)*$beauty)>>
+
+<<set $slaves[$i].oralCount += _oralUse, $slaves[$i].publicCount += _oralUse, $oralTotal += _oralUse>>
+<<set $slaves[$i].analCount += _analUse, $slaves[$i].publicCount += _analUse, $analTotal += _analUse>>
+<<set $slaves[$i].vaginalCount += _vaginalUse, $slaves[$i].publicCount += _vaginalUse, $vaginalTotal += _vaginalUse>>
+
+<<set _cervixPump = _vaginalUse>>
+
+<<if $slaves[$i].need>>
+<<if $slaves[$i].fetishKnown>>
+<<switch $slaves[$i].fetish>>
+<<case "submissive" "masochist">>
+	<<if _analUse+_vaginalUse > 0>>
+		She enjoys being used, and got sexual satisfaction from the <<print _analUse+_vaginalUse>> dicks stuck inside her this week.
+		<<set $slaves[$i].need -= _analUse+_vaginalUse>>
+	<</if>>
+<<case "dom" "sadist">>
+<<case "cumslut">>
+	<<if _oralUse > 0>>
+		She enjoys being facefucked, and got sexual satisfaction from the _oralUse dicks shoved inside her throat this week.
+		<<set $slaves[$i].need -= _oralUse>>
+	<</if>>
+<<case "buttslut">>
+	<<if _analUse > 0>>
+		She enjoys getting buttfucked, and got sexual satisfaction from the _analUse times she was sodomized this week.
+		<<set $slaves[$i].need -= _analUse>>
+	<</if>>
+<<case "pregnancy">>
+	<<if $slaves[$i].mpreg == 0>>
+	<<if _vaginalUse > 0>>
+		She enjoys having her pussy fucked, and got sexual satisfaction from the _vaginalUse times she got pounded this week.
+		<<set $slaves[$i].need -= _vaginalUse>>
+	<</if>>
+	<<else>>
+		<<if _analUse > 0>>
+			She enjoys having her ass fucked, and got sexual satisfaction from the _analUse times she got pounded this week.
+			<<set $slaves[$i].need -= _analUse>>
+		<</if>>
+	<</if>>
+<<case "humiliation">>
+	She enjoys the humiliation of having her most intimate parts presented for public use, and got a bit of sexual satisfaction from every sex act she performed this week.
+	<<set $slaves[$i].need -= $beauty>>
+<</switch>>
+<</if>>
 <</if>>
 
-<<if canDoVaginal($slaves[$i]) && canDoAnal($slaves[$i])>>
-	<<set _seed = Math.trunc($beauty/3)>>
-	<<set $slaves[$i].oralCount += _seed, $oralTotal += _seed>>
-	<<set $slaves[$i].vaginalCount += _seed, $vaginalTotal += _seed>>
-	<<set $slaves[$i].analCount += _seed, $analTotal += _seed>>
-	<<set $slaves[$i].publicCount += (_seed * 3)>>
-	<<set $_cervixPump = _seed>>
-<<elseif canDoVaginal($slaves[$i])>>
-	<<set _seed = Math.trunc($beauty/2)>>
-	<<set $slaves[$i].oralCount += _seed, $oralTotal += _seed>>
-	<<set $slaves[$i].vaginalCount += _seed, $vaginalTotal += _seed>>
-	<<set $slaves[$i].publicCount += (_seed + _seed)>>
-	<<set $_cervixPump = _seed>>
-<<elseif canDoAnal($slaves[$i])>>
-	<<set _seed = Math.trunc($beauty/2)>>
-	<<set $slaves[$i].oralCount += _seed, $oralTotal += _seed>>
-	<<set $slaves[$i].analCount += _seed, $analTotal += _seed>>
-	<<set $slaves[$i].publicCount += (_seed + _seed)>>
-<<else>>
-	<<set _seed = Math.trunc($beauty)>>
-	<<set $slaves[$i].oralCount += _seed, $oralTotal += _seed>>
-	<<set $slaves[$i].publicCount += _seed>>
+<<if $slaves[$i].cervixImplant == 1 && _cervixPump > 0 && canDoVaginal($slaves[$i])>>
+	She notices her @@.orange;belly has swollen@@ from all the vaginal sex she had throughout the week.
+	<<set $slaves[$i].bellyImplant += _cervixPump*20>>
 <</if>>
 
 <<set $cash += ($beauty*$FResult)>>
-
-<<if $slaves[$i].cervixImplant == 1 && _cervixPump > 0 && canDoVaginal($slaves[$i])>>
-	$pronounCap notices $possessive @@.orange;belly swell@@ after vaginal sex throughout the week.
-	<<set $slaves[$i].bellyImplant += _cervixPump*20>>
-<</if>>
+<<set _profits += ($beauty*$FResult)>>
