@@ -1,362 +1,222 @@
 :: attackGenerator [nobr]
 
-/* attack progress */
-<<set _raider = 0>>
-<<if $week < 40>>
-	<<set _raider += 3>>
-<<elseif $week < 60>>
-	<<set _raider += 5>>
-<<elseif $week < 110>>
-	<<set _raider += 7>>
-<<elseif $week < 150>>
-	<<set _raider +=9>>
+/* _attackChance value is the chance out of 100 of an attack happening this week */
+<<if $lastAttackWeeks < 3>>
+	<<set _attackChance = 0>>
 <<else>>
-	<<set _raider +=15>>
+	<<if $week < 30>>
+		<<set _attackChance = 5>>
+	<<elseif $week < 60>>
+		<<set _attackChance = 8>>
+	<<elseif $week < 90>>
+		<<set _attackChance = 12>>
+	<<elseif $week < 120>>
+		<<set _attackChance =16>>
+	<<else>>
+		<<set _attackChance =20>>
+	<</if>>
+	<<if $lastAttackWeeks >= 15>>
+		<<set _attackChance += 5>>
+	<</if>>
 <</if>>
-<<if $arcologies[0].prosperity <= 50>>
-	<<set _raider += 3>>
-<<elseif $arcologies[0].prosperity <= 70>>
-	<<set _raider += 5>>
-<<elseif $arcologies[0].prosperity <= 90>>
-	<<set _raider += 7>>
-<<elseif $arcologies[0].prosperity <= 110>>
-	<<set _raider += 9>>
-<<elseif $arcologies[0].prosperity <= 130>>
-	<<set _raider += 15>>
+/* testing */
+<<set _attackChance = 100>>
+
+/* Rolls to see if attack happens this week */
+/* raiders are attracted by low security */
+/* the old world by "degenerate" future societies */
+/* free Cities by high prosperity */
+/* freedom fighters by high slave/citizen ratio */
+<<if random(1,100) <= _attackChance>>
+	<<set $attackThisWeek = 1>>
+	<<set $lastAttackWeeks = 0>>
+	/* _type is the chance out of 100 of an attack of that type happening */
+	<<set _raider = 25>>
+	<<set _oldWorld = 25>>
+	<<set _freeCity = 25>>
+	<<set _free = 25>>
+	/* old world */
+	<<if $arcologies[0].FSRomanRevivalist != "unset" || $arcologies[0].FSEdoRevivalist != "unset" || $arcologies[0].FSArabianRevivalist != "unset" ||
+	$arcologies[0].FSChineseRevivalist != "unset" || $arcologies[0].FSEgyptianRevivalist != "unset" || $arcologies[0].FSAztecRevivalist != "unset" ||
+	$arcologies[0].FSRepopulationFocus != "unset" || $arcologies[0].FSGenderRadicalist != "unset" || $arcologies[0].FSPastoralist != "unset" ||
+	$arcologies[0].FSChattelReligionist != "unset">>
+		<<set _oldWorld += 15>>
+		<<set _raider -= 5>>
+		<<set _freeCity -= 5>>
+		<<set _free -= 5>>
+	<<elseif ($arcologies[0].FSRomanRevivalist != "unset" || $arcologies[0].FSEdoRevivalist != "unset" || $arcologies[0].FSArabianRevivalist != "unset" ||
+	$arcologies[0].FSChineseRevivalist != "unset" || $arcologies[0].FSEgyptianRevivalist != "unset" || $arcologies[0].FSAztecRevivalist != "unset") &&
+	($arcologies[0].FSRepopulationFocus != "unset" || $arcologies[0].FSGenderRadicalist != "unset" || $arcologies[0].FSPastoralist != "unset" ||
+	$arcologies[0].FSChattelReligionist != "unset")>>
+		<<set _oldWorld += 24>>
+		<<set _raider -= 8>>
+		<<set _freeCity -= 8>>
+		<<set _free -= 8>>
+	<</if>>
+	/* freedom fighter */
+	<<if $ASlaves > $ACitizens * 2>>
+		<<set _oldWorld -= 8>>
+		<<set _raider -= 8>>
+		<<set _freeCity -= 8>>
+		<<set _free += 24>>
+	<<elseif $ASlaves > $ACitizens * 1.2 || $arcologies[0].FSDegradationist != "unset">>
+		<<set _oldWorld -= 5>>
+		<<set _raider -= 5>>
+		<<set _freeCity -= 5>>
+		<<set _free += 15>>
+	<</if>>
+	/* free cities */
+	<<if $arcologies[0].prosperity >= 10 && $arcologies[0].prosperity < 20>>
+		<<set _oldWorld -= 5>>
+		<<set _raider -= 5>>
+		<<set _freeCity += 15>>
+		<<set _free -= 5>>
+	<<elseif $arcologies[0].prosperity >= 20>>
+		<<set _oldWorld -= 8>>
+		<<set _raider -= 8>>
+		<<set _freeCity += 24>>
+		<<set _free -= 8>>
+	<</if>>
+	/* raiders */
+	<<if $security <= 50>>
+		<<set _oldWorld -= 5>>
+		<<set _raider += 15>>
+		<<set _freeCity -= 5>>
+		<<set _free -= 5>>
+	<<elseif $security <= 25>>
+		<<set _oldWorld -= 8>>
+		<<set _raider += 24>>
+		<<set _freeCity -= 8>>
+		<<set _free -= 8>>
+	<</if>>
+	
+	/* makes the actual roll */
+	<<set _roll = random(1,100)>>
+	<<if _roll <= _raider>>
+		<<set $attackType = "raiders">>
+	<<elseif _roll <= _raider + _oldWorld>>
+		<<set $attackType = "old world">>
+	<<elseif _roll <= _raider + _oldWorld + _freeCity>>
+		<<set $attackType = "free city">>
+	<<elseif _roll <= _raider + _oldWorld + _freeCity + _free>>
+		<<set $attackType = "freedom fighters">>
+	<</if>>
 <<else>>
-	<<set _raider += 18>>
+	<<set $attackType = "none">>
+	<<set $lastAttackWeeks++>>
+<</if>>
+	
+/*  To be implemented  */
+/* rebellionChance value is the chance out of 100 of an attack happening this week */
+<<set _rebellionChance = 0>>
+
+/* Rolls to see if rebellion happens this week */
+<<if random(1,100) < _rebellionChance>>
+	<<set _slaveReb = 0>>
+	<<set _citReb = 0>>
+	<<set _mercReb = 0>>
 <</if>>
 
-<<set _oldWorld = 0>>
-<<if $arcologies[0].prosperity <= 50>>
-	<<set _oldWorld += 2>>
-<<elseif $arcologies[0].prosperity <= 70>>
-	<<set _oldWorld += 4>>
-<<elseif $arcologies[0].prosperity <= 90>>
-	<<set _oldWorld += 6>>
-<<elseif $arcologies[0].prosperity <= 110>>
-	<<set _oldWorld += 8>>
-<<elseif $arcologies[0].prosperity <= 130>>
-	<<set _oldWorld += 12>>
-<<else>>
-	<<set _oldWorld += 16>>
-<</if>>
-<<if $arcologies[0].FSRepopulationFocus != "unset">>
-	<<set _oldWorld += 8>>
-<<elseif $arcologies[0].FSGenderRadicalist != "unset">>
-	<<set _oldWorld += 8>>
-<<elseif $arcologies[0].FSPastoralist != "unset">>
-	<<set _oldWorld += 8>>
-<<elseif $arcologies[0].FSChattelReligionist != "unset">>
-	<<set _oldWorld += 8>>
-<<elseif $arcologies[0].FSRomanRevivalist != "unset" || $arcologies[0].FSEdoRevivalist != "unset" || $arcologies[0].FSArabianRevivalist != "unset" ||
-	$arcologies[0].FSChineseRevivalist != "unset" || $arcologies[0].FSEgyptianRevivalist != "unset" || $arcologies[0].FSAztecRevivalist != "unset">>
-	<<set _oldWorld += 8>>
-<</if>>
-
-<<set _freeCity = 0>>
-<<if $week < 40>>
-	<<set _freeCity += 2>>
-<<elseif $week < 60>>
-	<<set _freeCity += 4>>
-<<elseif $week < 110>>
-	<<set _freeCity += 6>>
-<<elseif $week < 150>>
-	<<set _freeCity +=8>>
-<<else>>
-	<<set _freeCity +=12>>
-<</if>>
-<<if $arcologies[0].prosperity <= 50>>
-	<<set _freeCity += 2>>
-<<elseif $arcologies[0].prosperity <= 70>>
-	<<set _freeCity += 4>>
-<<elseif $arcologies[0].prosperity <= 90>>
-	<<set _freeCity += 6>>
-<<elseif $arcologies[0].prosperity <= 110>>
-	<<set _freeCity += 8>>
-<<elseif $arcologies[0].prosperity <= 130>>
-	<<set _freeCity += 12>>
-<<else>>
-	<<set _freeCity += 16>>
-<</if>>
-
-<<set _free = 0>>
-
-<<set _slaveRev = 0>>
-
-<<set _citRev = 0>>
-
-<<set _mercRev = 0>>
-
-<<set _arc = 0>>
-<<for>> /* cycle through the arcologies and calculate for each */
-
-/* Makes one proceed */
-<<set _randThrow =random(0,7)>>
-<<if _randThrow == 0>>
-	<<if $week < 60>>
-		<<set _raider = Math.clamp(0,10)>>
-	<<elseif $week < 120>>
-		<<set _raider = Math.clamp(0,15)>>
-	<<else>>
-		<<set _raider = Math.clamp(0,20)>>
-	<</if>>
-	<<set $raidersProgress += _raider>>
-<<elseif _randThrow == 1>>
-	<<if $week < 60>>
-		<<set _freeCity = Math.clamp(0,10)>>
-	<<elseif $week < 120>>
-		<<set _freeCity = Math.clamp(0,15)>>
-	<<else>>
-		<<set _freeCity = Math.clamp(0,20)>>
-	<</if>>
-	<<set $freeCityProgress += _freeCity>>
-<<elseif _randThrow == 2>>
-	<<if $week < 60>>
-		<<set _oldWorld = Math.clamp(0,10)>>
-	<<elseif $week < 120>>
-		<<set _oldWorld = Math.clamp(0,15)>>
-	<<else>>
-		<<set _oldWorld = Math.clamp(0,20)>>
-	<</if>>
-	<<set $oldWorldProgress += _oldWorld>>
-<<elseif _randThrow == 3>>
-	<<if $week < 60>>
-		<<set _free = Math.clamp(0,10)>>
-	<<elseif $week < 120>>
-		<<set _free = Math.clamp(0,15)>>
-	<<else>>
-		<<set _free = Math.clamp(0,20)>>
-	<</if>>
-	<<set $freedomProgress += _free>>
-<<elseif _randThrow == 4>>
-	<<if $week < 60>>
-		<<set _slaveRev = Math.clamp(0,10)>>
-	<<elseif $week < 120>>
-		<<set _slaveRev = Math.clamp(0,15)>>
-	<<else>>
-		<<set _slaveRev = Math.clamp(0,20)>>
-	<</if>>
-	<<set $slaveProgress += _slaveRev>>
-<<elseif _randThrow == 5>>
-	<<if $week < 60>>
-		<<set _mercRev = Math.clamp(0,10)>>
-	<<elseif $week < 120>>
-		<<set _mercRev = Math.clamp(0,15)>>
-	<<else>>
-		<<set _mercRev = Math.clamp(0,20)>>
-	<</if>>
-	<<set $mercProgress += _mercRev>>
-<<elseif _randThrow == 6>>
-	<<if $week < 60>>
-		<<set _arc = Math.clamp(0,10)>>
-	<<elseif $week < 120>>
-		<<set _arc = Math.clamp(0,15)>>
-	<<else>>
-		<<set _arc = Math.clamp(0,20)>>
-	<</if>>
-	<<set $arcologyProgress += _arc>>
-<<elseif _randThrow == 7>>
-	<<if $week < 60>>
-		<<set _citRev = Math.clamp(0,10)>>
-	<<elseif $week < 120>>
-		<<set _citRev = Math.clamp(0,15)>>
-	<<else>>
-		<<set _citRev = Math.clamp(0,20)>>
-	<</if>>
-	<<set $citizenProgress += _citRev>>
-<</if>>
 
 /* if an attack happens */
-<<if $raidersProgress == 100>>
-	<<set $attackThisWeek = 1>>
-	<<set $attackType = "raiders">>
-	<<if $terrain == "urban">>
-		<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
-	<<elseif $terrain == "rural">>
-		<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
-	<<elseif $terrain == "ravine">>
-		<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "marine">>
-		<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "oceanic">>
-		<<set $battleTerrain = "sea")>>
+<<if $attackType != "none">>
+	<<if $attackType == "raiders">>
+		<<if $terrain == "urban">>
+			<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
+		<<elseif $terrain == "rural">>
+			<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
+		<<elseif $terrain == "ravine">>
+			<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
+		<<elseif $terrain == "marine">>
+			<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
+		<<elseif $terrain == "oceanic">>
+			<<set $battleTerrain = either("sea", "urban")>>
+		<</if>>
+		<<set $attackTroops = random(100,200)>>
+		<<if $week < 60>>
+			<<set $attackTroops *= random(1,2)>>
+		<<else>>
+			<<set $attackTroops *= random(2,4)>>
+		<</if>>
+		<<if $week < 60>>
+			<<set $attackEquip = random(0,2)>>
+		<<else>>
+			<<set $attackEquip = random(0,3)>>
+		<</if>>
+	<<elseif $attackType == "free city">>
+		<<if $terrain == "urban">>
+			<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
+		<<elseif $terrain == "rural">>
+			<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
+		<<elseif $terrain == "ravine">>
+			<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
+		<<elseif $terrain == "marine">>
+			<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
+		<<elseif $terrain == "oceanic">>
+			<<set $battleTerrain = either("sea", "urban")>>
+		<</if>>
+		<<set $attackTroops = random(80,180)>>
+		<<if $week < 60>>
+			<<set $attackTroops *= random(1,2)>>
+		<<else>>
+			<<set $attackTroops *= random(2,4)>>
+		<</if>>
+		<<if $week < 60>>
+			<<set $attackEquip = random(0,1)>>
+		<<elseif $week < 90>>
+			<<set $attackEquip = random(1,3)>>
+		<<else>>
+			<<set $attackEquip = random(2,4)>>
+		<</if>>
+	<<elseif $attackType == "old world">>
+		<<if $terrain == "urban">>
+			<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
+		<<elseif $terrain == "rural">>
+			<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
+		<<elseif $terrain == "ravine">>
+			<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
+		<<elseif $terrain == "marine">>
+			<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
+		<<elseif $terrain == "oceanic">>
+			<<set $battleTerrain = either("sea", "urban")>>
+		<</if>>
+		<<set $attackTroops = random(100,200)>>
+		<<if $week < 60>>
+			<<set $attackTroops *= random(1,2)>>
+		<<else>>
+			<<set $attackTroops *= random(2,4)>>
+		<</if>>
+		<<if $week < 60>>
+			<<set $attackEquip = random(0,1)>>
+		<<elseif $week < 90>>
+			<<set $attackEquip = random(1,3)>>
+		<<else>>
+			<<set $attackEquip = random(1,4)>>
+		<</if>>
+	<<elseif $attackType == "freedom fighters">>
+		<<if $terrain == "urban">>
+			<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
+		<<elseif $terrain == "rural">>
+			<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
+		<<elseif $terrain == "ravine">>
+			<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
+		<<elseif $terrain == "marine">>
+			<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
+		<<elseif $terrain == "oceanic">>
+			<<set $battleTerrain = either("sea", "urban")>>
+		<</if>>
+		<<set $attackTroops = random(60,160)>>
+		<<if $week < 60>>
+			<<set $attackTroops *= random(1,2)>>
+		<<elseif>>
+			<<set $attackTroops *= random(2,4)>>
+		<</if>>
+		<<if $week < 60>>
+			<<set $attackEquip = random(0,1)>>
+		<<elseif $week < 90>>
+			<<set $attackEquip = random(1,3)>>
+		<<else>>
+			<<set $attackEquip = random(1,4)>>
+		<</if>>
 	<</if>>
-	<<set $attackTroops = random(50,150)>>
-	<<if $week < 60>>
-		<<set $attackTroops *= random(1,2)>>
-	<<else>>
-		<<set $attackTroops *= random(2,3)>>
-	<</if>>
-	<<if $week < 60>>
-		<<set $attackEquip = random(0,2)>>
-	<<else>>
-		<<set $attackEquip = random(1,4)>>
-	<</if>>
-	<<set $raidersProgress = 0>>
-<<elseif $slaveProgress == 100>>
-	<<set $attackThisWeek = 1>>
-	<<set $attackType = "slave">>
-	<<if $terrain == "urban">>
-		<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
-	<<elseif $terrain == "rural">>
-		<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
-	<<elseif $terrain == "ravine">>
-		<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "marine">>
-		<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "oceanic">>
-		<<set $battleTerrain = "sea")>>
-	<</if>>
-	<<set $attackTroops = random($ASlaves * 0.05, $ASlaves * 0.1)>>
-	<<if $week < 60>>
-		<<set $attackTroops *= random(1,2)>>
-	<<elseif $week < 90>>
-		<<set $attackTroops *= random(2,3)>>
-	<<else>>
-		<<set $attackTroops *= random(3,4)>>
-	<</if>>
-	<<if $week < 60>>
-		<<set $attackEquip = random(0,1)>>
-	<<else>>
-		<<set $attackEquip = random(1,2)>>
-	<</if>>
-	<<set $slaveProgress = 0>>
-<<elseif $citizenProgress == 100>>
-	<<set $attackThisWeek = 1>>
-	<<set $attackType = "citizen">>
-	<<if $terrain == "urban">>
-		<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
-	<<elseif $terrain == "rural">>
-		<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
-	<<elseif $terrain == "ravine">>
-		<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "marine">>
-		<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "oceanic">>
-		<<set $battleTerrain = "sea")>>
-	<</if>>
-	<<set $attackTroops = random($ACitizens * 0.05, $ACitizens * 0.1)>>
-	<<if $week < 60>>
-		<<set $attackTroops *= random(1,2)>>
-	<<else>>
-		<<set $attackTroops *= random(2,3)>>
-	<</if>>
-	<<if $week < 60>>
-		<<set $attackEquip = random(0,1)>>
-	<<else>>
-		<<set $attackEquip = random(1,2)>>
-	<</if>>
-	<<set $citizenProgress = 0>>
-<<elseif $arcologyProgress == 100>>
-	<<set $attackThisWeek = 1>>
-	<<set $attackType = "arcology">>
-	<<if $terrain == "urban">>
-		<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
-	<<elseif $terrain == "rural">>
-		<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
-	<<elseif $terrain == "ravine">>
-		<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "marine">>
-		<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "oceanic">>
-		<<set $battleTerrain = "sea")>>
-	<</if>>
-	<<set $attackTroops = random(60,180)>>
-	<<if $week < 60>>
-		<<set $attackTroops *= random(1,2)>>
-	<<else>>
-		<<set $attackTroops *= random(2,3)>>
-	<</if>>
-	<<if $week < 60>>
-		<<set $attackEquip = random(0,1)>>
-	<<else>>
-		<<set $attackEquip = random(1,2)>>
-	<</if>>
-	<<if $attackingArcology.prosperity > 100>>
-		<<set $attackEquip++>>
-	<</if>>
-	<<set $arcologyProgress = 0>>
-<<elseif $freeCityProgress == 100>>
-	<<set $attackThisWeek = 1>>
-	<<set $attackType = "free city">>
-	<<if $terrain == "urban">>
-		<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
-	<<elseif $terrain == "rural">>
-		<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
-	<<elseif $terrain == "ravine">>
-		<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "marine">>
-		<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "oceanic">>
-		<<set $battleTerrain = "sea")>>
-	<</if>>
-	<<set $attackTroops = random(60,180)>>
-	<<if $week < 60>>
-		<<set $attackTroops *= random(1,2)>>
-	<<else>>
-		<<set $attackTroops *= random(2,3)>>
-	<</if>>
-	<<if $week < 60>>
-		<<set $attackEquip = random(0,1)>>
-	<<elseif $week < 90>>
-		<<set $attackEquip = random(1,3)>>
-	<<else>>
-		<<set $attackEquip = random(1,4)>>
-	<</if>>
-	<<set $freeCityProgress = 0>>
-<<elseif $oldWorldProgress == 100>>
-	<<set $attackThisWeek = 1>>
-	<<set $attackType = "old world">>
-	<<if $terrain == "urban">>
-		<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
-	<<elseif $terrain == "rural">>
-		<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
-	<<elseif $terrain == "ravine">>
-		<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "marine">>
-		<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "oceanic">>
-		<<set $battleTerrain = "sea")>>
-	<</if>>
-	<<set $attackTroops = random(100,200)>>
-	<<if $week < 60>>
-		<<set $attackTroops *= random(1,2)>>
-	<<else>>
-		<<set $attackTroops *= random(2,3)>>
-	<</if>>
-	<<if $week < 60>>
-		<<set $attackEquip = random(0,1)>>
-	<<elseif $week < 90>>
-		<<set $attackEquip = random(1,3)>>
-	<<else>>
-		<<set $attackEquip = random(1,4)>>
-	<</if>>
-	<<set $oldWorldProgress = 0>>
-<<elseif $freedomProgress == 100>>
-	<<set $attackThisWeek = 1>>
-	<<set $attackType = "freedom fighters">>
-	<<if $terrain == "urban">>
-		<<set $battleTerrain = either("outskirts", "urban", "wasteland")>>
-	<<elseif $terrain == "rural">>
-		<<set $battleTerrain = either("hills", "outskirts", "rural", "wasteland")>>
-	<<elseif $terrain == "ravine">>
-		<<set $battleTerrain = either("mountains", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "marine">>
-		<<set $battleTerrain = either("coast", "outskirts", "hills", "wasteland")>>
-	<<elseif $terrain == "oceanic">>
-		<<set $battleTerrain = "sea")>>
-	<</if>>
-	<<set $attackTroops = random(70,170)>>
-	<<if $week < 60>>
-		<<set $attackTroops *= random(1,2)>>
-	<<elseif>>
-		<<set $attackTroops *= random(2,3)>>
-	<</if>>
-	<<if $week < 60>>
-		<<set $attackEquip = random(0,1)>>
-	<<else>>
-		<<set $attackEquip = random(1,3)>>
-	<</if>>
-	<<set $freedomProgress = 0>>
 <</if>>
