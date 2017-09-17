@@ -35,16 +35,7 @@
 <<set $deployableUnits = 0>>
 <<set $deployedUnits = 0>>
 <<set $battleTerrain = "none">>
-<<set $expectedEquip = 0>>
-<<set $phase = 0>>
-<<set $recon = 0>>
-<<set $attackV = 0>>
-<<set $defenseV = 0>>
-<<set $morale = 0>>
-<<set $enemyAttackV = 0>>
-<<set $enemyDefenseV = 0>>
-<<set $enemyMorale = 0>>
-<<set $losses = 0>>
+<<set $maxTurns = 10>>
 
 /* Units */
 <<if def $secBots>>
@@ -55,6 +46,7 @@
 	<<set $secBots.equip = 0>>
 <<else>>
 	<<set $secBots = {
+	platoonName: "security drones",
 	active: 0,
 	isDeployed: 0,
 	troops: 0,
@@ -65,109 +57,106 @@
 <<if def $militiaUnits>>
 	<<set _mL = $militiaUnits.length>>
 	<<for _i = 0; _i < _mL; _i++>>
-		<<if _i == 1>>
-			<<set $militiaUnits[_i].platoonName = _i + "st Citizens' platoon">>
+		<<if _i == 0>>
+			<<set $militiaUnits[_i].platoonName = _i + "st citizens' platoon">>
+		<<elseif _i == 1>>
+			<<set $militiaUnits[_i].platoonName = _i + "nd citizens' platoon">>
 		<<elseif _i == 2>>
-			<<set $militiaUnits[_i].platoonName = _i + "nd Citizens' platoon">>
-		<<elseif _i == 3>>
-			<<set $militiaUnits[_i].platoonName = _i + "rd Citizens' platoon">>
+			<<set $militiaUnits[_i].platoonName = _i + "rd citizens' platoon">>
 		<<else>>
-			<<set $militiaUnits[_i].platoonName = _i + "th Citizens' platoon">>
+			<<set $militiaUnits[_i].platoonName = _i + "th citizens' platoon">>
 		<</if>>
 		<<set $militiaUnits[_i].active = 0>>
 		<<set $militiaUnits[_i].isDeployed = 0>>
-		<<set $militiaUnits[_i].isTired = 0>>
 		<<set $militiaUnits[_i].troops = 0>>
 		<<set $militiaUnits[_i].maxTroops = 0>>
 		<<set $militiaUnits[_i].equip = 0>>
 		<<set $militiaUnits[_i].training = 0>>
 		<<set $militiaUnits[_i].loyalty = 0>>
 		<<set $militiaUnits[_i].medics = 0>>
-		<<set $militiaUnits[_i].engineers = 0>>
+		<<set $militiaUnits[_i].escorts = 0>>
 	<</for>>
 <<else>>
 	<<set $militiaUnits = []>>
 	<<set $militiaUnits[0] = {
+	platoonName: "1st citizens' platoon",
 	active: 0,
 	isDeployed: 0,
-	isTired: 0,
 	troops: 0,
 	maxTroops: 0,
 	equip: 0,
 	training: 0,
 	loyalty: 0,
 	medics: 0,
-	engineers: 0} >>	
+	escorts: 0} >>	
 <</if>>
 
 <<if def $slaveUnits>>
 	<<set _mL = $slaveUnits.length>>
 	<<for _i = 0; _i < _mL; _i++>>
-		<<if _i == 1>>
+		<<if _i == 0>>
 			<<set $slaveUnits[_i].platoonName = _i + "st slave platoon">>
-		<<elseif _i == 2>>
+		<<elseif _i == 1>>
 			<<set $slaveUnits[_i].platoonName = _i + "nd slave platoon">>
-		<<elseif _i == 3>>
+		<<elseif _i == 2>>
 			<<set $slaveUnits[_i].platoonName = _i + "rd slave platoon">>
 		<<else>>
 			<<set $slaveUnits[_i].platoonName = _i + "th slave platoon">>
 		<</if>>
 		<<set $slaveUnits[_i].isDeployed = 0>>
-		<<set $slaveUnits[_i].isTired = 0>>
 		<<set $slaveUnits[_i].troops = 0>>
 		<<set $slaveUnits[_i].equip = 0>>
 		<<set $slaveUnits[_i].training = 0>>
 		<<set $slaveUnits[_i].loyalty = 0>>
 		<<set $slaveUnits[_i].medics = 0>>
-		<<set $slaveUnits[_i].engineers = 0>>
+		<<set $slaveUnits[_i].escorts = 0>>
 	<</for>>
 <<else>>
 	<<set $slaveUnits = []>>
 	<<set $slaveUnits[0] = {
+	platoonName: "1st slave platoon",
 	active: 0,
 	isDeployed: 0,
-	isTired: 0,
 	troops: 0,
 	maxTroops: 0,
 	equip: 0,
 	training: 0,
 	loyalty: 0,
 	medics: 0,
-	engineers: 0} >>	
+	escorts: 0} >>	
 <</if>>
 
 <<if def $mercUnits>>
 	<<set _mL = $mercUnits.length>>
 	<<for _i = 0; _i < _mL; _i++>>
-		<<if _i == 1>>
+		<<if _i == 0>>
 			<<set $mercUnits[_i].platoonName = _i + "st mercenary platoon">>
-		<<elseif _i == 2>>
+		<<elseif _i == 1>>
 			<<set $mercUnits[_i].platoonName = _i + "nd mercenary platoon">>
-		<<elseif _i == 3>>
+		<<elseif _i == 2>>
 			<<set $mercUnits[_i].platoonName = _i + "rd mercenary platoon">>
 		<<else>>
 			<<set $mercUnits[_i].platoonName = _i + "th mercenary platoon">>
 		<</if>>
 		<<set $mercUnits[_i].isDeployed = 0>>
-		<<set $mercUnits[_i].isTired = 0>>
 		<<set $mercUnits[_i].troops = 0>>
 		<<set $mercUnits[_i].equip = 0>>
 		<<set $mercUnits[_i].training = 0>>
 		<<set $mercUnits[_i].loyalty = 0>>
 		<<set $mercUnits[_i].medics = 0>>
-		<<set $mercUnits[_i].engineers = 0>>
+		<<set $mercUnits[_i].escorts = 0>>
 	<</for>>
 <<else>>
 	<<set $mercUnits = []>>
 	<<set $mercUnits[0] = {
+	platoonName: "1st mercenary platoon",
 	active: 0,
 	isDeployed: 0,
-	isTired: 0,
 	troops: 0,
 	maxTroops: 0,
 	equip: 0,
 	training: 0,
 	loyalty: 0,
 	medics: 0,
-	engineers: 0} >>
+	escorts: 0} >>
 <</if>>

@@ -121,22 +121,23 @@ It seems your troops and your adversary will fight
 	Unfortunately you have no good information on what is coming your way, the confused reports of your citizens gives you only a vague number. Around <strong><<print Math.round($attackTroops * (1 + either(-1,1) * random(3) * 0.1))>> men</strong> are coming.
 <</if>>
 They seems to be
+<<set _expectedEquip = 0>>
 <<if $riskSim == 1 && $riskSimExpectedAttack == $attackType>>
-	<<set $expectedEquip = $attackEquip>>
+	<<set _expectedEquip = $attackEquip>>
 <<elseif $perimeterDrones == 1>>
-	<<set $expectedEquip = $attackEquip + either(-1,1)>>
+	<<set _expectedEquip = $attackEquip + either(-1,1)>>
 <<else>>
-	<<set $expectedEquip = $attackEquip + either(-1,1) * random(2)>>
+	<<set _expectedEquip = $attackEquip + either(-1,1) * random(2)>>
 <</if>>
-<<if $expectedEquip == 0>>
+<<if _expectedEquip == 0>>
 	<strong>poorly armed</strong>. old rusty small arms are the norm with just a few barely working civilian vehicles. 
-<<elseif $expectedEquip == 1>>
+<<elseif _expectedEquip == 1>>
 	<strong>lightly armed</strong>. mostly small arms with some repurposed civilian vehicles and a scattered few machine guns. There's no sign of heavy vehicles, artillery or aircrafts.
-<<elseif $expectedEquip == 2>>
+<<elseif _expectedEquip == 2>>
 	<strong>decently armed</strong>. good quality small arms, machine guns a few mortars. There seems to be some heavy military vehicles coming as well.
-<<elseif $expectedEquip == 3>>
+<<elseif _expectedEquip == 3>>
 	<strong>well armed</strong>. high quality small arms, snipers, demolitions teams, heavy duty machine guns and mortars. Heavy military vehicles are numerous and a few artillery piecies are accompaning the detachment. 
-<<elseif $expectedEquip == 4>>
+<<elseif _expectedEquip == 4>>
 	<strong>extremely well armed</strong>. excellent small arms and specialized teams with heavy duty infantry support weapons. Heavy presence of armored military vehicles, artillery pieces and even some attack helicopters.
 <</if>>
 
@@ -224,8 +225,11 @@ You quickly lay down a plan of action:
 <br><br>
 With your current readiness level you can <<if $deployedUnits > 0>>still<</if>> send <strong><<print $deployableUnits>></strong>. Available units:
 
+<<set _mL = $militiaUnits.length>>
+<<set _sL = $slaveUnits.length>>
+<<set _meL = $mercUnits.length>>
 <<if $deployableUnits > 0>>
-		<<if $secBots.isDeployed == 0>>
+		<<if $secBots.isDeployed == 0 && $secBots.troops > 0>>
 			<br>
 			<<secBotsDescription>>
 			<br>
@@ -236,10 +240,8 @@ With your current readiness level you can <<if $deployedUnits > 0>>still<</if>> 
 				<<goto "attackHandler">>
 			<</link>>
 		<</if>>
-	<br>
-	<<set _mL = $militiaUnits.length>>
 	<<for _i = 0; _i < _mL; _i++>>
-		<<if $militiaUnits[_i].active == 1 && $militiaUnits[_i].isDeployed == 0>>
+		<<if $militiaUnits[_i].active == 1 && $militiaUnits[_i].isDeployed == 0 && $militiaUnits[_i].troops > 0>>
 			<br>
 			<<militiaUnitsDescription $militiaUnits[_i]>>
 			<br>
@@ -251,10 +253,8 @@ With your current readiness level you can <<if $deployedUnits > 0>>still<</if>> 
 			<</link>>
 		<</if>>
 	<</for>>
-	<<set _ms = $slaveUnits.length>>
-	<br>
-	<<for _i = 0; _i < _mL; _i++>>
-		<<if $slaveUnits[_i].active == 1 && $slaveUnits[_i].isDeployed == 0>>
+	<<for _i = 0; _i < _sL; _i++>>
+		<<if $slaveUnits[_i].active == 1 && $slaveUnits[_i].isDeployed == 0 && $slaveUnits[_i].troops > 0>>
 			<br>
 			<<slaveUnitsDescription $slaveUnits[_i]>>
 			<br>
@@ -266,9 +266,8 @@ With your current readiness level you can <<if $deployedUnits > 0>>still<</if>> 
 			<</link>>
 		<</if>>
 	<</for>>
-	<<set _mL = $mercUnits.length>>
-	<<for _i = 0; _i < _mL; _i++>>
-		<<if $mercUnits[_i].active == 1 && $mercUnits[_i].isDeployed == 0>>
+	<<for _i = 0; _i < _meL; _i++>>
+		<<if $mercUnits[_i].active == 1 && $mercUnits[_i].isDeployed == 0 && $mercUnits[_i].troops > 0>>
 			<br>
 			<<mercUnitsDescription $mercUnits[_i]>>
 			<br>
@@ -313,7 +312,7 @@ Units about to be deployed:
 			<</link>>
 		<</if>>
 	<</for>>
-	<<for _i = 0; _i < _mL; _i++>>
+	<<for _i = 0; _i < _sL; _i++>>
 		<<if $slaveUnits[_i].isDeployed == 1>>
 			<br>
 			<<slaveUnitsDescription $slaveUnits[_i]>>
@@ -326,7 +325,7 @@ Units about to be deployed:
 			<</link>>
 		<</if>>
 	<</for>>
-	<<for _i = 0; _i < _mL; _i++>>
+	<<for _i = 0; _i < _meL; _i++>>
 		<<if $mercUnits[_i].isDeployed == 1>>
 			<br>
 			<<mercUnitsDescription $mercUnits[_i]>>

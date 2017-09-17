@@ -1,17 +1,104 @@
 :: attackReport [nobr]
 
 /*Init*/
-<<set $phase = 0>>
-<<set $recon = 0>>
-<<set $attackV = 0>>
-<<set $defenseV = 0>>
-<<set $morale = 0>>
-<<set $enemyAttackV = 0>>
-<<set $enemyDefenseV = 0>>
-<<set $enemyMorale = 0>>
-<<set $totalLosses = 0>>
-<<set $militiaLosses = 0>>
-<<set $slaveLosses = 0>>
-<<set $mercLosses = 0>>
+<<set _phase = 0>>
+<<set _attack = 0>>
+<<set _defense = 0>>
+<<set _morale = $baseMorale>>
+<<set _hp = 0>>
+<<set _enemyAttack = 0>>
+<<set _enemyDefense = 0>>
+<<set _enemyMorale = 0>>
+<<set _enemyHp = 0>>
+<<set _mL = $militiaUnits.length>>
+<<set _sL = $slaveUnits.length>>
+<<set _meL = $mercUnits.length>>
+
+/* calculates PC army stats */
+<<if $secBots.isDeployed == 1>>
+	<<set _attack += $secBotsBaseAttack + $secBotsBaseAttack * $secBots.equip * 0.5>>
+	<<set _defense += $secBotsBaseDefense + $secBotsBaseDefense * $secBots.equip * 0.5>>
+	<<set _morale += $secBotsMorale>>
+	<<set _hp += $secBotsBaseHp * $secBots.troops>>
+<</if>>
+<<for _i = 0; _i < _mL; _i++>>
+	<<if $militiaUnits[_i].isDeployed == 1>>
+		<<set _attack += $militiaBaseAttack + $militiaBaseAttack * $militiaUnits[_i].equip * 0.5>>
+		<<set _defense += $militiaBaseDefense + $militiaBaseDefense * $militiaUnits[_i].equip * 0.5>>
+		<<set _morale += $militiaBaseMorale + $militiaBaseMorale * $militiaUnits[_i].escorts * 0.5>>
+		<<set _hp += ($militiaBaseHp + $militiaBaseHp * $militiaUnits[_i].medics * 0.5) * $militiaUnits[_i].troops >>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < _sL; _i++>>
+	<<if $slaveUnits[_i].isDeployed == 1>>
+		<<set _attack += $slaveBaseAttack + $slaveBaseAttack * $slaveUnits[_i].equip * 0.5>>
+		<<set _defense += $slaveBaseDefense + $slaveBaseDefense * $slaveUnits[_i].equip * 0.5>>
+		<<set _morale += $slaveBaseMorale + $slaveBaseMorale * $slaveUnits[_i].escorts * 0.5>>
+		<<set _hp += ($slaveBaseHp + $slaveBaseHp * $slaveUnits[_i].medics * 0.25) * $slaveUnits[_i].troops>>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < _meL; _i++>>
+	<<if $mercUnits[_i].isDeployed == 1>>
+		<<set _attack += $mercBaseAttack + $mercBaseAttack * $mercUnits[_i].equip * 0.5>>
+		<<set _defense += $mercBaseDefense + $mercBaseDefense * $mercUnits[_i].equip * 0.5>>
+		<<set _morale += $mercBaseMorale + $mercBaseMorale * $mercUnits[_i].escorts * 0.5>>
+		<<set _hp += ($mercBaseHp + $mercBaseHp * $slaveUnits[_i].medics * 0.25) * $mercUnits[_i].troops>>
+	<</if>>
+<</for>>
+
+/* calculates enemy army stats */
+<<if $attackType == "raiders">>
+
+<<elseif $attackType == "free city">>
+	<<set _enemyAttack = $fcBaseAttack * $fcBaseAttack * $attackEquip * 0.5>>
+	<<set _enemyDefense = $fcBaseDefense + $fcBaseDefense * $attackEquip * 0.5>>
+	<<set _enemyMorale = $fcBaseMorale>>
+	<<set _enemyHp = $fcBaseHp * $attackTroops>>
+<<elseif $attackType == "old world">>
+	<<set _enemyAttack = $owBaseAttack + $owBaseAttack * $attackEquip * 0.5>>
+	<<set _enemyDefense = $owBaseDefense + $owBaseDefense * $attackEquip * 0.5>>
+	<<set _enemyMorale = $owBaseMorale>>
+	<<set _enemyHp = $owBaseHp * $attackTroops>>
+<<elseif $attackType == "freedom fighters">>
+	<<set _enemyAttack = $ffBaseAttack + $ffBaseAttack * $attackEquip * 0.5>>
+	<<set _enemyDefense = $ffBaseDefense + $ffBaseDefense * $attackEquip * 0.5>>
+	<<set _enemyMorale = $ffBaseMorale>>
+	<<set _enemyHp = $ffBaseHp * $attackTroops>>
+<</if>>
+
+/* apply leader, terrain and tactics bonuses */
 
 
+/* simulates the combat by pitting attk against def
+<<for _i = 0; _i < $maxTurns; _i++>>
+
+
+<</for>>
+
+
+
+
+
+
+/* resets variables */
+<<set $attackType = "none">>
+<<set $chosenTactic = "none">>
+<<set $leadingTroops = "none">>
+<<set $attackTroops = 0>>
+<<set $attackEquip = 0>>
+<<set $deployableUnits = 0>>
+<<set $deployedUnits = 0>>
+<<set $battleTerrain = "none">>
+<<set $attackThisWeek = 0>>
+<<set $deployableUnits = 0>>
+<<set $deployedUnits = 0>>
+<<set $secBots.isDeployed = 0>>
+<<for _i = 0; _i < _mL; _i++>>
+	<<set $militiaUnits[_i].isDeployed = 0>>
+<</for>>	
+<<for _i = 0; _i < _sL; _i++>>
+	<<set $slaveUnits[_i].isDeployed = 0>>
+<</for>>	
+<<for _i = 0; _i < _meL; _i++>>
+	<<set $mercUnits[_i].isDeployed = 0>>
+<</for>>	
