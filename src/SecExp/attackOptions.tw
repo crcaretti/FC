@@ -99,7 +99,7 @@ The ominous message dominates the screens of your office, <<print $assistantName
 <hr>
 It seems your troops and your adversary will fight
 <<if $battleTerrain == "urban">>
-	in <strong>the streets of <<if $terrain == "urban">>the old world city surroinding the arcology<<else>>of the free city<</if>>.</strong>
+	in <strong>the streets of <<if $terrain == "urban">>the old world city surrounding the arcology<<else>>of the free city<</if>>.</strong>
 <<elseif $battleTerrain == "rural">>
 	in <strong>the rural land</strong> surrounding the free city.
 <<elseif $battleTerrain == "hills">>
@@ -129,7 +129,7 @@ They seems to be
 <<else>>
 	<<set _expectedEquip = $attackEquip + either(-1,1) * random(2)>>
 <</if>>
-<<if _expectedEquip == 0>>
+<<if _expectedEquip <= 0>>
 	<strong>poorly armed</strong>. old rusty small arms are the norm with just a few barely working civilian vehicles. 
 <<elseif _expectedEquip == 1>>
 	<strong>lightly armed</strong>. mostly small arms with some repurposed civilian vehicles and a scattered few machine guns. There's no sign of heavy vehicles, artillery or aircrafts.
@@ -159,66 +159,42 @@ You quickly lay down a plan of action:
 /* leader assignment */
 <span id="leader"><strong><<print $assistantName>></strong></span> will lead your troops.
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;
-	<<if $leadingTroops != "PC">>
-		<<link "Personally join the battle">>
-			<<set $leadingTroops = "PC">>
-			<<replace "#leader">><strong><<print $PC.name>></strong><</replace>>
-		<</link>>
-	<<else>>
-		Personally join the battle
-	<</if>>
+	<<link "Personally join the battle">>
+		<<set $leadingTroops = "PC">>
+		<<replace "#leader">><strong><<print $PC.name>></strong><</replace>>
+	<</link>>
 	|
-	<<if $leadingTroops != "assistant">>
-		<<link "Let $assistantName lead the troops">>
-			<<set $leadingTroops = "assistant">>
-			<<replace "#leader">><strong><<print $assistantName>></strong><</replace>>
-		<</link>>
-	<<else>>
-		Let $assistantName lead the troops
-	<</if>>
+	<<link "Let $assistantName lead the troops">>
+		<<set $leadingTroops = "assistant">>
+		<<replace "#leader">><strong><<print $assistantName>></strong><</replace>>
+	<</link>>
 	<<if $Bodyguard != 0 && $slavesInArmy == 1>>
 	|
-	<<if $leadingTroops != "bodyguard">>
-		<<link "Let your bodyguard lead your troops">>
-			<<set $leadingTroops = "bodyguard">>
-			<<replace "#leader">><strong><<print $Bodyguard.slaveName>></strong><</replace>>
-		<</link>>
-	<<else>>
-		Let your bodyguard lead your troops
-	<</if>>
+	<<link "Let your bodyguard lead your troops">>
+		<<set $leadingTroops = "bodyguard">>
+		<<replace "#leader">><strong><<print $Bodyguard.slaveName>></strong><</replace>>
+	<</link>>
 	<</if>>
 	<<if $HeadGirl != 0 && $slavesInArmy == 1>>
 	|
-	<<if $leadingTroops != "headGirl">>
-		<<link "Let your head girl lead your troops">>
-			<<set $leadingTroops = "headGirl">>
-			<<replace "#leader">><strong><<print $HeadGirl.slaveName>></strong><</replace>>
-		<</link>>
-	<<else>>
-		Let your head girl lead your troops
-	<</if>>
+	<<link "Let your head girl lead your troops">>
+		<<set $leadingTroops = "headGirl">>
+		<<replace "#leader">><strong><<print $HeadGirl.slaveName>></strong><</replace>>
+	<</link>>
 	<</if>>
 	<<if $militiaCreated == 1>>
 	|
-	<<if $leadingTroops != "citizen">>
-		<<link "Let the citizens' militia officers lead the troops">>
-			<<set $leadingTroops = "citizen">>
-			<<replace "#leader">><strong>The citizens' militia commander</strong><</replace>>
-		<</link>>
-	<<else>>
-		Let the citizens' militia officers lead the troops.
-	<</if>>
+	<<link "Let the citizens' militia officers lead the troops">>
+		<<set $leadingTroops = "citizen">>
+		<<replace "#leader">><strong>The citizens' militia commander</strong><</replace>>
+	<</link>>
 	<</if>>
 	<<if $mercenaries > 0>>
 	|
-	<<if $leadingTroops != "mercenary">>
-		<<link "Let the mercenary officers lead the troops">>
-			<<set $leadingTroops = "mercenary">>
-			<<replace "#leader">><strong>The mercenary commander</strong><</replace>>
-		<</link>>
-	<<else>>
-		Let the mercenary officers lead the troops.
-	<</if>>
+	<<link "Let the mercenary officers lead the troops">>
+		<<set $leadingTroops = "mercenary">>
+		<<replace "#leader">><strong>The mercenary commander</strong><</replace>>
+	<</link>>
 	<</if>>
 
 /* troop deployment */
@@ -238,7 +214,7 @@ With your current readiness level you can <<if $deployedUnits > 0>>still<</if>> 
 				<<set $deployableUnits-->>
 				<<set $deployedUnits++>>
 				<<set $deployingBots = 1>>
-				<<goto "attackHandler">>
+				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
 	<<for _i = 0; _i < _mL; _i++>>
@@ -250,8 +226,7 @@ With your current readiness level you can <<if $deployedUnits > 0>>still<</if>> 
 				<<set $militiaUnits[_i].isDeployed = 1>>
 				<<set $deployableUnits-->>
 				<<set $deployedUnits++>>
-				<<set $deployingMilitia = 1>>
-				<<goto "attackHandler">>
+				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
 	<</for>>
@@ -264,8 +239,7 @@ With your current readiness level you can <<if $deployedUnits > 0>>still<</if>> 
 				<<set $slaveUnits[_i].isDeployed = 1>>
 				<<set $deployableUnits-->>
 				<<set $deployedUnits++>>
-				<<set $deployingSlaves = 1>>
-				<<goto "attackHandler">>
+				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
 	<</for>>
@@ -278,8 +252,7 @@ With your current readiness level you can <<if $deployedUnits > 0>>still<</if>> 
 				<<set $mercUnits[_i].isDeployed = 1>>
 				<<set $deployableUnits-->>
 				<<set $deployedUnits++>>
-				<<set $deployingMercs = 1>>
-				<<goto "attackHandler">>
+				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
 	<</for>>
@@ -288,7 +261,7 @@ With your current readiness level you can <<if $deployedUnits > 0>>still<</if>> 
 	Unit roster full.
 <</if>>
 
-<br><br>
+<br>
 
 Units about to be deployed:
 <<if $deployedUnits > 0>>
@@ -301,7 +274,7 @@ Units about to be deployed:
 				<<set $deployableUnits++>>
 				<<set $deployedUnits-->>
 				<<set $deployingBots = 0>>
-				<<goto "attackHandler">>
+				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
 	<<for _i = 0; _i < _mL; _i++>>
@@ -313,8 +286,7 @@ Units about to be deployed:
 				<<set $militiaUnits[_i].isDeployed = 0>>
 				<<set $deployableUnits++>>
 				<<set $deployedUnits-->>
-				<<set $deployingMilitia = 0>>
-				<<goto "attackHandler">>
+				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
 	<</for>>
@@ -327,8 +299,7 @@ Units about to be deployed:
 				<<set $slaveUnits[_i].isDeployed = 0>>
 				<<set $deployableUnits++>>
 				<<set $deployedUnits-->>
-				<<set $deployingSlaves = 0>>
-				<<goto "attackHandler">>
+				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
 	<</for>>
@@ -341,12 +312,42 @@ Units about to be deployed:
 				<<set $mercUnits[_i].isDeployed = 0>>
 				<<set $deployableUnits++>>
 				<<set $deployedUnits-->>
-				<<set $deployingMercs = 0>>
-				<<goto "attackHandler">>
+				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
 	<</for>>
 <</if>>
+<<for _i = 0; _i < _mL; _i++>>
+	<<if $militiaUnits[_i].isDeployed == 1>>
+		<<set $deployingMilitia = 1>>
+		<<break>>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < _sL; _i++>>
+	<<if $slaveUnits[_i].isDeployed == 1>>
+		<<set $deployingSlaves = 1>>
+		<<break>>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < _meL; _i++>>
+	<<if $mercUnits[_i].isDeployed == 1>>
+		<<set $deployingMercs = 1>>
+		<<break>>
+	<</if>>
+<</for>>
+
+<br><br>
+Set to <span id="keep">keep the roster between battles</span>
+|
+<<link "Keep roster as it is">>
+	<<replace "#keep">>keep the roster between battles<</replace>>
+	<<set $keepRoster = 1>>
+<</link>>
+|
+<<link "Don't keep it">>
+	<<replace "#keep">>don't keep the roster between battles<</replace>>
+	<<set $keepRoster = 0>>
+<</link>>
 
 <br><br>
 
@@ -371,8 +372,8 @@ Defensive tactics
 <</link>>
 <br>&nbsp;&nbsp;&nbsp;&nbsp;//Involves using terrain knowledge and small fast attacks to hinder and weaken the enemy.//
 <br>
-<<link "choke Points">>
-	<<set $chosenTactic = "choke Points">>
+<<link "Choke Points">>
+	<<set $chosenTactic = "Choke Points">>
 	<<replace "#tactic">><strong><<print $chosenTactic>></strong><</replace>>
 <</link>>
 <br>&nbsp;&nbsp;&nbsp;&nbsp;//Involves using terrain knowledge and strong fortifications in order to stop the enemy on its track.//
@@ -411,5 +412,5 @@ Offensive Tactics
 <br>
 <br>
 <<link "Send your orders">>
-	<<goto "attackReport">>
+	<<goto "attackHandler">>
 <</link>>
