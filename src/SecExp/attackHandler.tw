@@ -1,5 +1,6 @@
 :: attackHandler [nobr]
 
+<<if $battleResult != 1 || $battleResult != -1>>		/* if the player did not select bribe or surrender */
 /*Init*/
 <<set _turn = 0>>
 <<set _attack = 0>>
@@ -488,7 +489,7 @@ Debug:
 	<br>
 	Debug: remaining enemyMorale: _enemyMorale
 	<<if _enemyHp <= 0 || _enemyMorale <= 0>>
-		<<set $PCwon = 1>>
+		<<set $battleResult = 3>>
 		<<set $battleTurns = _i>>
 		<<break>>
 	<</if>>
@@ -505,19 +506,25 @@ Debug:
 	<br>
 	Debug: remaining morale: _morale
 	<<if _hp <= 0 || _morale <= 0>>
-		<<set $EnemyWon = 1>>
+		<<set $battleResult = -3>>
 		<<set $battleTurns = _i>>
 		<<break>>
 	<</if>>
 <</for>>
-<<if $PCwon != 1 && $EnemyWon != 1>>
+<<if $battleResult != 3 && $battleResult != -3>>
 	<<if _morale > _enemyMorale>>
-		<<set $PCpartialWon = 1>>
+		<<set $battleResult = 2>>
 	<<elseif _morale < _enemyMorale>>
-		<<set $enemyPartialWon = 1>>
+		<<set $battleResult = -2>>
 	<</if>>
 <</if>>
+<<else>>											/* bribe/surrender code */
+	Debug: bribe/surrender
+<</if>>												/* closes bribe/surrender check */
 
+<<if $battleResult > 3 || $battleResult < -3>>
+	Error: failed to determine battle result
+<</if>>
 
 <br><br>
 <<link "proceed">>
