@@ -14,15 +14,15 @@
 <<set _enemyMorale = 0>>
 <<set _enemyHp = 0>>
 <<set _enemyBaseHp = 0>>
-
-
-/* calculates leaders, tactics and terrain modifiers */
+<<set _woundChance = 5>>								/* leader has a base chance of 5% to get wounded */
+<<set _tacChance = 0.5>> 								/* by default tactics have a 50% chance of succeeding */
 <<set _atkMod = 1>>
 <<set _defMod = 1>>
 <<set _militiaMod = 1>>
 <<set _slaveMod = 1>>
 <<set _mercMod = 1>>
 <<set _enemyMod = 1>>
+
 /* Leaders */
 <<if $leadingTroops == "PC">>
 	<<if $authority <= 2500 && $authority > 1000>>
@@ -72,15 +72,23 @@
 	<</if>>
 	<<if $PC.warfare <= 25 && $PC.warfare > 10>>
 		<<set _atkMod -= 0.15>>
+		<<set _tacChance -= 0.15>>
 	<<elseif $PC.warfare <= 10>>
 		<<set _atkMod -= 0.20>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.30>>
 	<<elseif $PC.warfare >= 50 && $PC.warfare >= 50>>
 		<<set _atkMod += 0.15>>
+		<<set _tacChance += 0.15>>
 	<<elseif $PC.warfare >= 75>>
 		<<set _atkMod += 0.20>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.30>>
 	<</if>>
+	/* 80% chance of increasing warfare */
+	<<if $PC.warfare < 100 && random(1,100) <= 80>>
+		<<set $PC.warfare += 10>>
+		<<set $PC.warfare = Math.clamp($PC.warfare,-100,100)
 <<elseif $leadingTroops == "assistant">>
 	<<if $rep < 10000 && $authority < 10000>>
 		<<set _militiaMod -= 0.15>>
@@ -90,9 +98,11 @@
 	<<if $assistantPower == 0>>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
 	<<elseif $assistantPower == 2>>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.30>>
 	<</if>>
 <<elseif $leadingTroops == "bodyguard">>
 	<<if $Bodyguard.devotion < -20>>
@@ -110,30 +120,101 @@
 	<<if (setup.bodyguardCareers.includes($Bodyguard.career) || setup.HGCareers.includes($Bodyguard.career)) && $Bodyguard.intelligence == 3>>
 		<<set _atkMod += 0.25>>
 		<<set _defMod += 0.25>>
+		<<set _tacChance += 0.50>>
 	<<elseif $Bodyguard.intelligence == 3>>
 		<<set _atkMod += 0.20>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.35>>
 	<<elseif (setup.bodyguardCareers.includes($Bodyguard.career) || setup.HGCareers.includes($Bodyguard.career)) && $Bodyguard.intelligence == 2>>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
 	<<elseif $Bodyguard.intelligence == 2>>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
 	<<elseif setup.bodyguardCareers.includes($Bodyguard.career) || setup.HGCareers.includes($Bodyguard.career) && $Bodyguard.intelligence >= 1>>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.15>>
 	<<elseif !(setup.bodyguardCareers.includes($Bodyguard.career) && setup.HGCareers.includes($Bodyguard.career)) || $Bodyguard.intelligence <= -2>>
 		<<set _atkMod -= 0.15>>
 		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.30>>
 	<<elseif $Bodyguard.intelligence <= -2>>
 		<<set _atkMod -= 0.15>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.25>>
 	<<elseif !(setup.bodyguardCareers.includes($Bodyguard.career) && setup.HGCareers.includes($Bodyguard.career)) || $Bodyguard.intelligence <= -1>>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
 	<<elseif $Bodyguard.intelligence <= -1>>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.15>>
+	<</if>>
+		/* does she get wounded? */
+	<<if $Bodyguard.combatSkill == 1>>
+		<<set _woundChance -= 3>>
+	<</if>>
+	<<if $Bodyguard.health >= 50>>
+		<<set _woundChance -= 2>>
+	<</if>>
+	<<if $Bodyguard.weight > 130>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.muscles < -30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.eyes <= -2>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.heels == 1>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.boobs >= 1400>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.butt >= 6>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.preg >= 30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.preg >= 30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.dick >= 8>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.balls >= 8>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.intelligence <= -3>>
+		<<set _woundChance += 1>>
+	<</if>>	
+	<<if random(1,100) <= _woundChance>>
+		<<set $leaderWounded = 1>>
+		<<set _militiaMod -= 0.2>>
+		<<set _slaveMod -= 0.2>>
+		<<set _mercMod -= 0.2>>
+		<<set _enemyMod += 0.2>>
+		<<set $woundType = random(1,10)>>
+		<<if $woundType == 1>>
+			<<set $Bodyguard.voice = 0>>
+		<<elseif $woundType == 2>>
+			<<set $Bodyguard.eyes = -2>>
+		<<elseif $woundType == 3>>
+			<<set $Bodyguard.amp = 1>>
+		<<elseif $woundType >= 4>>
+			<<set $Bodyguard.health -= 40>>
+		<</if>>
+	<</if>>
+	/* 60% chance of getting combat skill if nto already have it */
+	<<if $Bodyguard.combatSkill == 0 && random(1,100) <= 60>>
+		<<set $gainedCombat == 1>>
+		<<set $Bodyguard.combatSkill = 1>>
 	<</if>>
 <<elseif $leadingTroops == "headGirl">>
 	<<if $HeadGirl.devotion < -20>>
@@ -151,30 +232,101 @@
 	<<<<if (setup.bodyguardCareers.includes($HeadGirl.career) || setup.HGCareers.includes($HeadGirl.career)) && $HeadGirl.intelligence == 3>>
 		<<set _atkMod += 0.25>>
 		<<set _defMod += 0.25>>
+		<<set _tacChance += 0.50>>
 	<<elseif $HeadGirl.intelligence == 3>>
 		<<set _atkMod += 0.20>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.35>>
 	<<elseif (setup.bodyguardCareers.includes($HeadGirl.career) || setup.HGCareers.includes($HeadGirl.career)) && $HeadGirl.intelligence == 2>>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
 	<<elseif $HeadGirl.intelligence == 2>>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
 	<<elseif setup.bodyguardCareers.includes($HeadGirl.career) || setup.HGCareers.includes($HeadGirl.career) && $HeadGirl.intelligence >= 1>>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.15>>
 	<<elseif !(setup.bodyguardCareers.includes($HeadGirl.career) && setup.HGCareers.includes($HeadGirl.career)) || $HeadGirl.intelligence <= -2>>
 		<<set _atkMod -= 0.15>>
 		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.30>>
 	<<elseif $HeadGirl.intelligence <= -2>>
 		<<set _atkMod -= 0.15>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.25>>
 	<<elseif !(setup.bodyguardCareers.includes($HeadGirl.career) && setup.HGCareers.includes($HeadGirl.career)) || $HeadGirl.intelligence <= -1>>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
 	<<elseif $HeadGirl.intelligence <= -1>>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.15>>
+	<</if>>
+	/* does she get wounded? */
+	<<if $HeadGirl.combatSkill == 1>>
+		<<set _woundChance -= 3>>
+	<</if>>
+	<<if $HeadGirl.health >= 50>>
+		<<set _woundChance -= 2>>
+	<</if>>
+	<<if $HeadGirl.weight > 130>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.muscles < -30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.eyes <= -2>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.heels == 1>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.boobs >= 1400>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.butt >= 6>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.preg >= 30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.preg >= 30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.dick >= 8>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.balls >= 8>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.intelligence <= -3>>
+		<<set _woundChance += 1>>
+	<</if>>	
+	<<if random(1,100) <= _woundChance>>
+		<<set $leaderWounded = 1>>
+		<<set _militiaMod -= 0.2>>
+		<<set _slaveMod -= 0.2>>
+		<<set _mercMod -= 0.2>>
+		<<set _enemyMod += 0.2>>
+		<<set $woundType = random(1,10)>>
+		<<if $woundType == 1>>
+			<<set $HeadGirl.voice = 0>>
+		<<elseif $woundType == 2>>
+			<<set $HeadGirl.eyes = -2>>
+		<<elseif $woundType == 3>>
+			<<set $HeadGirl.amp = 1>>
+		<<elseif $woundType >= 4>>
+			<<set $HeadGirl.health -= 40>>
+		<</if>>
+	<</if>>
+	/* 60% chance of getting combat skill if nto already have it */
+	<<if $HeadGirl.combatSkill == 0 && random(1,100) <= 60>>
+		<<set $gainedCombat == 1>>
+		<<set $HeadGirl.combatSkill = 1>>
 	<</if>>
 <<elseif $leadingTroops == "citizen">>
 	<<if $arcologies[0].FSDegradationist == "unset" && $arcologies[0].FSPaternalist == "unset">>
@@ -194,6 +346,7 @@
 	<</if>>
 	<<set _atkMod += either(-1,1) * random(10) * 0.1>>
 	<<set _defMod += either(-1,1) * random(10) * 0.1>>
+	<<set _tacChance += either(-1,1) * random(20) * 0.1>>
 <<elseif $leadingTroops == "mercenary">>
 	<<set _mercMod += 0.10>>
 	<<if $arcologies[0].FSRomanRevivalist != "unset">>
@@ -206,108 +359,140 @@
 	<</if>>
 	<<set _atkMod += random(15) * 0.1>>
 	<<set _defMod += random(15) * 0.1>>
+	<<set _tacChance += random(30) * 0.1>>
 <</if>>
 /* Terrain and Tactics */
 <<if $battleTerrain == "urban">>
 	<<if $chosenTactic == "Bait and Bleed">>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Guerrilla">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Choke Points">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Interior Lines">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.15>>
 	<<elseif $chosenTactic == "Pincer Manouver">>
 		<<set _atkMod -= 0.05>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.15>>
 	<<elseif $chosenTactic == "Defense In Depth">>
 		<<set _atkMod -= 0.05>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.10>>
 	<<elseif $chosenTactic == "Blitzkrieg">>
 		<<set _atkMod -= 0.15>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.25>>
 	<<elseif $chosenTactic == "Human Wave">>
 		<<set _atkMod -= 0.15>>
 		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.30>>
 	<</if>>
 <<elseif $battleTerrain == "rural">>
 	<<if $chosenTactic == "Bait and Bleed">>
 		<<set _atkMod -= 0.05>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.15>>
 	<<elseif $chosenTactic == "Guerrilla">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
 	<<elseif $chosenTactic == "Choke Points">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.25>>
 	<<elseif $chosenTactic == "Interior Lines">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Pincer Manouver">>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Defense In Depth">>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.30>>
 	<<elseif $chosenTactic == "Blitzkrieg">>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Human Wave">>
 		<<set _atkMod += 0.20>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.25>>
 	<</if>>
 <<elseif $battleTerrain == "hills">>
 	<<if $chosenTactic == "Bait and Bleed">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.10>>
 	<<elseif $chosenTactic == "Guerrilla">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.15>>
 	<<elseif $chosenTactic == "Choke Points">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
 	<<elseif $chosenTactic == "Interior Lines">>
 		<<set _atkMod -= 0.05>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.10>>
 	<<elseif $chosenTactic == "Pincer Manouver">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.15>>
 	<<elseif $chosenTactic == "Defense In Depth">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.15>>
 	<<elseif $chosenTactic == "Blitzkrieg">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.15>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Human Wave">>
 		<<set _atkMod -= 0.15>>
 		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.30>>
 	<</if>>
 <<elseif $battleTerrain == "coast">>
 	<<if $chosenTactic == "Bait and Bleed">>
 		<<set _atkMod -= 0.05>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.10>>
 	<<elseif $chosenTactic == "Guerrilla">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.10>>
 	<<elseif $chosenTactic == "Choke Points">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.15>>
 	<<elseif $chosenTactic == "Interior Lines">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
 	<<elseif $chosenTactic == "Pincer Manouver">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
 	<<elseif $chosenTactic == "Defense In Depth">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
 	<<elseif $chosenTactic == "Blitzkrieg">>
 		<<set _atkMod -= 0.05>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.10>>
 	<<elseif $chosenTactic == "Human Wave">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod -= 0.05>>
@@ -316,24 +501,31 @@
 	<<if $chosenTactic == "Bait and Bleed">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.25>>
 	<<elseif $chosenTactic == "Guerrilla">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.15>>
 	<<elseif $chosenTactic == "Choke Points">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Interior Lines">>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Pincer Manouver">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.15>>
 	<<elseif $chosenTactic == "Defense In Depth">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Blitzkrieg">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance += 0.05>>
 	<<elseif $chosenTactic == "Human Wave">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod -= 0.10>>
@@ -342,54 +534,171 @@
 	<<if $chosenTactic == "Bait and Bleed">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Guerrilla">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Choke Points">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod += 0.20>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Interior Lines">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
 	<<elseif $chosenTactic == "Pincer Manouver">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod -= 0.05>>
+		<<set _tacChance += 0.05>>
 	<<elseif $chosenTactic == "Defense In Depth">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
 	<<elseif $chosenTactic == "Blitzkrieg">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
 	<<elseif $chosenTactic == "Human Wave">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
 	<</if>>
 <<elseif $battleTerrain == "wasteland">>
 	<<if $chosenTactic == "Bait and Bleed">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.10>>
 	<<elseif $chosenTactic == "Guerrilla">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.15>>
 	<<elseif $chosenTactic == "Choke Points">>
 		<<set _atkMod -= 0.10>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance -= 0.05>>
 	<<elseif $chosenTactic == "Interior Lines">>
 		<<set _atkMod += 0.10>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Pincer Manouver">>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
 	<<elseif $chosenTactic == "Defense In Depth">>
 		<<set _atkMod += 0.05>>
 		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.15>>
 	<<elseif $chosenTactic == "Blitzkrieg">>
 		<<set _atkMod += 0.15>>
 		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.30>>
 	<<elseif $chosenTactic == "Human Wave">>
 		<<set _atkMod += 0.20>>
 		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.25>>
 	<</if>>
+<</if>>
+
+<<if $chosenTactic == "Bait and Bleed">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.10>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.25>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.15>>
+	<</if>>
+<<elseif $chosenTactic == "Guerrilla">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.20>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.15>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.25>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.25>>
+	<</if>>
+<<elseif $chosenTactic == "Choke Points">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance += 0.25>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance -= 0.05>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance -= 0.10>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance += 0.05>>
+	<</if>>
+<<elseif $chosenTactic == "Interior Lines">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.15>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.15>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.20>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.10>>
+	<</if>>
+<<elseif $chosenTactic == "Pincer Manouver">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance += 0.15>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance -= 0.10>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance += 0.15>>
+	<</if>>
+<<elseif $chosenTactic == "Defense In Depth">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.20>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.20>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.05>>
+	<</if>>
+<<elseif $chosenTactic == "Blitzkrieg">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance -= 0.20>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.25>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.10>>
+	<</if>>
+<<elseif $chosenTactic == "Human Wave">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.10>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance -= 0.15>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance += 0.10>>
+	<</if>>
+<</if>>
+
+/* Calculates if tactics are successful */
+<<if random(1,100) <= _tacChance * 100>>
+	<<set _enemyMod -= 0.30>>
+	<<set _militiaMod += 0.20>>
+	<<set _slaveMod += 0.20>>
+	<<set _mercMod += 0.20>>
+	<<set _atkMod += 0.10>>
+	<<set _defMod += 0.10>>
+	<<set $tacticsSuccessful == 1>>
+<<else>>
+	<<set _enemyMod += 0.20>>
+	<<set _militiaMod -= 0.20>>
+	<<set _slaveMod -= 0.20>>
+	<<set _mercMod -= 0.20>>
+	<<set _atkMod -= 0.10>>
+	<<set _defMod -= 0.10>>
+	<<set $tacticsSuccessful == 0>>
 <</if>>
 
 /* enemy morale mods */
@@ -491,6 +800,7 @@ Debug:
 <br>militiaMod: _militiaMod
 <br>slaveMod: _slaveMod
 <br>mercMod: _mercMod
+<br>tacticSuccessful: $tacticsSuccessful
 <br>enemyAttack: _enemyAttack
 <br>enemyDefense: _enemyDefense
 <br>enemyMorale: _enemyMorale
