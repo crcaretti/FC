@@ -7,29 +7,143 @@ Security headquarters
 
 /* security level. Effects and influences */
 <<if $security <= 20>>
-	Your security level is dangerously low. If measures are not taken crime will quickly become a big problem and your arcology will be highly susceptible to external attacks. Prosperity and immigration will be negatively affected quite severely by this level of security.
+	Your security level (@@.deepskyblue;<<print $security>>@@) is dangerously low. If measures are not taken crime will quickly become a big problem and your arcology will be highly susceptible to external attacks.
 <<elseif $security <= 40>>
-	Your security level is low. In the long run crime will slowly but inevitably grow and your arcology is open to attacks.  Prosperity and immigration will be negatively affected by this level of security.
+	Your security level (@@.deepskyblue;<<print $security>>@@) is low. In the long run crime will slowly but inevitably grow and your arcology is open to attacks.
 <<elseif $security <= 60>>
-	Your security level is decent. Crime will have difficulty growing, but it will also be hard to extirpate. Your arcology is reasonably safe from external attacks. Prosperity and immigration will not be noticeably affected by this level of security.
+	Your security level (@@.deepskyblue;<<print $security>>@@) is decent. Crime will have difficulty growing, but it will also be hard to extirpate. Your arcology is reasonably safe from external attacks.
 <<elseif $security <= 80>>
-	Your security level is good. With time crime will slowly be eliminated and your arcology is highly secured agaist external attacks. Prosperity and immigration will be positively affected by this level of security.
+	Your security level (@@.deepskyblue;<<print $security>>@@) is good. With time crime will slowly be eliminated and your arcology is highly secured agaist external attacks.
 <<else>>
-	Your security level is great. You turned your arcology in a deadly trap for criminals and external attacks can be dealt with very effectively.  Prosperity and immigration will be positively affected quite strongly by this level of security. 
+	Your security level (@@.deepskyblue;<<print $security>>@@) is great. You turned your arcology in a deadly trap for criminals and external attacks can be dealt with very effectively.
+<</if>>
+<<if $security < $secRestPoint>>
+	Your security is under its resting point (<<print $secRestPoint>>), with enough slaves in the headquarters it will increase in the coming weeks.
+<<elseif $security > $secRestPoint>>
+	Your security is over its resting point (<<print $secRestPoint>>), without investments in the infrastructure it will slowly decay.
+<<else>>
+	Your security is at its resting point (<<print $secRestPoint>>), without outside interference it will remain at this level.
+<</if>>
+
+<br>
+<br>
+
+/* security level. Slaves and upgrades */
+You have <span id="secHel"><<print $secHelots>></span> slaves working in the HQ. To maintain the current level of security $reqHelots are required and you have <span id="hel"><<print $helots>></span> free menial slaves.
+<<if $secHelots < $reqHelots>>
+	You do not have enough slaves here. Security will slowly decay until you transfer enough.
+<<else>>
+	You have enough slaves to man all security systems.
 <</if>>
 <br>
-	
-/* security level. Upgrades */
-	You have <<print $secHelots>> slaves constantly working in the HQ. To maintain the current level of security _reqHelots are required. 
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;
-	<<if $helots >= 5>>
-		<<link "Increase them by 5">>
-		
-	
-	
-	[[Increase them by 10|securityHQ][$helots -= 10, $secHelots += 10]|[[Decrease them by 10|securityHQ][$helots += 10, $secHelots -= 10]]|[Match the requirement|securityHQ][$helots += $secHelots - _reqHelots, $secHelots = _reqHelots]]
+<<if $helots >= 5>>
+	<<link "Transfer 5 menial slaves to the headquarters">>
+		<<set $helots -= 5>>
+		<<set $secHelots += 5>>
+		<<replace "#secHel">><<print $secHelots>><</replace>>
+		<<replace "#hel">><<print $helots>><</replace>>
+		<<if $helots < 5 || $secHelots >= $reqHelots || $secHelots == 5 || $secHelots == $maxHelotsInSecHQ>>
+			<<goto "securityHQ">>
+		<</if>>
+	<</link>>
+<<else>>
+	Transfer 5 menial slaves to the headquarters
+<</if>>
+|
+<<if $secHelots >= 5>>
+	<<link "Transfer out 5 slaves">>
+		<<set $helots += 5>>
+		<<set $secHelots -= 5>>
+		<<replace "#secHel">><<print $secHelots>><</replace>>
+		<<replace "#hel">><<print $helots>><</replace>>
+		<<if $secHelots < 5>>
+			<<goto "securityHQ">>
+		<</if>>
+		<<if $secHelots < $reqHelots>>
+			<<goto "securityHQ">>
+		<</if>>
+	<</link>>
+<<else>>
+	Transfer out 5 slaves
+<</if>>
+|
+<<if $secHelots != $reqHelots>>
+	<<link "Match the requirement">>
+		<<if $helots >= $reqHelots - $secHelots>>
+			<<set $helots -= $reqHelots - $secHelots>>
+			<<set $secHelots = $reqHelots>>
+		<<else>>
+			<<set $secHelots += $helots>>
+			<<set $helots = 0>>
+		<</if>>
+		<<replace "#secHel">><<print $secHelots>><</replace>>
+		<<replace "#hel">><<print $helots>><</replace>>
+		<<if $secHelots == $reqHelots>>
+			<<goto "securityHQ">>
+		<</if>>
+	<</link>>
+<<else>>
+	Match the requirement
+<</if>>
+
+<br>
+<br>
+
+<<if $secUpgrades.cctvCams == 0>>
+	[[Install an extensive CCTV camera system |securityHQ][$cash -= Math.trunc(5000*$upgradeMultiplierArcology), $secUpgrades.cctvCams = 1, $secRestPoint += 10, $reqHelots += 5]]
+	<br>//Costs ¤<<print Math.trunc(5000*$upgradeMultiplierArcology)>>. Will increase the resting point of security level by 10 points, but will require 5 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have installed an extensive CCTV camera system to keep the arcology under your watchful eye.
+<</if>>
+<br>
+<<if $secUpgrades.cyberBots == 0>>
+	[[Buy cybersecurity algorithms|securityHQ][$cash -= Math.trunc(5000*$upgradeMultiplierArcology), $secUpgrades.cyberBots = 1, $secRestPoint += 10, $reqHelots += 5]]
+	<br>//Costs ¤<<print Math.trunc(7500*$upgradeMultiplierArcology)>>. Will further increase the resting point of security level by 10 points, but will require 5 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have bought advanced cybersecurity algorithms that will defend your arcology against hack attempts or cyber frauds.
+<</if>>
+<br>
+<<if $secUpgrades.eyeScan == 0>>
+	[[Install non intrusive eye scanners|securityHQ][$cash -= Math.trunc(5000*$upgradeMultiplierArcology), $secUpgrades.eyeScan = 1, $secRestPoint += 15, $reqHelots += 10]]
+	<br>//Costs ¤<<print Math.trunc(10000*$upgradeMultiplierArcology)>>. Will increase the resting point of security level by 15 points, but will require 10 extra slaves in the headquarters and increases upkeep.//
+<<else>>	
+	You have installed numerous hidden eye scanners that accurately register the movements of everyone inside the arcology.
+<</if>>
+<br>
+<<if $secUpgrades.cryptoAnalyzer == 0>>
+	[[Buy and install crypto analyzers|securityHQ][$cash -= Math.trunc(5000*$upgradeMultiplierArcology), $secUpgrades.cryptoAnalyzer = 1, $secRestPoint += 15, $reqHelots += 10]]
+	<br>//Costs ¤<<print Math.trunc(15000*$upgradeMultiplierArcology)>>. Will increase the resting point of security level by another 15 points, but will require 10 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have bought and employed sophisticated crypto analyzing software to accurately track and archive every financial movement or transaction made inside the walls of your arcology.
+<</if>>	
+
+<br>
+<br>
 
 /* crime */
+<<if $crime <= 20>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is very low. Robberies are rare and violence is almost absent. Businesses and immigrants are attracted to such safe shores.
+<<elseif $crime <= 40>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is low. Theft is uncommon and violent crimes quite rare. Businesses and immigrants are attracted to your arcology because of this.
+<<elseif $crime <= 60>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is average. Theviery is sadly part of life and violent crimes are present if uncommon. Business and immigrants are not encouraged, but not too worried either.
+<<elseif $crime <= 80>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is high. Theft is commonplace and violent crimes are part of the daily grind. Business and immigrants are discouraged by such levels of precariousness.
+<<else>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is extremely high. Thievery is extremely common and violent crime is commonplace. Business and immigrants are highly discouraged by such levels of precariousness.
+<</if>>
+<<if $secHelots < $reqHelots>>
+	<<set _crimeRestPoint = 100 - $secRestPoint * ($secHelots / $reqHelots)>>
+<<else>>
+	<<set _crimeRestPoint = 100 - $secRestPoint>>
+<</if>>
+<<if $crime < _crimeRestPoint>>
+	The crime level is below its resting point (<<print _crimeRestPoint>>). If measures are not taken it will increase with time.
+<<elseif $crime > _crimeRestPoint>>
+	The crime level is above its resting point (<<print _crimeRestPoint>>). If the situation does not change it will decrease with time.
+<<else>>
+	The crime level is at its resting point (<<print _crimeRestPoint>>). If the situation does not change it will remain stable.
+<</if>>
 
 /* readiness */
 
