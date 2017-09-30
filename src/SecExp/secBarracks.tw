@@ -3,3 +3,238 @@
 The Barracks
 <hr>
 
+/* slaves */
+You are free to organize your menial slaves into fighting units. Currently you have <<print $helots>> slaves available, while <<print $slavesEmployedManpower>> are already employed as soldiers. During all your battles you lost a total of <<print $slavesTotalCasualties>>.
+<<set _sL = $slaveUnits.length>>
+<<if $helots > 0 && $activeUnits < $maxUnits>>
+	<<link "Form a new unit">>
+		<<if _sL == 0>>
+			<<set _name = _sL + "st slave platoon">>
+		<<elseif _sL == 1>>
+			<<set _name = _sL + "nd slave platoon">>
+		<<elseif _sL == 2>>
+			<<set _name = _sL + "rd slave platoon">>
+		<<else>>
+			<<set _name = _sL + "th slave platoon">>
+		<</if>>
+		<<if $helots >= $maxTroops>>
+			<<set _newUnit = {
+			platoonName: _name,
+			active: 1,
+			isDeployed: 0,
+			troops: $maxTroops,
+			maxTroops: $maxTroops,
+			equip: 0,
+			training: 0,
+			loyalty: 0,
+			medics: 0,
+			escorts: 0}>>
+			<<set $slaveUnits.push(_newUnit)>>
+			<<set $helots -= 30>>
+			<<set $slavesEmployedManpower += 30>>
+		<<else>>
+			<<set _newUnit = {
+			platoonName: _name,
+			active: 1,
+			isDeployed: 0,
+			troops: $helots,
+			maxTroops: $maxTroops,
+			equip: 0,
+			training: 0,
+			loyalty: 0,
+			medics: 0,
+			escorts: 0}>>
+			<<set $slaveUnits.push(_newUnit)>>
+			<<set $slavesEmployedManpower += _newUnit.troops>>
+			<<set $helots = 0>>
+		<</if>>
+		<<set $activeUnits++>>
+		<<goto "secBarracks">>
+	<</link>>
+<</if>>
+<br>
+<<for _i = 0; _i < _sL; _i++>>
+	<<if $slaveUnits[_i].active == 1>>
+		<br>
+		<<slaveUnitsDescription $slaveUnits[_i]>>
+		<br>
+		<<link "Disband the unit">>
+			<<set $helots += $slaveUnits[_i].troops>>
+			<<set $slavesEmployedManpower -= $slaveUnits[_i].troops>>
+			<<set $slaveUnits.deleteAt(_i)>>
+			<<set $activeUnits-->>
+			<<goto "secBarracks">>
+		<</link>>
+		|
+		<<link "Review Equipment">>
+			<<set $targetUnit = $slaveUnits[_i]>>
+			<<goto "seeUnit">>
+		<</link>>
+		|
+		<<if $slaveUnits[_i].troops < $slaveUnits[_i].maxTroops && $helots > 0>>
+			<<link "Replenish unit">>
+				<<if $helots >= $slaveUnits[_i].maxTroops - $slaveUnits[_i].troops>>
+					<<set $helots -= $slaveUnits[_i].maxTroops - $slaveUnits[_i].troops>>
+					<<set $slavesEmployedManpower += $slaveUnits[_i].maxTroops - $slaveUnits[_i].troops>>
+					<<set $slaveUnits[_i].troops = $slaveUnits[_i].maxTroops>>
+				<<else>>
+					<<set $slavesEmployedManpower += $helots>>
+					<<set $slaveUnits[_i].troops += $helots>>
+					<<set $helots = 0>>
+				<</if>>
+				<<goto "secBarracks">>
+			<</link>>
+		<</if>>
+	<<else>>
+		$slaveUnits[_i].platoonName lost too many operatives to be considered active.
+		<br>
+		<<link "Disband the unit">>
+			<<set $slaveUnits.deleteAt(_i)>>
+			<<set $activeUnits-->>
+			<<goto "secBarracks">>
+		<</link>>
+		|
+		<<if $helots > 0>>
+			<<link "Reform the unit">>
+				<<if $helots >= $slaveUnits[_i].maxTroops>>
+					<<set $slavesEmployedManpower += $slaveUnits[_i].maxTroops>>
+					<<set $helots -= $slaveUnits[_i].maxTroops>>
+					<<set $slaveUnits[_i].troops = $slaveUnits[_i].maxTroops>>
+				<<else>>
+					<<set $slavesEmployedManpower += $helots>>
+					<<set $slaveUnits[_i].troops += $helots>>
+					<<set $helots = 0>>
+				<</if>>
+				<<goto "secBarracks">>
+			<</link>>
+		<</if>>
+	<</if>>
+<</for>>
+
+<br>
+<br>
+
+/* militia */
+<<if $militiaFounded == 1>>
+	You founded the $arcologies[0].name free militia. You are now able to organize your citizens in fighting units.
+	<<if $militiaRecruitment == 0>>
+		The militia is composed entirely of volunteers, your manpower is approximately 1.5% of the citizens population of your arcology.
+	<<elseif $militiaRecruitment == 1>>
+		With the establishment of conscription, your available manpower has increased to now approximately 3% of the arcology's citizens population.
+	<<elseif $militiaRecruitment == 2>>
+		By establishing obligatory military service to obtain citizenship you have enlarged your manpower pool to be approximately 5% of the arcology's citizens population.
+	<</if>>	
+	Your current total manpower is <<print $militiaTotalManpower>>, of which <<print $militiaEmployedManpower>> is in active duty. You lost in total <<print $militiaTotalCasualties>> citizens, leaving you with <<print $militiaFreeManpower>> available citizens. 
+	<br>
+	<<set _mL = $militiaUnits.length>>
+	<<if $militiaFreeManpower > 0 && $activeUnits < $maxUnits>>
+		<<link "Form a new unit">>
+			<<if _mL == 0>>
+				<<set _name = _mL + "st citizens' platoon">>
+			<<elseif _mL == 1>>
+				<<set _name = _mL + "nd citizens' platoon">>
+			<<elseif _mL == 2>>
+				<<set _name = _mL + "rd citizens' platoon">>
+			<<else>>
+				<<set _name = _mL + "th citizens' platoon">>
+			<</if>>
+			<<if $militiaFreeManpower >= $maxTroops>>
+				<<set _newUnit = {
+				platoonName: _name,
+				active: 1,
+				isDeployed: 0,
+				troops: $maxTroops,
+				maxTroops: $maxTroops,
+				equip: 0,
+				training: 0,
+				loyalty: 0,
+				medics: 0,
+				escorts: 0}>>
+				<<set $militiaUnits.push(_newUnit)>>
+				<<set $militiaFreeManpower -= 30>>
+				<<set $militiaEmployedManpower += 30>>
+			<<else>>
+				<<set _newUnit = {
+				platoonName: _name,
+				active: 1,
+				isDeployed: 0,
+				troops: $militiaFreeManpower,
+				maxTroops: $maxTroops,
+				equip: 0,
+				training: 0,
+				loyalty: 0,
+				medics: 0,
+				escorts: 0}>>
+				<<set $militiaUnits.push(_newUnit)>>
+				<<set $militiaEmployedManpower += _newUnit.troops>>
+				<<set $militiaFreeManpower = 0>>
+			<</if>>
+			<<set $activeUnits++>>
+			<<goto "secBarracks">>
+		<</link>>
+	<</if>>
+	<br>
+	<<for _i = 0; _i < _mL; _i++>>
+		<<if $militiaUnits[_i].active == 1>>
+			<br>
+			<<militiaUnitsDescription $militiaUnits[_i]>>
+			<br>
+			<<link "Disband the unit">>
+				<<set $militiaFreeManpower += $militiaUnits[_i].troops>>
+				<<set $militiaEmployedManpower -= $militiaUnits[_i].troops>>
+				<<set $militiaUnits.deleteAt(_i)>>
+				<<set $activeUnits-->>
+				<<goto "secBarracks">>
+			<</link>>
+			|
+			<<link "Review Equipment">>
+				<<set $targetUnit = $militiaUnits[_i]>>
+				<<goto "seeUnit">>
+			<</link>>
+			|
+			<<if $militiaUnits[_i].troops < $militiaUnits[_i].maxTroops && $militiaFreeManpower > 0>>
+				<<link "Replenish unit">>
+					<<if $militiaFreeManpower >= $militiaUnits[_i].maxTroops - $militiaUnits[_i].troops>>
+						<<set $militiaFreeManpower -= $militiaUnits[_i].maxTroops - $militiaUnits[_i].troops>>
+						<<set $militiaEmployedManpower += $militiaUnits[_i].maxTroops - $militiaUnits[_i].troops>>
+						<<set $militiaUnits[_i].troops = $militiaUnits[_i].maxTroops>>
+					<<else>>
+						<<set $militiaEmployedManpower += $militiaFreeManpower>>
+						<<set $militiaUnits[_i].troops += $militiaFreeManpower>>
+						<<set $militiaFreeManpower = 0>>
+					<</if>>
+					<<goto "secBarracks">>
+				<</link>>
+			<</if>>
+		<<else>>
+			$militiaUnits[_i].platoonName lost too many operatives to be considered active.
+			<br>
+			<<link "Disband the unit">>
+				<<set $militiaFreeManpower += $militiaUnits[_i].troops>>
+				<<set $militiaEmployedManpower -= $militiaUnits[_i].troops>>
+				<<set $militiaUnits.deleteAt(_i)>>
+				<<set $activeUnits-->>
+				<<goto "secBarracks">>
+			<</link>>
+			|
+			<<if $militiaFreeManpower > 0>>
+				<<link "Reform the unit">>
+					<<if $militiaFreeManpower >= $militiaUnits[_i].maxTroops>>
+						<<set $militiaEmployedManpower += $militiaUnits[_i].maxTroops>>
+						<<set $militiaFreeManpower -= $militiaUnits[_i].maxTroops>>
+						<<set $militiaUnits[_i].troops = $militiaUnits[_i].maxTroops>>
+					<<else>>
+						<<set $militiaEmployedManpower += $militiaFreeManpower>>
+						<<set $militiaUnits[_i].troops += $militiaFreeManpower>>
+						<<set $militiaFreeManpower = 0>>
+					<</if>>
+					<<goto "secBarracks">>
+				<</link>>
+			<</if>>
+		<</if>>
+	<</for>>
+	<br>
+<<else>>
+	You have not yet founded the militia, you will not be able to form citizens units.
+<</if>>
+
