@@ -22,6 +22,7 @@
 <<set _slaveMod = 1>>
 <<set _mercMod = 1>>
 <<set _enemyMod = 1>>
+<<set _expBonus = 0>>
 
 /* Leaders */
 <<if $leadingTroops == "PC">>
@@ -723,7 +724,6 @@
 <<set _militiaMorale = 0>>
 <<set _slaveMorale = 0>>
 <<set _mercMorale = 0>>
-<<set _escortBonus = 0>>
 
 /* calculates PC army stats */
 <<if $secBots.isDeployed == 1>>
@@ -733,38 +733,50 @@
 <</if>>
 <<for _i = 0; _i < _mL; _i++>>
 	<<if $militiaUnits[_i].isDeployed == 1>>
-		<<set _attack += ($militiaBaseAttack + $militiaBaseAttack * $militiaUnits[_i].equip * $equipMod) * _atkMod>>
-		<<set _defense += ($militiaBaseDefense + $militiaBaseDefense * $militiaUnits[_i].equip * $equipMod) * _defMod>>
-		<<set _hp += ($militiaBaseHp + $militiaBaseHp * $militiaUnits[_i].medics * $equipMod) * $militiaUnits[_i].troops>>
-		<<if $militiaUnits[_i].escorts == 1>>
-			<<set _escortBonus++>>
+		<<if $militiaUnits[_i].training <= 33>>
+			<<set _expBonus = 0>>
+		<<elseif $militiaUnits[_i].training <= 66>>
+			<<set _expBonus = 0.25>>
+		<<else>>
+			<<set _expBonus = 0.50>>
 		<</if>>
+		<<set _attack += ($militiaBaseAttack + $militiaBaseAttack * $militiaUnits[_i].equip * $equipMod + $militiaBaseAttack * _expBonus) * _atkMod>>
+		<<set _defense += ($militiaBaseDefense + $militiaBaseDefense * $militiaUnits[_i].equip * $equipMod + $militiaBaseDefense * _expBonus) * _defMod>>
+		<<set _hp += ($militiaBaseHp + $militiaBaseHp * $militiaUnits[_i].medics * $equipMod) * $militiaUnits[_i].troops>>
 	<</if>>
 <</for>>
 <<for _i = 0; _i < _sL; _i++>>
 	<<if $slaveUnits[_i].isDeployed == 1>>
-		<<set _attack += ($slaveBaseAttack + $slaveBaseAttack * $slaveUnits[_i].equip * $equipMod) * _atkMod>>
-		<<set _defense += ($slaveBaseDefense + $slaveBaseDefense * $slaveUnits[_i].equip * $equipMod) * _defMod>>
-		<<set _hp += ($slaveBaseHp + $slaveBaseHp * $slaveUnits[_i].medics * 0.25) * $slaveUnits[_i].troops>>
-		<<if $slaveUnits[_i].escorts == 1>>
-			<<set _escortBonus++>>
+		<<if $slaveUnits[_i].training <= 33>>
+			<<set _expBonus = 0>>
+		<<elseif $slaveUnits[_i].training <= 66>>
+			<<set _expBonus = 0.25>>
+		<<else>>
+			<<set _expBonus = 0.50>>
 		<</if>>
+		<<set _attack += ($slaveBaseAttack + $slaveBaseAttack * $slaveUnits[_i].equip * $equipMod + $slaveBaseAttack * _expBonus) * _atkMod>>
+		<<set _defense += ($slaveBaseDefense + $slaveBaseDefense * $slaveUnits[_i].equip * $equipMod + $slaveBaseDefense * _expBonus) * _defMod>>
+		<<set _hp += ($slaveBaseHp + $slaveBaseHp * $slaveUnits[_i].medics * 0.25) * $slaveUnits[_i].troops>>
 	<</if>>
 <</for>>
 <<for _i = 0; _i < _meL; _i++>>
 	<<if $mercUnits[_i].isDeployed == 1>>
-		<<set _attack += ($mercBaseAttack + $mercBaseAttack * $mercUnits[_i].equip * $equipMod) * _atkMod>>
-		<<set _defense += ($mercBaseDefense + $mercBaseDefense * $mercUnits[_i].equip * $equipMod) * _defMod>>
-		<<set _hp += ($mercBaseHp + $mercBaseHp * $mercUnits[_i].medics * 0.25) * $mercUnits[_i].troops>>
-		<<if $mercUnits[_i].escorts == 1>>
-			<<set _escortBonus++>>
+		<<if $mercUnits[_i].training <= 33>>
+			<<set _expBonus = 0>>
+		<<elseif $mercUnits[_i].training <= 66>>
+			<<set _expBonus = 0.25>>
+		<<else>>
+			<<set _expBonus = 0.50>>
 		<</if>>
+		<<set _attack += ($mercBaseAttack + $mercBaseAttack * $mercUnits[_i].equip * $equipMod + $mercBaseAttack * _expBonus) * _atkMod>>
+		<<set _defense += ($mercBaseDefense + $mercBaseDefense * $mercUnits[_i].equip * $equipMod + $mercBaseDefense * _expBonus) * _defMod>>
+		<<set _hp += ($mercBaseHp + $mercBaseHp * $mercUnits[_i].medics * 0.25) * $mercUnits[_i].troops>>
 	<</if>>
 <</for>>
 
 /* morale and baseHp calculation */
 <<set _morale = ($secBotsMorale * $deployingBots + _militiaMorale * _militiaMod * $deployingMilitia + $slaveBaseMorale * _slaveMod * $deployingSlaves + $mercBaseMorale * _mercMod * $deployingMercs) / ($deployingBots + $deployingMilitia +$deployingSlaves + $deployingMercs)>>
-<<set _morale = _morale + _morale * _escortBonus * 0.05>>	/* each escort upgrade gives +5% morale */
+<<set _morale = _morale + _morale * $secBarracksUpgrades.luxury * 0.05>>	/* barracks bonus */
 <<set _baseHp = ($secBotsBaseHp * $deployingBots + $militiaBaseHp * $deployingMilitia + $slaveBaseHp * $deployingSlaves + $mercBaseHp * $deployingMercs) / ($deployingBots + $deployingMilitia +$deployingSlaves + $deployingMercs)>>
 				
 /* calculates enemy army stats */
