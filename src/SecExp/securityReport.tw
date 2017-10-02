@@ -1,48 +1,221 @@
 :: securityReport [nobr]
 
+/* init */
+<<set _immigration = $ACitizens - $oldACitizens>>
+<<set _secGrowth = 0>>
+<<set _secRest = 0>>
+<<set _restGrowth = 0>>
+<<set _newSec = 0>>
+<<set _crimeGrowth = 0>>
+<<set _crimeCap = 0>>
+<<set _newCrime = 0>>
+
 <<if $useTabs == 0>>__Arcology Management__<</if>>
 <br>
+
 <<if $secHelots > 0>>
 	<<print $secHelots>> work tirelessly to improve the security of your arcology.
 <<elseif $secHQ == 1>>
 	Your security HQ lies empty, it's not going to help improving the security of the arcology.
 <</if>>
+
+/* security modifiers */
 <<if $ACitizens + $ASlaves <= 2000>>
-	The small number of residents makes their job easier. <<set _residentMod = 1>>
+	The small number of residents makes their job easier <<set _secGrowth += 2>>
+	<<if _immigration < 10>>
+		and the limited number of immigrants that reached the arcology this week does not have any sensible impact.<<set _secGrowth += 0.5>>
+	<<elseif _immigration < 30>>
+		, unfortunately the number of immigrants that reached the arcology this week is high enough to complicate security protocols.<<set _secGrowth -= 0.2>>
+	<<elseif _immigration < 60>>
+		, unfortunately the high number of immigrants that reached the arcology this week complicates security protocols.<<set _secGrowth -= 0.5>>
+	<<elseif _immigration < 80>>
+		, unfortunately the high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 1>>
+	<<else>>
+		, unfortunately the extremely high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 2>>
+	<</if>>
 <<elseif $ACitizens + $ASlaves <= 4000>>
-	The relatively low number of residents makes their job a little easier. <<set _residentMod = 0.5>>
+	The relatively low number of residents makes their job a little easier. <<set _secGrowth += 1>>
+	<<if _immigration < 10>>
+		and the limited number of immigrants that reached the arcology this week does not have any sensible impact.<<set _secGrowth += 0.5>>
+	<<elseif _immigration < 30>>
+		, unfortunately the number of immigrants that reached the arcology this week is high enough to complicate security protocols.<<set _secGrowth -= 0.2>>
+	<<elseif _immigration < 60>>
+		, unfortunately the high number of immigrants that reached the arcology this week complicates security protocols.<<set _secGrowth -= 0.5>>
+	<<elseif _immigration < 80>>
+		, unfortunately the high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 1>>
+	<<else>>
+		, unfortunately the extremely high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 2>>
+	<</if>>
 <<elseif $ACitizens + $ASlaves <= 6000>>
-	The relatively high number of residents makes their job a little harder. <<set _residentMod = -0.2>>
+	The relatively high number of residents makes their job a little harder. <<set _secGrowth -= -0.5>>
+	<<if _immigration < 10>>
+		, but the limited number of immigrants that reached the arcology this week does not have any sensible impact.<<set _secGrowth += 0.5>>
+	<<elseif _immigration < 30>>
+		. Furthermore, the number of immigrants that reached the arcology this week is high enough to complicate security protocols.<<set _secGrowth -= 0.2>>
+	<<elseif _immigration < 60>>
+		. Furthermore, the high number of immigrants that reached the arcology this week complicates security protocols.<<set _secGrowth -= 0.5>>
+	<<elseif _immigration < 80>>
+		. Furthermore, the high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 1>>
+	<<else>>
+		. Furthermore, the extremely high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 2>>
+	<</if>>
 <<elseif $ACitizens + $ASlaves <= 8000>>
-	The high number of residents makes their job harder.<<set _residentMod = -0.5>>
+	The high number of residents makes their job harder.<<set _secGrowth -= 1>>
+	<<if _immigration < 10>>
+		, but the limited number of immigrants that reached the arcology this week does not have any sensible impact.<<set _secGrowth += 0.5>>
+	<<elseif _immigration < 30>>
+		. Furthermore, the number of immigrants that reached the arcology this week is high enough to complicate security protocols.<<set _secGrowth -= 0.2>>
+	<<elseif _immigration < 60>>
+		. Furthermore, the high number of immigrants that reached the arcology this week complicates security protocols.<<set _secGrowth -= 0.5>>
+	<<elseif _immigration < 80>>
+		. Furthermore, the high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 1>>
+	<<else>>
+		. Furthermore, the extremely high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 2>>
+	<</if>>
 <<else>>
-	The extremely high number of residents makes their job a lot harder.<<set _residentMod = -1>>
+	The extremely high number of residents makes their job a lot harder.<<set _secGrowth -= 2>>
+	<<if _immigration < 10>>
+		, but the limited number of immigrants that reached the arcology this week does not have any sensible impact.<<set _secGrowth += 0.5>>
+	<<elseif _immigration < 30>>
+		. Furthermore, the number of immigrants that reached the arcology this week is high enough to complicate security protocols.<<set _secGrowth -= 0.2>>
+	<<elseif _immigration < 60>>
+		. Furthermore, the high number of immigrants that reached the arcology this week complicates security protocols.<<set _secGrowth -= 0.5>>
+	<<elseif _immigration < 80>>
+		. Furthermore, the high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 1>>
+	<<else>>
+		. Furthermore, the extremely high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 2>>
+	<</if>>
+<</if>>
+<<if $crime < 20>>
+	Crime is a distant problem in the arcology, which makes improving security easier.<<set _secGrowth += 1>>
+<<elseif $crime < 40>>
+	Crime is a minor problem in the arcology, not serious enough to disrupt security efforts.
+<<elseif $crime < 60>>
+	Crime is an issue in the arcology, which makes improving security harder.<<set _secGrowth -= 0.5>>
+<<elseif $crime < 80>>
+	Crime is a overbearing problem in the arcology, which makes improving security a lot harder.<<set _secGrowth -= 1>>
+<<else>>
+	Crime is sovereign in the arcology, which makes improving security extremely difficult.<<set _secGrowth -= 2>>
+<</if>>
+<<if $authority < 5000>>
+	The low authority you hold on the arcology hampers the efforts of your security department.<<set _secGrowth -= 1>>
+<<elseif $authority < 7500>>
+	The limited authority you hold on the arcology hampers the efforts of your security department.<<set _secGrowth -= 0.5>>
+<<elseif $authority < 10000>>
+	The authority you hold on the arcology does not significantly impact the efforts of your security department.
+<<elseif $authority < 15000>>
+	The high authority you hold on the arcology facilitates the security department's work.<<set _secGrowth += 0.5>>
+<<else>>
+	The absolute authority you hold on the arcology makes the security department's work a lot easier.<<set _secGrowth += 1>>
 <</if>>
 <<if $lastAttackWeeks < 3>>
-	The recent attack has a negative effect on the security of the arcology.<<set _attackMod = -1>>
+	The recent attack has a negative effect on the security of the arcology.<<set _secGrowth -= 1>>
 <<elseif $lastAttackWeeks < 5>>
-	While some time has passed, the last attack still has a negative effect on the security of the arcology.<<set _attackMod = -0.5>>
+	While some time has passed, the last attack still has a negative effect on the security of the arcology.<<set _secGrowth -= 0.5>>
 <<else>>
-	The arcology has not been attacked in a while, which has a positive effect on security.<<set _attackMod = 0.5>>
+	The arcology has not been attacked in a while, which has a positive effect on security.<<set _secGrowth += 0.5>>
 <</if>>
 
+<br>
 
+/* resting point */
+<<set _secRest = $secRestPoint * ($secHelots / $reqHelots)>>
+<<if _secRest < 0>>
+	<<set _secRest = 20>>
+<</if>>
+<<if _secRest < $secRestPoint>>
+	The limited staff assigned to the HQ hampers the improvements to security achieved this week.
+<</if>>
+<<if $security < _secRest>>
+	Your security level is below its resting point. There is enough infrastructure and staff in place to improve it beyond its current level.
+<<elseif $security == _secRest>>
+	Your security level is at its resting point. There is enough infrastructure and staff in place to maintain it at its current level.
+<<else>>
+	Your security level is above its resting point. There is not enough infrastructure or staff in place to maintain it at its current level.
+<</if>>
+<<set _restGrowth = (_secRest - $security) * 0.2>>
+<<set _newSec = $security + _secGrowth + _secRest>>
+<<if _newSec < $security>>
+	This week @@.red;security decreased@@.
+<<elseif _newSec = $security>>
+	This week @@.yellow;security did not change@@.
+<<else>>
+	This week @@.green;security improved@@.
+<</if>>
+<<set $security = _newSec>>
 
-$security  $secRestPoint
+<br>
+<br>
 
+/* crime modifiers */
+<<if $week < 30>>
+	Due to the deterioration of the old world countries, crime focuses more and more on the prosperous free cities, yours included.<<set _crimeGrowth += 0.5>>
+<<elseif $week < 60>>
+	Due to the deterioration of the old world countries, crime focuses more and more on the prosperous free cities, yours included.<<set _crimeGrowth += 1>>
+<<elseif $week < 90>>
+	Due to the deterioration of the old world countries, crime focuses more and more on the prosperous free cities, yours included.<<set _crimeGrowth += 1.5>>
+<<elseif $week < 120>>
+	Due to the deterioration of the old world countries, crime focuses more and more on the prosperous free cities, yours included.<<set _crimeGrowth += 2>>
+<<else>>
+	Due to the deterioration of the old world countries, crime focuses more and more on the prosperous free cities, yours included.<<set _crimeGrowth += 2.5>>
+<</if>>
+<<if $arcologies[0].prosperity < 50>>
+	The low prosperity of the arcology facilitates criminal activities.<<set _crimeGrowth += 2>>
+<<elseif $arcologies[0].prosperity < 80>>
+	The fairly low prosperity of the arcology facilitates criminal activities.<<set _crimeGrowth += 1>>
+<<elseif $arcologies[0].prosperity < 12>>
+	The prosperity of the arcology is not high or low enough to have significant effects on the crime level.
+<<elseif $arcologies[0].prosperity < 16>>
+	The prosperity of the arcology is high enough to provide its citizens a decent life, hampering criminal activities.<<set _crimeGrowth -= 0.5>>
+<<elseif $arcologies[0].prosperity < 18>>
+	The prosperity of the arcology is high enough to provide its citizens a decent life, significantly hampering criminal activities.<<set _crimeGrowth -= 1>>
+<<else>>
+	The prosperity of the arcology is high enough to provide its citizens a very good life, significantly hampering criminal activities.<<set _crimeGrowth -= 2>>
+<</if>>
+<<if $ASlaves < 1000>>
+	The low number of slaves in the arcology does not hinder the activity of law enforcement, limiting crime growth.<<set _crimeGrowth -= 1>>
+<<elseif $ASlaves < 2000>>
+	The fairly low number of slaves in the arcology does not hinder significantly the activity of law enforcement, limiting crime growth.<<set _crimeGrowth -= 0.5>>
+<<elseif $ASlaves < 3000>>
+	The number of slaves in the arcology is becoming an impediment for law enforcement, facilitating crime growth.<<set _crimeGrowth += 1>>
+<<else>>
+	The number of slaves in the arcology is becoming a a big issue for law enforcement, facilitating crime growth.<<set _crimeGrowth += 1.5>>
+<</if>>
+<<if $security <= 20>>
+	The security measures in place are not enough yet to effectively fight the current crime level, barely hindering its growth.
+<<elseif $security <= 50>>
+	The security measures in place are barely adequate to fight the current crime level, hardly hindering its growth.<<set _crimeGrowth -= 1>>
+<<elseif $security <= 75>>
+	The security measures in place are adequate to fight the current crime level, hindering its growth.<<set _crimeGrowth -= 2.5>>
+<<else>>
+	The security measures in place are more than adequate to fight the current crime level, considerably hindering its growth.<<set _crimeGrowth -= 5>>
+<</if>>
+<<if $authority < 5000>>
+	Your low authority allows crime to grow undisturbed.<<set _crimeGrowth += 1>>
+<<elseif $authority < 7500>>
+	Your relatively low authority facilitates criminal activities.<<set _crimeGrowth += 0.5>>
+<<elseif $authority < 10000>>
+	Your authority is not high enough to discourage criminal activity.
+<<elseif $authority < 15000>>
+	Your high authority is an effective tool against crime.<<set _crimeGrowth -= 1>>
+<<else>>
+	Your absolute authority is an extremely effective tool against crime.<<set _crimeGrowth -= 2>>
+<</if>>
 
-
-
-
-
-what influences security?
-	-number of people
-	-recent attacks
-	-authority
-	-reputation
-	
-what influences crime?
-	-security
-	-authority
-	-reputation
-	-prosperity
+/* crime cap */
+<<set _crimeCap = Math.clamp($crimeCap + $crimeCap * (($reqHelots - $secHelots) / $reqHelots),0,100)>>
+<<if _crimeCap < $crimeCap>>
+	The limited staff assigned to the HQ allows more space for criminals to act.
+<</if>>
+<<set _newCrime = $crime + _crimeGrowth>>
+<<if _newCrime > _crimeCap>>
+	<<set _newCrime = _crimeCap>>
+<</if>>
+<<if _newCrime > $crime>>
+	This week @@.red;crime increased@@.
+<<elseif _newCrime == $crime>>
+	This week @@.yellow;crime did not change@@.
+<<else>>
+	This week @@.green;crime decreased@@.
+<</if>>
+<<set $crime = _newCrime>>
