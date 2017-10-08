@@ -44,6 +44,12 @@
 	You @@.green;make friends@@ by tacitly supporting enslavement of upstart citizens.
 	<<set _flux += 10, $rep += 100>>
 <</if>>
+<<if $enslavementRights == 1>>
+	As the only legal entity in the arcology able to declare the status of a person as enslaved, you are able to @@.yellowgreen;collect fees@@ over enslavement of your citizens. Many of your citizens however are not enthusiastic about this, @@.red:damaging your authority.@@
+	<<set $authority -= 100>>
+	<<set $cash += _flux * 100>>
+<</if>>
+<<set $oldFlux = _flux>>
 <<set $ACitizens -= _flux, $ASlaves += _flux>>
 This week, <<if _flux > 0>>few to none<<else>>many<</if>> of $arcologies[0].name's citizens fell into slavery.
 
@@ -62,32 +68,56 @@ This week, <<if _flux > 0>>few to none<<else>>many<</if>> of $arcologies[0].name
 	<</if>>
 <</if>>
 
-<<set $oldACitizens = $ACitizens>> 
+<<set $oldACitizens = $ACitizens>>
+ <<set _immigrants = 0>>
 <<if $ACitizens >= $ACitizenLimit>>
 	<<set $ACitizens = $ACitizenLimit>>
 	Your arcology is currently home to as many citizens as it can house; unless the living areas are reconfigured, the citizen population will not increase.
 <<else>>
-	<<set $ACitizens += random(-10,10)>>
+	<<set _immigrants += random(-10,10)>>
 	<<if $ProImmigrationRep == 1>>
 		Your welcome program for new citizens helps encourage wealthy people from the old world to immigrate, but @@.red;annoys some longstanding citizens.@@
-		<<set $ACitizens += random(10,20), $rep -= 100>>
+		<<set _immigrants += random(10,20), $rep -= 100>>
 	<</if>>
 	<<if $ProImmigrationCash == 1>>
 		The rent promotion for new immigrants brings new citizens to the arcology.
-		<<set $ACitizens += random(10,20)>>
+		<<set _immigrants += random(10,20)>>
 	<</if>>
 	<<if $arcologies[0].FSRepopulationFocusLaw == 1>>
 		The rent promotion for pregnant women attracts several gravid ladies and a few girls eager to become mothers to enroll as citizens in your arcology.
-		<<set $ACitizens += random(5,10)>>
+		<<set _immigrants += random(5,10)>>
 	<</if>>
 	<<if $ACitizens < $ACitizenLimit*0.6>>
 		The availability of a large number of apartments encourages many new citizens to immigrate.
-		<<set $ACitizens += random(10,20)>>
+		<<set _immigrants += random(10,20)>>
 	<</if>>
-	<<if $ACitizens <= 100>>
+	<<if $limitSubhumans == 1>>
+		Subhumans are stopped and turned away as soon as they dare petition for citizenship in your arcology, slightly lowering immigrants numbers.
+		<<set _immigrants -= random(5,10)>>
+	<</if>>
+	<<if $openBorders == 1>>
+		The very liberal attituted towards immigration calls many hopeful immigrants to your arcology.
+		<<set _immigrants += random(10,20)>>
+	<</if>>
+	<<if $propCampaign >= 1 && $propFocus == "immigration">>
+		Your advertisement campaign outside the free city brings more people to the gates of your arcology.
+		<<if $propCampaignBoost == 0>>
+			<<set _immigrants += random(1,2) * $propCampaign>>
+		<<else>>
+			<<set _immigrants += random(1,4) * $propCampaign>>
+		<</if>>
+	<</if>>	
+	<<if $limitImmigration == 1>>
+		The strict limits on immigration keep the number of people coming in the arcology limited.
+		<<if _immigrants > 40>>
+			<<set _immigrants = 40>>
+		<</if>>
+	<</if>>
+<</if>>
+<<set $ACitizens += _immigrants>>
+<<if $ACitizens <= 100>>
 		Your arcology is home to an extremely small number of very wealthy citizens; wealth is as concentrated as possible and the citizen population will not decrease further.
 		<<set $ACitizens = 100>>
-	<</if>>
 <</if>>
 
 <<if $ASlaves >= $ASlaveLimit>>
@@ -113,6 +143,10 @@ This week, <<if _flux > 0>>few to none<<else>>many<</if>> of $arcologies[0].name
 		<<elseif $arcologies[0].prosperity > 100>>
 			$arcologies[0].name is quite prosperous, and they can afford to buy many pretty slaves.
 		<</if>>
+	<</if>>
+	<<if $liveTargets == 1>>
+		Disobedient slaves are used as live targets in the shooting ranges of the arcology<<if $secBarracks != 0>> and the barracks.<<else>>.<</if>>
+		<<set $ASlaves -= random(20,40)>>
 	<</if>>
 	<<if $ASlaves <= 1000>><<set $ASlaves = 1000>><</if>>
 <</if>>
@@ -197,6 +231,15 @@ $ACitizens citizens and <<print $ASlaves+$helots+$slaves.length>> slaves now liv
 	<<set $rentalMultiplier -= 0.1>>
 	Food vendors are offered subsidized rent and operating expenses to set up shop in your arcology.
 <</if>>
+<<if $alternativeRents == 1>>
+	Your citizens are allowed to pay their rents in slaves rather than cash and a few financially challenged individuals make use of this.
+	<<set $rentalMultiplier -= 0.1>>
+	<<set $helots += random(0,5)>>
+<</if>>
+<<if $discountMercenaries == 1>>
+	Mercenaries willing to come to your arcology are given a discount on rent.
+	<<set $rentalMultiplier -= 0.1>>
+<</if>>
 <<if $arcologies[0].FSArabianRevivalistLaw == 1>>
 	<<set $rentalMultiplier += 0.1>>
 	Those of your citizens who have not yet subscribed to the society you are building are permitted to live and do business here, but must pay a moderate jizya tax for the privilege as part of their rent.
@@ -269,7 +312,16 @@ earning you @@.yellowgreen;¤_earnings.@@
 	<</if>>
 <</for>>
 <<if _refugees > 0>>
-	Some desperate people filtered into the arcology during the week: as owner, you were able to enslave _refugees of them.
+	Some desperate people filtered into the arcology during the week
+	<<if $propCampaign >= 1 && $propFocus == "enslavement">>
+		, many attracted by your advertisement campaigns
+		<<if $propCampaignBoost == 0>>
+			<<set _refugees += random(0,2)>>
+		<<else>>
+			<<set _refugees += random(0,4)>>
+		<</if>>
+	<</if>>.
+	As owner, you were able to enslave _refugees of them.
 	<<set $helots += _refugees>>
 <</if>>
 
@@ -318,6 +370,8 @@ earning you @@.yellowgreen;¤_earnings.@@
 			<</if>>
 		<</if>>
 	<</if>>
+	
+	
 	<<if $arcologies[0].FSNull != "unset">>
 		Your cultural openness is a powerful driver of economic activity.
 		<<set _AWeekGrowth += Math.trunc($arcologies[0].FSNull/25)>>
