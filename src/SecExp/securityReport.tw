@@ -34,16 +34,20 @@
 <</if>>
 
 /* security modifiers */
+<<if $PC.career == "mercenary">>
+	Your past life as a mercenary makes it easier to manage the security of the arcology.
+	<<set _secGrowth += 1>>
+<</if>>
 <<if $ACitizens + $ASlaves <= 2000>>
-	The small number of residents makes their job easier<<set _secGrowth += 2>>
+	The small number of residents makes their job easier.<<set _secGrowth += 2>>
 <<elseif $ACitizens + $ASlaves <= 4000>>
-	The relatively low number of residents makes their job a little easier<<set _secGrowth += 1>>
+	The fairly low number of residents makes their job a little easier.<<set _secGrowth += 1>>
 <<elseif $ACitizens + $ASlaves <= 6000>>
-	The relatively high number of residents makes their job a little harder<<set _secGrowth -= -0.5>>
+	The fairly high number of residents makes their job a little harder.<<set _secGrowth -= -0.5>>
 <<elseif $ACitizens + $ASlaves <= 8000>>
-	The high number of residents makes their job harder<<set _secGrowth -= 1>>
+	The high number of residents makes their job harder.<<set _secGrowth -= 1>>
 <<else>>
-	The extremely high number of residents makes their job a lot harder<<set _secGrowth -= 2>>
+	The extremely high number of residents makes their job a lot harder.<<set _secGrowth -= 2>>
 <</if>>
 <<if _immigration < 10>>
 	The limited number of immigrants that reached the arcology this week does not have any serious impact on the efficacy of current security measures.<<set _secGrowth += 0.5>>
@@ -78,12 +82,19 @@
 <<else>>
 	The absolute authority you hold on the arcology makes the security department's work a lot easier.<<set _secGrowth += 1>>
 <</if>>
+<<if $activeUnits >= 6>>
+	Your military is the size of a small army. Security is easier to maintain with such forces at your disposal. <<set _secGrowth += 0.5>>
+<</if>>
 <<if $lastAttackWeeks < 3 && $week > 3>>
 	The recent attack has a negative effect on the security of the arcology.<<set _secGrowth -= 1>>
 <<elseif $lastAttackWeeks < 5 && $week > 5>>
 	While some time has passed, the last attack still has a negative effect on the security of the arcology.<<set _secGrowth -= 0.5>>
 <<else>>
 	The arcology has not been attacked in a while, which has a positive effect on security.<<set _secGrowth += 0.5>>
+<</if>>
+<<if $blackOps == 1>>
+	Yoru black ops team proves to be a formidable tool against anyone threatening the security of your arcology.
+	<<set _secGrowth += 0.5 * random(1,2)>>
 <</if>>
 
 /* resting point */
@@ -95,7 +106,7 @@
 	The limited staff assigned to the HQ hampers the improvements to security achieved this week.
 <</if>>
 <<set _restGrowth = (_secRest - $security) * 0.2>>
-<<set _newSec = $security + _secGrowth + _secRest>>
+<<set _newSec = Math.trunc($security + _secGrowth + _secRest)>>
 <<if _newSec < $security>>
 	This week @@.red;security decreased@@.
 <<elseif _newSec == $security>>
@@ -103,7 +114,7 @@
 <<else>>
 	This week @@.green;security improved@@.
 <</if>>
-<<set $security = _newSec>>
+<<set $security = Math.clamp(_newSec, 0, 100)>>
 
 <br>
 <br>
@@ -163,13 +174,19 @@
 <<else>>
 	Your absolute authority is an extremely effective tool against crime.<<set _crimeGrowth -= 2>>
 <</if>>
+<<if $cash >= 100000>>
+	Your great wealth acts as a beacon for the greediest criminals, calling them to your arcology as moths to a flame.<<set _crimeGrowth += 0.5>>
+<</if>>	
+<<if $marketInfiltration == 1>>
+	<<set _crimeGrowth += 0.5 * random(1,2)>>
+<</if>>
 
 /* crime cap */
 <<set _crimeCap = Math.clamp($crimeCap + $crimeCap * (($reqHelots - $secHelots) / $reqHelots),0,100)>>
 <<if _crimeCap < $crimeCap && $secHQ == 1>>
 	The limited staff assigned to the HQ allows more space for criminals to act.
 <</if>>
-<<set _newCrime = $crime + _crimeGrowth>>
+<<set _newCrime = Math.trunc($crime + _crimeGrowth)>>
 <<if _newCrime > _crimeCap>>
 	<<set _newCrime = _crimeCap>>
 <</if>>
@@ -180,113 +197,184 @@
 <<else>>
 	This week @@.green;crime decreased@@.
 <</if>>
-<<set $crime = _newCrime>>
+<<set $crime = Math.clamp(_newCrime,0,100)>>
 
-<br><br>
-<<if $militiaFounded == 1>>
-<strong>Recruitment</strong>: 
-<<if $recruitVolunteers == 1>>
-	Your militia accepts only volunteering citizens, ready to defend their arcology.
-	<<set _recruits = random(1,2)>>
-	<<if $rep >= 10000>>
-		Many citizens volunteer just to fight for someone of your renown.
-		<<set _recruits += 1>>
+<br>
+<br>
+
+<<if $militiaFounded == 1 || $activeUnits >= 1>>
+	<strong>Military</strong>: 
+	<<if $recruitVolunteers == 1>>
+		Your militia accepts only volunteering citizens, ready to defend their arcology.
+		<<set _recruits = random(1,2)>>
+		<<if $rep >= 10000>>
+			Many citizens volunteer just to fight for someone of your renown.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $authority >= 10000>>
+			Many citizens feel it is their duty to fight for you, boosting volunteer enrollment.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $lowerRquirements == 1>>
+			Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.02 * $ACitizens>>
+			<<set $militiaTotalManpower += _recruits>>
+			<<set $militiaFreeManpower += _recruits>>
+			This week <<print _recruits>> citizens joined the militia.
+		<<else>>
+			There are not many more citizens willing to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
+		<</if>>
+	<<elseif $conscription == 1>>
+		Adult citizens are required to join the militia for a period of time.
+		<<set _recruits = random(3,5)>>
+		<<if $militaryExemption == 1>>
+			Some citizens prefer to contribute to the arcology's defense through financial support rather than military service, making you @@.yellowgreen;a small sum@@.
+			<<set _recruits -= random(1,2)
+			<<set $cash += 250>>
+		<</if>>
+		<<if $lowerRquirements == 1>>
+			Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $noSubhumansInArmy == 1>>
+			Guaranteeing the purity of your armed forces comes with a small loss of potential recruits.
+			<<set _recruits -= random(0,1)>>
+		<</if>>
+		<<if $pregExemption == 1>>
+			Many pregnant citizens prefer to avoid military service not to endager themselves and their children.
+			<<set _recruits -= 1>>
+		<</if>>
+		<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.05 * $ACitizens>>
+			<<set $militiaTotalManpower += _recruits>>
+			<<set $militiaFreeManpower += _recruits>>
+			This week <<print _recruits>> citizens joined the militia.
+		<<else>>
+			There are not many more citizens able to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
+		<</if>>
+	<<elseif $militaryService == 1>>
+		Adult citizens are required to register and serve in the militia whenever necessary.
+		<<set _recruits = random(5,7)>>
+		<<if $militaryExemption == 1>>
+			Some citizens prefer to contribute to the arcology's defense through financial support rather than military service, making you @@.yellowgreen;a small sum@@.
+			<<set _recruits -= random(1,2)
+			<<set $cash += 250>>
+		<</if>>
+		<<if $lowerRquirements == 1>>
+			Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $noSubhumansInArmy == 1>>
+			Guaranteeing the purity of your armed forces comes with a small loss of potential recruits.
+			<<set _recruits -= random(0,1)>>
+		<</if>>
+		<<if $pregExemption == 1>>
+			Many pregnant citizens prefer to avoid military service not to endager themselves and their children.
+			<<set _recruits -= 1>>
+		<</if>>
+		<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.10 * $ACitizens>>
+			<<set $militiaTotalManpower += _recruits>>
+			<<set $militiaFreeManpower += _recruits>>
+			This week <<print _recruits>> citizens joined the militia.
+		<<else>>
+			There are not many more citizens able to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
+		<</if>>
+	<<elseif $militarizedSociety == 1>>
+		Every citizen is required to train and participate in the military activities of the arcology.
+		<<set _recruits = random(7,9)>>
+		<<if $militaryExemption == 1>>
+			Some citizens prefer to contribute to the arcology's defense through financial support rather than military service, making you @@.yellowgreen;a small sum@@.
+			<<set _recruits -= random(1,2)
+			<<set $cash += 250>>
+		<</if>>
+		<<if $lowerRquirements == 1>>
+			Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $noSubhumansInArmy == 1>>
+			Guaranteeing the purity of your armed forces comes with a small loss of potential recruits.
+			<<set _recruits -= random(0,1)>>
+		<</if>>
+		<<if $pregExemption == 1>>
+			Many pregnant citizens prefer to avoid military service not to endager themselves and their children.
+			<<set _recruits -= 1>>
+		<</if>>
+		<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.20 * $ACitizens>>
+			<<set $militiaTotalManpower += _recruits>>
+			<<set $militiaFreeManpower += _recruits>>
+			This week <<print _recruits>> citizens joined the militia.
+		<<else>>
+			There are not many more citizens able to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
+		<</if>>
 	<</if>>
-	<<if $authority >= 10000>>
-		Many citizens feel it is their duty to fight for you, boosting volunteer enrollment.
-		<<set _recruits += 1>>
+	<<if $secBarracksUpgrades.training >= 1>>
+		<<if $secBarracksUpgrades.training == 1>>
+			<<set _sL = $slaveUnits.length>>
+			<<for _i = 0; _i < _sL; _i++>>
+				<<if $slaveUnits[_i].training < 100>>
+					<br>$slaveUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, slowing increasing their experience level.
+					<<set $slaveUnits[_i].training += random(2,4)>>
+				<</if>>
+			<</for>>
+			<<set _mL = $militiaUnits.length>>
+			<<for _i = 0; _i < _mL; _i++>>
+				<<if $militiaUnits[_i].training < 100>>
+					<br>$militiaUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, slowing increasing their experience level.
+					<<set $militiaUnits[_i].training += random(2,4)>>
+				<</if>>
+			<</for>>
+			<<set _meL = $mercUnits.length>>
+			<<for _i = 0; _i < _meL; _i++>>
+				<<if $mercUnits[_i].training < 100>>
+					<br>$mercUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, slowing increasing their experience level.
+					<<set $mercUnits[_i].training += random(2,4)>>
+				<</if>>
+			<</for>>
+		<<elseif $secBarracksUpgrades.training == 2>>
+			<<set _sL = $slaveUnits.length>>
+			<<for _i = 0; _i < _sL; _i++>>
+				<<if $slaveUnits[_i].training < 100>>
+					<br>$slaveUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, increasing their experience level.
+					<<set $slaveUnits[_i].training += random(3,5)>>
+				<</if>>
+			<</for>>
+			<<set _mL = $militiaUnits.length>>
+			<<for _i = 0; _i < _mL; _i++>>
+				<<if $militiaUnits[_i].training < 100>>
+					<br>$militiaUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, increasing their experience level.
+					<<set $militiaUnits[_i].training += random(3,5)>>
+				<</if>>
+			<</for>>
+			<<set _meL = $mercUnits.length>>
+			<<for _i = 0; _i < _meL; _i++>>
+				<<if $mercUnits[_i].training < 100>>
+					<br>$mercUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, increasing their experience level.
+					<<set $mercUnits[_i].training += random(4,6)>>
+				<</if>>
+			<</for>>
+		<<elseif $secBarracksUpgrades.training == 3>>
+			<<set _sL = $slaveUnits.length>>
+			<<for _i = 0; _i < _sL; _i++>>
+				<<if $slaveUnits[_i].training < 100>>
+					<br>$slaveUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, quickly increasing their experience level.
+					<<set $slaveUnits[_i].training += random(4,6)>>
+				<</if>>
+			<</for>>
+			<<set _mL = $militiaUnits.length>>
+			<<for _i = 0; _i < _mL; _i++>>
+				<<if $militiaUnits[_i].training < 100>>
+					<br>$militiaUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, quickly increasing their experience level.
+					<<set $militiaUnits[_i].training += random(4,6)>>
+				<</if>>
+			<</for>>
+			<<set _meL = $mercUnits.length>>
+			<<for _i = 0; _i < _meL; _i++>>
+				<<if $mercUnits[_i].training < 100>>
+					<br>$mercUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, quickly increasing their experience level.
+					<<set $mercUnits[_i].training += random(4,6)>>
+				<</if>>
+			<</for>>
+		<</if>>
 	<</if>>
-	<<if $lowerRquirements == 1>>
-		Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
-		<<set _recruits += 1>>
-	<</if>>
-	<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.02 * $ACitizens>>
-		<<set $militiaTotalManpower += _recruits>>
-		<<set $militiaFreeManpower += _recruits>>
-		This week <<print _recruits>> citizens joined the militia.
-	<<else>>
-		There are not many more citizens willing to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
-	<</if>>
-<<elseif $conscription == 1>>
-	Adult citizens are required to join the militia for a period of time.
-	<<set _recruits = random(3,5)>>
-	<<if $militaryExemption == 1>>
-		Some citizens prefer to contribute to the arcology's defense through financial support rather than military service, making you @@.yellowgreen;a small sum@@.
-		<<set _recruits -= random(1,2)
-		<<set $cash += 250>>
-	<</if>>
-	<<if $lowerRquirements == 1>>
-		Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
-		<<set _recruits += 1>>
-	<</if>>
-	<<if $noSubhumansInArmy == 1>>
-		Guaranteeing the purity of your armed forces comes with a small loss of potential recruits.
-		<<set _recruits -= random(0,1)>>
-	<</if>>
-	<<if $pregExemption == 1>>
-		Many pregnant citizens prefer to avoid military service not to endager themselves and their children.
-		<<set _recruits -= 1>>
-	<</if>>
-	<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.05 * $ACitizens>>
-		<<set $militiaTotalManpower += _recruits>>
-		<<set $militiaFreeManpower += _recruits>>
-		This week <<print _recruits>> citizens joined the militia.
-	<<else>>
-		There are not many more citizens able to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
-	<</if>>
-<<elseif $militaryService == 1>>
-	Adult citizens are required to register and serve in the militia whenever necessary.
-	<<set _recruits = random(5,7)>>
-	<<if $militaryExemption == 1>>
-		Some citizens prefer to contribute to the arcology's defense through financial support rather than military service, making you @@.yellowgreen;a small sum@@.
-		<<set _recruits -= random(1,2)
-		<<set $cash += 250>>
-	<</if>>
-	<<if $lowerRquirements == 1>>
-		Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
-		<<set _recruits += 1>>
-	<</if>>
-	<<if $noSubhumansInArmy == 1>>
-		Guaranteeing the purity of your armed forces comes with a small loss of potential recruits.
-		<<set _recruits -= random(0,1)>>
-	<</if>>
-	<<if $pregExemption == 1>>
-		Many pregnant citizens prefer to avoid military service not to endager themselves and their children.
-		<<set _recruits -= 1>>
-	<</if>>
-	<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.10 * $ACitizens>>
-		<<set $militiaTotalManpower += _recruits>>
-		<<set $militiaFreeManpower += _recruits>>
-		This week <<print _recruits>> citizens joined the militia.
-	<<else>>
-		There are not many more citizens able to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
-	<</if>>
-<<elseif $militarizedSociety == 1>>
-	Every citizen is required to train and participate in the military activities of the arcology.
-	<<set _recruits = random(7,9)>>
-	<<if $militaryExemption == 1>>
-		Some citizens prefer to contribute to the arcology's defense through financial support rather than military service, making you @@.yellowgreen;a small sum@@.
-		<<set _recruits -= random(1,2)
-		<<set $cash += 250>>
-	<</if>>
-	<<if $lowerRquirements == 1>>
-		Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
-		<<set _recruits += 1>>
-	<</if>>
-	<<if $noSubhumansInArmy == 1>>
-		Guaranteeing the purity of your armed forces comes with a small loss of potential recruits.
-		<<set _recruits -= random(0,1)>>
-	<</if>>
-	<<if $pregExemption == 1>>
-		Many pregnant citizens prefer to avoid military service not to endager themselves and their children.
-		<<set _recruits -= 1>>
-	<</if>>
-	<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.20 * $ACitizens>>
-		<<set $militiaTotalManpower += _recruits>>
-		<<set $militiaFreeManpower += _recruits>>
-		This week <<print _recruits>> citizens joined the militia.
-	<<else>>
-		There are not many more citizens able to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
-	<</if>>
-<</if>>
 <</if>>
