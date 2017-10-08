@@ -4165,29 +4165,35 @@
 				<<set $slaves[$i].pregSource = _tempLover.ID>>
 			<<elseif ($slaves[$i].subTarget != 0) && ($slaves[$i].assignment == "be a subordinate slave") && canAchieveErection($tempSub) && canImpreg($slaves[$i], _tempSub)>> /* subordinate must have erection to impregnate target */
 				<<set $slaves[$i].pregSource = _tempSub.ID>>
-			<<elseif (_conceptionSeed > 95) && ($slaves[$i].rivalry > 2) && canAchieveErection(_tempRival) && canImpreg($slaves[$i], _tempRival)>> /* 5% chance to be raped and knocked up by bitter rival - erection needed */
+			<<elseif (random(1,100) > 95) && ($slaves[$i].rivalry > 2) && canAchieveErection(_tempRival) && canImpreg($slaves[$i], _tempRival)>> /* 5% chance to be raped and knocked up by bitter rival - erection needed */
 				Driven by the bitter rivalry between them, _tempRival.slaveName successfully overpowers $slaves[$i].slaveName and rapes $object, cumming deep in $possessive fertile <<if $slaves[$i].mpreg == 1>>asshole<<else>>pussy<</if>> whenever she chooses. By the end of the week, $slaves[$i].slaveName is vowing revenge as $pronoun regains confidence.
 				<<set $slaves[$i].pregSource = _tempRival.ID>>
-			<<elseif (_conceptionSeed > 60) && ($PC.dick == 1) && ($slaves[$i].eggType == "human")>> /* still 40% chance of impregnation by PC */
+			<<elseif (random(1,100) > 60) && ($PC.dick == 1) && ($slaves[$i].eggType == "human")>> /* still 40% chance of impregnation by PC */
 				<<set $slaves[$i].pregSource = -1>>
-			<<elseif (_conceptionSeed > 95) && ($slaves[$i].eggType == "human")>> /* 5% chance of impregnation by random citizen - TODO: make this optional for players who want random fathers from among their own slaves only */
+			<<elseif (random(1,100) > 95) && ($slaves[$i].eggType == "human")>> /* 5% chance of impregnation by random citizen - TODO: make this optional for players who want random fathers from among their own slaves only */
 				<<set $slaves[$i].pregSource = -2>>
 			<<else>>
 				/* default pregSource to a random citizen in case no eligible father is found */
 				<<set $slaves[$i].pregSource = ($slaves[$i].eggType == "human") ? -2 : 0>> /* pregmod: random citizens cannot father non-human children */
 				/* pick a random starting point in the slave array and iterate (wrapping around) until finding eligible father or coming back to starting point */
-				<<set _sourceSeed = random(0,$slaves.length-1)>>
-				<<for _m = _sourceSeed + 1; _m != _sourceSeed; _m++>>
-					<<if _m == $slaves.length>><<set _m = 0>><</if>> /* wrap around */
-					<<if canImpreg($slaves[$i], $slaves[_m])>>
-						/* self-impregnation check */
-						<<if ($slaves[_m].ID == $slaves[$i].ID) && (_conceptionSeed <= 95)>>
-							<<continue>> /* 95% chance not to self-impregnate */
-						<</if>>
-						<<set $slaves[$i].pregSource = $slaves[_m].ID>> /* passed the checks above, so this is an eligible father */
-						<<break>>
+				<<if $slaves.length == 1>>
+					<<if canImpreg($slaves[$i], $slaves[$i]) && _conceptionSeed > 95>>
+						<<set $slaves[$i].pregSource = $slaves[$i].ID>>
 					<</if>>
-				<</for>>
+				<<else>>
+					<<set _sourceSeed = random(0,$slaves.length-1)>>
+					<<for _m = _sourceSeed + 1; _m != _sourceSeed; _m++>>
+						<<if _m == $slaves.length>><<set _m = 0>><</if>> /* wrap around */
+						<<if canImpreg($slaves[$i], $slaves[_m])>>
+							/* self-impregnation check */
+							<<if ($slaves[_m].ID == $slaves[$i].ID) && (_conceptionSeed <= 95)>>
+								<<continue>> /* 95% chance not to self-impregnate */
+							<</if>>
+							<<set $slaves[$i].pregSource = $slaves[_m].ID>> /* passed the checks above, so this is an eligible father */
+							<<break>>
+						<</if>>
+					<</for>>
+				<</if>>
 			<</if>>
 			<<if $slaves[$i].pregSource != 0>>
 				A quick scan after a bout of morning nausea reveals that @@.lime;$pronoun has become pregnant@@.
