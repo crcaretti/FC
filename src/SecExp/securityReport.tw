@@ -1,0 +1,380 @@
+:: securityReport [nobr]
+
+/* init */
+<<set _immigration = $ACitizens - $oldACitizens>>
+<<set _secGrowth = 0>>
+<<set _secRest = 0>>
+<<set _restGrowth = 0>>
+<<set _newSec = 0>>
+<<set _crimeGrowth = 0>>
+<<set _crimeCap = 0>>
+<<set _newCrime = 0>>
+
+<<if $useTabs == 0>>__Security__<</if>>
+<br>
+
+<strong>Security</strong>:
+<<if $secHelots > 0>>
+	<<print $secHelots>> work tirelessly to improve the security of your arcology
+	<<if $mercenaries >= 1 && $arcologyUpgrade.drones == 1>>
+		, while your mercenaries and security drones tirelessly patrol the arcology to keep it safe.
+	<<elseif $arcologyUpgrade.drones == 1>>
+		, while your security drones tirelessly patrol the arcology to keep it safe.
+	<<else>>
+		, while your loyal subordinates try to keep the arcology safe to the best of their abilites.
+	<</if>>
+<<else>>
+	<<if $mercenaries >= 1 && $arcologyUpgrade.drones == 1>>
+		Your mercenaries and security drones tirelessly patrol the arcology to keep it safe.
+	<<elseif $arcologyUpgrade.drones == 1>>
+		Your security drones tirelessly patrol the arcology to keep it safe.
+	<<else>>
+		Your loyal subordinates try to keep the arcology safe to the best of their abilites.
+	<</if>>
+<</if>>
+
+/* security modifiers */
+<<if $PC.career == "mercenary">>
+	Your past life as a mercenary makes it easier to manage the security of the arcology.
+	<<set _secGrowth += 1>>
+<</if>>
+<<if $ACitizens + $ASlaves <= 2000>>
+	The small number of residents makes their job easier.<<set _secGrowth += 2>>
+<<elseif $ACitizens + $ASlaves <= 4000>>
+	The fairly low number of residents makes their job a little easier.<<set _secGrowth += 1>>
+<<elseif $ACitizens + $ASlaves <= 6000>>
+	The fairly high number of residents makes their job a little harder.<<set _secGrowth -= -0.5>>
+<<elseif $ACitizens + $ASlaves <= 8000>>
+	The high number of residents makes their job harder.<<set _secGrowth -= 1>>
+<<else>>
+	The extremely high number of residents makes their job a lot harder.<<set _secGrowth -= 2>>
+<</if>>
+<<if _immigration < 10>>
+	The limited number of immigrants that reached the arcology this week does not have any serious impact on the efficacy of current security measures.<<set _secGrowth += 0.5>>
+<<elseif _immigration < 30>>
+	The number of immigrants that reached the arcology this week is high enough to complicate security protocols.<<set _secGrowth -= 0.2>>
+<<elseif _immigration < 60>>
+	The high number of immigrants that reached the arcology this week complicates security protocols.<<set _secGrowth -= 0.5>>
+<<elseif _immigration < 80>>
+	The high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 1>>
+<<else>>
+	The extremely high number of immigrants that reached the arcology this week severely complicates security protocols.<<set _secGrowth -= 2>>
+<</if>>
+<<if $crime < 20>>
+	Crime is a distant problem in the arcology, which makes improving security easier.<<set _secGrowth += 1>>
+<<elseif $crime < 40>>
+	Crime is a minor problem in the arcology, not serious enough to disrupt security efforts.
+<<elseif $crime < 60>>
+	Crime is an issue in the arcology, which makes improving security harder.<<set _secGrowth -= 0.5>>
+<<elseif $crime < 80>>
+	Crime is a overbearing problem in the arcology, which makes improving security a lot harder.<<set _secGrowth -= 1>>
+<<else>>
+	Crime is sovereign in the arcology, which makes improving security extremely difficult.<<set _secGrowth -= 2>>
+<</if>>
+<<if $authority < 5000>>
+	The low authority you hold on the arcology hampers the efforts of your security department.<<set _secGrowth -= 1>>
+<<elseif $authority < 7500>>
+	The limited authority you hold on the arcology hampers the efforts of your security department.<<set _secGrowth -= 0.5>>
+<<elseif $authority < 10000>>
+	The authority you hold on the arcology does not significantly impact the efforts of your security department.
+<<elseif $authority < 15000>>
+	The high authority you hold on the arcology facilitates the security department's work.<<set _secGrowth += 0.5>>
+<<else>>
+	The absolute authority you hold on the arcology makes the security department's work a lot easier.<<set _secGrowth += 1>>
+<</if>>
+<<if $activeUnits >= 6>>
+	Your military is the size of a small army. Security is easier to maintain with such forces at your disposal. <<set _secGrowth += 0.5>>
+<</if>>
+<<if $lastAttackWeeks < 3 && $week > 3>>
+	The recent attack has a negative effect on the security of the arcology.<<set _secGrowth -= 1>>
+<<elseif $lastAttackWeeks < 5 && $week > 5>>
+	While some time has passed, the last attack still has a negative effect on the security of the arcology.<<set _secGrowth -= 0.5>>
+<<else>>
+	The arcology has not been attacked in a while, which has a positive effect on security.<<set _secGrowth += 0.5>>
+<</if>>
+<<if $blackOps == 1>>
+	Yoru black ops team proves to be a formidable tool against anyone threatening the security of your arcology.
+	<<set _secGrowth += 0.5 * random(1,2)>>
+<</if>>
+
+/* resting point */
+<<set _secRest = $secRestPoint * ($secHelots / $reqHelots)>>
+<<if _secRest < 0>>
+	<<set _secRest = 20>>
+<</if>>
+<<if _secRest < $secRestPoint && $secHQ == 1>>
+	The limited staff assigned to the HQ hampers the improvements to security achieved this week.
+<</if>>
+<<set _restGrowth = (_secRest - $security) * 0.2>>
+<<set _newSec = Math.trunc($security + _secGrowth + _secRest)>>
+<<if _newSec < $security>>
+	This week @@.red;security decreased@@.
+<<elseif _newSec == $security>>
+	This week @@.yellow;security did not change@@.
+<<else>>
+	This week @@.green;security improved@@.
+<</if>>
+<<set $security = Math.clamp(_newSec, 0, 100)>>
+
+<br>
+<br>
+
+<strong>Crime</strong>:
+/* crime modifiers */
+<<if $week < 30>>
+	Due to the deterioration of the old world countries, organized crime focuses more and more on the prosperous free cities, yours included. This has a small impact on the growth of criminal activities in your arcology.<<set _crimeGrowth += 0.5>>
+<<elseif $week < 60>>
+	Due to the deterioration of the old world countries, organized crime focuses more and more on the prosperous free cities, yours included. This has a noticeable impact on the growth of criminal activities in your arcology.<<set _crimeGrowth += 1>>
+<<elseif $week < 90>>
+	Due to the deterioration of the old world countries, organized crime focuses more and more on the prosperous free cities, yours included. This has a moderate impact on the growth of criminal activities in your arcology.<<set _crimeGrowth += 1.5>>
+<<elseif $week < 120>>
+	Due to the deterioration of the old world countries, organized crime focuses more and more on the prosperous free cities, yours included. This has a big impact on the growth of criminal activities in your arcology.<<set _crimeGrowth += 2>>
+<<else>>
+	Due to the deterioration of the old world countries, organized crime focuses more and more on the prosperous free cities, yours included. This has a huge impact on the growth of criminal activities in your arcology.<<set _crimeGrowth += 2.5>>
+<</if>>
+<<if $arcologies[0].prosperity < 50>>
+	The low prosperity of the arcology facilitates criminal recruitment and organization.<<set _crimeGrowth += 2>>
+<<elseif $arcologies[0].prosperity < 80>>
+	The fairly low prosperity of the arcology facilitates criminal recruitment and organization.<<set _crimeGrowth += 1>>
+<<elseif $arcologies[0].prosperity < 12>>
+	The prosperity of the arcology is not high or low enough to have significant effects on criminal recruitment and organization.
+<<elseif $arcologies[0].prosperity < 16>>
+	The prosperity of the arcology is high enough to provide its citizens a decent life, hampering criminal recruitment and organization.<<set _crimeGrowth -= 0.5>>
+<<elseif $arcologies[0].prosperity < 18>>
+	The prosperity of the arcology is high enough to provide its citizens a decent life, significantly hampering criminal recruitment and organization.<<set _crimeGrowth -= 1>>
+<<else>>
+	The prosperity of the arcology is high enough to provide its citizens a very good life, significantly hampering criminal recruitment and organization.<<set _crimeGrowth -= 2>>
+<</if>>
+<<if $ASlaves < 1000>>
+	The low number of slaves in the arcology does not hinder the activity of law enforcement, limiting crime growth.<<set _crimeGrowth -= 1>>
+<<elseif $ASlaves < 2000>>
+	The fairly low number of slaves in the arcology does not hinder significantly the activity of law enforcement, limiting crime growth.<<set _crimeGrowth -= 0.5>>
+<<elseif $ASlaves < 3000>>
+	The number of slaves in the arcology is becoming an impediment for law enforcement, facilitating crime growth.<<set _crimeGrowth += 1>>
+<<else>>
+	The number of slaves in the arcology is becoming a a big issue for law enforcement, facilitating crime growth.<<set _crimeGrowth += 1.5>>
+<</if>>
+<<if $security <= 20>>
+	The security measures in place are severely limited, allowing crime to grow uncontested.
+<<elseif $security <= 50>>
+	The security measures in place are of limited effect and use, giving only mixed results in their fight against crime.<<set _crimeGrowth -= 1>>
+<<elseif $security <= 75>>
+	The security measures in place are well developed and effective, making a serious dent in the profitability of criminal activity in your arcology.<<set _crimeGrowth -= 2.5>>
+<<else>>
+	The security measures in place are extremely well developed and very effective, posing a serious threat even to the most powerful criminal organizations in existence.<<set _crimeGrowth -= 5>>
+<</if>>
+<<if $authority < 5000>>
+	Your low authority allows crime to grow undisturbed.<<set _crimeGrowth += 1>>
+<<elseif $authority < 7500>>
+	Your relatively low authority facilitates criminal activities.<<set _crimeGrowth += 0.5>>
+<<elseif $authority < 10000>>
+	Your authority is not high enough to discourage criminal activity.
+<<elseif $authority < 15000>>
+	Your high authority is an effective tool against crime.<<set _crimeGrowth -= 1>>
+<<else>>
+	Your absolute authority is an extremely effective tool against crime.<<set _crimeGrowth -= 2>>
+<</if>>
+<<if $cash >= 100000>>
+	Your great wealth acts as a beacon for the greediest criminals, calling them to your arcology as moths to a flame.<<set _crimeGrowth += 0.5>>
+<</if>>	
+<<if $marketInfiltration == 1>>
+	<<set _crimeGrowth += 0.5 * random(1,2)>>
+<</if>>
+
+/* crime cap */
+<<set _crimeCap = Math.clamp($crimeCap + $crimeCap * (($reqHelots - $secHelots) / $reqHelots),0,100)>>
+<<if _crimeCap < $crimeCap && $secHQ == 1>>
+	The limited staff assigned to the HQ allows more space for criminals to act.
+<</if>>
+<<set _newCrime = Math.trunc($crime + _crimeGrowth)>>
+<<if _newCrime > _crimeCap>>
+	<<set _newCrime = _crimeCap>>
+<</if>>
+<<if _newCrime > $crime>>
+	This week @@.red;crime increased@@.
+<<elseif _newCrime == $crime>>
+	This week @@.yellow;crime did not change@@.
+<<else>>
+	This week @@.green;crime decreased@@.
+<</if>>
+<<set $crime = Math.clamp(_newCrime,0,100)>>
+
+<br>
+<br>
+
+<<if $militiaFounded == 1 || $activeUnits >= 1>>
+	<strong>Military</strong>: 
+	<<if $recruitVolunteers == 1>>
+		Your militia accepts only volunteering citizens, ready to defend their arcology.
+		<<set _recruits = random(1,2)>>
+		<<if $rep >= 10000>>
+			Many citizens volunteer just to fight for someone of your renown.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $authority >= 10000>>
+			Many citizens feel it is their duty to fight for you, boosting volunteer enrollment.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $lowerRquirements == 1>>
+			Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.02 * $ACitizens>>
+			<<set $militiaTotalManpower += _recruits>>
+			<<set $militiaFreeManpower += _recruits>>
+			This week <<print _recruits>> citizens joined the militia.
+		<<else>>
+			There are not many more citizens willing to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
+		<</if>>
+	<<elseif $conscription == 1>>
+		Adult citizens are required to join the militia for a period of time.
+		<<set _recruits = random(3,5)>>
+		<<if $militaryExemption == 1>>
+			Some citizens prefer to contribute to the arcology's defense through financial support rather than military service, making you @@.yellowgreen;a small sum@@.
+			<<set _recruits -= random(1,2)
+			<<set $cash += 250>>
+		<</if>>
+		<<if $lowerRquirements == 1>>
+			Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $noSubhumansInArmy == 1>>
+			Guaranteeing the purity of your armed forces comes with a small loss of potential recruits.
+			<<set _recruits -= random(0,1)>>
+		<</if>>
+		<<if $pregExemption == 1>>
+			Many pregnant citizens prefer to avoid military service not to endager themselves and their children.
+			<<set _recruits -= 1>>
+		<</if>>
+		<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.05 * $ACitizens>>
+			<<set $militiaTotalManpower += _recruits>>
+			<<set $militiaFreeManpower += _recruits>>
+			This week <<print _recruits>> citizens joined the militia.
+		<<else>>
+			There are not many more citizens able to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
+		<</if>>
+	<<elseif $militaryService == 1>>
+		Adult citizens are required to register and serve in the militia whenever necessary.
+		<<set _recruits = random(5,7)>>
+		<<if $militaryExemption == 1>>
+			Some citizens prefer to contribute to the arcology's defense through financial support rather than military service, making you @@.yellowgreen;a small sum@@.
+			<<set _recruits -= random(1,2)
+			<<set $cash += 250>>
+		<</if>>
+		<<if $lowerRquirements == 1>>
+			Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $noSubhumansInArmy == 1>>
+			Guaranteeing the purity of your armed forces comes with a small loss of potential recruits.
+			<<set _recruits -= random(0,1)>>
+		<</if>>
+		<<if $pregExemption == 1>>
+			Many pregnant citizens prefer to avoid military service not to endager themselves and their children.
+			<<set _recruits -= 1>>
+		<</if>>
+		<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.10 * $ACitizens>>
+			<<set $militiaTotalManpower += _recruits>>
+			<<set $militiaFreeManpower += _recruits>>
+			This week <<print _recruits>> citizens joined the militia.
+		<<else>>
+			There are not many more citizens able to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
+		<</if>>
+	<<elseif $militarizedSociety == 1>>
+		Every citizen is required to train and participate in the military activities of the arcology.
+		<<set _recruits = random(7,9)>>
+		<<if $militaryExemption == 1>>
+			Some citizens prefer to contribute to the arcology's defense through financial support rather than military service, making you @@.yellowgreen;a small sum@@.
+			<<set _recruits -= random(1,2)
+			<<set $cash += 250>>
+		<</if>>
+		<<if $lowerRquirements == 1>>
+			Your lax phisical requirements to enter the militia allows for a greater number of citizens to join.
+			<<set _recruits += 1>>
+		<</if>>
+		<<if $noSubhumansInArmy == 1>>
+			Guaranteeing the purity of your armed forces comes with a small loss of potential recruits.
+			<<set _recruits -= random(0,1)>>
+		<</if>>
+		<<if $pregExemption == 1>>
+			Many pregnant citizens prefer to avoid military service not to endager themselves and their children.
+			<<set _recruits -= 1>>
+		<</if>>
+		<<if $militiaTotalManpower - $militiaTotalCasualties + _recruits <= 0.20 * $ACitizens>>
+			<<set $militiaTotalManpower += _recruits>>
+			<<set $militiaFreeManpower += _recruits>>
+			This week <<print _recruits>> citizens joined the militia.
+		<<else>>
+			There are not many more citizens able to join the arcology armed forces. You'll need to enact higher recruitment edicts if you need more manpower.
+		<</if>>
+	<</if>>
+	<<if $secBarracksUpgrades.training >= 1>>
+		<<if $secBarracksUpgrades.training == 1>>
+			<<set _sL = $slaveUnits.length>>
+			<<for _i = 0; _i < _sL; _i++>>
+				<<if $slaveUnits[_i].training < 100>>
+					<br>$slaveUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, slowing increasing their experience level.
+					<<set $slaveUnits[_i].training += random(2,4)>>
+				<</if>>
+			<</for>>
+			<<set _mL = $militiaUnits.length>>
+			<<for _i = 0; _i < _mL; _i++>>
+				<<if $militiaUnits[_i].training < 100>>
+					<br>$militiaUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, slowing increasing their experience level.
+					<<set $militiaUnits[_i].training += random(2,4)>>
+				<</if>>
+			<</for>>
+			<<set _meL = $mercUnits.length>>
+			<<for _i = 0; _i < _meL; _i++>>
+				<<if $mercUnits[_i].training < 100>>
+					<br>$mercUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, slowing increasing their experience level.
+					<<set $mercUnits[_i].training += random(2,4)>>
+				<</if>>
+			<</for>>
+		<<elseif $secBarracksUpgrades.training == 2>>
+			<<set _sL = $slaveUnits.length>>
+			<<for _i = 0; _i < _sL; _i++>>
+				<<if $slaveUnits[_i].training < 100>>
+					<br>$slaveUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, increasing their experience level.
+					<<set $slaveUnits[_i].training += random(3,5)>>
+				<</if>>
+			<</for>>
+			<<set _mL = $militiaUnits.length>>
+			<<for _i = 0; _i < _mL; _i++>>
+				<<if $militiaUnits[_i].training < 100>>
+					<br>$militiaUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, increasing their experience level.
+					<<set $militiaUnits[_i].training += random(3,5)>>
+				<</if>>
+			<</for>>
+			<<set _meL = $mercUnits.length>>
+			<<for _i = 0; _i < _meL; _i++>>
+				<<if $mercUnits[_i].training < 100>>
+					<br>$mercUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, increasing their experience level.
+					<<set $mercUnits[_i].training += random(4,6)>>
+				<</if>>
+			<</for>>
+		<<elseif $secBarracksUpgrades.training == 3>>
+			<<set _sL = $slaveUnits.length>>
+			<<for _i = 0; _i < _sL; _i++>>
+				<<if $slaveUnits[_i].training < 100>>
+					<br>$slaveUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, quickly increasing their experience level.
+					<<set $slaveUnits[_i].training += random(4,6)>>
+				<</if>>
+			<</for>>
+			<<set _mL = $militiaUnits.length>>
+			<<for _i = 0; _i < _mL; _i++>>
+				<<if $militiaUnits[_i].training < 100>>
+					<br>$militiaUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, quickly increasing their experience level.
+					<<set $militiaUnits[_i].training += random(4,6)>>
+				<</if>>
+			<</for>>
+			<<set _meL = $mercUnits.length>>
+			<<for _i = 0; _i < _meL; _i++>>
+				<<if $mercUnits[_i].training < 100>>
+					<br>$mercUnits[_i].platoonName is able to make use of the training facilities to better prepare its soldiers, quickly increasing their experience level.
+					<<set $mercUnits[_i].training += random(4,6)>>
+				<</if>>
+			<</for>>
+		<</if>>
+	<</if>>
+<</if>>
