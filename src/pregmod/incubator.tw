@@ -223,11 +223,39 @@ Target age for release: <<textbox "$targetAge" $targetAge "Incubator">> [[Minimu
 <<if $incubatorSlaves > 0>>
 <<for $i = 0; $i < $incubatorSlaves; $i++>>
 	<<capture $i>>
+		<br><br>$tanks[$i].slaveName occupies this tank. She appears to be <<if $tanks[$i].genes == "XX">>a natural girl<<else>>a natural boy<</if>>, with $tanks[$i].hColor hair<<if $tanks[$i].eyes != -2>> and $tanks[$i].eyeColor eyes<<else>>. She most likely will be blind.<</if>>
+		Statistical projections indicates that once released she will be around <<print $tanks[$i].height + random(-10,10)>>. Most likely she will be
+			<<if $tanks[$i].weight <= 30 && $tanks[$i].weight >= -30>>
+				at a healthy weight and
+			<<elseif $tanks[$i].weight >= 31 && $tanks[$i].weight <= 95>>
+				quite overweight and
+			<<elseif $tanks[$i].weight >= 96>>
+				very overweight and
+			<<elseif $tanks[$i].weight <= -31 && $tanks[$i].weight >= -95>>
+				quite thin and
+			<<elseif  $tanks[$i].weight <= -96>>
+				very thin and
+			<</if>>
+			<<if $tanks[$i].muscles <= 5 && $tanks[$i].muscles >= -5>>
+				with a normal musculature.
+			<<elseif $tanks[$i].muscles >= 6 && $tanks[$i].muscles <= 30>>
+				quite toned.
+			<<elseif $tanks[$i].muscles >= 31 && $tanks[$i].muscles <= 95>>
+				quite muscular.
+			<<elseif $tanks[$i].muscles >= 96>>
+				with a powerful msuculature.
+			<<elseif $tanks[$i].muscles <= -6 && $tanks[$i].muscles >= -30>>
+				quite weak.
+			<<elseif $tanks[$i].muscles <= -31 && $tanks[$i].muscles >= 95>>
+				very weak.
+			<<elseif $tanks[$i].muscles <= -96>>
+				extremely weak.
+			<</if>>
 		<<if $tanks[$i].growTime <= 0>>
 			<<set $readySlaves = 1>>
-			<br><br>@@.pink;$tanks[$i].slaveName@@ is ready to be released from her tank.
+			<br>@@.pink;$tanks[$i].slaveName@@ is ready to be released from her tank.
 		<<else>>
-			<br><br>@@.pink;<<print $tanks[$i].slaveName>>'s@@ growth is currently being accelerated. She will be ready for release in about <<print Math.round($tanks[$i].growTime/$incubatorUpgradeSpeed)>> weeks.
+			<br>@@.pink;<<print $tanks[$i].slaveName>>'s@@ growth is currently being accelerated. She will be ready for release in about <<print Math.round($tanks[$i].growTime/$incubatorUpgradeSpeed)>> weeks.
 		<</if>>
 		<br>The tank is imprinting her with basic life and sexual skills, though she will still be very naive and inexperienced on release.
 		<<if $tanks[$i].origin == "Shortly after birth, she was sealed in an aging tank until she was of age. She knows only of the terror that awaits her should she not obey her master.">>
@@ -277,68 +305,84 @@ Target age for release: <<textbox "$targetAge" $targetAge "Incubator">> [[Minimu
 		<</if>>
 		<<if $incubatorUpgradeOrgans == 1>>
 			<br>
-			Her tank has been modified to allow fabricated organs to be implanted.
+			You can extract a sample and prepare in the organ fabricator a new organ for her to be implanted once she exits her tank.
+			<<set $newOrgan = 0>>
+			<<set $tankOrgans = {
+				ovaries: 0,
+				penis: 0,
+				testicles:0,
+				eyes: 0,
+				voiceBox: 0}>>
+			<<for _i = 0; _i < $organs.length; _i++>>
+				<<if $tanks[$i].ID == $organs[_i].ID>>
+					<<if $organs[_i].type == "ovaries">>
+						<<set $tankOrgans.ovaries = 1>>
+					<</if>>
+					<<if $organs[_i].type == "testicles">>
+						<<set $tankOrgans.testicles = 1>>
+					<</if>>
+					<<if $organs[_i].type == "penis">>
+						<<set $tankOrgans.penis = 1>>
+					<</if>>
+					<<if $organs[_i].type == "eyes">>
+						<<set $tankOrgans.eyes = 1>>
+					<</if>>
+					<<if $organs[_i].type == "voicebox">>
+						<<set $tankOrgans.voicebox = 1>>
+					<</if>>
+				<</if>>
+			<</for>>
+			<<if $tanks[$i].genes == "XX">>
+				Being a natural girl, she possesses a functional vagina and ovaries, you can:
+			<<else>>
+				Being a natural boy, he possesses a functional penis and balls, you can:
+			<</if>>
 			<br>
-			<<if $tanks[$i].ovaries == 0>>
-				<<link "Implant ovaries">>
+			<<if $tanks[$i].ovaries == 0 && $tankOrgans.ovaries != 1>>
+				<<link "Prepare ovaries">>
 					<<set $cash -= 10000>>
-					<<set $tanks[$i].ovaries = 1>>
+					<<set $newOrgan = {type: "ovaries", weeksToCompletion: "5", ID: 0}>>
+					<<set $newOrgan.ID = $tanks[$i].ID>>
+					<<set $organs.push($newOrgan)>>
 					<<goto "Incubator">>
 				<</link>>
 			<</if>>
-			<<if $tanks[$i].dick == 0>>
-				|
-				<<link "Implant penis">>
+			<<if $tanks[$i].dick == 0 && $tankOrgans.penis != 1>>
+				<<link "Prepare penis">>
 					<<set $cash -= 5000>>
-					<<set $tanks[$i].dick = 1>>
+					<<set $newOrgan = {type: "penis", weeksToCompletion: "5", ID: 0}>>
+					<<set $newOrgan.ID = $tanks[$i].ID>>
+					<<set $organs.push($newOrgan)>>
 					<<goto "Incubator">>
 				<</link>>
 			<</if>>
-			<<if $tanks[$i].balls == 0>>
+			<<if $tanks[$i].balls == 0 && $tankOrgans.testicles != 1>>
 				|
-				<<link "Implant testicles">>
+				<<link "Prepare testicles">>
 					<<set $cash -= 5000>>
-					<<set $tanks[$i].balls = 1>>
+					<<set $newOrgan = {type: "testicles", weeksToCompletion: "5", ID: 0}>>
+					<<set $newOrgan.ID = $tanks[$i].ID>>
+					<<set $organs.push($newOrgan)>>
 					<<goto "Incubator">>
 				<</link>>
 			<</if>>
-			<<if $tanks[$i].vagina == -1>>
-				|
-				<<link "Implant vagina">>
-					<<set $cash -= $2500>>
-					<<set $tanks[$i].vagina = 0>>
-					<<goto "Incubator">>
-				<</link>>
-			<</if>>
-			<<if $tanks[$i].foreskin == 0>>
-				|
-				<<link "Implant foreskin">>
-					<<set $cash -= 2500>>
-					<<set $tanks[$i].foreskin = 1>>
-					<<goto "Incubator">>
-				<</link>>
-			<</if>>
-			<<if $tanks[$i].eyes == -2>>
-				|
-				<<link "Implant eyes">>
+			<<if $tanks[$i].eyes == -2 && $tankOrgans.eyes != 1>>
+				<br>She appears to be blind: 
+				<<link "Prepare eyes">>
 					<<set $cash -= 10000>>
-					<<set $tanks[$i].eyes = 1>>
+					<<set $newOrgan = {type: "eyes", weeksToCompletion: "5", ID: 0}>>
+					<<set $newOrgan.ID = $tanks[$i].ID>>
+					<<set $organs.push($newOrgan)>>
 					<<goto "Incubator">>
 				<</link>>
 			<</if>>
-			<<if $tanks[$i].voice == 0>>
-				|
-				<<link "Implant vocal cords">>
+			<<if $tanks[$i].voice == 0 && $tankOrgans.voicebox != 1>>
+				<br>It appears she was born a mute: 
+				<<link "Prepare vocal cords">>
 					<<set $cash -= 5000>>
-					<<set $tanks[$i].voice = random(1,3)>>
-					<<goto "Incubator">>
-				<</link>>
-			<</if>>
-			<<if $tanks[$i].prostate == 0>>
-				|
-				<<link "Implant prostate">>
-					<<set $cash -= 5000>>
-					<<set $tanks[$i].prostate = 1>>
+					<<set $newOrgan = {type: "voicebox", weeksToCompletion: "5", ID: 0}>>
+					<<set $newOrgan.ID = $tanks[$i].ID>>
+					<<set $organs.push($newOrgan)>>
 					<<goto "Incubator">>
 				<</link>>
 			<</if>>
