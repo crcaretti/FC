@@ -2,8 +2,11 @@
 
 You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized remote surgery<<else>>remote surgery<</if>> and start having the slaves with <<if ($organsCompleted > 0) && ($limbsCompleted > 0)>>completedOrgans or limbs <<elseif ($organsCompleted > 1)>>completedOrgans <<elseif ($limbsCompleted > 1)>>sets of limbs <</if>>that are ready be sent down.
 
+
 <<for _i = 0; _i < $slaves.length; _i++>>
-	<<if ($completedOrgans.length == 0) && ($limbs.length == 0)>><<break>><</if>>
+	<<if ($completedOrgans.length == 0) && ($limbs.length == 0)>>
+		<<break>>
+	<</if>>
 	<<for _o = 0; _o < $completedOrgans.length; _o++>>
 		<<if $completedOrgans[_o].ID == $slaves[_i].ID>>
 			<<set $activeSlave = $slaves[_i]>>
@@ -25,7 +28,7 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<set $completedOrgans.deleteAt(_o)>>
 				<</if>>
 			<<case "testicles">>
-				<<if ($activeSlave.dick >= 0) && ($activeSlave.balls == 0)>>
+				<<if ($activeSlave.dick >= 1) && ($activeSlave.balls == 0)>>
 					<<set $cash -= $surgeryCost>>
 					<<if $activeSlave.prostate == 0>>
 						<<set $activeSlave.prostate = 1>>
@@ -53,9 +56,57 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<include "Surgery Degradation">>
 					
 					<<set $completedOrgans.deleteAt(_o)>>
+				<<elseif $activeSlave.balls == 0>>
+					/* if it finds a penis in $completedOrgans install that one first, then proceeds with the testicles */
+					<<for _j = 0; _j < $completedOrgans.length; _j++>>
+						<<if $completedOrgans[_j].ID == $slaves[_j].ID && $completedOrgans[_j].type == "penis" && $activeSlave.dick == 0>>
+							/* penis */
+							<<set $cash -= $surgeryCost>>
+							<<if $activeSlave.prostate == 0>>
+								<<set $activeSlave.prostate = 1>>
+							<</if>>
+							<<set $activeSlave.dick to 2>>
+							<<set $activeSlave.clit to 0>>
+							<<set $activeSlave.foreskin to $activeSlave.dick>>
+							<<set $activeSlave.health -= 20>>
+							<<set $surgeryType = "addDick">>
+							<br><hr>
+							<<include "Surgery Degradation">>
+							<<set $completedOrgans.deleteAt(_o)>>
+							/* testicles */
+							<<set $cash -= $surgeryCost>>
+							<<if $activeSlave.prostate == 0>>
+								<<set $activeSlave.prostate = 1>>
+							<</if>>
+							<<set $activeSlave.balls to 2>>
+							<<set $activeSlave.ballType = "human">>
+							<<set $activeSlave.scrotum to 2>>
+							<<set $activeSlave.health -= 20>>
+							<<if $organFarmUpgrade == 2>>
+								<<set $activeSlave.chem += 20>>
+							<</if>>
+							<<if $activeSlave.pubertyXY == 0>>
+								<<if $precociousPuberty == 1>>
+									<<if $activeSlave.physicalAge >= $potencyAge>>
+										<<set $activeSlave.pubertyAgeXY = ($activeSlave.physicalAge+1)>>
+									<</if>>
+								<<else>>
+									<<if $activeSlave.physicalAge >= $potencyAge>>
+										<<set $activeSlave.pubertyXY = 1>>
+									<</if>>
+								<</if>>
+							<</if>>
+							<<set $surgeryType = "addBalls">>
+							<br><hr>
+							<<include "Surgery Degradation">>
+						<</if>>
+					<</for>>
+				<<else>>
+					<br><hr>
+					@@.red;Could not implant testicles on $activeSlave.slaveName: she lacks a penis.@@
 				<</if>>
 			<<case "scrotum">>
-				<<if ($activeSlave.scrotum == 0) && ($activeSlave.balls >= 0)>>
+				<<if ($activeSlave.scrotum == 0) && ($activeSlave.balls >= 1)>>
 					<<set $cash -= $surgeryCost>>
 					<<set $activeSlave.scrotum to $activeSlave.balls>>
 					<<set $activeSlave.health -= 10>>
@@ -67,6 +118,109 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<include "Surgery Degradation">>
 					
 					<<set $completedOrgans.deleteAt(_o)>>
+				<<elseif $activeSlave.scrotum == 0>>
+					/* checks if there is completed testicles in $completedOrgans and proceed to install the, if there is no penis it checks for the presence of that too */
+					<<for _j = 0; _j < $completedOrgans.length; _j++>>
+						<<if $completedOrgans[_j].ID == $slaves[_j].ID && $completedOrgans[_j].type == "testicles" && $activeSlave.balls == 0>>
+							<<if $activeSlave.dick >= 1>>
+								/* testicles */
+								<<set $cash -= $surgeryCost>>
+								<<if $activeSlave.prostate == 0>>
+									<<set $activeSlave.prostate = 1>>
+								<</if>>
+								<<set $activeSlave.balls to 2>>
+								<<set $activeSlave.ballType = "human">>
+								<<set $activeSlave.scrotum to 2>>
+								<<set $activeSlave.health -= 20>>
+								<<if $organFarmUpgrade == 2>>
+									<<set $activeSlave.chem += 20>>
+								<</if>>
+								<<if $activeSlave.pubertyXY == 0>>
+									<<if $precociousPuberty == 1>>
+										<<if $activeSlave.physicalAge >= $potencyAge>>
+											<<set $activeSlave.pubertyAgeXY = ($activeSlave.physicalAge+1)>>
+										<</if>>
+									<<else>>
+										<<if $activeSlave.physicalAge >= $potencyAge>>
+											<<set $activeSlave.pubertyXY = 1>>
+										<</if>>
+									<</if>>
+								<</if>>
+								<<set $surgeryType = "addBalls">>
+								<br><hr>
+								<<include "Surgery Degradation">>
+								/* scrotum */
+								<<set $cash -= $surgeryCost>>
+								<<set $activeSlave.scrotum to $activeSlave.balls>>
+								<<set $activeSlave.health -= 10>>
+								<<if $organFarmUpgrade == 2>>
+									<<set $activeSlave.chem += 10>>
+								<</if>>
+								<<set $surgeryType = "addScrotum">>
+								<br><hr>
+								<<include "Surgery Degradation">>
+								<<set $completedOrgans.deleteAt(_o)>>
+							<<else>>
+								<<for _j = 0; _j < $completedOrgans.length; _j++>>
+									<<if $completedOrgans[_j].ID == $slaves[_j].ID && $completedOrgans[_j].type == "penis" && $activeSlave.dick == 0>>
+										/* penis */
+										<<set $cash -= $surgeryCost>>
+										<<if $activeSlave.prostate == 0>>
+											<<set $activeSlave.prostate = 1>>
+										<</if>>
+										<<set $activeSlave.dick to 2>>
+										<<set $activeSlave.clit to 0>>
+										<<set $activeSlave.foreskin to $activeSlave.dick>>
+										<<set $activeSlave.health -= 20>>
+										<<set $surgeryType = "addDick">>
+										<br><hr>
+										<<include "Surgery Degradation">>
+										<<set $completedOrgans.deleteAt(_o)>>
+										/* testicles */
+										<<set $cash -= $surgeryCost>>
+										<<if $activeSlave.prostate == 0>>
+											<<set $activeSlave.prostate = 1>>
+										<</if>>
+										<<set $activeSlave.balls to 2>>
+										<<set $activeSlave.ballType = "human">>
+										<<set $activeSlave.scrotum to 2>>
+										<<set $activeSlave.health -= 20>>
+										<<if $organFarmUpgrade == 2>>
+											<<set $activeSlave.chem += 20>>
+										<</if>>
+										<<if $activeSlave.pubertyXY == 0>>
+											<<if $precociousPuberty == 1>>
+												<<if $activeSlave.physicalAge >= $potencyAge>>
+													<<set $activeSlave.pubertyAgeXY = ($activeSlave.physicalAge+1)>>
+												<</if>>
+											<<else>>
+												<<if $activeSlave.physicalAge >= $potencyAge>>
+													<<set $activeSlave.pubertyXY = 1>>
+												<</if>>
+											<</if>>
+										<</if>>
+										<<set $surgeryType = "addBalls">>
+										<br><hr>
+										<<include "Surgery Degradation">>
+										/* scrotum */
+										<<set $cash -= $surgeryCost>>
+										<<set $activeSlave.scrotum to $activeSlave.balls>>
+										<<set $activeSlave.health -= 10>>
+										<<if $organFarmUpgrade == 2>>
+											<<set $activeSlave.chem += 10>>
+										<</if>>
+										<<set $surgeryType = "addScrotum">>
+										<br><hr>
+										<<include "Surgery Degradation">>
+										<<set $completedOrgans.deleteAt(_o)>>
+									<</if>>
+								<</for>>
+							<</if>>
+						<</if>>
+					<</for>>
+				<<else>>
+					<br><hr>
+					@@.red;Could not implant testicles on $activeSlave.slaveName: she lacks testicles.@@
 				<</if>>
 			<<case "foreskin">>
 				<<if ($activeSlave.foreskin == 0)>>
@@ -112,6 +266,15 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<include "Surgery Degradation">>
 
 					<<set $completedOrgans.deleteAt(_o)>>
+				<<elseif $activeSlave.vagina < 0>>
+					<br><hr>
+					@@.red;Could not implant ovaries on $activeSlave.slaveName: she lacks a vagina.@@
+				<<elseif $activeSlave.bellyImplant >= 0>>
+					<br><hr>
+					@@.red;Could not implant ovaries on $activeSlave.slaveName: she has a fillable abdominal implant.@@
+				<<elseif $activeSlave.mpreg != 0>>
+					<br><hr>
+					@@.red;Could not implant ovaries on $activeSlave.slaveName: she has an anal womb.@@
 				<</if>>
 			<<case "prostate">>
 				<<if ($activeSlave.prostate == 0)>>
@@ -155,6 +318,9 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<</if>>
 					<<set $surgeryType = "newEyes">>
 					<<include "Surgery Degradation">>
+				<<elseif $activeSlave.eyes >= -2>>
+					<br><hr>
+					@@.red;Could not implant eyes on $activeSlave.slaveName: she is not blind.@@
 				<</if>>
 			<<case "voicebox">>
 				<<if ($activeSlave.voice == 0)>>
@@ -176,9 +342,12 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<include "Surgery Degradation">>
 				
 					<<set $completedOrgans.deleteAt(_o)>>
+				<<elseif $activeSlave.voice >= 0>>
+					<br><hr>
+					@@.red;Could not implant eyes on $activeSlave.slaveName: she is not a mute.@@
 				<</if>>
 			<<case "pigTesticles">>
-				<<if ($activeSlave.dick >= 0) && ($activeSlave.balls == 0)>>
+				<<if ($activeSlave.dick >= 1) && ($activeSlave.balls == 0)>>
 					<<set $cash -= $surgeryCost>>
 					
 					<<set $activeSlave.balls = 3>>
@@ -203,7 +372,55 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<br><hr>
 					<<include "Surgery Degradation">>
 			
-					<<set $completedOrgans.deleteAt(_o)>>	
+					<<set $completedOrgans.deleteAt(_o)>>
+				<<elseif $activeSlave.balls == 0>>
+					/* if it finds a penis in $completedOrgans install that one first, then proceeds with the testicles */
+					<<for _j = 0; _j < $completedOrgans.length; _j++>>
+						<<if $completedOrgans[_j].ID == $slaves[_j].ID && $completedOrgans[_j].type == "penis" && $activeSlave.dick == 0>>
+							/* penis */
+							<<set $cash -= $surgeryCost>>
+							<<if $activeSlave.prostate == 0>>
+								<<set $activeSlave.prostate = 1>>
+							<</if>>
+							<<set $activeSlave.dick to 2>>
+							<<set $activeSlave.clit to 0>>
+							<<set $activeSlave.foreskin to $activeSlave.dick>>
+							<<set $activeSlave.health -= 20>>
+							<<set $surgeryType = "addDick">>
+							<br><hr>
+							<<include "Surgery Degradation">>
+							<<set $completedOrgans.deleteAt(_o)>>
+							/* testicles */
+							<<set $cash -= $surgeryCost>>
+							<<if $activeSlave.prostate == 0>>
+								<<set $activeSlave.prostate = 1>>
+							<</if>>
+							<<set $activeSlave.balls to 3>>
+							<<set $activeSlave.ballType = "pig">>
+							<<set $activeSlave.scrotum to 3>>
+							<<set $activeSlave.health -= 20>>
+							<<if $organFarmUpgrade == 2>>
+								<<set $activeSlave.chem += 20>>
+							<</if>>
+							<<if $activeSlave.pubertyXY == 0>>
+								<<if $precociousPuberty == 1>>
+									<<if $activeSlave.physicalAge >= $potencyAge>>
+										<<set $activeSlave.pubertyAgeXY = ($activeSlave.physicalAge+1)>>
+									<</if>>
+								<<else>>
+									<<if $activeSlave.physicalAge >= $potencyAge>>
+										<<set $activeSlave.pubertyXY = 1>>
+									<</if>>
+								<</if>>
+							<</if>>
+							<<set $surgeryType = "addPigBalls">>
+							<br><hr>
+							<<include "Surgery Degradation">>
+						<</if>>
+					<</for>>
+				<<else>>
+					<br><hr>
+					@@.red;Could not implant pig testicles on $activeSlave.slaveName: she lacks a penis.@@
 				<</if>>
 			<<case "dogTesticles">>
 				<<if ($activeSlave.dick >= 0) && ($activeSlave.balls == 0)>>
@@ -232,7 +449,55 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<br><hr>
 					<<include "Surgery Degradation">>
 			
-					<<set $completedOrgans.deleteAt(_o)>>	
+					<<set $completedOrgans.deleteAt(_o)>>
+				<<elseif $activeSlave.balls == 0>>
+					/* if it finds a penis in $completedOrgans install that one first, then proceeds with the testicles */
+					<<for _j = 0; _j < $completedOrgans.length; _j++>>
+						<<if $completedOrgans[_j].ID == $slaves[_j].ID && $completedOrgans[_j].type == "penis" && $activeSlave.dick == 0>>
+							/* penis */
+							<<set $cash -= $surgeryCost>>
+							<<if $activeSlave.prostate == 0>>
+								<<set $activeSlave.prostate = 1>>
+							<</if>>
+							<<set $activeSlave.dick to 2>>
+							<<set $activeSlave.clit to 0>>
+							<<set $activeSlave.foreskin to $activeSlave.dick>>
+							<<set $activeSlave.health -= 20>>
+							<<set $surgeryType = "addDick">>
+							<br><hr>
+							<<include "Surgery Degradation">>
+							<<set $completedOrgans.deleteAt(_o)>>
+							/* testicles */
+							<<set $cash -= $surgeryCost>>
+							<<if $activeSlave.prostate == 0>>
+								<<set $activeSlave.prostate = 1>>
+							<</if>>
+							<<set $activeSlave.balls to 2>>
+							<<set $activeSlave.ballType = "dog">>
+							<<set $activeSlave.scrotum to 2>>
+							<<set $activeSlave.health -= 20>>
+							<<if $organFarmUpgrade == 2>>
+								<<set $activeSlave.chem += 20>>
+							<</if>>
+							<<if $activeSlave.pubertyXY == 0>>
+								<<if $precociousPuberty == 1>>
+									<<if $activeSlave.physicalAge >= $potencyAge>>
+										<<set $activeSlave.pubertyAgeXY = ($activeSlave.physicalAge+1)>>
+									<</if>>
+								<<else>>
+									<<if $activeSlave.physicalAge >= $potencyAge>>
+										<<set $activeSlave.pubertyXY = 1>>
+									<</if>>
+								<</if>>
+							<</if>>
+							<<set $surgeryType = "addPigBalls">>
+							<br><hr>
+							<<include "Surgery Degradation">>
+						<</if>>
+					<</for>>
+				<<else>>
+					<br><hr>
+					@@.red;Could not implant dog testicles on $activeSlave.slaveName: she lacks a penis.@@
 				<</if>>
 			<<case "pigOvaries">>
 				<<if ($activeSlave.ovaries == 0) && ($activeSlave.vagina >= 0) && ($activeSlave.mpreg == 0) && ($activeSlave.bellyImplant == -1)>>
@@ -261,6 +526,15 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<include "Surgery Degradation">>
 			
 					<<set $completedOrgans.deleteAt(_o)>>	
+				<<elseif $activeSlave.vagina < 0>>
+					<br><hr>
+					@@.red;Could not implant pig ovaries on $activeSlave.slaveName: she lacks a vagina.@@
+				<<elseif $activeSlave.bellyImplant >= 0>>
+					<br><hr>
+					@@.red;Could not implant pig ovaries on $activeSlave.slaveName: she has a fillable abdominal implant.@@
+				<<elseif $activeSlave.mpreg != 0>>
+					<br><hr>
+					@@.red;Could not implant pig ovaries on $activeSlave.slaveName: she has an anal womb.@@
 				<</if>>
 			<<case "dogOvaries">>
 				<<if ($activeSlave.ovaries == 0) && ($activeSlave.vagina >= 0) && ($activeSlave.mpreg == 0) && ($activeSlave.bellyImplant == -1)>>
@@ -289,6 +563,15 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<include "Surgery Degradation">>
 			
 					<<set $completedOrgans.deleteAt(_o)>>	
+				<<elseif $activeSlave.vagina < 0>>
+					<br><hr>
+					@@.red;Could not implant dog ovaries on $activeSlave.slaveName: she lacks a vagina.@@
+				<<elseif $activeSlave.bellyImplant >= 0>>
+					<br><hr>
+					@@.red;Could not implant dog ovaries on $activeSlave.slaveName: she has a fillable abdominal implant.@@
+				<<elseif $activeSlave.mpreg != 0>>
+					<br><hr>
+					@@.red;Could not implant dog ovaries on $activeSlave.slaveName: she has an anal womb.@@
 				<</if>>
 			<<case "mpreg">>
 				<<if ($activeSlave.ovaries == 0) && ($activeSlave.vagina < 0) && ($activeSlave.mpreg == 0) && ($activeSlave.bellyImplant == -1)>>
@@ -317,6 +600,15 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<include "Surgery Degradation">>
 			
 					<<set $completedOrgans.deleteAt(_o)>>	
+				<<elseif $activeSlave.vagina < 0>>
+					<br><hr>
+					@@.red;Could not implant anal womb on $activeSlave.slaveName: she has a vagina.@@
+				<<elseif $activeSlave.bellyImplant >= 0>>
+					<br><hr>
+					@@.red;Could not implant anal womb on $activeSlave.slaveName: she has a fillable abdominal implant.@@
+				<<elseif $activeSlave.mpreg != 0>>
+					<br><hr>
+					@@.red;Could not implant anal womb on $activeSlave.slaveName: she has ovaries.@@
 				<</if>>
 			<<case "mpregPig">>
 				<<if ($activeSlave.ovaries == 0) && ($activeSlave.vagina < 0) && ($activeSlave.mpreg == 0) && ($activeSlave.bellyImplant == -1)>>
@@ -345,6 +637,15 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<include "Surgery Degradation">>
 			
 					<<set $completedOrgans.deleteAt(_o)>>	
+				<<elseif $activeSlave.vagina < 0>>
+					<br><hr>
+					@@.red;Could not implant pig anal womb on $activeSlave.slaveName: she has a vagina.@@
+				<<elseif $activeSlave.bellyImplant >= 0>>
+					<br><hr>
+					@@.red;Could not implant pig anal womb on $activeSlave.slaveName: she has a fillable abdominal implant.@@
+				<<elseif $activeSlave.mpreg != 0>>
+					<br><hr>
+					@@.red;Could not implant pig anal womb on $activeSlave.slaveName: she has ovaries.@@
 				<</if>>
 			<<case "mpregDog">>
 				<<if ($activeSlave.ovaries == 0) && ($activeSlave.vagina < 0) && ($activeSlave.mpreg == 0) && ($activeSlave.bellyImplant == -1)>>
@@ -373,11 +674,21 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 					<<include "Surgery Degradation">>
 			
 					<<set $completedOrgans.deleteAt(_o)>>	
+				<<elseif $activeSlave.vagina < 0>>
+					<br><hr>
+					@@.red;Could not implant dog anal womb on $activeSlave.slaveName: she has a vagina.@@
+				<<elseif $activeSlave.bellyImplant >= 0>>
+					<br><hr>
+					@@.red;Could not implant dog anal womb on $activeSlave.slaveName: she has a fillable abdominal implant.@@
+				<<elseif $activeSlave.mpreg != 0>>
+					<br><hr>
+					@@.red;Could not implant dog anal womb on $activeSlave.slaveName: she has ovaries.@@
 				<</if>>
 			<<default>>
 				Error: OrganType: $completedOrgans[_o].type not known.
 			<</switch>>
 			
+			<<set $slaves[_i] = $activeSlave>>
 			<<set $slaves[_i] = $activeSlave>>
 		<</if>>
 	<</for>>
