@@ -96,22 +96,47 @@
 
 <</if>> /* closes lowercase_donkey's BS */
 
-<<if $organsCompleted > 0>>
-<<for _dwj = 0; _dwj < $completedOrgans.length; _dwj++>>
-	<<set _validHost = 0>>
-	<<set $dumped = 0>>
+/* cycle through slaves, for each slave cycle through completed organs and track how many are of the interrogated slave (and if organs have a slaves to be implanted on) */
+<<if $completedOrgans.length > 0>>
+	<<set _validOrgans = 0>>
 	<<for _dwi = 0; _dwi < $slaves.length; _dwi++>>
-		<<set _Slave = $slaves[_dwi]>>
-		<<if ($completedOrgans[_dwj] != 0) && ($completedOrgans[_dwj].ID == _Slave.ID)>>
-			<<set _validHost = 1>>
-			<br>@@.yellow;The fabricator has completed an organ for@@ <span id="name"><<print "[[_Slave.slaveName|Slave Interact][$activeSlave = $slaves[" + _dwi + "]]]">></span>, @@.yellow; which is ready to be implanted.@@
+		<<capture _dwi>>
+		<<set $dumped = 0>>
+		<<set _slaveOrgans = 0>>
+		<<for _dwj = 0; _dwj < $completedOrgans.length; _dwj++>>
+			<<if ($completedOrgans[_dwj] != 0) && ($completedOrgans[_dwj].ID == $slaves[_dwi].ID)>>
+				<<set _slaveOrgans++>>
+				<<set _validOrgans++>>
+			<</if>>
+		<</for>>
+		/* if the interrogated slave has one or more organs ready: */
+		<<if _slaveOrgans > 0>>
+			<br>@@.yellow;The fabricator has completed <<if _slaveOrgans > 1>><<print _slaveOrgans>> organs<<else>>an organ<</if>> for@@
+			<<link "<<print $slaves[_dwi].slaveName>>">>
+				<<set $activeSlave = $slaves[_dwi]>>
+				<<goto "Slave Interact">>
+			<</link>>
+			, @@.yellow; which <<if _slaveOrgans > 1>>are<<else>>is<</if>> ready to be implanted.@@
 		<</if>>
+		<</capture>>
 	<</for>>
-	<<if _validHost == 0>>
-		<<set $dump = $completedOrgans.deleteAt(_dwj), _dwj-->>
+	/* if the check returns true it means there are organs without slaves associated to. I think this was the purpouse of the _validHost check in the original code */
+	<<if _validOrgans < $completedOrgans.length>>
+		<<for _dwj = 0; _dwj < $completedOrgans.length; _dwj++>>
+			<<set isValid = 0>>
+			<<for _dwi = 0; _dwi < $slaves.length; _dwi++>>
+				<<if ($completedOrgans[_dwj] != 0) && ($completedOrgans[_dwj].ID == $slaves[_dwi].ID)>>
+					<<set isValid = 1>>
+				<</if>>
+			<</for>>
+			/* if there is no associated slave delete the organ, should there be a notification for the player, here? */
+			<<if isValid == 0>>
+				<<set $completedOrgans.deleteAt(_dwj)>>
+			<</if>>
+		<</for>>
 	<</if>>
-<</for>>
 <</if>>
+
 <<if $limbsCompleted > 0>>
 <<for _dwj = 0; _dwj < $limbs.length; _dwj++>>
 	<<set _validHost = 0>>
@@ -130,9 +155,11 @@
 	<</if>>
 <</for>>
 <</if>>
-<<if ($organsCompleted > 0) && ($limbsCompleted > 0)>>
+
+/* decided in the end to eliminate $organsCompleted, it was superflous and a bit cumbersome */
+<<if ($completedOrgans.length > 0) && ($limbsCompleted > 0)>>
 	<br>[[Implant and Attach|Multiple Organ Implant]] @@.yellow;all organs and limbs that are ready.@@
-<<elseif ($organsCompleted > 1)>>
+<<elseif ($completedOrgans.length > 1)>>
 	<br>[[Implant|Multiple Organ Implant]] @@.yellow;all organs that are ready for implantation.@@
 <<elseif ($limbsCompleted > 1)>>
 	<br>[[Attach|Multiple Organ Implant]] @@.yellow;all sets of limbs that are ready to be attached.@@
