@@ -108,10 +108,6 @@ __Units__
 <br>
 Your maximum number of units is <<print $maxUnits>>, currently you have <<print $activeUnits>>. <<if $secBarracksUpgrades.luxury > 0>>The barracks provide <<print $secBarracksUpgrades.luxury * 5>>% bonus morale in case of a battle.<</if>><<if $secBarracksUpgrades.training > 0>> The training facility will increase the effectiveness of your units with time.<</if>>
 <<if $arcologies[0].FSRomanRevivalist != "unset" || $arcologies[0].FSChineseRevivalist != "unset" || $arcologies[0].FSArabianRevivalist != "unset" || $arcologies[0].FSEdoRevivalist != "unset" || $arcologies[0].FSEgyptianRevivalist != "unset" || $arcologies[0].FSAztecRevivalist != "unset">>
-	<br>
-	<<link "Rename units to comform with future societies choices">>
-		/* TODO */
-	<</link>>
 <</if>>
 
 <br>
@@ -151,14 +147,38 @@ Your maximum number of units is <<print $maxUnits>>, currently you have <<print 
 /* slaves */
 You are free to organize your menial slaves into fighting units. Currently you have <<print $helots>> slaves available, while <<print $slavesEmployedManpower>> are already employed as soldiers. During all your battles you lost a total of <<print $slavesTotalCasualties>>.
 <br>
+<<set _menialPrice = Math.trunc(($slaveCostFactor*1000)/100)*100>>
+<<set _menialPrice = Math.clamp(_menialPrice, 500, 1500)>>
+<<if $PopCap > $helots+$fuckdolls+$menialBioreactors>>
+	[[Buy|Buy Slaves][$helots+=1,$menialDemandFactor+=1,$cash-=_menialPrice]]
+	<<if $cash > _menialPrice*10>>
+		[[(x10)|Buy Slaves][$helots+=10,$menialDemandFactor+=10,$cash-=_menialPrice*10]]
+	<</if>>
+	<<if $cash > _menialPrice*100>>
+		[[(x100)|Buy Slaves][$helots+=100,$menialDemandFactor+=100,$cash-=_menialPrice*100]]
+	<</if>>
+	<<if $cash > _menialPrice*2>>
+		[[(max)|Buy Slaves][$helots+=Math.trunc($cash/(_menialPrice)),$menialDemandFactor+=Math.trunc($cash/(_menialPrice)),$cash-=Math.trunc($cash/(_menialPrice))*(_menialPrice)]]
+	<</if>>
+<</if>>
+<<if $helots >= 1>>
+	<<if _optionsBreak>>|<</if>>
+	[[Sell|Buy Slaves][$helots-=1,$menialDemandFactor-=1,$cash+=_menialPrice]]
+<<if $helots >= 10>>
+	[[(x10)|Buy Slaves][$helots-=10,$menialDemandFactor-=10,$cash+=_menialPrice*10]]
+<<if $helots >= 100>>
+	[[(x100)|Buy Slaves][$helots-=100,$menialDemandFactor-=100,$cash+=_menialPrice*100]]
+<</if>>
+<</if>>
+<br>
 <<set _sL = $slaveUnits.length>>
 <<if $helots > 0 && $activeUnits < $maxUnits>>
 	<<link "Form a new unit">>
-		<<if $slaveUnits.length == 0>>
+		<<if $createdSlavesUnits == 0>>
 			<<set _name = (1+$slaveUnits.length) + "st slave platoon">>
-		<<elseif $slaveUnits.length == 1>>
+		<<elseif $createdSlavesUnits == 1>>
 			<<set _name = (1+$slaveUnits.length) + "nd slave platoon">>
-		<<elseif $slaveUnits.length == 2>>
+		<<elseif $createdSlavesUnits == 2>>
 			<<set _name = (1+$slaveUnits.length) + "rd slave platoon">>
 		<<else>>
 			<<set _name = (1+$slaveUnits.length) + "th slave platoon">>
@@ -178,6 +198,7 @@ You are free to organize your menial slaves into fighting units. Currently you h
 			<<set $slaveUnits.push(_newUnit)>>
 			<<set $helots -= 30>>
 			<<set $slavesEmployedManpower += 30>>
+			<<set $createdSlavesUnits++>>
 		<<else>>
 			<<set _newUnit = {
 			platoonName: _name,
@@ -193,6 +214,7 @@ You are free to organize your menial slaves into fighting units. Currently you h
 			<<set $slaveUnits.push(_newUnit)>>
 			<<set $slavesEmployedManpower += _newUnit.troops>>
 			<<set $helots = 0>>
+			<<set $createdSlavesUnits++>>
 		<</if>>
 		<<set $activeUnits++>>
 		<<goto "secBarracks">>
@@ -303,11 +325,11 @@ You are free to organize your menial slaves into fighting units. Currently you h
 	<<set _mL = $militiaUnits.length>>
 	<<if $militiaFreeManpower > 0 && $activeUnits < $maxUnits>>
 		<<link "Form a new unit">>
-			<<if $militiaUnits.length == 0>>
+			<<if $createdMilitiaUnits == 0>>
 				<<set _name = (1+$militiaUnits.length) + "st citizens' platoon">>
-			<<elseif $militiaUnits.length == 1>>
+			<<elseif $createdMilitiaUnits == 1>>
 				<<set _name = (1+$militiaUnits.length) + "nd citizens' platoon">>
-			<<elseif $militiaUnits.length == 2>>
+			<<elseif $createdMilitiaUnits == 2>>
 				<<set _name = (1+$militiaUnits.length) + "rd citizens' platoon">>
 			<<else>>
 				<<set _name = (1+$militiaUnits.length) + "th citizens' platoon">>
@@ -327,6 +349,7 @@ You are free to organize your menial slaves into fighting units. Currently you h
 				<<set $militiaUnits.push(_newUnit)>>
 				<<set $militiaFreeManpower -= 30>>
 				<<set $militiaEmployedManpower += 30>>
+				<<set $createdMilitiaUnits++>>
 			<<else>>
 				<<set _newUnit = {
 				platoonName: _name,
@@ -342,6 +365,7 @@ You are free to organize your menial slaves into fighting units. Currently you h
 				<<set $militiaUnits.push(_newUnit)>>
 				<<set $militiaEmployedManpower += _newUnit.troops>>
 				<<set $militiaFreeManpower = 0>>
+				<<set $createdMilitiaUnits++>>
 			<</if>>
 			<<set $activeUnits++>>
 			<<goto "secBarracks">>
@@ -448,11 +472,11 @@ You are free to organize your menial slaves into fighting units. Currently you h
 	<<set _meL = $mercUnits.length>>
 	<<if $mercFreeManpower > 0 && $activeUnits < $maxUnits>>
 		<<link "Form a new unit">>
-			<<if $mercUnits.length == 0>>
+			<<if $createdMercUnits == 0>>
 				<<set _name = (1+$mercUnits.length) + "st mercenary platoon">>
-			<<elseif $mercUnits.length == 1>>
+			<<elseif $createdMercUnits == 1>>
 				<<set _name = (1+$mercUnits.length) + "nd mercenary platoon">>
-			<<elseif $mercUnits.length == 2>>
+			<<elseif $createdMercUnits == 2>>
 				<<set _name = (1+$mercUnits.length) + "rd mercenary platoon">>
 			<<else>>
 				<<set _name = (1+$mercUnits.length) + "th mercenary platoon">>
@@ -472,6 +496,7 @@ You are free to organize your menial slaves into fighting units. Currently you h
 				<<set $mercUnits.push(_newUnit)>>
 				<<set $mercFreeManpower -= 30>>
 				<<set $mercEmployedManpower += 30>>
+				<<set $createdMercUnits++>>
 			<<else>>
 				<<set _newUnit = {
 				platoonName: _name,
@@ -487,6 +512,7 @@ You are free to organize your menial slaves into fighting units. Currently you h
 				<<set $mercUnits.push(_newUnit)>>
 				<<set $mercEmployedManpower += _newUnit.troops>>
 				<<set $mercFreeManpower = 0>>
+				<<set $createdMercUnits++>>
 			<</if>>
 			<<set $activeUnits++>>
 			<<goto "secBarracks">>
