@@ -1,5 +1,7 @@
 :: attackHandler [nobr]
 
+<<set $nextButton = "", $nextLink = "attackOptions", $showEncyclopedia = 0>>
+
 <<if $battleResult != 1 && $battleResult != -1>>		/* if the player did not select bribe or surrender */
 /*Init*/
 <<set _turn = 0>>
@@ -8,7 +10,6 @@
 <<set _morale = 0>>
 <<set _hp = 0>>
 <<set _baseHp = 0>>
-<<set _losses = 0>>
 <<set _enemyAttack = 0>>
 <<set _enemyDefense = 0>>
 <<set _enemyMorale = 0>>
@@ -124,7 +125,6 @@
 		<<set _mercMod -= 0.2>>
 		<<set _enemyMod += 0.2>>
 		<<set $PCWounded = 1>>
-		<<set $woundCooldown = 3>>
 	<</if>>
 <<elseif $leadingTroops == "assistant">>
 	<<if $rep < 10000 && $authority < 10000>>
@@ -251,7 +251,7 @@
 	<</if>>
 	/* 60% chance of getting combat skill if not already have it */
 	<<if $Bodyguard.combatSkill == 0 && random(1,100) <= 60>>
-		<<set $gainedCombat == 1>>
+		<<set $gainedCombat = 1>>
 		<<set $Bodyguard.combatSkill = 1>>
 	<</if>>
 <<elseif $leadingTroops == "headGirl">>
@@ -360,7 +360,7 @@
 	<</if>>
 	/* 60% chance of getting combat skill if nto already have it */
 	<<if $HeadGirl.combatSkill == 0 && random(1,100) <= 60>>
-		<<set $gainedCombat == 1>>
+		<<set $gainedCombat = 1>>
 		<<set $HeadGirl.combatSkill = 1>>
 	<</if>>
 <<elseif $leadingTroops == "citizen">>
@@ -725,7 +725,7 @@
 	<<set _mercMod += 0.20>>
 	<<set _atkMod += 0.10>>
 	<<set _defMod += 0.10>>
-	<<set $tacticsSuccessful == 1>>
+	<<set $tacticsSuccessful = 1>>
 <<else>>
 	<<set _enemyMod += 0.20>>
 	<<set _militiaMod -= 0.20>>
@@ -733,7 +733,7 @@
 	<<set _mercMod -= 0.20>>
 	<<set _atkMod -= 0.10>>
 	<<set _defMod -= 0.10>>
-	<<set $tacticsSuccessful == 0>>
+	<<set $tacticsSuccessful = 0>>
 <</if>>
 
 /* enemy morale mods */
@@ -837,42 +837,46 @@
 	<<set _enemyBaseHp = $ffBaseHp>>
 <</if>>
 
-Debug:
+<<if $showBattleStatistics == 1>>
 <br>attack: _attack
 <br>defense: _defense
 <br>Hp: _hp
-<br>Morale: _morale
-<br>atkMod: _atkMod
-<br>defMod: _defMod
-<br>baseHp: _baseHp
-<br>militiaMod: _militiaMod
-<br>slaveMod: _slaveMod
-<br>mercMod: _mercMod
-<br>tacChance: _tacChance
-<br>tactic Successful?: <<if $tacticsSuccessful == 1>> yes <<else>> no<</if>>
-<br>enemyAttack: _enemyAttack
-<br>enemyDefense: _enemyDefense
-<br>enemyMorale: _enemyMorale
-<br>enemyHp: _enemyHp
-<br>enemyBaseHp: _enemyBaseHp
-<br>enemyMod: _enemyMod
+<br>morale: _morale
+<br>attack modifier: _atkMod
+<br>defense modifier: _defMod
+<br>average base HP: _baseHp
+<br>militia morale modifier: _militiaMod
+<br>slaves morale modifier: _slaveMod
+<br>mercenaries morale modifier: _mercMod
+<br>tactic chance of success: _tacChance
+<br>was tactic chosen successful?: <<if $tacticsSuccessful == 1>> yes <<else>> no<</if>>
+<br>enemy attack: _enemyAttack
+<br>enemy defense: _enemyDefense
+<br>enemy morale: _enemyMorale
+<br>enemy Hp: _enemyHp
+<br>enemy base Hp: _enemyBaseHp
+<br>enemy morale modifier: _enemyMod
+<</if>>
 
 
 /* simulates the combat by pitting attk against def */
 <<for _i = 0; _i < $maxTurns; _i++>>
 	<br><br>
-	Debug: turn: _i
+	<<if $showBattleStatistics == 1>> turn: _i<</if>>
 	/* player army attacks */
 	<<set _damage = _attack - _enemyDefense>>
+	<<if _damage <= 0>>
+		<<set _damage = random(0,5)>>
+	<</if>>
 	<br>
-	Debug: player damage: _damage
+	<<if $showBattleStatistics == 1>> player damage: _damage<</if>>
 	<<set _enemyHp -= _damage>>
 	<br>
-	Debug: remaining enemyHp: _enemyHp
+	<<if $showBattleStatistics == 1>> remaining enemy Hp: _enemyHp<</if>>
 	<<set $enemyLosses +=  _damage / _enemyBaseHp>>
 	<<set _enemyMorale -= (_damage + _damage / _enemyBaseHp)>>
 	<br>
-	Debug: remaining enemyMorale: _enemyMorale
+	<<if $showBattleStatistics == 1>> remaining enemy morale: _enemyMorale<</if>>
 	<<if _enemyHp <= 0 || _enemyMorale <= 0>>
 		<<set $battleResult = 3>>
 		<<set $battleTurns = _i>>
@@ -881,15 +885,18 @@ Debug:
 	
 	/* attacker army attacks */
 	<<set _damage = _enemyAttack - _defense>>
+	<<if _damage <= 0>>
+		<<set _damage = random(0,5)>>
+	<</if>>
 	<br>
-	Debug: enemy damage: _damage
+	<<if $showBattleStatistics == 1>> enemy damage: _damage<</if>>
 	<<set _hp -= _damage>>
 	<br>
-	Debug: remaining hp: _hp
-	<<set $losses += _damage / _baseHp>>
-	<<set _morale -= (_damage + _losses)>>
+	<<if $showBattleStatistics == 1>> remaining hp: _hp<</if>>
+	<<set $losses = _damage / _baseHp>>
+	<<set _morale -= (_damage + _damage / _baseHp)>>
 	<br>
-	Debug: remaining morale: _morale
+	<<if $showBattleStatistics == 1>> remaining morale: _morale<</if>>
 	<<if _hp <= 0 || _morale <= 0>>
 		<<set $battleResult = -3>>
 		<<set $battleTurns = _i>>
@@ -904,7 +911,7 @@ Debug:
 	<</if>>
 <</if>>
 <<else>>
-	Debug: bribery/surrender chosen
+	<<if $showBattleStatistics == 1>>bribery/surrender chosen<</if>>
 	<<if $cash >= $bribeCost>>						/* if there's enough cash there's a 10% chance bribery fails. If there isn't there's instead a 50% chance it fails */
 		<<if random(1,100) <= 10>>
 			<<set $battleResult = 0>>
@@ -920,7 +927,11 @@ Debug:
 	Error: failed to determine battle result
 <</if>>
 
-<br><br>
-<<link "proceed">>
-<<goto "attackReport">>
-<</link>>
+<<if $showBattleStatistics == 1>>
+	<br><br>
+	<<link "proceed">>
+	<<goto "attackReport">>
+	<</link>>
+<<else>>
+	<<goto "attackReport">>
+<</if>>
