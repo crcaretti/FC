@@ -1,9 +1,15 @@
 :: Dairy Report [nobr]
 
+<span id="dairystats">
+</span>
+
 <<set _MMWorkout = 0>>
 
 <<SlaveSort $DairyiIDs>>
 <<set _DL = $DairyiIDs.length, $dairySlaves = _DL, _SL = $slaves.length, $bioreactorPerfectedID = 0, $legendaryBallsID = 0, $legendaryCowID = 0, $milkmaidDevotionBonus = 1, $milkmaidHealthBonus = 0, $milkmaidTrustBonus = 1, $milkmaidDevotionThreshold = 45, $milkmaidTrustThreshold = 35, _anusesStretched = 0, _birthers = 0, _births = 0, _cumWeek = 0, _femCumWeek = 0, _FLsFetish = 0, _milkWeek = 0, _balltacular = 0, _boobtacular = 0, _careerForgotten = 0, _chemMinor = 0, _chemSevere = 0, _desterilized = 0, _hatefilled = 0, _horrified = 0, $intelligenceLost = 0, _mindbroken = 0, _profits = 0, _skillsLost = 0, _stupidified = 0, _vaginasStretched = 0>>
+
+<!-- Statistics gathering -->
+<<set $facility = $facility || {}, $facility.dairy = initFacilityStatistics($facility.dairy)>>
 
 <<if ($Milkmaid != 0)>>
 	<<set _FLs = $slaves.findIndex(function(s) { return s.ID == $Milkmaid.ID; })>>
@@ -40,6 +46,7 @@
 			<<set _FLsFetish = 2, $slaves[_FLs].fetishStrength += 4>>
 		<</if>>
 	<</if>>
+	<<run getSlaveStatisticData($Milkmaid, $facility.dairy)>>
 	<<set $Milkmaid = $slaves[_FLs], $i = _FLs>>
 	&nbsp;&nbsp;&nbsp;&nbsp;<<SlaveFullName $Milkmaid>> is serving as your Milkmaid.
 	<<if $Milkmaid.relationship == -3 && $Milkmaid.devotion > 50>>
@@ -878,6 +885,28 @@ $dairyNameCaps produced <<print _milkWeek+_outputMilk>> liters of milk<<if _cumW
 <</if>>
 <</if>>
 
+<!-- Record statistics gathering -->
+<<script>>
+	var b = State.variables.facility.dairy;
+	b.whoreIncome = 0;
+	b.whoreCosts = 0;
+	b.rep = 0;
+	for(var si of b.income.values()) {
+		b.whoreIncome += si.income;
+		b.whoreCosts += si.cost;
+		b.rep += si.rep;
+	}
+	b.maintenance = (State.variables.bioreactorsXY + State.variables.bioreactorsXX + State.variables.bioreactorsHerm + State.variables.bioreactorsBarren);
+	if (b.maintenance > 0) {
+		b.maintenance *= 100;
+	} else {
+		b.maintenance = 0;
+	}
+	b.maintenance += State.variables.dairy * State.variables.facilityCost * (1.0 + 0.2 * State.variables.dairyFeedersUpgrade + 0.1 * State.variables.dairyPregUpgrade);
+	b.totalIncome = b.whoreIncome;
+	b.totalExpenses = b.whoreCosts + b.maintenance;
+	b.profit = b.totalIncome - b.totalExpenses;
+<</script>>
 <<if (_profits > 0)>>
 These sale of these products makes a profit of @@.yellowgreen;¤_profits@@.
 <<elseif (_profits < 0)>>
@@ -930,6 +959,16 @@ Due to one-off costs of hormonal implants to encourage fluid production, your da
 
 <<if $dairyDecoration != "standard">>
 	$dairyNameCaps's @@.green;$dairyDecoration style is well known.@@
+<</if>>
+
+<<if _DL > 0>>
+	<!-- Statistics output -->
+	<<DairyStatistics 0>>
+	<<timed 50ms>>
+		<<replace #dairystats>>
+			<<DairyStatistics 1>>
+		<</replace>>
+	<</timed>>
 <</if>>
 <<if (_DL + _Tadd) > 0 || $Milkmaid != 0>>
 	<br><br>
