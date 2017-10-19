@@ -1,8 +1,14 @@
 :: Club Report [nobr]
 
+<span id="clubstats">
+</span>
+
 <<SlaveSort $ClubiIDs>>
 <<set _DL = $ClubiIDs.length, $clubSlaves = _DL, _SL = $slaves.length, $clubBonuses = 0, $DJRepBonus = 0, $implanted = 0, $legendaryEntertainerID = 0, $modded = 0, $old = 0, $pure = 0, $slim = 0, $stacked = 0, $unmodded = 0, $XX = 0, $XY = 0, $young = 0, _FLsFetish = 0>>
 <<set $legendaryWombID = 0, $pregYes = 0, $pregNo = 0>>
+
+<!-- Statistics gathering; income is rep boosts in numbers, and profit will be rep per cash unit, or cash unit per rep -->
+<<set $facility = $facility || {}, $facility.club = initFacilityStatistics($facility.club)>>
 
 <<if $DJ != 0>>
 	<<set _FLs = $slaves.findIndex(function(s) { return s.ID == $DJ.ID; })>>
@@ -34,6 +40,8 @@
 			<<set _FLsFetish = 2, $slaves[_FLs].fetishStrength += 4>>
 		<</if>>
 	<</if>>
+	/% Make sure we have registered living expenses as for any other slave %/
+	<<run getSlaveStatisticData($DJ, $facility.club)>>
 	<<set $DJ = $slaves[_FLs]>>
 	&nbsp;&nbsp;&nbsp;&nbsp;<<SlaveFullName $DJ>> is performing as the DJ.
 	<<if $DJ.relationship == -3 && $DJ.devotion > 50>>
@@ -281,10 +289,36 @@
 	<<else>>
 		$clubNameCaps does not offer enough variety to satisfy all visitors.
 	<</if>>
+	<!-- Record statistics gathering -->
+	<<script>>
+		var b = State.variables.facility.club;
+		b.whoreIncome = 0;
+		b.customers = 0;
+		b.whoreCosts = 0;
+		b.rep = 0;
+		for(var si of b.income.values()) {
+			b.whoreIncome += si.income;
+			b.customers += si.customers;
+			b.whoreCosts += si.cost;
+			b.rep += si.rep;
+		}
+		b.adsCosts = State.variables.clubAdsSpending;
+		b.maintenance = State.variables.club * State.variables.facilityCost * (1.0 + 0.2 * State.variables.clubUpgradePDAs);
+		b.totalIncome = b.whoreIncome + b.adsIncome;
+		b.totalExpenses = b.whoreCosts + b.adsCosts + b.maintenance;
+		b.profit = b.totalIncome / b.totalExpenses;
+	<</script>>
 	<<if $clubDecoration != "standard">>
 		$clubNameCaps's customers enjoy @@.green;having sex in $clubDecoration surroundings.@@
 	<</if>>
 
+	<!-- Statistics output -->
+	<<ClubStatistics 0>>
+	<<timed 50ms>>
+		<<replace #clubstats>>
+			<<ClubStatistics 1>>
+		<</replace>>
+	<</timed>>
 <</if>>
 
 <<if _DL > 0 || $DJ != 0>>
