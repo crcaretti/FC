@@ -1,7 +1,13 @@
 :: Arcade Report [nobr]
 
+<span id="arcadestats">
+</span>
+
 <<SlaveSort $ArcadeiIDs>>
 <<set _DL = $ArcadeiIDs.length, $arcadeSlaves = _DL, _SL = $slaves.length, _cockmilked = 0, _milked = 0, _milkprofits = 0, _profits = 0, _oldCash = 0, $boobsImplanted = 0, $prostatesImplanted = 0, $vasectomiesUndone = 0>>
+
+<!-- Statistics gathering -->
+<<set $facility = $facility || {}, $facility.arcade = initFacilityStatistics($facility.arcade)>>
 
 &nbsp;&nbsp;&nbsp;&nbsp;<<if (_DL > 1)>>''There are _DL inmates confined in $arcadeName.''<<else>>''There is one inmate confined in $arcadeName.''<</if>>
 <<if ($arcologies[0].FSDegradationist > 20)>>
@@ -219,5 +225,31 @@
 <</if>>
 
 <<if _DL > 0>>
+	<!-- Record statistics gathering -->
+	<<script>>
+		var b = State.variables.facility.arcade;
+		b.whoreIncome = 0;
+		b.customers = 0;
+		b.whoreCosts = 0;
+		b.rep = 0;
+		for(var si of b.income.values()) {
+			b.whoreIncome += si.income;
+			b.customers += si.customers;
+			b.whoreCosts += si.cost;
+			b.rep += si.rep;
+		}
+		b.maintenance = State.variables.arcade * State.variables.facilityCost * (0.5 + 0.2 * State.variables.arcadeUpgradeInjectors + 0.2 * State.variables.arcadeUpgradeCollectors);
+		b.totalIncome = b.whoreIncome;
+		b.totalExpenses = b.whoreCosts + b.maintenance;
+		b.profit = b.totalIncome - b.totalExpenses;
+	<</script>>
+
+	<!-- Statistics output -->
+	<<ArcadeStatistics 0>>
+	<<timed 50ms>>
+		<<replace #arcadestats>>
+			<<ArcadeStatistics 1>>
+		<</replace>>
+	<</timed>>
 	<br><br>
 <</if>>
