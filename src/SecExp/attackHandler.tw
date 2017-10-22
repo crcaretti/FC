@@ -1,8 +1,33 @@
 :: attackHandler [nobr]
 
-<<set $nextButton = "", $nextLink = "attackOptions", $showEncyclopedia = 0>>
+<<set $nextButton = " ", $nextLink = "attackReport", $showEncyclopedia = 0>>
 
-<<if $battleResult != 1 && $battleResult != -1>>		/* if the player did not select bribe or surrender */
+<<if $battleResult == 1>>	/* bribery check */
+	<<if $showBattleStatistics == 1>>bribery chosen<</if>>
+	<<if $cash >= $bribeCost>>						/* if there's enough cash there's a 10% chance bribery fails. If there isn't there's instead a 50% chance it fails */
+		<<if random(1,100) <= 10>>
+			<<set $battleResult = 0>>
+		<</if>>
+	<<else>>
+		<<if random(1,100) <= 50>>
+			<<set $battleResult = 0>>
+		<</if>>
+	<</if>>
+	<<if $showBattleStatistics == 1>>
+		<<if $battleResult == 0>>
+			<br>Failure!
+		<<else>>
+			<br>Success!
+		<</if>>
+		<br><br>
+		<<link "proceed">>
+			<<goto "attackReport">>
+		<</link>>
+	<<else>>
+		<<goto "attackReport">>
+	<</if>>
+<</if>>	
+
 /*Init*/
 <<if $majorBattle == 0>>
 	<<set _turns = $maxTurns>>
@@ -37,6 +62,24 @@
 	<<set _enemyMod = 3>>
 	<<set _SFMod = 1.5>>
 	<<set _turns = $maxTurns * 2>>
+	<<if $securityForceCreate == 1>>
+		<<if $securityForceArcologyUpgrades >= 7>>
+			<<set _atkMod += ($securityForceArcologyUpgrades - 6) * 0.05>>
+		<</if>>
+		<<if $securityForceFortressZeppelin >= 1>>
+			<<set _defMod += $securityForceFortressZeppelin * 0.05>>
+		<</if>>
+		<<if $securityForceSatalitePower >= 11>>
+			<<set _atkMod += ($securityForceSatalitePower - 10) * 0.05>>
+		<</if>>
+		<<if $securityForceGiantRobot >= 6>>
+			<<set _defMod += ($securityForceGiantRobot - 5) * 0.05>>
+		<</if>>
+		<<if $securityForceMissileSilo >= 1>>
+			<<set _atkMod += $securityForceMissileSilo * 0.05>>
+			<<set _defMod += $securityForceMissileSilo * 0.05>>
+		<</if>>
+	<</if>>
 <</if>>
 
 /* Leaders */
@@ -855,18 +898,19 @@
 		<<set _hp += ($mercBaseHp + $mercBaseHp * $mercUnits[_i].medics * 0.25) * $mercUnits[_i].troops>>
 	<</if>>
 <</for>>
+
 <<if $SFIntervention == 1>>
 	<<set _SFatk = 0>>
 	<<set _SFdef = 0>>
 	<<set _SFhp = 0>>
-	<<calcSFStatistics _SFatk,_SFdef,_SFhp>>
+	<<calcSFStatistics>>
 	<<set _attack += _SFatk>>
 	<<set _defense += _SFdef>>
 	<<set _hp += _SFhp>>
 <</if>>
 
 /* morale and baseHp calculation */
-/* minimum modifier is 50% */
+/* minimum modifier is -50% */
 <<if _militiaMod < 0.5>>
 	<<set _militiaMod = 0.5>>
 <</if>>
@@ -911,19 +955,27 @@
 <</if>>
 
 <<if $showBattleStatistics == 1>>
+<<set _atkMod -= 1, _defMod -= 1, _militiaMod -= 1, _mercMod -= 1, _slaveMod -= 1, _SFMod -= 1, _enemyMod -= 1>>
+<<set _atkMod = Math.round(_atkMod * 100)>>
+<<set _defMod = Math.round(_defMod * 100)>>
+<<set _militiaMod = Math.round(_militiaMod * 100)>>
+<<set _mercMod = Math.round(_mercMod)>>
+<<set _slaveMod = Math.round(_slaveMod * 100)>>
+<<set _SFMod = Math.round(_SFMod * 100)>>
+<<set _enemyMod = Math.round(_enemyMod * 100)>>
 
 <br>attack: <<print Math.round(_attack)>>
 <br>defense: <<print Math.round(_defense)>>
 <br>Hp: <<print Math.round(_hp)>>
 <br>morale: <<print Math.round(_morale)>>
-<br>attack modifier: _atkMod
-<br>defense modifier: _defMod
+<br>attack modifier: <<if _atkMod > 0>>+<</if>>_atkMod%
+<br>defense modifier: <<if _defMod > 0>>+<</if>>_defMod%
 <br>average base HP: <<print Math.round(_baseHp)>>
-<br>militia morale modifier: _militiaMod
-<br>slaves morale modifier: _slaveMod
-<br>mercenaries morale modifier: _mercMod
+<br>militia morale modifier: <<if _militiaMod > 0>>+<</if>>_militiaMod%
+<br>slaves morale modifier: <<if _slaveMod > 0>>+<</if>>_slaveMod%
+<br>mercenaries morale modifier: <<if _mercMod > 0>>+<</if>>_mercMod%
 <<if $SFIntervention == 1>>
-<br>security force morale modifier: _SFMod
+<br>security force morale modifier: <<if _SFMod > 0>>+<</if>>_SFMod%
 <</if>>
 <br>tactic chance of success: <<print Math.round(_tacChance * 100)>>%
 <br>was tactic chosen successful?: <<if $tacticsSuccessful == 1>> yes <<else>> no<</if>>
@@ -932,7 +984,7 @@
 <br>enemy morale: <<print Math.round(_enemyMorale)>>
 <br>enemy Hp: <<print Math.round(_enemyHp)>>
 <br>enemy base Hp: <<print Math.round(_enemyBaseHp)>>
-<br>enemy morale modifier: _enemyMod
+<br>enemy morale modifier: <<if _enemyMod > 0>>+<</if>>_enemyMod%
 <</if>>
 
 
@@ -992,30 +1044,22 @@
 	<</if>>
 <</if>>
 
-<<else>>											/* else of the bribery/surrender check */
-	<<if $showBattleStatistics == 1>>bribery/surrender chosen<</if>>
-	<<if $cash >= $bribeCost>>						/* if there's enough cash there's a 10% chance bribery fails. If there isn't there's instead a 50% chance it fails */
-		<<if random(1,100) <= 10>>
-			<<set $battleResult = 0>>
-		<</if>>
-	<<else>>
-		<<if random(1,100) <= 50>>
-			<<set $battleResult = 0>>
-		<</if>>
-	<</if>>
-	<<if $showBattleStatistics == 1>><<if $battleResult == 0>> <br>Failure!<<else>><br>Success!<</if>>
-<</if>>												/* closes bribe/surrender check */
-
 <<if $battleResult > 3 || $battleResult < -3>>
 	<br>@@.red;Error: failed to determine battle result@@
 <</if>>
 
-<<if $majorBattle == 1 && $majorBattleGameOver == 1 && $battleResult == -3>>
+<<if $showBattleStatistics == 1 && $majorBattle == 1 && $majorBattleGameOver == 1 && $battleResult == -3>>
+	<br><br>
+	<<link "Proceed">>
+		<<set $gameover to "major battle defeat">>
+		<<goto "Gameover">>
+	<</link>>
+<<elseif $majorBattle == 1 && $majorBattleGameOver == 1 && $battleResult == -3>>
 	<<set $gameover to "major battle defeat">>
 	<<goto "Gameover">>
 <<elseif $showBattleStatistics == 1>>
 	<br><br>
-	<<link "proceed">>
+	<<link "Proceed">>
 		<<goto "attackReport">>
 	<</link>>
 <<else>>
