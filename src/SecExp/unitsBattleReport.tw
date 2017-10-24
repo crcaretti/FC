@@ -1,0 +1,242 @@
+:: unitsBattleReport [nobr]
+
+<<if $losses == 0>>
+	<<if $deployingBots == 1>>
+		Your squadron of security drones participated in the battle, dominating the airspace and providing vital intelligence to the rest of the army.
+		During the battle they suffered no casualties.
+	<</if>>
+	<<if $SFIntervention == 1>>
+		<<print $securityForcePersonnel>> soldiers from the $securityForceName joined the battle aboard their<<if $securityForceVehiclePower >= 4>>armored<</if>>vehicles<<if $securityForceAC130 > 0>>and their AC130<</if>>.
+		Free cities armies are a rare sight, but their power is undeniable and your $securityForceName is living testament of this.
+		During the battle they suffered no casualties.
+	<</if>>
+	<<if $deployingMilitia == 1>>
+		<<for _j = 0; _j < $militiaUnits.length; _j++>>
+			<<if $militiaUnits[_j].isDeployed == 1>>
+				$militiaUnits[_j].platoonName participated in the battle, your proud citizens defending with their lives their arcology.
+				During the battle they suffered no casualties.
+			<</if>>
+		<</for>>
+	<</if>>
+	<<if $deployingSlaves == 1>>
+		<<for _j = 0; _j < $slaveUnits.length; _j++>>
+			<<if $slaveUnits[_j].isDeployed == 1>>
+				$slaveUnits[_j].platoonName participated in the battle. While a rare sight, your slave soldiers show no less willingness to fight for their arcology than their free counterparts, be it because of fear or devotion to their owner.
+				During the battle they suffered no casualties.
+			<</if>>
+		<</for>>
+	<</if>>
+	<<if $deployingMercs == 1>>
+		<<for _j = 0; _j < $mercUnits.length; _j++>>
+			<<if $mercUnits[_j].isDeployed == 1>>
+				$mercUnits[_j].platoonName participated in the battle. Mercenaries are a common sight on the modern battlefield and yours are proud to serve their generous contractor.
+				During the battle they suffered no casualties.
+			<</if>>
+		<</for>>
+	<</if>>
+
+<<else>>
+	/* if the losses are more than zero */
+	<<if $SFIntervention == 1>>
+		<<set $deployedUnits++>>
+	<</if>>
+	<<set _averageLosses = Math.trunc($losses / $deployedUnits)>>
+	<<set _lossesList = []>>
+	<<for _i = 0; _i < $deployedUnits; _i++>>
+		<<set _assignedLosses = Math.trunc(Math.clamp(_averageLosses + random(-5,5), 0, 100))>>
+		<<if _assignedLosses > $losses>>
+			<<set _assignedLosses = $losses>>
+			<<set $losses = 0>>
+		<<else>>
+			<<set $losses -= _assignedLosses>>
+		<</if>>
+		<<set _lossesList.push(_assignedLosses)>>
+	<</for>>
+	<<set _lossesList.shuffle()>>
+	
+	/* assigns the losses and notify the player */
+
+	<<if $deployingBots == 1>>
+		<br>
+		<br>
+		<<set _loss = _lossesList.pluck()>>
+		<<if _loss < $secBots.troops>>
+			<<set $secBots.troops -= _loss>>
+		<<else>>
+			<<set $secBots.troops = 0>>
+		<</if>>
+		Your squadron of security drones participated in the battle, dominating the airspace and providing vital intelligence to the rest of the army.
+		During the battle they suffered 
+		<<if _loss <= 0>>
+			no casualties.
+		<<elseif _loss <= 10>>
+			light casualties.
+		<<elseif _loss <= 30>>
+			moderate casualties.
+		<<elseif _loss <= 60>>
+			heavy casualties.
+		<<else>>
+			catastrofic casualties.
+		<</if>>
+		<<if $secBots.troops <= 0>>
+			<<set $secBots.active = 0>>
+			Unfortunately the losses they took were simply too great, their effective combatants are in so small number you can no longer call them a deployable unit. It will take quite the investment to rebuild them. 
+		<<elseif $secBots.troops <= 10>>
+			The unit has very few operatives left, it risks compelte annihilation if deployed again.
+		<</if>>
+	<</if>>
+	<<if $SFIntervention == 1>>
+		<br>
+		<br>
+		<<set _loss = _lossesList.pluck()>>
+		<<if _loss < $securityForcePersonnel>>
+			<<set $securityForcePersonnel -= _loss>>
+		<<else>>
+			<<set $securityForcePersonnel = 0>>
+		<</if>>
+		<<print $securityForcePersonnel>> soldiers from the $securityForceName joined the battle aboard their<<if $securityForceVehiclePower >= 4>>armored<</if>>vehicles<<if $securityForceAC130 > 0>>and their AC130<</if>>.
+		Free cities armies are a rare sight, but their power is undeniable and your $securityForceName is living testament of this.
+		During the battle they suffered 
+		<<if _loss <= 0>>
+			no casualties.
+		<<elseif _loss <= 10>>
+			light casualties.
+		<<elseif _loss <= 30>>
+			moderate casualties.
+		<<elseif _loss <= 60>>
+			heavy casualties.
+		<<else>>
+			catastrofic casualties.
+		<</if>>
+	<</if>>
+	<<if $deployingMilitia == 1>>
+		<<for _j = 0; _j < $militiaUnits.length; _j++>>
+			<<if $militiaUnits[_j].isDeployed == 1>>
+				<br>
+				<br>
+				<<set _loss = _lossesList.pluck()>>
+				<<set _loss = Math.clamp(_loss,0,$militiaUnits[_j].troops)>>
+				$militiaUnits[_j].platoonName participated in the battle, your proud citizens defending with their lives their arcology.
+				During the battle they suffered 
+				<<if _loss <= 0>>
+					no casualties
+				<<elseif _loss <= 10>>
+					light casualties
+				<<elseif _loss <= 30>>
+					moderate casualties
+				<<elseif _loss <= 60>>
+					heavy casualties
+				<<else>>
+					catastrofic casualties
+				<</if>>
+				<<if $militiaUnits[_j].medics == 1>>
+					, however <<print math.trunc(_loss * $militiaUnits[_j].medics * 0.25)>> men were saved by the medics attached to this unit.
+				<<else>>
+					.
+				<</if>>
+				<<set $militiaUnits[_j].troops -= Math.trunc(_loss - _loss * $militiaUnits[_j].medics * 0.25)>>
+				<<set $militiaEmployedManpower -= Math.trunc(_loss - _loss * $militiaUnits[_j].medics * 0.25)>>
+				<<set $militiaTotalCasualties += Math.trunc(_loss - _loss * $militiaUnits[_j].medics * 0.25)>>
+				<<if $militiaUnits[_j].training < 100>>
+					<<if random(1,100) > 60>>
+						Fighting in the field increased the experience of the unit, making it more effective in future fights.
+						<<set $militiaUnits[_j].training += random(5,15) + $majorBattle * random(5,15)>>
+					<</if>>
+				<</if>>
+				<<if $militiaUnits[_j].troops <= 0>>
+					<<set $militiaUnits[_j].active = 0>>
+					<br>Unfortunately the losses they took were simply too great, their effective combatants are in so small number you can no longer call them a deployable unit. The remnants will be sent home honored as veterans or reorganized in a new unit. 
+				<<elseif $militiaUnits[_j].troops <= 10>>
+					<br>The unit has very few operatives left, it risks complete annihilation if deployed again.
+				<</if>>
+			<</if>>
+		<</for>>
+	<</if>>
+	<<if $deployingSlaves == 1>>
+		<<for _j = 0; _j < $slaveUnits.length; _j++>>
+			<<if $slaveUnits[_j].isDeployed == 1>>
+				<br>
+				<br>
+				<<set _loss = _lossesList.pluck()>>
+				<<set _loss = Math.clamp(_loss,0,$slaveUnits[_j].troops)>>
+				$slaveUnits[_j].platoonName participated in the battle. While a rare sight, your slave soldiers show no less willingness to fight for their arcology than their free counterparts, be it because of fear or devotion to their owner.
+				During the battle they suffered 
+				<<if _loss <= 0>>
+					no casualties
+				<<elseif _loss <= 10>>
+					light casualties
+				<<elseif _loss <= 30>>
+					moderate casualties
+				<<elseif _loss <= 60>>
+					heavy casualties
+				<<else>>
+					catastrofic casualties
+				<</if>>
+				<<if $slaveUnits[_j].medics == 1>>
+					, however <<print math.trunc(_loss * $slaveUnits[_j].medics * 0.25)>> men were saved by the medics attached to this unit.
+				<<else>>
+					.
+				<</if>>
+				<<set $slaveUnits[_j].troops -= Math.trunc(_loss - _loss * $slaveUnits[_j].medics * 0.25)>>
+				<<set $slavesEmployedManpower -= Math.trunc(_loss - _loss * $slaveUnits[_j].medics * 0.25)>>
+				<<set $slavesTotalCasualties += Math.trunc(_loss - _loss * $slaveUnits[_j].medics * 0.25)>>
+				<<if $slaveUnits[_j].training < 100>>
+					<<if random(1,100) > 60>>
+						Fighting in the field increased the experience of the unit, making it more effective in future fights.
+						<<set $slaveUnits[_j].training += random(5,15) + $majorBattle * random(5,15)>>
+					<</if>>
+				<</if>>
+				<<if $slaveUnits[_j].troops <= 0>>
+					<<set $slaveUnits[_j].active = 0>>
+					<br>Unfortunately the losses they took were simply too great, their effective combatants are in so small number you can no longer call them a deployable unit. The sorvivors will be sent home honored as veterans or reorganized in a new unit. 
+				<<elseif $slaveUnits[_j].troops <= 10>>
+					<br>The unit has very few operatives left, it risks complete annihilation if deployed again.
+				<</if>>
+			<</if>>
+		<</for>>
+	<</if>>
+	<<if $deployingMercs == 1>>
+		<<for _j = 0; _j < $mercUnits.length; _j++>>
+			<<if $mercUnits[_j].isDeployed == 1>>
+				<br>
+				<br>
+				<<set _loss = _lossesList.pluck()>>
+				<<set _loss = Math.clamp(_loss,0,$mercUnits[_j].troops)>>
+				$mercUnits[_j].platoonName participated in the battle. Mercenaries are a common sight on the modern battlefield and yours are proud to serve their generous contractor.
+				During the battle they suffered
+				<<if _loss <= 0>>
+					no casualties
+				<<elseif _loss <= 10>>
+					light casualties
+				<<elseif _loss <= 30>>
+					moderate casualties
+				<<elseif _loss <= 60>>
+					heavy casualties
+				<<else>>
+					catastrofic casualties
+				<</if>>
+				<<if $mercUnits[_j].medics == 1>>
+					, however 
+					<<print math.trunc(_loss * $mercUnits[_j].medics * 0.25)>> men were saved by the medics attached to this unit.
+				<<else>>
+					.
+				<</if>>
+				<<set $mercUnits[_j].troops -= Math.trunc(_loss - _loss * $mercUnits[_j].medics * 0.25)>>
+				<<set $mercEmployedManpower -= Math.trunc(_loss - _loss * $mercUnits[_j].medics * 0.25)>>
+				<<set $mercTotalCasualties += Math.trunc(_loss - _loss * $mercUnits[_j].medics * 0.25)>>
+				<<if $mercUnits[_j].training < 100>>
+					<<if random(1,100) > 60>>
+						Fighting in the field increased the experience of the unit, making it more effective in future fights.
+						<<set $mercUnits[_j].training += random(5,15) + $majorBattle * random(5,15)>>
+					<</if>>
+				<</if>>					
+				<<if $mercUnits[_j].troops <= 0>>
+					<<set $mercUnits[_j].active = 0>>
+					<br>Unfortunately the losses they took were simply too great, their effective combatants are in so small number you can no longer call them a deployable unit. The remnants will be sent home honored as veterans or reorganized in a new unit. 
+				<<elseif $mercUnits[_j].troops <= 10>>
+					<br>The unit has very few operatives left, it risks complete annihilation if deployed again.
+				<</if>>
+			<</if>>
+		<</for>>
+	<</if>>
+<</if>> /* closes check for more than zero casualties */

@@ -2,6 +2,26 @@
 
 <<set $nextButton = " ", $nextLink = "attackReport", $showEncyclopedia = 0>>
 
+/* updates deployed flags */
+<<for _i = 0; _i < $militiaUnits.length; _i++>>
+	<<if $militiaUnits[_i].isDeployed == 1>>
+		<<set $deployingMilitia = 1>>
+		<<break>>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < $slaveUnits.length; _i++>>
+	<<if $slaveUnits[_i].isDeployed == 1>>
+		<<set $deployingSlaves = 1>>
+		<<break>>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < $mercUnits.length; _i++>>
+	<<if $mercUnits[_i].isDeployed == 1>>
+		<<set $deployingMercs = 1>>
+		<<break>>
+	<</if>>
+<</for>>
+
 <<if $battleResult == 1>>	/* bribery check */
 	<<if $showBattleStatistics == 1>>bribery chosen<</if>>
 	<<if $cash >= $bribeCost>>						/* if there's enough cash there's a 10% chance bribery fails. If there isn't there's instead a 50% chance it fails */
@@ -53,6 +73,7 @@
 <<set _enemyMod = 1>>
 <<set _SFMod = 1>>
 <<set _expBonus = 0>>
+<<set _armyMod = 0>>
 
 /* major battle */
 <<if $majorBattle == 1>>
@@ -843,18 +864,13 @@
 	<<set _enemyMod += 0.75>>
 <</if>>
 
-<<set _secBotsMorale = 0>>
-<<set _militiaMorale = 0>>
-<<set _slaveMorale = 0>>
-<<set _mercMorale = 0>>
-
 /* calculates PC army stats */
 <<if $secBots.isDeployed == 1>>
 	<<set _attack += ($secBotsBaseAttack + $secBotsBaseAttack * $secBots.equip * $equipMod) * _atkMod>>
 	<<set _defense += ($secBotsBaseDefense + $secBotsBaseDefense * $secBots.equip * $equipMod) * _defMod>>
 	<<set _hp += $secBotsBaseHp * $secBots.troops>>
 <</if>>
-<<for _i = 0; _i < _mL; _i++>>
+<<for _i = 0; _i < $militiaUnits.length; _i++>>
 	<<if $militiaUnits[_i].isDeployed == 1>>
 		<<if $militiaUnits[_i].training <= 10>>
 			<<set _expBonus = 0>>
@@ -870,7 +886,7 @@
 		<<set _hp += ($militiaBaseHp + $militiaBaseHp * $militiaUnits[_i].medics * $equipMod) * $militiaUnits[_i].troops>>
 	<</if>>
 <</for>>
-<<for _i = 0; _i < _sL; _i++>>
+<<for _i = 0; _i < $slaveUnits.length; _i++>>
 	<<if $slaveUnits[_i].isDeployed == 1>>
 		<<if $slaveUnits[_i].training <= 33>>
 			<<set _expBonus = 0>>
@@ -884,7 +900,7 @@
 		<<set _hp += ($slaveBaseHp + $slaveBaseHp * $slaveUnits[_i].medics * 0.25) * $slaveUnits[_i].troops>>
 	<</if>>
 <</for>>
-<<for _i = 0; _i < _meL; _i++>>
+<<for _i = 0; _i < $mercUnits.length; _i++>>
 	<<if $mercUnits[_i].isDeployed == 1>>
 		<<if $mercUnits[_i].training <= 33>>
 			<<set _expBonus = 0>>
@@ -923,32 +939,50 @@
 <<if _SFMod < 0.5>>
 	<<set _SFMod = 0.5>>
 <</if>>
-<<set _morale = ($secBotsMorale * $deployingBots + _militiaMorale * _militiaMod * $deployingMilitia + $slaveBaseMorale * _slaveMod * $deployingSlaves + $mercBaseMorale * _mercMod * $deployingMercs + $SFBaseMorale * $SFIntervention * _SFMod) / ($deployingBots + $deployingMilitia +$deployingSlaves + $deployingMercs + $SFIntervention)>>
+<<set _morale = ($secBotsMorale * $deployingBots + $militiaBaseMorale * _militiaMod * $deployingMilitia + $slaveBaseMorale * _slaveMod * $deployingSlaves + $mercBaseMorale * _mercMod * $deployingMercs + $SFBaseMorale * $SFIntervention * _SFMod) / ($deployingBots + $deployingMilitia +$deployingSlaves + $deployingMercs + $SFIntervention)>>
 <<set _morale = _morale + _morale * $secBarracksUpgrades.luxury * 0.05>>	/* barracks bonus */
 <<set _baseHp = ($secBotsBaseHp * $deployingBots + $militiaBaseHp * $deployingMilitia + $slaveBaseHp * $deployingSlaves + $mercBaseHp * $deployingMercs + $SFBaseHp * $SFIntervention) / ($deployingBots + $deployingMilitia +$deployingSlaves + $deployingMercs + $SFIntervention)>>
 				
 /* calculates enemy army stats */
+<<if $week <= 30>>
+	<<set _armyMod = $attackTroops / 60>>
+<<elseif $week <= 60>>
+	<<set _armyMod = $attackTroops / 50>>
+<<elseif $week <= 90>>
+	<<set _armyMod = $attackTroops / 40>>
+<<elseif $week <= 120>>
+	<<set _armyMod = $attackTroops / 30>>
+<<else>>
+	<<set _armyMod = $attackTroops / 20>>
+<</if>>
+<<set _armyMod = Math.trunc(_armyMod)>>
+<<if $majorBattle == 1>>
+	<<set _armyMod *= 2>>
+<</if>>
+<<if _armyMod <= 0>>
+	<<set _armyMod = 1>>
+<</if>>
 <<if $attackType == "raiders">>
-	<<set _enemyAttack = $raBaseAttack + $raBaseAttack * $attackEquip * $equipMod>>
-	<<set _enemyDefense = $raBaseDefense + $raBaseDefense * $attackEquip * $equipMod>>
+	<<set _enemyAttack = ($raBaseAttack + $raBaseAttack * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyDefense = ($raBaseDefense + $raBaseDefense * $attackEquip * $equipMod) * _armyMod>>
 	<<set _enemyMorale = $raBaseMorale* _enemyMod>>
 	<<set _enemyHp = $raBaseHp * $attackTroops>>
 	<<set _enemyBaseHp = $raBaseHp>>
 <<elseif $attackType == "free city">>
-	<<set _enemyAttack = $fcBaseAttack + $fcBaseAttack * $attackEquip * $equipMod>>
-	<<set _enemyDefense = $fcBaseDefense + $fcBaseDefense * $attackEquip * $equipMod>>
+	<<set _enemyAttack = ($fcBaseAttack + $fcBaseAttack * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyDefense = ($fcBaseDefense + $fcBaseDefense * $attackEquip * $equipMod) * _armyMod>>
 	<<set _enemyMorale = $fcBaseMorale * _enemyMod>>
 	<<set _enemyHp = $fcBaseHp * $attackTroops>>
 	<<set _enemyBaseHp = $fcBaseHp>>
 <<elseif $attackType == "old world">>
-	<<set _enemyAttack = $owBaseAttack + $owBaseAttack * $attackEquip * $equipMod>>
-	<<set _enemyDefense = $owBaseDefense + $owBaseDefense * $attackEquip * $equipMod>>
+	<<set _enemyAttack = ($owBaseAttack + $owBaseAttack * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyDefense = ($owBaseDefense + $owBaseDefense * $attackEquip * $equipMod) * _armyMod>>
 	<<set _enemyMorale = $owBaseMorale * _enemyMod>>
 	<<set _enemyHp = $owBaseHp * $attackTroops>>
 	<<set _enemyBaseHp = $owBaseHp>>
 <<elseif $attackType == "freedom fighters">>
-	<<set _enemyAttack = $ffBaseAttack + $ffBaseAttack * $attackEquip * $equipMod>>
-	<<set _enemyDefense = $ffBaseDefense + $ffBaseDefense * $attackEquip * $equipMod>>
+	<<set _enemyAttack = ($ffBaseAttack + $ffBaseAttack * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyDefense = ($ffBaseDefense + $ffBaseDefense * $attackEquip * $equipMod) * _armyMod>>
 	<<set _enemyMorale = $ffBaseMorale * _enemyMod>>
 	<<set _enemyHp = $ffBaseHp * $attackTroops>>
 	<<set _enemyBaseHp = $ffBaseHp>>
@@ -991,7 +1025,7 @@
 /* simulates the combat by pitting attk against def */
 <<for _i = 0; _i < _turns; _i++>>
 	<br><br>
-	<<if $showBattleStatistics == 1>> turn: _i<</if>>
+	<<if $showBattleStatistics == 1>> turn: <<print _i + 1>><</if>>
 	/* player army attacks */
 	<<set _damage = _attack - _enemyDefense>>
 	<<if _damage <= 0>>
