@@ -91,14 +91,17 @@ $GREP '<<\s*\$' -- 'src/*'  | myprint "VarSignAtMacroStart"
 # check for missing ; before statement
 $GREP 'if $ ' -- 'src/*'  | myprint "missing ; before statement"
 $GREP 'elseif $ ' -- 'src/*'  | myprint "missing ; before statement"
-
+# Check for a . inside a <<>>
+$GREP "<<[a-zA-Z]\([^\"'>]\|[^\"'>]>[^\"'>]\)*[a-zA-Z][.][^a-zA-Z]" | myprint "StrangeCharacterAfterDot"
 
 # Check that we do not have any variables that we use only once.   e.g.     $onlyUsedOnce
 # Ignore  *Nationalities
 (
 cd src/
 cat $(find . -name "*.tw" ) | tr -c '$a-zA-Z' '\n'  | sed -n '/^[$]/p' | grep -v "Nationalities" | sort | uniq -u | sed 's/^[$]/-e[$]/' | sed 's/$/\\\\W/' | xargs -r  git grep -n --color | myprint "OnlyUsedOnce"
-#cat $(find . -name "*.tw" ) | tr -c '.$a-zA-Z[]_' '\n' | sed 's/SugarCube\.State\.variables\./$/g' | sed -n -e 's/^[$]\(PC\|activeSlave\|\(slaves\|tanks\)\[[^]]*\]*\)[.]\([a-zA-Z]*\).*$/[.]\3/p' | sort | uniq -u |sed 's/^\(.*\)$/-e\1\\\\\b/'  | xargs -r git grep -n --color | myprint "SlaveAttributeUsedOnce"
+cat $(find . -name "*.tw" ) | tr -c '.$a-zA-Z[]_' '\n' | sed 's/SugarCube\.State\.variables\./$/g' | sed -n -e 's/^[$]\(PC\|activeSlave\|\(slaves\|tanks\)\[[^]]*\]*\)[.]\([a-zA-Z]\+\).*$/[.]\3/p' | sort | uniq -u |sed 's/^\(.*\)$/-e\1\\\\\b/'  | xargs -r git grep -n --color | myprint "SlaveAttributeUsedOnce"
+$GREP "\$\(PC\|activeSlave\|slaves\|tanks\)[.][^a-zA-Z]" | myprint "UnexpectedCharAfterDot"
+
 )
 
 
