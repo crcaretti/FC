@@ -99,8 +99,17 @@
 	The arcology has not been attacked in a while, which has a positive effect on security.<<set _secGrowth += 0.5>>
 <</if>>
 <<if $blackOps == 1>>
-	Yoru black ops team proves to be a formidable tool against anyone threatening the security of your arcology.
+	Your black ops team proves to be a formidable tool against anyone threatening the security of your arcology.
 	<<set _secGrowth += 0.5 * random(1,2)>>
+<</if>>
+	
+<<if $SFSupportLevel >= 3>>
+	The two squads of $securityForceName assigned to the Security HQ provide an essential help to the security department.
+<<if $SFSupportLevel >= 2>>
+	The training officers of $securityForceName assigned to the Security HQ improve its effectiveness.
+<</if>>
+<<if $SFSupportLevel >= 1>>
+	Providing your Security Department with equipment from $securityForceName slightly boosts the security of your arology.
 <</if>>
 
 /* resting point */
@@ -109,12 +118,25 @@
 	<<set _secRest = 20>>
 <</if>>
 <<if _secRest < $secRestPoint && $secHQ == 1>>
-	The limited staff assigned to the HQ hampers the improvements to security achieved this week.
+	The limited staff assigned to the HQ hampered the improvements to security achieved this week.
 <<elseif _secRest < $secRestPoint>>
-	The limited infrastructure available slowly erodes the security level of the arcology.  
+	The limited infrastructure available slowly erodes away the security level of the arcology.  
+<</if>>
+<<if $security > (_secRest + 5)>>
+	The security level of the arcology is over its effective resting point, limiting the achievable growth this week.
+	<<set _secGrowth *= 0.5>>
+<<elseif $security < (_secRest - 5)>>
+	The security level of the arcology is under its effective resting point, speeding up its growth.
+	<<set _secGrowth *= 1.5>>
+<<elseif $security ==  _secRest>>
+	The security level of the arcology is at its effective resting point, this severely limits the influence of external factors on the change achievable this week.
+	<<set _secGrowth *= 0.3>>
+<<else>>
+	The security level of the arcology is near its effective resting point, this severely limits the influence of external factors on the change achievable this week.
+	<<set _secGrowth *= 0.3>>
 <</if>>
 <<set _restGrowth = (_secRest - $security) * 0.2>>
-<<set _newSec = Math.trunc($security + _secGrowth + _secRest)>>
+<<set _newSec = Math.trunc($security + _secGrowth + _restGrowth)>>
 <<if _newSec < $security>>
 	This week @@.red;security decreased@@.
 <<elseif _newSec == $security>>
@@ -190,7 +212,7 @@
 <</if>>
 
 /* crime cap */
-<<set _crimeCap = Math.clamp($crimeCap + $crimeCap * (($reqHelots - $secHelots) / $reqHelots),0,100)>>
+<<set _crimeCap = Math.trunc(Math.clamp($crimeCap * ($secHelots / $reqHelots),0,100))>>
 <<if _crimeCap < $crimeCap && $secHQ == 1>>
 	The limited staff assigned to the HQ allows more space for criminals to act.
 <</if>>
