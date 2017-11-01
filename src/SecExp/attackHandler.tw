@@ -996,6 +996,31 @@
 	<<set _enemyBaseHp = $ffBaseHp>>
 <</if>>
 
+<<if isNaN(_attack)>>
+	<br>@@.red;Error: attack value reported NaN@@
+<</if>>
+<<if isNaN(_defense)>>
+	<br>@@.red;Error: defense value reported NaN@@
+<</if>>
+<<if isNaN(_hp)>>
+	<br>@@.red;Error: hp value reported NaN@@
+<</if>>
+<<if isNaN(_morale)>>
+	<br>@@.red;Error: morale value reported NaN@@
+<</if>>
+<<if isNaN(_enemyAttack)>>
+	<br>@@.red;Error: enemy attack value reported NaN@@
+<</if>>
+<<if isNaN(_enemyDefense)>>
+	<br>@@.red;Error: enemy defense value reported NaN@@
+<</if>>
+<<if isNaN(_enemyHp)>>
+	<br>@@.red;Error: enemy hp value reported NaN@@
+<</if>>
+<<if isNaN(_enemyMorale)>>
+	<br>@@.red;Error: enemy morale value reported NaN@@
+<</if>>
+
 <<if $showBattleStatistics == 1>>
 <<set _atkMod -= 1, _defMod -= 1, _militiaMod -= 1, _mercMod -= 1, _slaveMod -= 1, _SFMod -= 1, _enemyMod -= 1>>
 <<set _atkMod = Math.round(_atkMod * 100)>>
@@ -1005,6 +1030,7 @@
 <<set _slaveMod = Math.round(_slaveMod * 100)>>
 <<set _SFMod = Math.round(_SFMod * 100)>>
 <<set _enemyMod = Math.round(_enemyMod * 100)>>
+<<set _barracksBonus = $secBarracksUpgrades.luxury * 5>>
 
 <br>attack: <<print Math.round(_attack)>>
 <br>defense: <<print Math.round(_defense)>>
@@ -1018,6 +1044,9 @@
 <br>mercenaries morale modifier: <<if _mercMod > 0>>+<</if>>_mercMod%
 <<if $SFIntervention == 1>>
 <br>security force morale modifier: <<if _SFMod > 0>>+<</if>>_SFMod%
+<</if>>
+<<if $secBarracksUpgrades.luxury >= 1>>
+<br>Barracks bnous morale modifier: +<<print _barracksBonus>>%
 <</if>>
 <br>tactic chance of success: <<print Math.round(_tacChance * 100)>>%
 <br>was tactic chosen successful?: <<if $tacticsSuccessful == 1>> yes <<else>> no<</if>>
@@ -1037,7 +1066,7 @@
 	/* player army attacks */
 	<<set _damage = _attack - _enemyDefense>>
 	<<if _damage <= 0>>
-		<<set _damage = random(0,5)>>
+		<<set _damage = random(0,1)>>
 	<</if>>
 	<br>
 	<<if $showBattleStatistics == 1>> player damage: <<print Math.round(_damage)>><</if>>
@@ -1049,6 +1078,7 @@
 	<br>
 	<<if $showBattleStatistics == 1>> remaining enemy morale: <<print Math.round(_enemyMorale)>><</if>>
 	<<if _enemyHp <= 0 || _enemyMorale <= 0>>
+		<br>
 		<<if $showBattleStatistics == 1>> <br>Victory!<</if>>
 		<<set $battleResult = 3>>
 		<<set $battleTurns = _i>>
@@ -1058,18 +1088,19 @@
 	/* attacker army attacks */
 	<<set _damage = _enemyAttack - _defense>>
 	<<if _damage <= 0>>
-		<<set _damage = random(0,5)>>
+		<<set _damage = random(0,1)>>
 	<</if>>
 	<br>
 	<<if $showBattleStatistics == 1>> enemy damage: <<print Math.round(_damage)>><</if>>
 	<<set _hp -= _damage>>
 	<br>
 	<<if $showBattleStatistics == 1>> remaining hp: <<print Math.round(_hp)>><</if>>
-	<<set $losses = _damage / _baseHp>>
+	<<set $losses += _damage / _baseHp>>
 	<<set _morale -= (_damage + _damage / _baseHp)>>
 	<br>
 	<<if $showBattleStatistics == 1>> remaining morale: <<print Math.round(_morale)>><</if>>
 	<<if _hp <= 0 || _morale <= 0>>
+		<br>
 		<<if $showBattleStatistics == 1>> <br>Defeat!<</if>>
 		<<set $battleResult = -3>>
 		<<set $battleTurns = _i>>
@@ -1077,6 +1108,7 @@
 	<</if>>
 <</for>>
 <<if $battleResult != 3 && $battleResult != -3>>
+	<br>
 	<<if _morale > _enemyMorale>>
 		<<if $showBattleStatistics == 1>> <br>Partial victory!<</if>>
 		<<set $battleResult = 2>>
@@ -1086,8 +1118,14 @@
 	<</if>>
 <</if>>
 
+<<if $showBattleStatistics == 1>>
+	<br>
+	<br>Losses: <<print Math.trunc($losses)>>
+	<br>Enemy losses: <<print Math.trunc($enemyLosses)>>
+<</if>>
+
 <<if $battleResult > 3 || $battleResult < -3>>
-	<br>@@.red;Error: failed to determine battle result@@
+	<br><br>@@.red;Error: failed to determine battle result@@
 <</if>>
 
 <<if $showBattleStatistics == 1 && $majorBattle == 1 && $majorBattleGameOver == 1 && $battleResult == -3>>
