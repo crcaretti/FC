@@ -119,22 +119,148 @@
 <</if>>
 
 /* rolls to see if event happens */
-<<if _slave > _citizen>>
-	<<if _slave >= 100>>
-		<<set _slave = random(90,95)>> 				/* there's always a 5% chance nothing happens */
-	<</if>>
+<<if _slave < 0>>
+	<<set _slave = 0>>
+<<elseif _slave >= 95>>
+	<<set _slave = 95>> 																	/* there's always a min 5% chance nothing happens */
+<</if>>
+<<if _citizen < 0>>
+	<<set _citizen = 0>>
+<<elseif _citizen >= 95>>
+	<<set _citizen = 95>>
+<</if>>
+<<set _roll = random(1,_slave + _citizen)>>
+<<if _roll <= _slave>>
 	<<if random(1,100) < _slave>>
 		<<set $slaveRebellionEventFires = 1>>
 		<<set $citizenRebellionEventFires = 0>>
-		<<set $slaveProgress += random(1,5) * ($tension / 100)>>
+		<<if $tension != 0>>
+			<<set $slaveProgress += Math.round(random(1,5) * ($tension / 100) * 10)>>		/* progress scales with tension */
+		<<else>>
+			<<set $slaveProgress += random(1,5)>>
+		<</if>>
 	<</if>>
 <<else>>
-	<<if _citizen >= 100>>
-		<<set _citizen = random(90,95)>>
-	<</if>>
 	<<if random(1,100) < _citizen>>
 		<<set $slaveRebellionEventFires = 0>>
 		<<set $citizenRebellionEventFires = 1>>
-		<<set $citizenProgress += random(1,5) * ($tension / 100)>>
+		<<if $tension != 0>>
+			<<set $citizenProgress += Math.round(random(1,5) * ($tension / 100) * 10)>>
+		<<else>>
+			<<set $citizenProgress += random(1,5)>>
+		<</if>>
 	<</if>>
+<</if>>
+
+<<if $slaveRebellionEventFires == 1 || $citizenRebellionEventFires == 1>>
+	<<include "rebellionEvents">>
+	<<set $slaveRebellionEventFires = 0>>
+	<<set $citizenRebellionEventFires = 0>>
+<</if>>
+
+<<if $slaveProgress >= 100>>
+	<<if random(1,100) <= 80>>												/* 80% of firing a rebellion once progress is at 100 */
+		<<set $slaveRebellion = 1>>
+		<<set $slaveProgress = 0>>
+		<<set $citizenProgress *= 0.2>>
+	<<else>>
+		<<set $slaveProgress = 100>>
+	<</if>>
+<<elseif $citizenProgress >= 100>>
+	<<if random(1,100) <= 80>>		
+		<<set $citizenRebellion = 1>>
+		<<set $citizenProgress = 0>>
+		<<set $slaveProgress *= 0.2>>
+	<<else>>
+		<<set $citizenProgress = 100>>
+	<</if>>
+<</if>>
+
+<<if $forceRebellion == 1>>
+	<<set $slaveRebellion = 1>>
+<</if>>
+
+<br>Debug: slave chance: _slave
+<br>Debug: citizen chance: _citizen
+<br>Debug: Event fires for slaves: $slaveRebellionEventFires
+<br>Debug: Event fires for citizens: $citizenRebellionEventFires
+<br>Debug: slave progress: $slaveProgress
+<br>Debug: citizen progress: $citizenProgress
+<br>Debug: slave rebellion fires: $slaveRebellion
+<br>Debug: citizen rebellion fires: $citizenRebellion
+
+<<if $slaveRebellion == 1>>
+	<<set $lastRebellionWeeks = 0>>
+	<<set $leadingTroops = "assistant">>
+	/* calc how many slaves participate */
+	<<set _authFactor = Math.clamp($authority / 20000,0.4,0.6)>>
+	<<set _repFactor  = Math.clamp($rep / 20000,0.4,0.6)>>
+	<<set $notInvolved = Math.round(($ASlaves * (1 - _repFactor)))>> 								/* a percentage of slave will not be involved in the rebellion, depending on reputation, the higher the more slaves stand aside */
+	<<set $notInvolved = Math.clamp($notInvolved - random(1,100),0,$ASlaves)>>
+	<<set $attackTroops = Math.round((($ASlaves - $notInvolved) * (1 - _authFactor)))>>				/* a percentage of slave will actively participate in the rebellion, depending on authority, the higher the fewer slaves join */
+	<<set $attackTroops = Math.clamp($attackTroops - random(1,100),0,$ASlaves)>>
+	<<set $irregulars = Math.round((($ACitizens  - $ACitizens * (1 - Math.clamp(_repFactor,0.5,0.7))) * (1 - Math.clamp(_repFactor,0.4,0.6))) * 0.2)>>		/* citizens participating on the side of the player.
+	<<set $irregulars = Math.clamp($irregulars - random(1,100),0,$ACitizens)>>
+	/* calc if units participate */
+	<<for _i = 0; _i < $slaveUnits.length; _i++>>
+		<<if $slaveUnits[_i].loyalty < 3>>
+			<<if random(1,100) <= 80>>
+				<<set $rebellingUnits.push($slaveUnits[_i])>>
+			<</if>>
+		<<elseif $slaveUnits[_i].loyalty < 6>>
+			<<if random(1,100) <= 20>>
+				<<set $rebellingUnits.push($slaveUnits[_i])>>
+			<</if>>
+		<</if>>
+	<</for>>
+	<<for _i = 0; _i < $mercUnits.length; _i++>>
+		<<if $mercUnits[_i].loyalty < 3>>
+			<<if random(1,100) <= 60>>
+				<<set $rebellingUnits.push($mercUnits[_i])>>
+			<</if>>
+		<<elseif $mercUnits[_i].loyalty < 6>>
+			<<if random(1,100) <= 10>>
+				<<set $rebellingUnits.push($mercUnits[_i])>>
+			<</if>>
+		<</if>>
+	<</for>>
+	<<set $attackEquip = Math.clamp($weaponsLaw + random(-1,1),0,4)>>
+<<elseif $citizenRebellion == 1>>
+	<<set $lastRebellionWeeks = 0>>
+	<<set $leadingTroops = "assistant">>
+	/* calc how many citizens participate */
+	<<set _authFactor = $authority / 20000>>
+	<<set _repFactor  = $rep / 20000>>
+	<<set $notInvolved = Math.round($ACitizens * (1 - Math.clamp(_repFactor,0.5,0.7)))>> 							/* a percentage of citizens will not be involved in the rebellion, depending on reputation, the higher the more slaves stand aside */
+	<<set $notInvolved = Math.clamp($notInvolved - random(1,100),0,$ACitizens)>>
+	<<set $attackTroops = Math.round(($ACitizens - $notInvolved) * (1 - Math.clamp(_authFactor,0.4,0.6)))>>			/* a percentage of citizens will actively participate in the rebellion, depending on authority, the higher the fewer slaves join */
+	<<set $attackTroops = Math.clamp($attackTroops - random(1,100),0,$ACitizens)>>
+	<<set $irregulars = Math.round((($ACitizens - $notInvolved) * (1 - Math.clamp(_repFactor,0.4,0.6))) * 0.5)>>	/* citizens joining the player */
+	<<set $irregulars = Math.clamp($irregulars - random(1,100),0,$ACitizens)>>
+	/* calc if units participate */
+	<<for _i = 0; _i < $militiaUnits.length; _i++>>
+		<<if $militiaUnits[_i].loyalty < 3>>
+			<<if random(1,100) <= 80>>
+				<<set $rebellingUnits.push($militiaUnits[_i])>>
+			<</if>>
+		<<elseif $militiaUnits[_i].loyalty < 6>>
+			<<if random(1,100) <= 20>>
+				<<set $rebellingUnits.push($militiaUnits[_i])>>
+			<</if>>
+		<</if>>
+	<</for>>
+	<<for _i = 0; _i < $mercUnits.length; _i++>>
+		<<if $mercUnits[_i].loyalty < 3>>
+			<<if random(1,100) <= 60>>
+				<<set $rebellingUnits.push($mercUnits[_i])>>
+			<</if>>
+		<<elseif $mercUnits[_i].loyalty < 6>>
+			<<if random(1,100) <= 10>>
+				<<set $rebellingUnits.push($mercUnits[_i])>>
+			<</if>>
+		<</if>>
+	<</for>>
+	<<set $attackEquip = Math.clamp($weaponsLaw + random(-1,1),0,4)>>
+<<else>>
+	<<set $lastRebellionWeeks++>>
 <</if>>
