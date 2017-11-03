@@ -54,11 +54,13 @@
 	<<set _attack += ($secBotsBaseAttack + $secBotsBaseAttack * $secBots.equip * $equipMod)>>
 	<<set _defense += ($secBotsBaseDefense + $secBotsBaseDefense * $secBots.equip * $equipMod)>>
 	<<set _hp += $secBotsBaseHp * $secBots.troops>>
+	<<set $deployedUnits++>>
 <</if>>
 
 <<for _i = 0; _i < $militiaUnits.length; _i++>>
 	<<if $militiaUnits[_i].active == 1 && !($rebellingUnits.includes($militiaUnits[_i]))>>
 		<<set $deployingMilitia = 1>>
+		<<set $deployedUnits++>>
 		<<if $militiaUnits[_i].training <= 10>>
 			<<set _expBonus = 0>>
 		<<elseif $militiaUnits[_i].training <= 33>>
@@ -76,6 +78,7 @@
 <<for _i = 0; _i < $slaveUnits.length; _i++>>
 	<<if $slaveUnits[_i].active == 1 && !($rebellingUnits.includes($slaveUnits[_i]))>>
 		<<set $deployingSlaves = 1>>
+		<<set $deployedUnits++>>
 		<<if $slaveUnits[_i].training <= 33>>
 			<<set _expBonus = 0>>
 		<<elseif $slaveUnits[_i].training <= 66>>
@@ -91,6 +94,7 @@
 <<for _i = 0; _i < $mercUnits.length; _i++>>
 	<<if $mercUnits[_i].active == 1 && !($rebellingUnits.includes($mercUnits[_i]))>>
 		<<set $deployingMercs = 1>>
+		<<set $deployedUnits++>>
 		<<if $mercUnits[_i].training <= 33>>
 			<<set _expBonus = 0>>
 		<<elseif $mercUnits[_i].training <= 66>>
@@ -271,7 +275,7 @@
 	<<set _hp -= _damage>>
 	<br>
 	<<if $showBattleStatistics == 1>> remaining hp: <<print Math.round(_hp)>><</if>>
-	<<set $losses = _damage / _baseHp>>
+	<<set $losses += _damage / _baseHp>>
 	<<set _morale -= (_damage + _damage / _baseHp)>>
 	<br>
 	<<if $showBattleStatistics == 1>> remaining morale: <<print Math.round(_morale)>><</if>>
@@ -296,7 +300,16 @@
 	<br>@@.red;Error: failed to determine battle result@@
 <</if>>
 
-<<if $showBattleStatistics == 1>>
+<<if $showBattleStatistics == 1 && $rebellionGameOver == 1 && $battleResult == -3>>
+	<br><br>
+	<<link "Proceed">>
+		<<set $gameover to "Rebellion defeat">>
+		<<goto "Gameover">>
+	<</link>>
+<<elseif $rebellionGameOver == 1 && $battleResult == -3>>
+	<<set $gameover to "Rebellion defeat">>
+	<<goto "Gameover">>
+<<elseif $showBattleStatistics == 1>>
 	<br><br>
 	<<link "Proceed">>
 		<<goto "rebellionReport">>

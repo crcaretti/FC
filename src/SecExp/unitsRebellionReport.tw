@@ -1,45 +1,58 @@
 :: unitsRebellionReport [nobr]
 
 <<if $losses == 0>>
+	<<if $irregulars > 0>>
+		The volounteeing citizens were quickly organized into an irregular militia unit and deployed in the arcology. While without the discipline of your other instruments, they nonetheless provided precious extra firepower and standing strength.
+		During the battle they suffered no casualties.
+	<</if>>
 	<<if $deployingBots == 1>>
 		Your squadron of security drones participated in the battle, dominating the airspace and providing vital intelligence to the rest of the army.
 		During the battle they suffered no casualties.
 	<</if>>
 	<<if $SFIntervention == 1>>
 		<<print $securityForcePersonnel>> soldiers from the $securityForceName joined the battle aboard their<<if $securityForceVehiclePower >= 4>>armored<</if>>vehicles<<if $securityForceAC130 > 0>>and their AC130<</if>>.
-		Free cities armies are a rare sight, but their power is undeniable and your $securityForceName is living testament of this.
+		They brought their unmatched strength to crush those that would want you deposed.
 		During the battle they suffered no casualties.
 	<</if>>
 	<<if $deployingMilitia == 1>>
 		<<for _j = 0; _j < $militiaUnits.length; _j++>>
-			<<if $militiaUnits[_j].isDeployed == 1>>
-				$militiaUnits[_j].platoonName participated in the battle, your proud citizens defending with their lives their arcology.
+			<<if $militiaUnits[_j].active == 1 && !($rebellingUnits.includes($militiaUnits[_j]))>>
+				$militiaUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
 				During the battle they suffered no casualties.
+			<<elseif $militiaUnits[_j].active == 1>>
+				$militiaUnits[_j].platoonName participated in the battle. They had the gall to betray you.
 			<</if>>
 		<</for>>
 	<</if>>
 	<<if $deployingSlaves == 1>>
 		<<for _j = 0; _j < $slaveUnits.length; _j++>>
-			<<if $slaveUnits[_j].isDeployed == 1>>
-				$slaveUnits[_j].platoonName participated in the battle. While a rare sight, your slave soldiers show no less willingness to fight for their arcology than their free counterparts, be it because of fear or devotion to their owner.
+			<<if $slaveUnits[_j].isDeployed == 1 && !($rebellingUnits.includes($slaveUnits[_j]))>>
+				$slaveUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
 				During the battle they suffered no casualties.
+			<<elseif $slaveUnits[_j].active == 1>>
+				$slaveUnits[_j].platoonName participated in the battle. They decided in their blind arrogance to betray you.
 			<</if>>
 		<</for>>
 	<</if>>
 	<<if $deployingMercs == 1>>
 		<<for _j = 0; _j < $mercUnits.length; _j++>>
-			<<if $mercUnits[_j].isDeployed == 1>>
-				$mercUnits[_j].platoonName participated in the battle. Mercenaries are a common sight on the modern battlefield and yours are proud to serve their generous contractor.
+			<<if $mercUnits[_j].isDeployed == 1 && !($rebellingUnits.includes($mercUnits[_j]))>>
+				$mercUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
 				During the battle they suffered no casualties.
+			<<elseif $mercUnits[_j].active == 1>>
+				$mercUnits[_j].platoonName participated in the battle. They made the grave mistake of betraying you.
 			<</if>>
 		<</for>>
 	<</if>>
 
 <<elseif $losses > 0>>
 	/* if the losses are more than zero */
-	<<if $SFIntervention == 1>>
+	<<if $securityForceCreate == 1>>
 		<<set $deployedUnits++>>
 	<</if>>
+	<<if $irregulars > 0>>
+		<<set $deployedUnits++>>
+	<</if>>	
 	<<set _averageLosses = Math.trunc($losses / $deployedUnits)>>
 	<<set _lossesList = []>>
 	<<for _i = 0; _i < $deployedUnits; _i++>>
@@ -52,11 +65,36 @@
 		<</if>>
 		<<set _lossesList.push(_assignedLosses)>>
 	<</for>>
+	<<if $losses > 0>>
+		<<set _lossesList[random(_lossesList.length)] += $losses>>
+	<</if>>
 	<<set _lossesList.shuffle()>>
 	
 	/* assigns the losses and notify the player */
-
-	<<if $deployingBots == 1>>
+	<<if $irregulars > 0>>
+		<br>
+		<br>
+		<<set _loss = _lossesList.pluck()>>
+		<<if _loss < $ACitizens + 100>>
+			<<set $ACitizens -= _loss>>
+		<<else>>
+			<<set $ACitizens = 100>>
+		<</if>>
+		The volounteeing citizens were quickly organized into an irregular militia unit and deployed in the arcology. While without the discipline of your other instruments, they nonetheless provided precious extra firepower and standing strength.
+		During the battle they suffered 
+		<<if _loss <= 0>>
+			no casualties.
+		<<elseif _loss <= 10>>
+			light casualties.
+		<<elseif _loss <= 30>>
+			moderate casualties.
+		<<elseif _loss <= 60>>
+			heavy casualties.
+		<<else>>
+			catastrofic casualties.
+		<</if>>
+	<</if>>
+	<<if $secBots.active == 1>>
 		<br>
 		<br>
 		<<set _loss = _lossesList.pluck()>>
@@ -85,7 +123,7 @@
 			The unit has very few operatives left, it risks compelte annihilation if deployed again.
 		<</if>>
 	<</if>>
-	<<if $SFIntervention == 1>>
+	<<if $securityForceCreate == 1>>
 		<br>
 		<br>
 		<<set _loss = _lossesList.pluck()>>
@@ -95,7 +133,7 @@
 			<<set $securityForcePersonnel = 0>>
 		<</if>>
 		<<print $securityForcePersonnel>> soldiers from the $securityForceName joined the battle aboard their<<if $securityForceVehiclePower >= 4>>armored<</if>>vehicles<<if $securityForceAC130 > 0>>and their AC130<</if>>.
-		Free cities armies are a rare sight, but their power is undeniable and your $securityForceName is living testament of this.
+		They brought their unmatched strength to crush those that would want you deposed.
 		During the battle they suffered 
 		<<if _loss <= 0>>
 			no casualties.
@@ -111,13 +149,13 @@
 	<</if>>
 	<<if $deployingMilitia == 1>>
 		<<for _j = 0; _j < $militiaUnits.length; _j++>>
-			<<if $militiaUnits[_j].isDeployed == 1>>
+			<<if $militiaUnits[_j].active == 1 && !($rebellingUnits.includes($militiaUnits[_j]))>>
 				<br>
 				<br>
 				<<set $militiaUnits[_j].battlesFought++>>
 				<<set _loss = _lossesList.pluck()>>
 				<<set _loss = Math.clamp(_loss,0,$militiaUnits[_j].troops)>>
-				$militiaUnits[_j].platoonName participated in the battle, your proud citizens defending with their lives their arcology.
+				$militiaUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
 				During the battle they suffered 
 				<<if _loss <= 0>>
 					no casualties
@@ -130,14 +168,15 @@
 				<<else>>
 					catastrofic casualties
 				<</if>>
+				<<set _med = Math.round(Math.clamp(_loss * $militiaUnits[_j].medics * 0.25,1,_loss))>>
 				<<if $militiaUnits[_j].medics == 1>>
-					, however <<print Math.trunc(_loss * $militiaUnits[_j].medics * 0.25)>> men were saved by the medics attached to this unit.
+					, however some men were saved by the medics attached to this unit.
 				<<else>>
 					.
 				<</if>>
-				<<set $militiaUnits[_j].troops -= Math.trunc(_loss - _loss * $militiaUnits[_j].medics * 0.25)>>
-				<<set $militiaEmployedManpower -= Math.trunc(_loss - _loss * $militiaUnits[_j].medics * 0.25)>>
-				<<set $militiaTotalCasualties += Math.trunc(_loss - _loss * $militiaUnits[_j].medics * 0.25)>>
+				<<set $militiaUnits[_j].troops -= Math.trunc(Math.clamp(_loss - _med,0,$militiaUnits[_j].maxTroops))>>
+				<<set $militiaEmployedManpower -= Math.trunc(_loss - _med)>>
+				<<set $militiaTotalCasualties += Math.trunc(_loss - _med)>>
 				<<if $militiaUnits[_j].training < 100>>
 					<<if random(1,100) > 60>>
 						Fighting in the field increased the experience of the unit, making it more effective in future fights.
@@ -154,14 +193,19 @@
 		<</for>>
 	<</if>>
 	<<if $deployingSlaves == 1>>
+		<<set _med = 0>>
 		<<for _j = 0; _j < $slaveUnits.length; _j++>>
-			<<if $slaveUnits[_j].isDeployed == 1>>
+			<<if $slaveUnits[_j].active == 1 && !($rebellingUnits.includes($slaveUnits[_j]))>>
 				<br>
 				<br>
 				<<set $slaveUnits[_j].battlesFought++>>
 				<<set _loss = _lossesList.pluck()>>
+				<<if !(Number.isInteger(_loss))>>
+					<br>@@.red;Error: failed to assign losses, input was negative or NaN@@
+					<<break>>
+				<</if>>
 				<<set _loss = Math.clamp(_loss,0,$slaveUnits[_j].troops)>>
-				$slaveUnits[_j].platoonName participated in the battle. While a rare sight, your slave soldiers show no less willingness to fight for their arcology than their free counterparts, be it because of fear or devotion to their owner.
+				$slaveUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
 				During the battle they suffered 
 				<<if _loss <= 0>>
 					no casualties
@@ -174,14 +218,15 @@
 				<<else>>
 					catastrofic casualties
 				<</if>>
+				<<set _med = Math.round(Math.clamp(_loss * $slaveUnits[_j].medics * 0.25,1,_loss))>>
 				<<if $slaveUnits[_j].medics == 1>>
-					, however <<print Math.trunc(_loss * $slaveUnits[_j].medics * 0.25)>> men were saved by the medics attached to this unit.
+					, however some men were saved by the medics attached to this unit.
 				<<else>>
 					.
 				<</if>>
-				<<set $slaveUnits[_j].troops -= Math.trunc(_loss - _loss * $slaveUnits[_j].medics * 0.25)>>
-				<<set $slavesEmployedManpower -= Math.trunc(_loss - _loss * $slaveUnits[_j].medics * 0.25)>>
-				<<set $slavesTotalCasualties += Math.trunc(_loss - _loss * $slaveUnits[_j].medics * 0.25)>>
+				<<set $slaveUnits[_j].troops -= Math.trunc(Math.clamp(_loss - _med,0,$slaveUnits[_j].maxTroops))>>
+				<<set $slavesEmployedManpower -= _loss - _med>>
+				<<set $slavesTotalCasualties += _loss - _med>>
 				<<if $slaveUnits[_j].training < 100>>
 					<<if random(1,100) > 60>>
 						Fighting in the field increased the experience of the unit, making it more effective in future fights.
@@ -199,7 +244,7 @@
 	<</if>>
 	<<if $deployingMercs == 1>>
 		<<for _j = 0; _j < $mercUnits.length; _j++>>
-			<<if $mercUnits[_j].isDeployed == 1>>
+			<<if $mercUnits[_j].active == 1 && !($rebellingUnits.includes($mercUnits[_j]))>>
 				<br>
 				<br>
 				<<set $mercUnits[_j].battlesFought++>>
@@ -218,15 +263,15 @@
 				<<else>>
 					catastrofic casualties
 				<</if>>
+				<<set _med = Math.round(Math.clamp(_loss * $militiaUnits[_j].medics * 0.25,1,_loss))>>
 				<<if $mercUnits[_j].medics == 1>>
-					, however 
-					<<print Math.trunc(_loss * $mercUnits[_j].medics * 0.25)>> men were saved by the medics attached to this unit.
+					, however some men were saved by the medics attached to this unit.
 				<<else>>
 					.
 				<</if>>
-				<<set $mercUnits[_j].troops -= Math.trunc(_loss - _loss * $mercUnits[_j].medics * 0.25)>>
-				<<set $mercEmployedManpower -= Math.trunc(_loss - _loss * $mercUnits[_j].medics * 0.25)>>
-				<<set $mercTotalCasualties += Math.trunc(_loss - _loss * $mercUnits[_j].medics * 0.25)>>
+				<<set $mercUnits[_j].troops -= Math.trunc(Math.clamp(_loss - _med,0,$mercUnits[_j].maxTroops))>>
+				<<set $mercEmployedManpower -= Math.trunc(_loss - _med)>>
+				<<set $mercTotalCasualties += Math.trunc(_loss - _med)>>
 				<<if $mercUnits[_j].training < 100>>
 					<<if random(1,100) > 60>>
 						Fighting in the field increased the experience of the unit, making it more effective in future fights.
@@ -240,8 +285,200 @@
 					<br>The unit has very few operatives left, it risks complete annihilation if deployed again.
 				<</if>>
 			<</if>>
+		<</for>>		
+	<</if>>
+	<br>
+	<br>
+	<<if $rebellingUnits.length > 0 && $battleResult >= 2>>
+		/* win */
+		/* militia */
+		<<set _militiaRebelled = []>>
+		<<set _militiaManpower = 0>>
+		<<for _j = 0; _j < $militiaUnits.length; _j++>>
+			<<if $militiaUnits[_j].active == 1 && $rebellingUnits.includes($militiaUnits[_j])>>
+				$militiaUnits[_j].platoonName,
+				<<set _militiaRebelled.push($militiaUnits[_j])>>
+				<<set _militiaManpower += Math.clamp($militiaUnits[_j].troops - random(_averageLosses),0,$militiaUnits[_j].troops)>>
+			<</if>>
 		<</for>>
+		had the gall to betray you and join your enemies.
+		<<if _militiaRebelled.length > 0>>
+			<span id="militiaResult">
+			<br><<link "Dissolve the units">>
+				<<set $militiaUnits.delete(_militiaRebelled)>>
+				<<set $militiaFreeManpower += _militiaManpower>>
+				<<for _i = 0; _i < $militiaUnits.length; _i++>>
+					<<if $militiaUnits[_i].active == 1>>
+						<<set $militiaUnits[_i].loyalty = Math.clamp($militiaUnits[_i].loyalty - random(1,4),0,10)>>
+					<</if>>
+				<</for>>
+				<<recalcManpower>>
+				<<replace "#militiaResult">>
+					<br>Units dissolved.
+				<</replace>>
+			<</link>>
+			<br>//Manpower will be refunded, but will negatvely influence the loyalty of the other units//
+			<br><<link "Purge the dissidents and dissolve the units">>
+				<<set $militiaUnits.delete(_militiaRebelled)>>
+				<<set $militiaFreeManpower += _militiaManpower * 0.5>>
+				<<recalcManpower>>
+				<<replace "#militiaResult">>
+					<br>Dissidents purged and units dissolved.
+				<</replace>>
+			<</link>>
+			<br>//Will not influence the loyalty of the other units, but only half the manpower will be refunded.//
+			<br><<link "Execute them all">>
+				<<set $militiaUnits.delete(_militiaRebelled)>>
+				<<for _i = 0; _i < $militiaUnits.length; _i++>>
+					<<if $militiaUnits[_i].active == 1>>
+						<<set $militiaUnits[_i].loyalty = Math.clamp($militiaUnits[_i].loyalty + random(1,4),0,10)>>
+					<</if>>
+				<</for>>
+				<<recalcManpower>>
+				<<replace "#militiaResult">>
+					<br>Units executed. Dissent will not be tolerated.
+				<</replace>>
+			<</link>>
+			<br>//Will positively influence the loyalty of the other units, but no manpower will be refunded.//
+		<</if>>
+		
+		/* slaves */
+		<<set _slaveRebelled = []>>
+		<<set _slaveManpower = 0>>
+		<<for _j = 0; _j < $slaveUnits.length; _j++>>
+			<<if $slaveUnits[_j].active == 1 && $rebellingUnits.includes($slaveUnits[_j])>>
+				<br>$slaveUnits[_j].platoonName,
+				<<set _slaveRebelled.push($slaveUnits[_j])>>
+				<<set _slaveManpower += Math.clamp($slaveUnits[_j].troops - random(_averageLosses),0,$slaveUnits[_j].troops)>>
+			<</if>>
+		<</for>>
+		decided in their blind arrogance to betray you.
+		<<if _slaveRebelled.length > 0>>
+			<span id="slaveResult">
+			<br><<link "Dissolve the units">>
+				<<set $slaveUnits.delete(_slaveRebelled)>>
+				<<set $helots += _slaveManpower>>
+				<<for _i = 0; _i < $militiaUnits.length; _i++>>
+					<<if $slaveUnits[_i].active == 1>>
+						<<set $slaveUnits[_i].loyalty = Math.clamp($slaveUnits[_i].loyalty - random(1,4),0,10)>>
+					<</if>>
+				<</for>>
+				<<recalcManpower>>
+				<<replace "#slaveResult">>
+					<br>Units dissolved.
+				<</replace>>
+			<</link>>
+			<br>//Manpower will be refunded, but will negatively influence the loyalty of the other units//
+			<br><<link "Purge the dissidents and dissolve the units">>
+				<<set $slaveUnits.delete(_slaveRebelled)>>
+				<<set $helots += _slaveManpower * 0.5>>
+				<<recalcManpower>>
+				<<replace "#slaveResult">>
+					<br>Dissidents purged and units dissolved.
+				<</replace>>
+			<</link>>
+			<br>//Will not influence the loyalty of the other units, but only half the manpower will be refunded.//
+			<br><<link "Execute them all">>
+				<<set $slaveUnits.delete(_slaveRebelled)>>
+				<<for _i = 0; _i < $slaveUnits.length; _i++>>
+					<<if $slaveUnits[_i].active == 1>>
+						<<set $slaveUnits[_i].loyalty = Math.clamp($slaveUnits[_i].loyalty + random(1,4),0,10)>>
+					<</if>>
+				<</for>>
+				<<recalcManpower>>
+				<<replace "#slaveResult">>
+					<br>Units executed. Dissent will not be tolerated.
+				<</replace>>
+			<</link>>
+			<br>//Will positively influence the loyalty of the other units, but no manpower will be refunded.//
+		<</if>>
+		
+		/* mercs */
+		<<set _mercRebelled = []>>
+		<<set _mercManpower = 0>>
+		<<for _j = 0; _j < $mercUnits.length; _j++>>
+			<<if $mercUnits[_j].active == 1 && $rebellingUnits.includes($mercUnits[_j])>>
+				<br>$mercUnits[_j].platoonName,
+				<<set _mercRebelled.push($mercUnits[_j])>>
+				<<set _mercManpower += Math.clamp($mercUnits[_j].troops - random(_averageLosses),0,$mercUnits[_j].troops)>>
+			<</if>>
+		<</for>>
+		made the grave mistake of betraying you.
+		<<if _mercRebelled.length > 0>>
+			<span id="mercResult">
+			<br><<link "Dissolve the units">>
+				<<set $mercUnits.delete(_mercRebelled)>>
+				<<set $mercFreeManpower += _mercManpower>>
+				<<for _i = 0; _i < $militiaUnits.length; _i++>>
+					<<if $mercUnits[_i].active == 1>>
+						<<set $mercUnits[_i].loyalty = Math.clamp($mercUnits[_i].loyalty - random(1,4),0,10)>>
+					<</if>>
+				<</for>>
+				<<recalcManpower>>
+				<<replace "#mercResult">>
+					<br>Units dissolved.
+				<</replace>>
+			<</link>>
+			<br>//Manpower will be refunded, but will negatively influence the loyalty of the other units//
+			<br><<link "Purge the dissidents and dissolve the units">>
+				<<set $mercUnits.delete(_mercRebelled)>>
+				<<set $mercFreeManpower += _mercManpower * 0.5>>
+				<<recalcManpower>>
+				<<replace "#mercResult">>
+					<br>Dissidents purged and units dissolved.
+				<</replace>>
+			<</link>>
+			<br>//Will not influence the loyalty of the other units, but only half the manpower will be refunded.//
+			<br><<link "Execute them all">>
+				<<set $mercUnits.delete(_mercRebelled)>>
+				<<for _i = 0; _i < $mercUnits.length; _i++>>
+					<<if $mercUnits[_i].active == 1>>
+						<<set $mercUnits[_i].loyalty = Math.clamp($mercUnits[_i].loyalty + random(1,4),0,10)>>
+					<</if>>
+				<</for>>
+				<<recalcManpower>>
+				<<replace "#mercResult">>
+					<br>Units executed. Dissent will not be tolerated.
+				<</replace>>
+			<</link>>
+			<br>//Will positively influence the loyalty of the other units, but no manpower will be refunded.//
+		<</if>>
+		
+	/* loss */
+	<<elseif $rebellingUnits.length > 0>>
+		<<set _militiaRebelled = 0>>
+		<<for _j = 0; _j < $militiaUnits.length; _j++>>
+			<<if $militiaUnits[_j].active == 1 && $rebellingUnits.includes($militiaUnits[_j])>>
+				$militiaUnits[_j].platoonName,
+				<<set $militiaUnits.deleteAt(_j)>>
+				<<set _militiaRebelled++>>
+			<</if>>
+		<</for>>
+		<<recalcManpower>>
+		had the gall to betray you and join your enemies. They participated in the looting following the battle, then vanished in the wastes.
+		<<set $cash -= 1000 * _militiaRebelled>>
+		<br>
+		<<set _slaveRebelled = 0>>
+		<<for _j = 0; _j < $slaveUnits.length; _j++>>
+			<<if $slaveUnits[_j].active == 1 && $rebellingUnits.includes($slaveUnits[_j])>>
+				<br>$slaveUnits[_j].platoonName,
+				<<set $slaveUnits.deleteAt(_j)>>
+				<<set _slaveRebelled++>>
+			<</if>>
+		<</for>>
+		decided in their blind arrogance to betray you. They participated in the looting following the battle, then vanished in the wastes.
+		<<set $cash -= 1000 * _slaveRebelled>>
+		<<set _mercRebelled = 0>>
+		<<for _j = 0; _j < $mercUnits.length; _j++>>
+			<<if $mercUnits[_j].active == 1 && $rebellingUnits.includes($mercUnits[_j])>>
+				<br>$mercUnits[_j].platoonName,
+				<<set $mercUnits.deleteAt(_j)>>
+				<<set _mercRebelled++>>
+			<</if>>
+		<</for>>
+		made the grave mistake of betraying you. They participated in the looting following the battle, then vanished in the wastes.
+		<<set $cash -= 1000 * _mercRebelled>>
 	<</if>>
 <<else>>
 	<br>@@.red;Error: losses are a negative number or NaN@@
-<</if>> /* closes check for more than zero casualties */
+<</if>>
