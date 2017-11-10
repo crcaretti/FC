@@ -1,0 +1,322 @@
+:: weaponsManufacturing [nobr]
+
+<<set $nextButton = "Back", $nextLink = "Main">>
+
+This sector of the arcology has been dedicated to weapons manufacturing. These factories supply
+<<if $militiaUnits.length > 0>> your militia and<</if>>
+<<if $slaveUnits.length > 0>> your slave soldiers and<</if>>
+<<if $mercenaries >0>> your mercenaries and<</if>>
+many small old world nations as the advanced technology that free cities have available is hard to come by otherwise.
+<br>
+<<if $weapProductivity == 1>>
+	Production is completely manned by human workers. The complex has close to zero automation.
+<<elseif $weapProductivity == 2>>
+	Production is mostly handled by human workers. A few of the most tiresome tasks are handled by robots.
+<<elseif $weapProductivity == 3>>
+	A good part of production is handled by robots with humans handling the most complex tasks.
+<<elseif $weapProductivity == 4>>
+	Almost all production is handled by robots, with humans acting as support for the machines.
+<<else>>
+	All production here is handled by robots. The few humans working in the complex occupy themselves exclusively with management and quality assurance.
+<</if>>
+<br>
+<<if $weapLab == 1>>
+	There's a very Spartan lab attached to the complex that occupies itself mainly with weapons testing and small adjustments to the manufacturing process.
+<<elseif $weapLab == 2>>
+	There's a lab attached to the complex. It mainly test weapons effectiveness and manufacturing efficiency, but has enough equipment and personnel to develop new technology.
+<<else>>
+	There's a large lab attached to the complex. The complement of equipment and personnel makes it a great beacon of military science in an otherwise ignorant world.
+<</if>>
+<br>
+<<if $weapHelots> 0>>Assigned here are $weapHelots, working to produce as much equipment as possible<<else>>There are no assigned menial slaves here. The spaces is manned exclusively by low rank citizens.<</if>>
+You own $helots free menial slaves. This manufacturing complex can house 500 at most, with <<print 500 - $weapHelots>> free slots.
+<br>
+<<silently>><<MenialPopCap>><</silently>>
+<<set _menialPrice = Math.trunc(($slaveCostFactor*1000)/100)*100>>
+<<set _menialPrice = Math.clamp(_menialPrice, 500, 1500)>>
+<<if $PopCap > $helots+$fuckdolls+$menialBioreactors || $helots+$fuckdolls+$menialBioreactors == 0>>
+	<br>
+	[[Buy|weaponsManufacturing][$helots+=1,$menialDemandFactor+=1,$cash-=_menialPrice]]
+	<<if $cash > _menialPrice*10>>
+		[[(x10)|weaponsManufacturing][$helots+=10,$menialDemandFactor+=10,$cash-=_menialPrice*10]]
+	<</if>>
+	<<if $cash > _menialPrice*100>>
+		[[(x100)|weaponsManufacturing][$helots+=100,$menialDemandFactor+=100,$cash-=_menialPrice*100]]
+	<</if>>
+	<<if $cash > _menialPrice*2>>
+		[[(max)|weaponsManufacturing][$helots+=Math.trunc($cash/(_menialPrice)),$menialDemandFactor+=Math.trunc($cash/(_menialPrice)),$cash-=Math.trunc($cash/(_menialPrice))*(_menialPrice)]]
+	<</if>>
+<</if>>
+<br>
+<<if $weapHelots < 500>>
+	<<if $helots >= 1>>
+		<<link "Transfer a menial slave">>
+			<<set $helots-->>
+			<<set $weapHelots++>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+	<</if>>
+	<<if $helots >= 10>>
+		|
+		<<link "Transfer 10 menial slaves">>
+			<<set $helots -= 10>>
+			<<set $weapHelots += 10>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+	<</if>>
+	<<if $helots > 0 && $helots < 500>>
+		|
+		<<link "Transfer all free menial slaves">>
+			<<set $weapHelots += $helots>>
+			<<set $helots = 0>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+	<</if>>
+	<<if $weapHelots > 0>>
+		<br>
+		<<link "Transfer out all menial slaves">>
+			<<set $helots += $weapHelots>>
+			<<set $weapHelots = 0>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+	<</if>>
+<<else>>
+	The complex does not require more workers.
+<</if>>
+<br>
+<br>
+<<if $weapProductivity < 5>>
+	<<link "Invest in automating the complex">>
+		<<set $weapProductivity++>>
+		<<set $cash -= 10000 * $weapProductivity>>
+		<<goto "weaponsManufacturing">>
+	<</link>>
+	//Will cost <<print 10000 * $weapProductivity>> and will increase the facility income as well as speed up upgrades//
+<<else>>
+	You've automated the complex to the limit.
+<</if>>
+<br>
+<<if $weapLab < 3>>
+	<<link "Invest in research and development">>
+		<<set $weapLab++>>
+		<<set $cash -= 10000 * $weapLab>>
+		<<goto "weaponsManufacturing">>
+	<</link>>
+	//Will cost <<print 10000 * $weapLab>> and will increase the facility income as well as unlock upgrades for our troops//
+<<else>>
+	You have upgraded the research facilities of the complex to the limit.
+<</if>>
+<br>
+<br>
+__Markets__:
+<br>
+<<if $sellTo.citizen == 1>>
+	We are currently selling our weapons to the domestic market of the arcology.
+	<<link "Forbid">>
+		<<set $sellTo.citizen = 0>>
+		<<got "weaponsManufacturing">>
+	<</link>>
+<<else>>
+	We are not selling our weaponry to our citizens.
+	<<link "Allow">>
+		<<set $sellTo.citizen = 1>>
+		<<got "weaponsManufacturing">>
+	<</link>>
+<</if>>
+<br>
+<<if $sellTo.raiders == 1>>
+	We are currently selling our weapons to various groups of outlaws, also known as raiders.
+	<<link "Forbid">>
+		<<set $sellTo.raiders = 0>>
+		<<got "weaponsManufacturing">>
+	<</link>>
+<<else>>
+	We are not selling our weaponry to raiders.
+	<<link "Allow">>
+		<<set $sellTo.raiders = 1>>
+		<<got "weaponsManufacturing">>
+	<</link>>
+<</if>>
+<br>
+<<if $sellTo.oldWorld == 1>>
+	We are currently selling our weapons to many old world nations.
+	<<link "Forbid">>
+		<<set $sellTo.oldWorld = 0>>
+		<<got "weaponsManufacturing">>
+	<</link>>
+<<else>>
+	We are not selling our weaponry to old world nations.
+	<<link "Allow">>
+		<<set $sellTo.oldWorld = 1>>
+		<<got "weaponsManufacturing">>
+	<</link>>
+<</if>>
+<br>
+<<if $sellTo.FC == 1>>
+	We are currently selling our weapons to other free cities.
+	<<link "Forbid">>
+		<<set $sellTo.FC = 0>>
+		<<got "weaponsManufacturing">>
+	<</link>>
+<<else>>
+	We are not selling our weaponry to other free cities.
+	<<link "Allow">>
+		<<set $sellTo.FC = 1>>
+		<<got "weaponsManufacturing">>
+	<</link>>
+<</if>>
+<br>//You are free to sell to whoever you please, but expect hostile forces of a certain kind to be stronger if we'll ever meet in battle.//
+<br>
+<br>
+<<set _time = $baseUpgradeTime / $weapProductivity>>
+__Upgrades__:
+<br>With our current industrial and research capabilities upgrades will be finished in <<print _time>>.
+<br>
+<<if $currentUpgrade.time <= 0>>
+	/* Drones upgrades */
+	<<if $secBotsBaseAttack == 7>>
+		<<link "Develop dynamic battle aware AI">>
+			<<set $currentUpgrade = {
+				name: "dynamic battle aware AI",
+				unit: 0,
+				type: attack,
+				time: _time,
+				ready: 1,
+				value: 1}>>
+			<<set $cash -= 10000>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+		<br>//Will take _time weeks, cost ¤10000 and will increase the base attack value of the security drones.//
+	<<elseif $weapLab >= 2 && $secBotsBaseDefense == 3>>
+		<<link "Develop adaptive armored frames">>
+			<<set $currentUpgrade = {
+				name: "adaptive armored frames",
+				unit: 0,
+				type: defense,
+				time: _time,
+				value: 1}>>
+			<<set $cash -= 10000>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+		<br>//Will take _time weeks, cost ¤10000 and will increase the base defense value of the security drones.//
+	<<elseif $weapLab >= 3 && $secBotsBaseHp <= 3>>
+		<br>
+		<<link "Develop advanced synthetic alloys">>
+			<<set $currentUpgrade = {
+				name: "advanced synthetic alloys",
+				unit: 0,
+				type: hp,
+				time: _time,
+				ready: 1,
+				value: 1}>>
+			<<set $cash -= 30000>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+		<br>//Will take _time weeks, cost ¤30000 and will increase the base hp value of the security drones.//
+	<<elseif $secBotsBaseDefense <= 3 || $secBotsBaseHp <= 3>>
+		Upgrade the research facility further to unlock more upgrades for the security drones.
+	<<else>>
+		You fully upgraded the security drones.
+	<</if>>
+	<br>
+	/* human troops upgrades upgrades */
+	<<if $humanUpgrades <= 2>>
+		<<link "Develop magnetic based ballistic weaponry">>
+			<<set $currentUpgrade = {
+				name: "magnetic based ballistic weaponry",
+				unit: 1,
+				type: "attack",
+				time: _time,
+				value: 1}>>
+			<<set $cash -= 30000>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+		<br>//Will take _time weeks, cost ¤30000 and will increase the base attack value of all human troops.//
+		<br>
+		<<link "Develop ceramo-metallic alloys">>
+			<<set $currentUpgrade = {
+				name: "ceramo-metallic alloys",
+				unit: 1,
+				type: "defense",
+				time: _time,
+				value: 1}>>
+			<<set $cash -= 30000>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+		<br>//Will take _time weeks, cost ¤30000 and will increase the base defense value of all human troops.//
+	<<elseif $humanUpgrades <= 4 && $weapLab == 2>>
+		<br>
+		<<link "Develop rapid action stimulants">>
+			<<set $currentUpgrade = {
+				name: "rapid action stimulants",
+				unit: 1,
+				type: "hp",
+				time: _time,
+				value: 1}>>
+			<<set $cash -= 60000>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+		<br>//Will take _time weeks, cost ¤60000 and will increase the base hp value of all human troops.//
+		<br>
+		<<link "Develop fast response neural stimulant">>
+			<<set $currentUpgrade = {
+				name: "fast response neural stimulant",
+				unit: 1,
+				type: "morale",
+				time: _time,
+				value: 1}>>
+			<<set $cash -= 60000>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+		<br>//Will take _time weeks, cost ¤60000 and will increase the base morale value of all human troops.//
+	<<elseif $humanUpgrades <= 4>>
+		Upgrade the research facility further to unlock more upgrades for human troops.
+	<<elseif $humanUpgrades <= 6 && $weapLab == 3>>
+		<<link "Develop universal cyber enhancements">>
+			<<set $currentUpgrade = {
+				name: "universal cyber enhancements",
+				unit: 1,
+				type: "attackAndDefese",
+				time: _time,
+				value: 1}>>
+			<<set $cash -= 120000>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+		<br>//Will take _time weeks, cost ¤120000 and will increase the base attack and defense value of all human troops.//
+		<br>
+		<<link "Develop remote neural links">>
+			<<set $currentUpgrade = {
+				name: "remote neural links",
+				unit: 1,
+				type: "hpAndMorale",
+				time: _time,
+				value: 1}>>
+			<<set $cash -= 120000>>
+			<<goto "weaponsManufacturing">>
+		<</link>>
+		<br>//Will take _time weeks, cost ¤120000 and will increase the base hp and morale value of all human troops.//
+	<<elseif $humanUpgrades <= 6>>
+		Upgrade the research facility further to unlock more upgrades for human troops.
+	<<else>>
+		You fully upgraded your human troops.
+	<</if>>
+<<else>>
+	<br>
+	You are developing <<print $currentUpgrade.name>>.
+	It is for <<if $currentUpgrade.unit == 0>> the security drones<<else>> our troops<</if>>
+	and it will enhance their
+	<<if $currentUpgrade.type == "attack">>
+		attack power.
+	<<elseif $currentUpgrade.type == "defense">>
+		defense capabilities.
+	<<elseif $currentUpgrade.type == "hp">>
+		survivability.
+	<<elseif $currentUpgrade.type == "morale">>
+		standing power.
+	<<elseif $currentUpgrade.type == "attackAndDefese">>
+		offensive and defensive effectiveness.
+	<<elseif $currentUpgrade.type == "hpAndMorale">>
+		morale and survivability.
+	<</if>>
+	It will be finished in <<print $currentUpgrade.time>> weeks.
+<</if>>

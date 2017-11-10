@@ -172,9 +172,9 @@
 	Due to the deterioration of the old world countries, organized crime focuses more and more on the prosperous free cities, yours included. This has a huge impact on the growth of criminal activities in your arcology.<<set _crimeGrowth += 2.5>>
 <</if>>
 <<if $arcologies[0].prosperity < 50>>
-	The low prosperity of the arcology facilitates criminal recruitment and organization.<<set _crimeGrowth += 2>>
+	The low prosperity of the arcology facilitates criminal recruitment and organization.<<set _crimeGrowth += 1>>
 <<elseif $arcologies[0].prosperity < 80>>
-	The fairly low prosperity of the arcology facilitates criminal recruitment and organization.<<set _crimeGrowth += 1>>
+	The fairly low prosperity of the arcology facilitates criminal recruitment and organization.<<set _crimeGrowth += 0.5>>
 <<elseif $arcologies[0].prosperity < 120>>
 	The prosperity of the arcology is not high or low enough to have significant effects on criminal recruitment and organization.
 <<elseif $arcologies[0].prosperity < 160>>
@@ -196,11 +196,11 @@
 <<if $security <= 20>>
 	The security measures in place are severely limited, allowing crime to grow uncontested.
 <<elseif $security <= 50>>
-	The security measures in place are of limited effect and use, giving only mixed results in their fight against crime.<<set _crimeGrowth -= 1>>
+	The security measures in place are of limited effect and use, giving only mixed results in their fight against crime.<<set _crimeGrowth -= 1.5>>
 <<elseif $security <= 75>>
-	The security measures in place are well developed and effective, making a serious dent in the profitability of criminal activity in your arcology.<<set _crimeGrowth -= 2.5>>
+	The security measures in place are well developed and effective, making a serious dent in the profitability of criminal activity in your arcology.<<set _crimeGrowth -= 3>>
 <<else>>
-	The security measures in place are extremely well developed and very effective, posing a serious threat even to the most powerful criminal organizations in existence.<<set _crimeGrowth -= 5>>
+	The security measures in place are extremely well developed and very effective, posing a serious threat even to the most powerful criminal organizations in existence.<<set _crimeGrowth -= 5.5>>
 <</if>>
 <<if $authority < 5000>>
 	Your low authority allows crime to grow undisturbed.<<set _crimeGrowth += 1>>
@@ -221,7 +221,7 @@
 <</if>>
 
 /* crime cap */
-<<set _crimeCap = Math.trunc(Math.clamp($crimeCap + $crimeCap * ($secHelots / $reqHelots),0,100))>>
+<<set _crimeCap = Math.trunc(Math.clamp($crimeCap + ($crimeCap - $crimeCap * ($secHelots / $reqHelots)),0,100))>>
 <<if _crimeCap < $crimeCap && $secHQ == 1>>
 	The limited staff assigned to the HQ allows more space for criminals to act.
 <</if>>
@@ -376,8 +376,8 @@
 			The powerful crime organizatiosn that nested themselves in the arcology have an unending need for cheap guns for hire, many mercenaries flock to your free city in search of employment.<<set _newMercs += random(1,2)>>
 		<</if>>
 		<<if _newMercs > 0>>
-			<<set $mercTotalManpower += _recruits>>
-			<<set $mercFreeManpower += _recruits>>
+			<<set $mercTotalManpower += _newMercs>>
+			<<set $mercFreeManpower += _newMercs>>
 			This week <<print _newMercs>> citizens joined the militia.
 		<<else>>
 			This week no new mercenaries reached the arcology.
@@ -518,5 +518,95 @@
 			good
 		<</if>>
 		progress
+	<</if>>
+<</if>>
+
+<<if $currentUpgrade.time > 0>>
+	<br>
+	<br>
+	In the research lab, <<print $currentUpgrade.name>> is being developed, with the objective to enhance 
+	<<if $currentUpgrade.type == "attack">>
+		attack power.
+	<<elseif $currentUpgrade.type == "defense">>
+		defense capabilities.
+	<<elseif $currentUpgrade.type == "hp">>
+		survivability.
+	<<elseif $currentUpgrade.type == "morale">>
+		standing power.
+	<<elseif $currentUpgrade.type == "attackAndDefese">>
+		offensive and defensive effectiveness.
+	<<elseif $currentUpgrade.type == "hpAndMorale">>
+		morale and survivability.
+	<</if>>
+	for <<if $currentUpgrade.unit == 0>> the security drones<<else>> our troops<</if>>.
+	
+	<<set $currentUpgrade.time-->>
+	<<if $currentUpgrade.time <= 0>>
+		Reports indicate it is ready for deployment and will be issued to
+		<<if $currentUpgrade.unit == 0>>
+			the security drones
+			<<if $currentUpgrade.type == "attack">>
+				<<set $secBotsBaseAttack += $currentUpgrade.value>>
+			<<elseif $currentUpgrade.type == "defense">>
+				<<set $secBotsBaseDefense += $currentUpgrade.value>>
+			<<elseif $currentUpgrade.type == "hp">>
+				<<set $secBotsBaseHp += $currentUpgrade.value>>
+			<</if>>
+			<<set $currentUpgrade.name = " ">>
+			<<set $currentUpgrade.type = " ">>
+			<<set $currentUpgrade.unit = -1>>
+			<<set $currentUpgrade.time = 0>>
+			<<set $currentUpgrade.value = 0>>
+		<<else>>
+			all troops
+			<<if $currentUpgrade.type == "attack">>
+				<<set $militiaBaseAttack += $currentUpgrade.value>>
+				<<set $slaveBaseAttack += $currentUpgrade.value>>
+				<<set $mercBaseAttack += $currentUpgrade.value>>
+				<<set $SFBaseAttack += $currentUpgrade.value>>
+			<<elseif $currentUpgrade.type == "defense">>
+				<<set $militiaBaseDefense += $currentUpgrade.value>>
+				<<set $slaveBaseDefense += $currentUpgrade.value>>
+				<<set $mercBaseDefense += $currentUpgrade.value>>
+				<<set $SFBaseDefense += $currentUpgrade.value>>
+			<<elseif $currentUpgrade.type == "hp">>
+				<<set $militiaBaseHp += $currentUpgrade.value>>
+				<<set $slaveBaseHp += $currentUpgrade.value>>
+				<<set $mercBaseHp += $currentUpgrade.value>>
+				<<set $SFBaseHp += $currentUpgrade.value>>
+			<<elseif $currentUpgrade.type == "morale">>
+				<<set $militiaBaseMorale += $currentUpgrade.value * 10>>
+				<<set $slaveBaseMorale += $currentUpgrade.value * 10>>
+				<<set $mercBaseMorale += $currentUpgrade.value * 10>>
+				<<set $SFBaseMorale += $currentUpgrade.value * 10>>
+			<<elseif $currentUpgrade.type == "attackAndDefese">>
+				<<set $militiaBaseAttack += $currentUpgrade.value>>
+				<<set $slaveBaseAttack += $currentUpgrade.value>>
+				<<set $mercBaseAttack += $currentUpgrade.value>>
+				<<set $SFBaseAttack += $currentUpgrade.value>>
+				<<set $militiaBaseDefense += $currentUpgrade.value>>
+				<<set $slaveBaseDefense += $currentUpgrade.value>>
+				<<set $mercBaseDefense += $currentUpgrade.value>>
+				<<set $SFBaseDefense += $currentUpgrade.value>>
+			<<elseif $currentUpgrade.type == "hpAndMorale">>
+				<<set $militiaBaseHp += $currentUpgrade.value>>
+				<<set $slaveBaseHp += $currentUpgrade.value>>
+				<<set $mercBaseHp += $currentUpgrade.value>>
+				<<set $SFBaseHp += $currentUpgrade.value>>
+				<<set $militiaBaseMorale += $currentUpgrade.value * 10>>
+				<<set $slaveBaseMorale += $currentUpgrade.value * 10>>
+				<<set $mercBaseMorale += $currentUpgrade.value * 10>>
+				<<set $SFBaseMorale += $currentUpgrade.value * 10>>
+			<</if>>
+			<<set $currentUpgrade.name = " ">>
+			<<set $currentUpgrade.type = " ">>
+			<<set $currentUpgrade.unit = -1>>
+			<<set $currentUpgrade.time = 0>>
+			<<set $currentUpgrade.value = 0>>
+			<<set $humanUpgrades++>>
+		<</if>>
+		in the next days.
+	<<else>>
+		It will be finished in <<if $currentUpgrade.time>> one week.<<else>><<print $currentUpgrade.time>> weeks.<</if>>
 	<</if>>
 <</if>>
