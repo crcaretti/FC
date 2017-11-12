@@ -134,7 +134,7 @@
 <<if $brainImplant == 106>>
 	<<set _slave = Math.trunc(_slave * 0.2), _citizen = Math.trunc(_citizen * 0.2)>>
 <<else>>
-	<<set _slave = Math.trunc(_slave * 0.6), _citizen = Math.trunc(_citizen * 0.6)>>
+	<<set _slave = Math.trunc(_slave * 0.75), _citizen = Math.trunc(_citizen * 0.75)>>
 <</if>>
 <<if _roll <= _slave>>
 	<<if random(1,100) < _slave>>
@@ -200,17 +200,17 @@
 	<<set $engageRule = 0>>
 	<<set $lastRebellionWeeks = 0>>
 	<<set $leadingTroops = "assistant">>
+	<<if $hasRebelledOnce == 0>>
+		<<set $hasRebelledOnce = 1>>
+	<</if>>
 	/* calc how many slaves and citizens participate */
 	<<set _authFactor = Math.clamp($authority / 20000,0.4,0.6)>>
 	<<set _repFactor  = Math.clamp($rep / 20000,0.4,0.6)>>
-	<<set $notInvolved = Math.round(($ASlaves * (1 - _repFactor)))>> 								/* a percentage of slave will not be involved in the rebellion, depending on reputation, the higher the more slaves stand aside */
-	<<set $notInvolved = Math.clamp($notInvolved - random(1,100),0,$ASlaves)>>
-	<<set $attackTroops = Math.round((($ASlaves - $notInvolved) * (1 - _authFactor)))>>				/* a percentage of slave will actively participate in the rebellion, depending on authority, the higher the fewer slaves join */
-	<<set $attackTroops = Math.clamp($attackTroops - random(1,100),0,$ASlaves)>>
-	<<set _citNonInvolved = $ACitizens * (1 - Math.clamp(_repFactor,0.5,0.7))>>
-	<<set $irregulars = Math.round((($ACitizens  - _citNonInvolved) * (1 - Math.clamp(_repFactor,0.4,0.6))) * 0.1)>>		/* citizens participating on the side of the player.
-	<<set $irregulars = Math.clamp($irregulars - random(1,100),0,$ACitizens)>>
-	/* calc if units participate */
+	<<set _rebelPercent = 0.5 * _authFactor>>
+	<<set _irregularPercent = 0.25 * _repFactor>>
+	<<set $attackTroops = Math.round($ASlaves * _rebelPercent + random(-100,100))>>
+	<<set $irregulars = Math.round($ACitizens * _irregularPercent + random(-100,100))>>
+	/* calc if units rebel */
 	<<for _i = 0; _i < $slaveUnits.length; _i++>>
 		<<if $slaveUnits[_i].loyalty < 10>>
 			<<if random(1,100) <= 90>>
@@ -245,17 +245,18 @@
 <<elseif $citizenRebellion == 1>>
 	<<set $engageRule = 0>>
 	<<set $lastRebellionWeeks = 0>>
+	<<if $hasRebelledOnce == 0>>
+		<<set $hasRebelledOnce = 1>>
+	<</if>>
 	<<set $leadingTroops = "assistant">>
 	/* calc how many citizens participate */
 	<<set _authFactor = $authority / 20000>>
 	<<set _repFactor  = $rep / 20000>>
-	<<set $notInvolved = Math.round($ACitizens * (1 - Math.clamp(_repFactor,0.5,0.7)))>> 							/* a percentage of citizens will not be involved in the rebellion, depending on reputation, the higher the more slaves stand aside */
-	<<set $notInvolved = Math.clamp($notInvolved - random(1,100),0,$ACitizens)>>
-	<<set $attackTroops = Math.round(($ACitizens - $notInvolved) * (1 - Math.clamp(_authFactor,0.4,0.6)))>>			/* a percentage of citizens will actively participate in the rebellion, depending on authority, the higher the fewer slaves join */
-	<<set $attackTroops = Math.clamp($attackTroops - random(1,100),0,$ACitizens)>>
-	<<set $irregulars = Math.round((($ACitizens - $notInvolved) * (1 - Math.clamp(_repFactor,0.4,0.6))) * 0.5)>>	/* citizens joining the player */
-	<<set $irregulars = Math.clamp($irregulars - random(1,100),0,$ACitizens)>>
-	/* calc if units participate */
+	<<set _rebelPercent = 0.5 * _authFactor>>
+	<<set _irregularPercent = 0.25 * _repFactor>>
+	<<set $attackTroops = Math.round($ACitizens * _rebelPercent + random(-100,100))>>
+	<<set $irregulars = Math.round($ACitizens * _irregularPercent + random(-100,100))>>
+	/* calc if units rebel */
 	<<for _i = 0; _i < $militiaUnits.length; _i++>>
 		<<if $militiaUnits[_i].loyalty < 10>>
 			<<if random(1,100) <= 90>>
