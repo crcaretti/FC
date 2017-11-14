@@ -43,6 +43,7 @@
 	<</if>>
 	<<set _averageLosses = Math.trunc($losses / $deployedUnits)>>
 	<<set _lossesList = []>>
+	<<set _validityCount = 0>>
 	<<for _i = 0; _i < $deployedUnits; _i++>>
 		<<set _assignedLosses = Math.trunc(Math.clamp(_averageLosses + random(-5,5), 0, 100))>>
 		<<if _assignedLosses > $losses>>
@@ -52,6 +53,7 @@
 			<<set $losses -= _assignedLosses>>
 		<</if>>
 		<<set _lossesList.push(_assignedLosses)>>
+		<<set _validityCount += _assignedLosses>>
 	<</for>>
 	<<if $losses > 0>>
 		<<set _lossesList[random(_lossesList.length)] += $losses>>
@@ -64,11 +66,8 @@
 		<br>
 		<br>
 		<<set _loss = _lossesList.pluck()>>
-		<<if _loss < $secBots.troops>>
-			<<set $secBots.troops -= _loss>>
-		<<else>>
-			<<set $secBots.troops = 0>>
-		<</if>>
+		<<set _loss = Math.clamp(_loss,0,$secBots.troops)>>
+		<<set $secBots.troops -= _loss>>
 		Your squadron of security drones participated in the battle, dominating the airspace and providing vital intelligence to the rest of the army.
 		During the battle they suffered 
 		<<if _loss <= 0>>
