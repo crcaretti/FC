@@ -16,7 +16,7 @@
 	<</if>>
 	<<if $deployingMilitia == 1>>
 		<<for _j = 0; _j < $militiaUnits.length; _j++>>
-			<<if $militiaUnits[_j].active == 1 && !($rebellingID.includes($militiaUnits[_j].ID))>>
+			<<if $militiaUnits[_j].active == 1 && $loyalID.includes($militiaUnits[_j].ID)>>
 				$militiaUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
 				During the battle they suffered no casualties.
 			<<elseif $militiaUnits[_j].active == 1>>
@@ -26,7 +26,7 @@
 	<</if>>
 	<<if $deployingSlaves == 1>>
 		<<for _j = 0; _j < $slaveUnits.length; _j++>>
-			<<if $slaveUnits[_j].isDeployed == 1 && !($rebellingID.includes($slaveUnits[_j].ID))>>
+			<<if $slaveUnits[_j].isDeployed == 1 && $loyalID.includes($slaveUnits[_j].ID)>>
 				$slaveUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
 				During the battle they suffered no casualties.
 			<<elseif $slaveUnits[_j].active == 1>>
@@ -36,7 +36,7 @@
 	<</if>>
 	<<if $deployingMercs == 1>>
 		<<for _j = 0; _j < $mercUnits.length; _j++>>
-			<<if $mercUnits[_j].isDeployed == 1 && !($rebellingID.includes($mercUnits[_j].ID))>>
+			<<if $mercUnits[_j].isDeployed == 1 && $loyalID.includes($mercUnits[_j].ID)>>
 				$mercUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
 				During the battle they suffered no casualties.
 			<<elseif $mercUnits[_j].active == 1>>
@@ -67,7 +67,7 @@
 		<<set _lossesList.push(_assignedLosses)>>
 	<</for>>
 	<<if $losses > 0>>
-		<<set _lossesList[random(_lossesList.length)] += $losses>>
+		<<set _lossesList[random(_lossesList.length - 1)] += $losses>>
 	<</if>>
 	<<set _lossesList.shuffle()>>
 	
@@ -99,11 +99,8 @@
 		<br>
 		<br>
 		<<set _loss = _lossesList.pluck()>>
-		<<if _loss < $secBots.troops>>
-			<<set $secBots.troops -= _loss>>
-		<<else>>
-			<<set $secBots.troops = 0>>
-		<</if>>
+		<<set _loss = Math.clamp(_loss,0,$secBots.troops)>>
+		<<set $secBots.troops -= _loss>>
 		Your squadron of security drones participated in the battle, dominating the airspace and providing vital intelligence to the rest of the army.
 		During the battle they suffered 
 		<<if _loss <= 0>>
@@ -128,11 +125,8 @@
 		<br>
 		<br>
 		<<set _loss = _lossesList.pluck()>>
-		<<if _loss < $securityForcePersonnel>>
-			<<set $securityForcePersonnel -= _loss>>
-		<<else>>
-			<<set $securityForcePersonnel = 0>>
-		<</if>>
+		<<set _loss = Math.clamp(_loss,0,$securityForcePersonnel)>>
+		<<set $securityForcePersonnel -= _loss>>
 		$securityForceName, $securityForcePersonnel strong, is called to join the battle aboard their<<if $securityForceVehiclePower >= 4>>armored<</if>>vehicles<<if $securityForceAC130 > 0>>and their AC130<</if>>.
 		They brought their unmatched strength to crush those that would want you deposed.
 		During the battle they suffered 
@@ -150,7 +144,7 @@
 	<</if>>
 	<<if $deployingMilitia == 1>>
 		<<for _j = 0; _j < $militiaUnits.length; _j++>>
-			<<if $militiaUnits[_j].active == 1 && !($rebellingID.includes($militiaUnits[_j].ID))>>
+			<<if $militiaUnits[_j].active == 1 && $loyalID.includes($militiaUnits[_j].ID)>>
 				<br>
 				<br>
 				<<set $militiaUnits[_j].battlesFought++>>
@@ -196,7 +190,7 @@
 	<<if $deployingSlaves == 1>>
 		<<set _med = 0>>
 		<<for _j = 0; _j < $slaveUnits.length; _j++>>
-			<<if $slaveUnits[_j].active == 1 && !($rebellingID.includes($slaveUnits[_j].ID))>>
+			<<if $slaveUnits[_j].active == 1 && $loyalID.includes($slaveUnits[_j].ID)>>
 				<br>
 				<br>
 				<<set $slaveUnits[_j].battlesFought++>>
@@ -245,7 +239,7 @@
 	<</if>>
 	<<if $deployingMercs == 1>>
 		<<for _j = 0; _j < $mercUnits.length; _j++>>
-			<<if $mercUnits[_j].active == 1 && !($rebellingID.includes($mercUnits[_j].ID))>>
+			<<if $mercUnits[_j].active == 1 && $loyalID.includes($mercUnits[_j].ID)>>
 				<br>
 				<br>
 				<<set $mercUnits[_j].battlesFought++>>
@@ -290,23 +284,23 @@
 	<</if>>
 	<br>
 	<br>
-	<<if $rebellingUnits.length > 0 && $battleResult >= 2>>
+	<<if $rebellingID.length > 0 && $battleResult >= 2>>
 		/* win */
 		/* militia */
-		<<set _militiaRebelled = []>>
+		<<set _militiaRebelledID = []>>
 		<<set _militiaManpower = 0>>
 		<<for _j = 0; _j < $militiaUnits.length; _j++>>
 			<<if $militiaUnits[_j].active == 1 && $rebellingID.includes($militiaUnits[_j].ID)>>
 				$militiaUnits[_j].platoonName,
-				<<set _militiaRebelled.push($militiaUnits[_j])>>
+				<<set _militiaRebelledID.push($militiaUnits[_j].ID)>>
 				<<set _militiaManpower += Math.clamp($militiaUnits[_j].troops - random(_averageLosses),0,$militiaUnits[_j].troops)>>
 			<</if>>
 		<</for>>
-		<<if _militiaRebelled.length > 0>>
+		<<if _militiaRebelledID.length > 0>>
 			had the gall to betray you and join your enemies.
 			<span id="militiaResult">
 				<br><<link "Dissolve the units">>
-					<<removeUnits _militiaRebelled>>
+					<<removeUnits _militiaRebelledID>>
 					<<set $militiaFreeManpower += _militiaManpower>>
 					<<for _i = 0; _i < $militiaUnits.length; _i++>>
 						<<if $militiaUnits[_i].active == 1>>
@@ -320,7 +314,7 @@
 				<</link>>
 				<br>//Manpower will be refunded, but will negatvely influence the loyalty of the other units//
 				<br><<link "Purge the dissidents and dissolve the units">>
-					<<removeUnits _militiaRebelled>>
+					<<removeUnits _militiaRebelledID>>
 					<<set $militiaFreeManpower += _militiaManpower * 0.5>>
 					<<recalcManpower>>
 					<<replace "#militiaResult">>
@@ -329,7 +323,7 @@
 				<</link>>
 				<br>//Will not influence the loyalty of the other units, but only half the manpower will be refunded.//
 				<br><<link "Execute them all">>
-					<<removeUnits _militiaRebelled>>
+					<<removeUnits _militiaRebelledID>>
 					<<for _i = 0; _i < $militiaUnits.length; _i++>>
 						<<if $militiaUnits[_i].active == 1>>
 							<<set $militiaUnits[_i].loyalty = Math.clamp($militiaUnits[_i].loyalty + random(10,40),0,100)>>
@@ -345,21 +339,21 @@
 		<</if>>
 		
 		/* slaves */
-		<<set _slaveRebelled = []>>
+		<<set _slaveRebelledID = []>>
 		<<set _slaveManpower = 0>>
 		<br>
 		<<for _j = 0; _j < $slaveUnits.length; _j++>>
 			<<if $slaveUnits[_j].active == 1 && $rebellingID.includes($slaveUnits[_j].ID)>>
 				$slaveUnits[_j].platoonName,
-				<<set _slaveRebelled.push($slaveUnits[_j])>>
+				<<set _slaveRebelledID.push($slaveUnits[_j].ID)>>
 				<<set _slaveManpower += Math.clamp($slaveUnits[_j].troops - random(_averageLosses),0,$slaveUnits[_j].troops)>>
 			<</if>>
 		<</for>>
-		<<if _slaveRebelled.length > 0>>
+		<<if _slaveRebelledID.length > 0>>
 			decided in their blind arrogance to betray you.
 			<span id="slaveResult">
 				<br><<link "Dissolve the units">>
-					<<removeUnits _slaveRebelled>>
+					<<removeUnits _slaveRebelledID>>
 					<<set $helots += _slaveManpower>>
 					<<for _i = 0; _i < $militiaUnits.length; _i++>>
 						<<if $slaveUnits[_i].active == 1>>
@@ -373,7 +367,7 @@
 				<</link>>
 				<br>//Manpower will be refunded, but will negatively influence the loyalty of the other units//
 				<br><<link "Purge the dissidents and dissolve the units">>
-					<<removeUnits _slaveRebelled>>
+					<<removeUnits _slaveRebelledID>>
 					<<set $helots += _slaveManpower * 0.5>>
 					<<recalcManpower>>
 					<<replace "#slaveResult">>
@@ -382,7 +376,7 @@
 				<</link>>
 				<br>//Will not influence the loyalty of the other units, but only half the manpower will be refunded.//
 				<br><<link "Execute them all">>
-					<<removeUnits _slaveRebelled>>
+					<<removeUnits _slaveRebelledID>>
 					<<for _i = 0; _i < $slaveUnits.length; _i++>>
 						<<if $slaveUnits[_i].active == 1>>
 							<<set $slaveUnits[_i].loyalty = Math.clamp($slaveUnits[_i].loyalty + random(10,40),0,100)>>
@@ -398,21 +392,21 @@
 		<</if>>
 		
 		/* mercs */
-		<<set _mercRebelled = []>>
+		<<set _mercRebelledID = []>>
 		<<set _mercManpower = 0>>
 		<br>
 		<<for _j = 0; _j < $mercUnits.length; _j++>>
 			<<if $mercUnits[_j].active == 1 && $rebellingID.includes($mercUnits[_j].ID)>>
 				$mercUnits[_j].platoonName,
-				<<set _mercRebelled.push($mercUnits[_j])>>
+				<<set _mercRebelledID.push($mercUnits[_j].ID)>>
 				<<set _mercManpower += Math.clamp($mercUnits[_j].troops - random(_averageLosses),0,$mercUnits[_j].troops)>>
 			<</if>>
 		<</for>>
-		<<if _mercRebelled.length > 0>>
+		<<if _mercRebelledID.length > 0>>
 			made the grave mistake of betraying you.
 			<span id="mercResult">
 				<br><<link "Dissolve the units">>
-					<<removeUnits _mercRebelled>>
+					<<removeUnits _mercRebelledID>>
 					<<set $mercFreeManpower += _mercManpower>>
 					<<for _i = 0; _i < $militiaUnits.length; _i++>>
 						<<if $mercUnits[_i].active == 1>>
@@ -426,7 +420,7 @@
 				<</link>>
 				<br>//Manpower will be refunded, but will negatively influence the loyalty of the other units//
 				<br><<link "Purge the dissidents and dissolve the units">>
-					<<removeUnits _mercRebelled>>
+					<<removeUnits _mercRebelledID>>
 					<<set $mercFreeManpower += _mercManpower * 0.5>>
 					<<recalcManpower>>
 					<<replace "#mercResult">>
@@ -435,7 +429,7 @@
 				<</link>>
 				<br>//Will not influence the loyalty of the other units, but only half the manpower will be refunded.//
 				<br><<link "Execute them all">>
-					<<removeUnits _mercRebelled>>
+					<<removeUnits _mercRebelledID>>
 					<<for _i = 0; _i < $mercUnits.length; _i++>>
 						<<if $mercUnits[_i].active == 1>>
 							<<set $mercUnits[_i].loyalty = Math.clamp($mercUnits[_i].loyalty + random(10,40),0,100)>>
@@ -451,36 +445,47 @@
 		<</if>>
 		
 	/* loss */
-	<<elseif $rebellingUnits.length > 0>>
-		<<set _militiaRebelled = []>>
+	<<elseif $rebellingID.length > 0>>
+		<<set _militiaRebelledID = []>>
 		<<for _j = 0; _j < $militiaUnits.length; _j++>>
 			<<if $militiaUnits[_j].active == 1 && $rebellingID.includes($militiaUnits[_j].ID)>>
-				<<set _militiaRebelled.push($militiaUnits[_j])>>
-				<br>$militiaUnits[_j].platoonName had the gall to betray you and join your enemies. They participated in the looting following the battle, then vanished in the wastes.
+				<<set _militiaRebelledID.push($militiaUnits[_j].ID)>>
+				$militiaUnits[_j].platoonName, 
 			<</if>>
 		<</for>>
-		<<set $cash -= 1000 * _militiaRebelled.length>>
-		<<removeUnits _militiaRebelled>>
-		
-		<<set _slaveRebelled = []>>
+		<<if _militiaRebelledID.length > 0>>
+			had the gall to betray you and join your enemies. They participated in the looting following the battle, then vanished in the wastes.
+		<</if>>
+		<<set $cash -= 1000 * _militiaRebelledID.length>>
+		<br>
+		<<removeUnits _militiaRebelledID>>
+		<<set _slaveRebelledID = []>>
 		<<for _j = 0; _j < $slaveUnits.length; _j++>>
 			<<if $slaveUnits[_j].active == 1 && $rebellingID.includes($slaveUnits[_j].ID)>>
-				<<set _slaveRebelled.push($slaveUnits[_j])>>
-				<br>$slaveUnits[_j].platoonName decided in their blind arrogance to betray you. They participated in the looting following the battle, then vanished in the wastes.
+				<<set _slaveRebelledID.push($slaveUnits[_j].ID)>>
+				$slaveUnits[_j].platoonName,
 			<</if>>
 		<</for>>
-		<<set $cash -= 1000 * _slaveRebelled.length>>
-		<<removeUnits _slaveRebelled>>
-		
-		<<set _mercRebelled = []>>
+		<<if _slaveRebelledID.length > 0>>
+			decided in their blind arrogance to betray you. They participated in the looting following the battle, then vanished in the wastes.
+		<</if>>
+		<<set $cash -= 1000 * _slaveRebelledID.length>>
+		<<removeUnits _slaveRebelledID>>
+		<br>
+		<<set _mercRebelledID = []>>
+		<<set _count = 0>>
 		<<for _j = 0; _j < $mercUnits.length; _j++>>
 			<<if $mercUnits[_j].active == 1 && $rebellingID.includes($mercUnits[_j].ID)>>
-				<<set _mercRebelled.push($mercUnits[_j])>>
-				<br>$mercUnits[_j].platoonName made the grave mistake of betraying you. They participated in the looting following the battle, then vanished in the wastes.
+				<<set _mercRebelledID.push($mercUnits[_j].ID)>>
+				<<set _count++>>
+				$mercUnits[_j].platoonName,
 			<</if>>
 		<</for>>
-		<<set $cash -= 1000 * _mercRebelled.length>>
-		<<removeUnits _mercRebelled>>
+		<<if _mercRebelledID.length > 0>>
+			 made the grave mistake of betraying you. They participated in the looting following the battle, then vanished in the wastes.
+		<</if>>
+		<<set $cash -= 1000 * _mercRebelledID.length>>
+		<<removeUnits _mercRebelledID>>
 		<<recalcManpower>>
 	<</if>>
 <<else>>
