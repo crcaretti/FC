@@ -313,76 +313,53 @@ It isn't obvious how she managed to escape, though no doubt you could review the
 	<<set $rep += Math.trunc($slaveCost/10)>>
 	<<replace "#result">>
 		$activeSlave.slaveName keeps waiting, but the doors to the penthouse never open. When her owners arrive a few minutes later to collect her, she cries harder, but does not resist. Her weeping has the peculiar ring of utter hopelessness as they restrain her and drag her off. A few minutes after that, you receive a businesslike note @@.green;expressing gratitude@@ for your assistance in this matter.
+		<<set $boomerangStats = 0>>
 	<</replace>>
 <</link>>
 <<if $cash >= $contractCost>>
 <br><<link "Obfuscate her appearance and re-enslave her">>
 	<<set $cash -= $contractCost>>
 	<<if $familyTesting == 1>>
+		<<if $boomerangStats.PCpregSource > 0 && $PC.preg > 0 && $PC.pregSource == 0>>
+			<<set $PC.pregSource = $activeSlave.ID>>
+		<</if>>
+		<<if $boomerangStats.PCmother > 0>>
+			<<set $PC.mother = $activeSlave.ID>>
+		<</if>>
+		<<if $boomerangStats.PCfather > 0>>
+			<<set $PC.father = $activeSlave.ID>>
+		<</if>>
 		<<for _reb = 0; _reb < $slaves.length; _reb++>>
-			<<if (def $boomerangMother) && $boomerangMother.includes($slaves[_reb].ID)>>
+			<<if $boomerangStats.boomerangMother.includes($slaves[_reb].ID)>>
 				<<set $slaves[_reb].mother = $activeSlave.ID>>
 			<</if>>
-			<<if (def $boomerangfather) && $boomerangfather.includes($slaves[_reb].ID)>>
+			<<if $boomerangStats.boomerangFather.includes($slaves[_reb].ID)>>
 				<<set $slaves[_reb].father = $activeSlave.ID>>
 			<</if>>
+			<<if $boomerangStats.boomerangPregSources.includes($slaves[_reb].ID) && $slaves[_reb].preg > 0 && $slaves[_reb].pregSource == 0>>
+				<<set $slaves[_reb].pregSource = $activeSlave.ID>>
+			<</if>>
 		<</for>>
-		<<set _handledFather = 0>>
-		<<if $boomerangSistersMother.length > 0>> /* welcome to code hell - so glad this will only run seldomly */
-			<<for _reb = 0; _reb < $slaves.length; _reb++>>
-				<<for _sis = 0; _sis < $boomerangSistersMother.length; _sis++>>
-					<<if $boomerangSistersMother[_sis].ID == $slaves[_reb].ID>>
-						<<if $activeSlave.mother != $slaves[_reb].mother>>
-							<<set $activeSlave.mother = $slaves[_reb].mother>>
-						<</if>>
-						<<set _foundMother = 1>>
-						<<break>>
-					<</if>>
+		<<if $incubator > 0>>
+			<<for _reb = 0; _reb < $tanks.length; _reb++>>
+				<<if $boomerangStats.boomerangMotherTank.includes($tanks[_reb].ID)>>
+					<<set $tanks[_reb].mother = $activeSlave.ID>>
 				<</if>>
-				<<if _foundMother == 1>>
-					<<break>>
+				<<if $boomerangStats.boomerangFatherTank.includes($tanks[_reb].ID)>>
+					<<set $tanks[_reb].father = $activeSlave.ID>>
 				<</if>>
 			<</for>>
-			<<unset $boomerangSistersMother>>
-		<<elseif $activeSlave.mother > 0>>
-			<<set _reb = $slaves.find(function(s) { return s.ID == $activeSlave.mother; })>>
-			<<if ndef _reb>>
-				<<if $activeSlave.mother == $activeSlave.father>>
-					<<set $activeSlave.mother = $missingParentID, $activeSlave.father = $missingParentID>>
-					<<set $missingParentID-->>
-					<<set _handledFather = 1>>
-				<<else>>
-					<<set $activeSlave.mother = $missingParentID>>
-					<<set $missingParentID-->>
-				<</if>>
-			<</if>>			
 		<</if>>
-		<<if $boomerangSistersFather.length > 0>>
-			<<set _foundFather = 0>>
+	<<else>>
+		<<if $boomerangStats.boomerangPregSources.length > 0>>
 			<<for _reb = 0; _reb < $slaves.length; _reb++>>
-				<<for _sis = 0; _sis < $boomerangSistersFather.length; _sis++>>
-					<<if $boomerangSistersFather[_sis].ID == $slaves[_reb].ID>>
-						<<if $activeSlave.father != $slaves[_reb].father>>
-							<<set $activeSlave.father = $slaves[_reb].father>>
-						<</if>>
-						<<set _foundFather = 1>>
-						<<break>>
-					<</if>>
-				<</if>>
-				<<if _foundFather == 1>>
-					<<break>>
+				<<if $boomerangStats.boomerangPregSources.includes($slaves[_reb].ID) && $slaves[_reb].preg > 0 && $slaves[_reb].pregSource == 0>>
+					<<set $slaves[_reb].pregSource = $activeSlave.ID>>
 				<</if>>
 			<</for>>
-			<<unset $boomerangSistersFather>>
-		<<elseif $activeSlave.father > 0 && _handledFather != 1>>
-			<<set _reb = $slaves.find(function(s) { return s.ID == $activeSlave.father; })>>
-			<<if ndef _reb>>
-				<<set $activeSlave.father = $missingParentID>>
-				<<set $missingParentID-->>
-			<</if>>			
 		<</if>>
-		<<unset $boomerangMother, $boomerangfather>>
 	<</if>>
+	<<set $boomerangStats = 0>>
 	<<replace "#result">>
 		The penthouse opens, and $activeSlave.slaveName stumbles inside, sobbing her thanks. She's immediately conducted to the autosurgery for some quick cosmetic surgery, while you and $assistantName do the necessary work to falsify the arcology records and conceal her origins. Even so, it would probably be wise to keep her off public assignments for a while. In no time at all, she's standing in front of your desk like any other new slave. She waits obediently, knowing that it's in her best interests not to mention anything out of the ordinary.
 	<<include "New Slave Intro">>
@@ -392,6 +369,7 @@ It isn't obvious how she managed to escape, though no doubt you could review the
 	<<set $cash += $slaveCost>>
 	<<replace "#result">>
 		The penthouse opens, and $activeSlave.slaveName stumbles inside, sobbing her thanks. She's immediately conducted to the autosurgery for some quick cosmetic surgery, while you and $assistantName do the necessary work to falsify the arcology records and conceal her origins. Before she's even out from under anaesthesia, she's bundled off into one of the hundreds of slave shipments that move between arcologies every day. This time she'll be sold far enough away that no matter how much of an escape artist she is, you won't be seeing any more of her. She can whine elsewhere.
+		<<set $boomerangStats = 0>>
 	<</replace>>
 <</link>> //This will bring in ¤$slaveCost.//
 <<else>>
