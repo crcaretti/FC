@@ -122,6 +122,60 @@ You are awakened in the middle of the night by a jolt that shakes the entire arc
 				<<set $slaves[_pca].father = $traitor.ID>>
 			<</if>>
 		<</for>>
+		<<set _handledFather = 0>>
+		<<if $traitorSistersMother.length > 0>> /* welcome to code hell - so glad this will only run seldomly */
+			<<for _pca = 0; _pca < $slaves.length; _pca++>>
+				<<for _sis = 0; _sis < $traitorSistersMother.length; _sis++>>
+					<<if $traitorSistersMother[_sis].ID == $slaves[_pca].ID>>
+						<<if $traitor.mother != $slaves[_pca].mother>>
+							<<set $traitor.mother = $slaves[_pca].mother>>
+						<</if>>
+						<<set _foundMother = 1>>
+						<<break>>
+					<</if>>
+				<</if>>
+				<<if _foundMother == 1>>
+					<<break>>
+				<</if>>
+			<</for>>
+			<<unset $traitorSistersMother>>
+		<<elseif $traitor.mother > 0>>
+			<<set _pca = $slaves.find(function(s) { return s.ID == $traitor.mother; })>>
+			<<if ndef _pca>>
+				<<if $traitor.mother == $traitor.father>>
+					<<set $traitor.mother = $missingParentID, $traitor.father = $missingParentID>>
+					<<set $missingParentID-->>
+					<<set _handledFather = 1>>
+				<<else>>
+					<<set $traitor.mother = $missingParentID>>
+					<<set $missingParentID-->>
+				<</if>>
+			<</if>>			
+		<</if>>
+		<<if $traitorSistersFather.length > 0>>
+			<<set _foundFather = 0>>
+			<<for _pca = 0; _pca < $slaves.length; _pca++>>
+				<<for _sis = 0; _sis < $traitorSistersFather.length; _sis++>>
+					<<if $traitorSistersFather[_sis].ID == $slaves[_pca].ID>>
+						<<if $traitor.father != $slaves[_pca].father>>
+							<<set $traitor.father = $slaves[_pca].father>>
+						<</if>>
+						<<set _foundFather = 1>>
+						<<break>>
+					<</if>>
+				<</if>>
+				<<if _foundFather == 1>>
+					<<break>>
+				<</if>>
+			<</for>>
+			<<unset $traitorSistersFather>>
+		<<elseif $traitor.father > 0 && _handledFather != 1>>
+			<<set _pca = $slaves.find(function(s) { return s.ID == $traitor.father; })>>
+			<<if ndef _pca>>
+				<<set $traitor.father = $missingParentID>>
+				<<set $missingParentID-->>
+			<</if>>			
+		<</if>>
 		<<set $traitorMother = 0, $traitorFather = 0>>
 	<</if>>
 	<<set $traitor.health = random(-80,-60)>>
