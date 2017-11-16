@@ -61,8 +61,29 @@ This is disturbing, to say the least. After close investigation, it appears some
 "You will immediately free $activeSlave.slaveName," it reads. "This is the price of your continued survival. Agree and you buy yourself a few more moments at the top of your heap of shit. Refuse, and you shall fall that much sooner." The message is signed "The Daughters of Liberty."
 
 <br><br>
+<<Enunciate $activeSlave>>
 
-You call $activeSlave.slaveName in and politely inquire as to whether she knows anything about the matter. She nearly flees in terror, but gathers her courage and <<if canTalk($activeSlave) == false>>gestures meekly<<elseif ($activeSlave.lips > 70)>>lisps meekly through her huge lips<<elseif ($activeSlave.lipsPiercing+$activeSlave.tonguePiercing > 2)>>lisps meekly through her piercings<<else>>mumbles meekly<</if>> that several nondescript citizens she sees occasionally at work have passed a few messages to her. Apparently, they simply asked whether she wished to be free. Asked whether she does in fact wish to be free, she <<if canTalk($activeSlave) == false>>shakily gestures an apology, and admits that she does.<<elseif ($activeSlave.lips > 70)>>lisps faintly, "Ahm thorry, <<Master>>. Yeth."<<elseif ($activeSlave.lipsPiercing+$activeSlave.tonguePiercing > 2)>>lisps faintly, "Ahm thorry, <<Master>>. Yeth."<<else>>mutters faintly, "I'm sorry, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>. Yes."<</if>>
+You call $activeSlave.slaveName in and politely inquire as to whether she knows anything about the matter. She nearly flees in terror, but gathers her courage and
+<<if !canTalk($activeSlave)>>
+	gestures meekly
+<<elseif ($activeSlave.lips > 70)>>
+	lisps meekly through her huge lips
+<<elseif ($activeSlave.lipsPiercing+$activeSlave.tonguePiercing > 2)>>
+	lisps meekly through her piercings
+<<else>>
+	mumbles meekly
+<</if>>
+that several nondescript citizens she sees occasionally at work have passed a few messages to her. Apparently, they simply asked whether she wished to be free. Asked whether she does in fact wish to be free, she
+<<if !canTalk($activeSlave)>>
+	shakily gestures an apology, and admits that she does.
+<<else>>
+	<<if SlaveStatsChecker.checkForLisp($activeSlave)>>
+		lisps faintly,
+	<<else>>
+		mutters faintly,
+	<</if>>
+	"I'm <<s>>orry, <<Master>>. Ye<<s>>."
+<</if>>
 
 <br><br>
 
@@ -82,7 +103,6 @@ You call $activeSlave.slaveName in and politely inquire as to whether she knows 
 	<<if $familyTesting == 1>>
 		<<set $traitorMother = []>>
 		<<set $traitorfather = []>>
-		<<set $traitor.sisters = 0, $traitor.daughters = 0>>
 		<<for $i = 0; $i < $slaves.length; $i++>>
 			<<if $slaves[$i].ID != $traitor.ID>>
 				<<if $slaves[$i].mother == $traitor.ID>>
@@ -93,6 +113,13 @@ You call $activeSlave.slaveName in and politely inquire as to whether she knows 
 				<</if>>
 			<</if>>
 		<</for>>
+		<<if $traitor.mother > 0 || $traitor.father > 0>>
+			<<if $traitor.sisters > 0>>
+				<<set $traitorSistersMother = $slaves.filter(function(s) { return sameMom(s, $traitor) && s.ID != $traitor.ID$; })>>
+				<<set $traitorSistersFather = $slaves.filter(function(s) { return sameDad(s, $traitor) && s.ID != $traitor.ID$; })>>
+			<</if>>
+		<</if>>
+		<<set $traitor.sisters = 0, $traitor.daughters = 0>>
 	<</if>>
 	<<include "Remove activeSlave">>
 	<</replace>>
