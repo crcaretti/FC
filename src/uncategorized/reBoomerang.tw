@@ -212,7 +212,7 @@ brings up the relevant feeds. There's a naked body crumpled pathetically against
 	<<case "D cannibal">>
 		"M-my new owner i<<s>> going t-to do <<s>>omething horrible to me. H-he keep<<s>> me in a tiny cage and f-feed<<s>> me, and I have to <<s>>tay <<s>>till and eat or I'll <<s>>poil the meat." You did sell her to a citizen widely rumored to be a cannibal. She whispers, "I'm going to die."
 	<<case "hedonistic decadence arcology">>
-		You sold her to a Hedonistic arcology; it's nothing short of incredible that she managed to get back here. She must have sold and traded herself without hesitation. "It'<<s>> horrible." She's bloated, and her stomach is distended. "T-they beat me if I ever <<s>>topped eating, and they fed my butt too. I'm gro<<ss>> and ugly. Even when they mounted me, they'd <<s>>till <<s>>hove food down my throat."
+		You sold her to a Hedonistic arcology; it's nothing short of incredible that she managed to get back here. She must have sold and traded herself without hesitation. "It'<<s>> horrible." You sold her to an arcology that loves fattening slaves up, and if anything, they seem to have gone too far too fast. She's bloated, and her stomach is distended. "T-they beat me if I ever <<s>>topped eating, and they fed my butt too. I'm gro<<ss>> and ugly. Even when they mounted me, they'd <<s>>till <<s>>hove food down my throat."
 	<<default>>
 		"It'<<s>> horrible." You sold her to a trainer who specializes in fattening slaves up, and if anything, they seem to have gone too far. She's bloated, and her stomach is distended. "T-they beat me if I ever <<s>>top eating, and they feed my butt too. I'm gro<<ss>> and ugly."
 	<</switch>>
@@ -327,7 +327,61 @@ It isn't obvious how she managed to escape, though no doubt you could review the
 				<<set $slaves[_reb].father = $activeSlave.ID>>
 			<</if>>
 		<</for>>
-		<<set $boomerangMother = 0, $boomerangfather = 0>>
+		<<set _handledFather = 0>>
+		<<if $boomerangSistersMother.length > 0>> /* welcome to code hell - so glad this will only run seldomly */
+			<<for _reb = 0; _reb < $slaves.length; _reb++>>
+				<<for _sis = 0; _sis < $boomerangSistersMother.length; _sis++>>
+					<<if $boomerangSistersMother[_sis].ID == $slaves[_reb].ID>>
+						<<if $activeSlave.mother != $slaves[_reb].mother>>
+							<<set $activeSlave.mother = $slaves[_reb].mother>>
+						<</if>>
+						<<set _foundMother = 1>>
+						<<break>>
+					<</if>>
+				<</if>>
+				<<if _foundMother == 1>>
+					<<break>>
+				<</if>>
+			<</for>>
+			<<unset $boomerangSistersMother>>
+		<<elseif $activeSlave.mother > 0>>
+			<<set _reb = $slaves.find(function(s) { return s.ID == $activeSlave.mother; })>>
+			<<if ndef _reb>>
+				<<if $activeSlave.mother == $activeSlave.father>>
+					<<set $activeSlave.mother = $missingParentID, $activeSlave.father = $missingParentID>>
+					<<set $missingParentID-->>
+					<<set _handledFather = 1>>
+				<<else>>
+					<<set $activeSlave.mother = $missingParentID>>
+					<<set $missingParentID-->>
+				<</if>>
+			<</if>>			
+		<</if>>
+		<<if $boomerangSistersFather.length > 0>>
+			<<set _foundFather = 0>>
+			<<for _reb = 0; _reb < $slaves.length; _reb++>>
+				<<for _sis = 0; _sis < $boomerangSistersFather.length; _sis++>>
+					<<if $boomerangSistersFather[_sis].ID == $slaves[_reb].ID>>
+						<<if $activeSlave.father != $slaves[_reb].father>>
+							<<set $activeSlave.father = $slaves[_reb].father>>
+						<</if>>
+						<<set _foundFather = 1>>
+						<<break>>
+					<</if>>
+				<</if>>
+				<<if _foundFather == 1>>
+					<<break>>
+				<</if>>
+			<</for>>
+			<<unset $boomerangSistersFather>>
+		<<elseif $activeSlave.father > 0 && _handledFather != 1>>
+			<<set _reb = $slaves.find(function(s) { return s.ID == $activeSlave.father; })>>
+			<<if ndef _reb>>
+				<<set $activeSlave.father = $missingParentID>>
+				<<set $missingParentID-->>
+			<</if>>			
+		<</if>>
+		<<unset $boomerangMother, $boomerangfather>>
 	<</if>>
 	<<replace "#result">>
 		The penthouse opens, and $activeSlave.slaveName stumbles inside, sobbing her thanks. She's immediately conducted to the autosurgery for some quick cosmetic surgery, while you and $assistantName do the necessary work to falsify the arcology records and conceal her origins. Even so, it would probably be wise to keep her off public assignments for a while. In no time at all, she's standing in front of your desk like any other new slave. She waits obediently, knowing that it's in her best interests not to mention anything out of the ordinary.
