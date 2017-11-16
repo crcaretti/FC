@@ -35,9 +35,9 @@
 	<</if>>
 	<<if $showBattleStatistics == 1>>
 		<<if $battleResult == 0>>
-			<br>Failure!
+			<br>Bribery failed!
 		<<else>>
-			<br>Success!
+			<br>Bribery Successful!
 		<</if>>
 		<br><br>
 		<<link "proceed">>
@@ -46,7 +46,8 @@
 	<<else>>
 		<<goto "attackReport">>
 	<</if>>
-<</if>>	
+
+<<else>>
 
 /*Init*/
 <<if $majorBattle == 0>>
@@ -947,8 +948,14 @@
 <<elseif _SFMod > 1.5>>
 	<<set _SFMod = 1.5>>
 <</if>>
+
+<<set $troopCount = 0>>
+<<calcTroopCount>>
+<<set _moraleTroopMod = Math.clamp($troopCount / 200,1,10)>>
+
 <<set _morale = ($secBotsMorale * $deployingBots + $militiaBaseMorale * _militiaMod * $deployingMilitia + $slaveBaseMorale * _slaveMod * $deployingSlaves + $mercBaseMorale * _mercMod * $deployingMercs + $SFBaseMorale * $SFIntervention * _SFMod) / ($deployingBots + $deployingMilitia +$deployingSlaves + $deployingMercs + $SFIntervention)>>
 <<set _morale = _morale + _morale * $secBarracksUpgrades.luxury * 0.05>>	/* barracks bonus */
+<<set _morale *= _moraleTroopMod>>
 <<set _baseHp = ($secBotsBaseHp * $deployingBots + $militiaBaseHp * $deployingMilitia + $slaveBaseHp * $deployingSlaves + $mercBaseHp * $deployingMercs + $SFBaseHp * $SFIntervention) / ($deployingBots + $deployingMilitia +$deployingSlaves + $deployingMercs + $SFIntervention)>>
 				
 /* calculates enemy army stats */
@@ -970,31 +977,41 @@
 <<if _armyMod <= 0>>
 	<<set _armyMod = 1>>
 <</if>>
+
+<<set _enemyMoraleTroopMod = Math.clamp($attackTroops / 300,1,10)>>
+
 <<if $attackType == "raiders">>
 	<<set _enemyAttack = ($raBaseAttack + $weapManu * $sellTo.raiders + $raBaseAttack * $attackEquip * $equipMod) * _armyMod>>
 	<<set _enemyDefense = ($raBaseDefense + $weapManu * $sellTo.raiders + $raBaseDefense * $attackEquip * $equipMod) * _armyMod>>
-	<<set _enemyMorale = $raBaseMorale * _enemyMod>>
+	<<set _enemyMorale = $raBaseMorale * _enemyMod * _enemyMoraleTroopMod>>
 	<<set _enemyHp = $raBaseHp * $attackTroops>>
 	<<set _enemyBaseHp = $raBaseHp>>
 <<elseif $attackType == "free city">>
 	<<set _enemyAttack = ($fcBaseAttack + $weapManu * $sellTo.FC + $fcBaseAttack * $attackEquip * $equipMod) * _armyMod>>
 	<<set _enemyDefense = ($fcBaseDefense + $weapManu * $sellTo.FC + $fcBaseDefense * $attackEquip * $equipMod) * _armyMod>>
-	<<set _enemyMorale = $fcBaseMorale * _enemyMod>>
+	<<set _enemyMorale = $fcBaseMorale * _enemyMod * _enemyMoraleTroopMod>>
 	<<set _enemyHp = $fcBaseHp * $attackTroops>>
 	<<set _enemyBaseHp = $fcBaseHp>>
 <<elseif $attackType == "old world">>
 	<<set _enemyAttack = ($owBaseAttack + $weapManu * $sellTo.oldWorld + $owBaseAttack * $attackEquip * $equipMod) * _armyMod>>
 	<<set _enemyDefense = ($owBaseDefense + $weapManu * $sellTo.oldWorld + $owBaseDefense * $attackEquip * $equipMod) * _armyMod>>
-	<<set _enemyMorale = $owBaseMorale * _enemyMod>>
+	<<set _enemyMorale = $owBaseMorale * _enemyMod * _enemyMoraleTroopMod>>
 	<<set _enemyHp = $owBaseHp * $attackTroops>>
 	<<set _enemyBaseHp = $owBaseHp>>
 <<elseif $attackType == "freedom fighters">>
 	<<set _enemyAttack = ($ffBaseAttack + $weapManu * $sellTo.oldWorld + $ffBaseAttack * $attackEquip * $equipMod) * _armyMod>>
 	<<set _enemyDefense = ($ffBaseDefense + $weapManu * $sellTo.oldWorld + $ffBaseDefense * $attackEquip * $equipMod) * _armyMod>>
-	<<set _enemyMorale = $ffBaseMorale * _enemyMod>>
+	<<set _enemyMorale = $ffBaseMorale * _enemyMod * _enemyMoraleTroopMod>>
 	<<set _enemyHp = $ffBaseHp * $attackTroops>>
 	<<set _enemyBaseHp = $ffBaseHp>>
 <</if>>
+
+/* difficulty */
+<<set _enemyAttack *= $difficulty>>
+<<set _enemyDefense *= $difficulty>>
+<<set _enemyMorale *= $difficulty>>
+<<set _enemyHp *= $difficulty>>
+<<set _enemyBaseHp *= $difficulty>>
 
 <<if isNaN(_attack)>>
 	<br>@@.red;Error: attack value reported NaN@@
@@ -1022,7 +1039,7 @@
 <</if>>
 
 <<if $showBattleStatistics == 1>>
-<<set _atkMod -= 1, _defMod -= 1, _militiaMod -= 1, _mercMod -= 1, _slaveMod -= 1, _SFMod -= 1, _enemyMod -= 1>>
+<<set _atkMod -= 1, _defMod -= 1, _militiaMod -= 1, _mercMod -= 1, _slaveMod -= 1, _SFMod -= 1, _enemyMod -= 1, _moraleTroopMod -= 1, _enemyMoraleTroopMod -= 1, _difficulty = $difficulty -1>>
 <<set _atkMod = Math.round(_atkMod * 100)>>
 <<set _defMod = Math.round(_defMod * 100)>>
 <<set _militiaMod = Math.round(_militiaMod * 100)>>
@@ -1031,10 +1048,30 @@
 <<set _SFMod = Math.round(_SFMod * 100)>>
 <<set _enemyMod = Math.round(_enemyMod * 100)>>
 <<set _barracksBonus = $secBarracksUpgrades.luxury * 5>>
+<<set _moraleTroopMod = Math.round(_moraleTroopMod * 100)>>
+<<set _enemyMoraleTroopMod = Math.round(_enemyMoraleTroopMod * 100)>>
+<<set _difficulty *= 100>>
 
+__Difficulty__:
+<br>
+<<if $difficulty == 0.5>>
+	Very easy
+<<elseif $difficulty == 0.75>>
+	Easy
+<<elseif $difficulty == 1>>
+	Normal
+<<elseif $difficulty == 1.25>>
+	Hard
+<<else>>
+	Very hard
+<</if>>
+<br>
+<br>
+__Army__:
+<br>troops: <<print $troopCount>>
 <br>attack: <<print Math.round(_attack)>>
 <br>defense: <<print Math.round(_defense)>>
-<br>Hp: <<print Math.round(_hp)>>
+<br>hp: <<print Math.round(_hp)>>
 <br>morale: <<print Math.round(_morale)>>
 <br>attack modifier: <<if _atkMod > 0>>+<</if>>_atkMod%
 <br>defense modifier: <<if _defMod > 0>>+<</if>>_defMod%
@@ -1048,14 +1085,28 @@
 <<if $secBarracksUpgrades.luxury >= 1>>
 <br>Barracks bnous morale modifier: +<<print _barracksBonus>>%
 <</if>>
+<<if _moraleTroopMod>>
+	<br>morale increase due to troop numbers: +<<print _moraleTroopMod>>%
+<</if>>
+<br>
+<br>
+__Tactics__:
 <br>tactic chance of success: <<print Math.round(_tacChance * 100)>>%
 <br>was tactic chosen successful?: <<if $tacticsSuccessful == 1>> yes <<else>> no<</if>>
+<br>
+<br>
+__Enemy__:
+<br>enemy troops: <<print $attackTroops>>
 <br>enemy attack: <<print Math.round(_enemyAttack)>>
 <br>enemy defense: <<print Math.round(_enemyDefense)>>
-<br>enemy morale: <<print Math.round(_enemyMorale)>>
 <br>enemy Hp: <<print Math.round(_enemyHp)>>
+<br>enemy morale: <<print Math.round(_enemyMorale)>>
 <br>enemy base Hp: <<print Math.round(_enemyBaseHp)>>
 <br>enemy morale modifier: <<if _enemyMod > 0>>+<</if>>_enemyMod%
+<<if _enemyMoraleTroopMod > 0>>
+	<br>enemy morale increase due to troop numbers: +<<print _enemyMoraleTroopMod>>%
+<</if>>
+<br>Difficulty modifier: <<if _difficulty > 0>>+<</if>><<print _difficulty>>%
 <</if>>
 
 
@@ -1065,8 +1116,8 @@
 	<<if $showBattleStatistics == 1>> turn: <<print _i + 1>><</if>>
 	/* player army attacks */
 	<<set _damage = _attack - _enemyDefense>>
-	<<if _damage <= 0>>
-		<<set _damage = random(0,1)>>
+	<<if _damage < _attack * 0.1>>
+		<<set _damage = _attack * 0.1>>
 	<</if>>
 	<br>
 	<<if $showBattleStatistics == 1>> player damage: <<print Math.round(_damage)>><</if>>
@@ -1087,8 +1138,8 @@
 	
 	/* attacker army attacks */
 	<<set _damage = _enemyAttack - _defense>>
-	<<if _damage <= 0>>
-		<<set _damage = random(0,1)>>
+	<<if _damage < _enemyAttack * 0.1>>
+		<<set _damage = _enemyAttack * 0.1>>
 	<</if>>
 	<br>
 	<<if $showBattleStatistics == 1>> enemy damage: <<print Math.round(_damage)>><</if>>
@@ -1145,3 +1196,5 @@
 <<else>>
 	<<goto "attackReport">>
 <</if>>
+
+<</if>> /* closes check for bribery */

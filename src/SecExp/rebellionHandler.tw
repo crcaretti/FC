@@ -19,10 +19,6 @@
 <<set _expBonus = 0>>
 <<set _irregularMod = 0>>
 <<set _armyMod = 0>>
-<<set $rebellingID = []>>
-<<for _i = 0; _i < $rebellingUnits.length; _i++>>
-	<<set $rebellingID.push($rebellingUnits[_i].ID)>>
-<</for>>
 
 /* calculates PC army stats */
 <<if $engageRule == 0>>
@@ -62,7 +58,7 @@
 <</if>>
 
 <<for _i = 0; _i < $militiaUnits.length; _i++>>
-	<<if $militiaUnits[_i].active == 1 && !($rebellingID.includes($militiaUnits[_i].ID))>>
+	<<if $militiaUnits[_i].active == 1 && $loyalID.includes($militiaUnits[_i].ID)>>
 		<<set $deployingMilitia = 1>>
 		<<set $deployedUnits++>>
 		<<if $militiaUnits[_i].training <= 10>>
@@ -80,7 +76,7 @@
 	<</if>>
 <</for>>
 <<for _i = 0; _i < $slaveUnits.length; _i++>>
-	<<if $slaveUnits[_i].active == 1 && !($rebellingID.includes($slaveUnits[_i].ID))>>
+	<<if $slaveUnits[_i].active == 1 && $loyalID.includes($slaveUnits[_i].ID)>>
 		<<set $deployingSlaves = 1>>
 		<<set $deployedUnits++>>
 		<<if $slaveUnits[_i].training <= 33>>
@@ -96,7 +92,7 @@
 	<</if>>
 <</for>>
 <<for _i = 0; _i < $mercUnits.length; _i++>>
-	<<if $mercUnits[_i].active == 1 && !($rebellingID.includes($mercUnits[_i].ID))>>
+	<<if $mercUnits[_i].active == 1 && $loyalID.includes($mercUnits[_i].ID)>>
 		<<set $deployingMercs = 1>>
 		<<set $deployedUnits++>>
 		<<if $mercUnits[_i].training <= 33>>
@@ -148,21 +144,27 @@
 	<<set _hp *= 0.95>>
 <</if>>
 
+<<set $troopCount = 0>>
+<<calcTroopCount>>
+<<set _moraleTroopMod = Math.clamp($troopCount / 200,1,10)>>
+
 /* morale and baseHp calculation */
 <<set _morale = ($secBotsMorale * $secBots.active + $militiaBaseMorale * $deployingMilitia + $slaveBaseMorale * $deployingSlaves + $mercBaseMorale * $deployingMercs + $SFBaseMorale * $securityForceCreate) / ($secBots.active + $deployingMilitia +$deployingSlaves + $deployingMercs + $securityForceCreate)>>
+<<set _morale = _morale + _morale * $secBarracksUpgrades.luxury * 0.05>>	/* barracks bonus */
+<<set _morale *= _moraleTroopMod>>
 <<set _baseHp = ($secBotsBaseHp * $secBots.active + $militiaBaseHp * $deployingMilitia + $slaveBaseHp * $deployingSlaves + $mercBaseHp * $deployingMercs + $SFBaseHp * $securityForceCreate) / ($secBots.active + $deployingMilitia +$deployingSlaves + $deployingMercs + $securityForceCreate)>>
 				
 /* calculates rebelling army stats */
 <<if $week <= 30>>
 	<<set _armyMod = $attackTroops / 100>>
 <<elseif $week <= 60>>
-	<<set _armyMod = $attackTroops / 85>>
+	<<set _armyMod = $attackTroops / 90>>
 <<elseif $week <= 90>>
-	<<set _armyMod = $attackTroops / 70>>
+	<<set _armyMod = $attackTroops / 80>>
 <<elseif $week <= 120>>
-	<<set _armyMod = $attackTroops / 50>>
+	<<set _armyMod = $attackTroops / 70>>
 <<else>>
-	<<set _armyMod = $attackTroops / 30>>
+	<<set _armyMod = $attackTroops / 60>>
 <</if>>
 <<set _armyMod = Math.trunc(_armyMod)>>
 
@@ -181,6 +183,7 @@
 <<for _i = 0; _i < $militiaUnits.length; _i++>>
 	<<if $militiaUnits[_i].active == 1 && $rebellingID.includes($militiaUnits[_i].ID)>>
 		<<set $rebellingMilitia = 1>>
+		<<set $attackTroops += $militiaUnits[_i].troops>>
 		<<if $militiaUnits[_i].training <= 10>>
 			<<set _expBonus = 0>>
 		<<elseif $militiaUnits[_i].training <= 33>>
@@ -198,6 +201,7 @@
 <<for _i = 0; _i < $slaveUnits.length; _i++>>
 	<<if $slaveUnits[_i].active == 1 && $rebellingID.includes($slaveUnits[_i].ID)>>
 		<<set $rebellingSlaves = 1>>
+		<<set $attackTroops += $slaveUnits[_i].troops>>
 		<<if $slaveUnits[_i].training <= 33>>
 			<<set _expBonus = 0>>
 		<<elseif $slaveUnits[_i].training <= 66>>
@@ -213,6 +217,7 @@
 <<for _i = 0; _i < $mercUnits.length; _i++>>
 	<<if $mercUnits[_i].active == 1 && $rebellingID.includes($mercUnits[_i].ID)>>
 		<<set $rebellingMercs = 1>>
+		<<set $attackTroops += $mercUnits[_i].troops>>
 		<<if $mercUnits[_i].training <= 33>>
 			<<set _expBonus = 0>>
 		<<elseif $mercUnits[_i].training <= 66>>
@@ -226,23 +231,89 @@
 	<</if>>
 <</for>>
 
+<<set _enemyMoraleTroopMod = Math.clamp($attackTroops / 300,1,10)>>
+
 <<set _enemyMorale = 1.5 * ($militiaBaseMorale * $rebellingMilitia + $slaveBaseMorale * $rebellingSlaves + $mercBaseMorale * $rebellingMercs) / ($rebellingMilitia + $rebellingSlaves + $rebellingMercs)>>
+<<set _enemyMorale *= _enemyMoraleTroopMod>>
 <<set _enemyBaseHp = ($militiaBaseHp * $rebellingMilitia + $slaveBaseHp * $rebellingSlaves + $mercBaseHp * $rebellingMercs) / ($rebellingMilitia +$rebellingSlaves + $rebellingMercs)>>
+
+<<if isNaN(_attack)>>
+	<br>@@.red;Error: attack value reported NaN@@
+<</if>>
+<<if isNaN(_defense)>>
+	<br>@@.red;Error: defense value reported NaN@@
+<</if>>
+<<if isNaN(_hp)>>
+	<br>@@.red;Error: hp value reported NaN@@
+<</if>>
+<<if isNaN(_morale)>>
+	<br>@@.red;Error: morale value reported NaN@@
+<</if>>
+<<if isNaN(_enemyAttack)>>
+	<br>@@.red;Error: enemy attack value reported NaN@@
+<</if>>
+<<if isNaN(_enemyDefense)>>
+	<br>@@.red;Error: enemy defense value reported NaN@@
+<</if>>
+<<if isNaN(_enemyHp)>>
+	<br>@@.red;Error: enemy hp value reported NaN@@
+<</if>>
+<<if isNaN(_enemyMorale)>>
+	<br>@@.red;Error: enemy morale value reported NaN@@
+<</if>>
+
+
+/* difficulty */
+<<set _enemyAttack *= $difficulty>>
+<<set _enemyDefense *= $difficulty>>
+<<set _enemyMorale *= $difficulty>>
+<<set _enemyHp *= $difficulty>>
+<<set _enemyBaseHp *= $difficulty>>
 
 <<if $showBattleStatistics == 1>>
 <<set _engageMod -= 1>>
 <<set _engageMod = Math.round(_engageMod * 100)>>
+<<set _difficulty = ($difficulty -1) * 100>>
+
+__Difficulty__:
+<br>
+<<if $difficulty == 0.5>>
+	Very easy
+<<elseif $difficulty == 0.75>>
+	Easy
+<<elseif $difficulty == 1>>
+	Normal
+<<elseif $difficulty == 1.25>>
+	Hard
+<<else>>
+	Very hard
+<</if>>
+<br>
+<br>
+__Army__:
+<br>troops: <<print $troopCount>>
 <br>attack: <<print Math.round(_attack)>>
 <br>defense: <<print Math.round(_defense)>>
 <br>engagement rule modifier: <<if _engageMod > 0>>+<</if>><<print _engageMod>>%
-<br>morale: <<print Math.round(_morale)>>
 <br>Hp: <<print Math.round(_hp)>>
 <br>base HP: <<print Math.round(_baseHp)>>
+<br>morale: <<print Math.round(_morale)>>
+<<if _enemyMoraleTroopMod > 0>>
+	<br>enemy morale increase due to troop numbers: +<<print _moraleTroopMod>>%
+<</if>>
+<br>
+<br>
+__Rebels__:
+<br>enemy troops: <<print $attackTroops>>
 <br>enemy attack: <<print Math.round(_enemyAttack)>>
 <br>enemy defense: <<print Math.round(_enemyDefense)>>
-<br>enemy morale: <<print Math.round(_enemyMorale)>>
 <br>enemy Hp: <<print Math.round(_enemyHp)>>
 <br>enemy base Hp: <<print Math.round(_enemyBaseHp)>>
+<br>enemy morale: <<print Math.round(_enemyMorale)>>
+<<if _enemyMoraleTroopMod > 0>>
+	<br>enemy morale increase due to troop numbers: +<<print _enemyMoraleTroopMod>>%
+<</if>>
+<br>Difficulty modifier: <<if _difficulty > 0>>+<</if>><<print _difficulty>>%
 <</if>>
 
 /* simulates the combat by pitting attk against def */
@@ -251,8 +322,8 @@
 	<<if $showBattleStatistics == 1>> turn: <<print _i + 1>><</if>>
 	/* player army attacks */
 	<<set _damage = _attack - _enemyDefense>>
-	<<if _damage <= 0>>
-		<<set _damage = random(0,5)>>
+	<<if _damage < _attack * 0.1>>
+		<<set _damage = _attack * 0.1>>
 	<</if>>
 	<br>
 	<<if $showBattleStatistics == 1>> player damage: <<print Math.round(_damage)>><</if>>
@@ -272,8 +343,8 @@
 	
 	/* attacker army attacks */
 	<<set _damage = _enemyAttack - _defense>>
-	<<if _damage <= 0>>
-		<<set _damage = random(0,5)>>
+	<<if _damage < _enemyAttack * 0.1>>
+		<<set _damage = _enemyAttack * 0.1>>
 	<</if>>
 	<br>
 	<<if $showBattleStatistics == 1>> enemy damage: <<print Math.round(_damage)>><</if>>

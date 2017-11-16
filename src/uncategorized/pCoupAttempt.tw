@@ -74,7 +74,7 @@ You are awakened in the middle of the night by a jolt that shakes the entire arc
 	@@.yellow;The Daughters of Liberty are defeated.@@ @@.red;$arcologies[0].name is heavily damaged,@@ and the repairs will be very costly. The effect on your reputation is @@.green;muted, but positive,@@ since though you won, your victory was hard-fought and set the arcology's prosperity back @@.red;a long way.@@
 	<<if $traitor != 0>>
 		$traitor.slaveName was killed in the fighting.
-		<<set $traitor = 0>>
+		<<set $traitor = 0, $traitorStats = 0>>
 	<</if>>
 	<<set $daughtersVictory = 2>>
 	<<set $cash -= 10000>>
@@ -114,19 +114,49 @@ You are awakened in the middle of the night by a jolt that shakes the entire arc
 	<<set $traitor.assignmentVisible = 1>>
 	<<set $traitor.assignment = "stay confined">>
 	<<if $familyTesting == 1>>
+		<<if $traitorStats.PCpregSource > 0 && $PC.preg > 0 && $PC.pregSource == 0>>
+			<<set $PC.pregSource = $traitor.ID>>
+		<</if>>
+		<<if $traitorStats.PCmother > 0>>
+			<<set $PC.mother = $traitor.ID>>
+		<</if>>
+		<<if $traitorStats.PCfather > 0>>
+			<<set $PC.father = $traitor.ID>>
+		<</if>>
 		<<for _pca = 0; _pca < $slaves.length; _pca++>>
-			<<if (def $traitorMother) && $traitorMother.includes($slaves[_pca].ID)>>
+			<<if $traitorStats.traitorMother.includes($slaves[_pca].ID)>>
 				<<set $slaves[_pca].mother = $traitor.ID>>
 			<</if>>
-			<<if (def $traitorFather) && $traitorFather.includes($slaves[_pca].ID)>>
+			<<if $traitorStats.traitorFather.includes($slaves[_pca].ID)>>
 				<<set $slaves[_pca].father = $traitor.ID>>
 			<</if>>
+			<<if $traitorStats.traitorPregSources.includes($slaves[_pca].ID) && $slaves[_pca].preg > 0 && $slaves[_pca].pregSource == 0>>
+				<<set $slaves[_pca].pregSource = $traitor.ID>>
+			<</if>>
 		<</for>>
-		<<set $traitorMother = 0, $traitorFather = 0>>
+		<<if $incubator > 0>>
+			<<for _pca = 0; _pca < $tanks.length; _pca++>>
+				<<if $traitorStats.traitorMotherTank.includes($tanks[_pca].ID)>>
+					<<set $tanks[_pca].mother = $traitor.ID>>
+				<</if>>
+				<<if $traitorStats.traitorFatherTank.includes($tanks[_pca].ID)>>
+					<<set $tanks[_pca].father = $traitor.ID>>
+				<</if>>
+			<</for>>
+		<</if>>
+	<<else>>
+		<<if $traitorStats.traitorPregSources.length > 0>>
+			<<for _pca = 0; _pca < $slaves.length; _pca++>>
+				<<if $traitorStats.traitorPregSources.includes($slaves[_pca].ID) && $slaves[_pca].preg > 0 && $slaves[_pca].pregSource == 0>>
+					<<set $slaves[_pca].pregSource = $traitor.ID>>
+				<</if>>
+			<</for>>
+		<</if>>
 	<</if>>
 	<<set $traitor.health = random(-80,-60)>>
 	<<set $traitor.origin = "She was your slave, but you freed her, which she repaid by participating in a coup attempt against you. It failed, and she is again your chattel.">>
 	<<AddSlave $traitor>> /* skip New Slave Intro */
+	<<set $traitor = 0, $traitorStats = 0>>
 <</if>>
 
 <br><br>

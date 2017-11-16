@@ -61,8 +61,29 @@ This is disturbing, to say the least. After close investigation, it appears some
 "You will immediately free $activeSlave.slaveName," it reads. "This is the price of your continued survival. Agree and you buy yourself a few more moments at the top of your heap of shit. Refuse, and you shall fall that much sooner." The message is signed "The Daughters of Liberty."
 
 <br><br>
+<<Enunciate $activeSlave>>
 
-You call $activeSlave.slaveName in and politely inquire as to whether she knows anything about the matter. She nearly flees in terror, but gathers her courage and <<if canTalk($activeSlave) == false>>gestures meekly<<elseif ($activeSlave.lips > 70)>>lisps meekly through her huge lips<<elseif ($activeSlave.lipsPiercing+$activeSlave.tonguePiercing > 2)>>lisps meekly through her piercings<<else>>mumbles meekly<</if>> that several nondescript citizens she sees occasionally at work have passed a few messages to her. Apparently, they simply asked whether she wished to be free. Asked whether she does in fact wish to be free, she <<if canTalk($activeSlave) == false>>shakily gestures an apology, and admits that she does.<<elseif ($activeSlave.lips > 70)>>lisps faintly, "Ahm thorry, <<Master>>. Yeth."<<elseif ($activeSlave.lipsPiercing+$activeSlave.tonguePiercing > 2)>>lisps faintly, "Ahm thorry, <<Master>>. Yeth."<<else>>mutters faintly, "I'm sorry, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Master<<else>>Mistress<</if>>. Yes."<</if>>
+You call $activeSlave.slaveName in and politely inquire as to whether she knows anything about the matter. She nearly flees in terror, but gathers her courage and
+<<if !canTalk($activeSlave)>>
+	gestures meekly
+<<elseif ($activeSlave.lips > 70)>>
+	lisps meekly through her huge lips
+<<elseif ($activeSlave.lipsPiercing+$activeSlave.tonguePiercing > 2)>>
+	lisps meekly through her piercings
+<<else>>
+	mumbles meekly
+<</if>>
+that several nondescript citizens she sees occasionally at work have passed a few messages to her. Apparently, they simply asked whether she wished to be free. Asked whether she does in fact wish to be free, she
+<<if !canTalk($activeSlave)>>
+	shakily gestures an apology, and admits that she does.
+<<else>>
+	<<if SlaveStatsChecker.checkForLisp($activeSlave)>>
+		lisps faintly,
+	<<else>>
+		mutters faintly,
+	<</if>>
+	"I'm <<s>>orry, <<Master>>. Ye<<s>>."
+<</if>>
 
 <br><br>
 
@@ -79,17 +100,46 @@ You call $activeSlave.slaveName in and politely inquire as to whether she knows 
 		<</for>>
 	<</if>>
 	<<set $traitor = $activeSlave>>
+	<<set $traitorStats = {PCpregSource: 0, PCmother: 0, PCfather: 0, traitorMother: [], traitorFather: [], traitorPregSources: [], traitorMotherTank: [], traitorFatherTank: []}>>
 	<<if $familyTesting == 1>>
-		<<set $traitorMother = []>>
-		<<set $traitorfather = []>>
-		<<set $traitor.sisters = 0, $traitor.daughters = 0>>
-		<<for $i = 0; $i < $slaves.length; $i++>>
-			<<if $slaves[$i].ID != $traitor.ID>>
-				<<if $slaves[$i].mother == $traitor.ID>>
-					<<set $traitorMother.push($slaves[$i].ID)>>
+		<<if $traitor.ID == $PC.pregSource>>
+			<<if $traitorStats.PCpregSource>>
+		<</if>>
+		<<if $PC.mother == $traitor.ID>>
+			<<set $traitorStats.PCmother = $traitor.ID>>
+		<</if>>
+		<<if $PC.father == $traitor.ID>>
+			<<set $traitorStats.PCfather = $traitor.ID>>
+		<</if>>
+		<<for _pur = 0; _pur < $slaves.length; _pur++>>
+			<<if $slaves[_pur].ID != $traitor.ID>>
+				<<if $slaves[_pur].mother == $traitor.ID>>
+					<<set $traitorStats.traitorMother.push($slaves[_pur].ID)>>
 				<</if>>
-				<<if $slaves[$i].father == $traitor.ID>>
-					<<set $traitorfather.push($slaves[$i].ID)>>
+				<<if $slaves[_pur].father == $traitor.ID>>
+					<<set $traitorStats.traitorFather.push($slaves[_pur].ID)>>
+				<</if>>
+				<<if $traitor.ID == $slaves[_pur].pregSource>>
+					<<set $traitorStats.traitorPregSources.push($slaves[_pur].ID)>>
+				<</if>>
+			<</if>>
+		<</for>>
+		<<if $incubator > 0>>
+			<<for _z = 0; _z < $tanks.length; _z++>>
+				<<if $traitor.ID == $tanks[_z].mother>>
+					<<set $traitorStats.traitorMotherTank.push($slaves[_z].ID)>>
+				<</if>>
+				<<if $traitor.ID == $tanks[_z].father>>
+					<<set $traitorStats.traitorFatherTank.push($slaves[_z].ID)>>
+				<</if>>
+			<</for>>
+		<</if>>
+		<<set $traitor.sisters = 0, $traitor.daughters = 0>>
+	<<else>>
+		<<for _pur = 0; _pur < $slaves.length; _pur++>>
+			<<if $slaves[_pur].ID != $traitor.ID>>
+				<<if $traitor.ID == $slaves[_pur].pregSource>>
+					<<set $traitorStats.traitorPregSources.push($slaves[_pur].ID)>>
 				<</if>>
 			<</if>>
 		<</for>>

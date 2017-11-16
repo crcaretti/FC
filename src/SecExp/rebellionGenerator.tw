@@ -141,7 +141,7 @@
 		<<set $slaveRebellionEventFires = 1>>
 		<<set $citizenRebellionEventFires = 0>>
 		<<if $tension != 0>>
-			<<set $slaveProgress += Math.round(random(1,5) * ($tension / 100) * 10)>>		/* progress scales with tension */
+			<<set $slaveProgress += Math.trunc(random(1,5) * ($tension / 100) * 10)>>		/* progress scales with tension */
 		<<else>>
 			<<set $slaveProgress += random(1,5)>>
 		<</if>>
@@ -151,7 +151,7 @@
 		<<set $slaveRebellionEventFires = 0>>
 		<<set $citizenRebellionEventFires = 1>>
 		<<if $tension != 0>>
-			<<set $citizenProgress += Math.round(random(1,5) * ($tension / 100) * 10)>>
+			<<set $citizenProgress += Math.trunc(random(1,5) * ($tension / 100) * 10)>>
 		<<else>>
 			<<set $citizenProgress += random(1,5)>>
 		<</if>>
@@ -209,6 +209,12 @@
 	<<set _weekMod = 1.75>>
 <</if>>
 
+/* resetting ID list */
+<<unset $rebellingID>>
+<<set $rebellingID = []>>
+<<unset $loyalID>>
+<<set $loyalID = []>>
+
 <<if $slaveRebellion == 1>>
 	<<set $engageRule = 0>>
 	<<set $lastRebellionWeeks = 0>>
@@ -219,39 +225,63 @@
 	/* calc how many slaves and citizens participate */
 	<<set _authFactor = Math.clamp(1 - ($authority / 20000),0.4,0.6)>>
 	<<set _repFactor  = Math.clamp($rep / 20000,0.4,0.6)>>
-	<<set _rebelPercent = 0.4 * _authFactor>>
-	<<set _irregularPercent = 0.25 * _repFactor>>
-	<<set $attackTroops = Math.clamp(Math.round($ASlaves * _rebelPercent + random(-100,100)) * _weekMod,50,$ASlaves)>>
-	<<set $irregulars = Math.clamp(Math.round($ACitizens * _irregularPercent + random(-100,100)) * _weekMod,50,$ACitizens)>>
+	<<set _rebelPercent = 0.3 * _authFactor>>
+	<<set _irregularPercent = 0.2 * _repFactor>>
+	<<set $attackTroops = Math.clamp(Math.trunc($ASlaves * _rebelPercent + random(-100,100)) * _weekMod,50,$ASlaves)>>
+	<<set $irregulars = Math.clamp(Math.trunc($ACitizens * _irregularPercent + random(-100,100)) * _weekMod,50,$ACitizens)>>
 	/* calc if units rebel */
 	<<for _i = 0; _i < $slaveUnits.length; _i++>>
 		<<if $slaveUnits[_i].loyalty < 10>>
 			<<if random(1,100) <= 70>>
-				<<set $rebellingUnits.push($slaveUnits[_i])>>
+				<<set $rebellingID.push($slaveUnits[_i].ID)>>
 			<</if>>
 		<<elseif $slaveUnits[_i].loyalty < 33>>
 			<<if random(1,100) <= 30>>
-				<<set $rebellingUnits.push($slaveUnits[_i])>>
+				<<set $rebellingID.push($slaveUnits[_i].ID)>>
 			<</if>>
 		<<elseif $slaveUnits[_i].loyalty < 66>>
 			<<if random(1,100) <= 10>>
-				<<set $rebellingUnits.push($slaveUnits[_i])>>
+				<<set $rebellingID.push($slaveUnits[_i].ID)>>
 			<</if>>
+		<</if>>
+		<<if !($rebellingID.includes($slaveUnits[_i].ID))>>
+			<<set $loyalID.push($slaveUnits[_i].ID)>>
+		<</if>>
+	<</for>>
+	<<for _i = 0; _i < $militiaUnits.length; _i++>>
+		<<if $militiaUnits[_i].loyalty < 10>>
+			<<if random(1,100) <= 70>>
+				<<set $rebellingID.push($militiaUnits[_i].ID)>>
+			<</if>>
+		<<elseif $militiaUnits[_i].loyalty < 33>>
+			<<if random(1,100) <= 30>>
+				<<set $rebellingID.push($militiaUnits[_i].ID)>>
+			<</if>>
+		<<elseif $militiaUnits[_i].loyalty < 66>>
+			<<if random(1,100) <= 10>>
+				<<set $rebellingID.push($militiaUnits[_i].ID)>>
+			<</if>>
+		<</if>>
+		<<if !($rebellingID.includes($militiaUnits[_i].ID))>>
+			<<set $loyalID.push($militiaUnits[_i].ID)>>
 		<</if>>
 	<</for>>
 	<<for _i = 0; _i < $mercUnits.length; _i++>>
 		<<if $mercUnits[_i].loyalty < 10>>
 			<<if random(1,100) <= 70>>
-				<<set $rebellingUnits.push($mercUnits[_i])>>
+				<<set $rebellingID.push($mercUnits[_i].ID)>>
 			<</if>>
 		<<elseif $mercUnits[_i].loyalty < 33>>
 			<<if random(1,100) <= 30>>
-				<<set $rebellingUnits.push($mercUnits[_i])>>
+				<<set $rebellingID.push($mercUnits[_i].ID)>>
 			<</if>>
 		<<elseif $mercUnits[_i].loyalty < 66>>
 			<<if random(1,100) <= 10>>
-				<<set $rebellingUnits.push($mercUnits[_i])>>
+				<<set $rebellingID.push($mercUnits[_i].ID)>>
 			<</if>>
+		<</if>>
+		<<if !($rebellingID.includes($mercUnits[_i].ID))>>
+			<<set $loyalID.push($mercUnits[_i].ID)>>
 		<</if>>
 	<</for>>
 	<<set $attackEquip = Math.clamp($weaponsLaw + random(-2,1),0,4)>>
@@ -265,39 +295,63 @@
 	/* calc how many citizens participate */
 	<<set _authFactor = Math.clamp(1 - ($authority / 20000),0.4,0.6)>>
 	<<set _repFactor  = Math.clamp($rep / 20000,0.4,0.6)>>
-	<<set _rebelPercent = 0.4 * _authFactor>>
-	<<set _irregularPercent = 0.25 * _repFactor>>
-	<<set $attackTroops = Math.clamp(Math.round($ACitizens * _rebelPercent + random(-100,100)) * _weekMod,50,$ACitizens)>>
-	<<set $irregulars = Math.clamp(Math.round($ACitizens * _irregularPercent + random(-100,100)) * _weekMod,50,$ACitizens)>>
+	<<set _rebelPercent = 0.3 * _authFactor>>
+	<<set _irregularPercent = 0.2 * _repFactor>>
+	<<set $attackTroops = Math.clamp(Math.trunc($ACitizens * _rebelPercent + random(-100,100)) * _weekMod,50,$ACitizens)>>
+	<<set $irregulars = Math.clamp(Math.trunc($ACitizens * _irregularPercent + random(-100,100)) * _weekMod,50,$ACitizens)>>
 	/* calc if units rebel */
 	<<for _i = 0; _i < $militiaUnits.length; _i++>>
 		<<if $militiaUnits[_i].loyalty < 10>>
 			<<if random(1,100) <= 70>>
-				<<set $rebellingUnits.push($militiaUnits[_i])>>
+				<<set $rebellingID.push($militiaUnits[_i].ID)>>
 			<</if>>
 		<<elseif $militiaUnits[_i].loyalty < 33>>
 			<<if random(1,100) <= 30>>
-				<<set $rebellingUnits.push($militiaUnits[_i])>>
+				<<set $rebellingID.push($militiaUnits[_i].ID)>>
 			<</if>>
 		<<elseif $militiaUnits[_i].loyalty < 66>>
 			<<if random(1,100) <= 10>>
-				<<set $rebellingUnits.push($militiaUnits[_i])>>
+				<<set $rebellingID.push($militiaUnits[_i].ID)>>
 			<</if>>
+		<</if>>
+		<<if !($rebellingID.includes($militiaUnits[_i].ID))>>
+			<<set $loyalID.push($militiaUnits[_i].ID)>>
+		<</if>>
+	<</for>>
+	<<for _i = 0; _i < $slaveUnits.length; _i++>>
+		<<if $slaveUnits[_i].loyalty < 10>>
+			<<if random(1,100) <= 70>>
+				<<set $rebellingID.push($slaveUnits[_i].ID)>>
+			<</if>>
+		<<elseif $slaveUnits[_i].loyalty < 33>>
+			<<if random(1,100) <= 30>>
+				<<set $rebellingID.push($slaveUnits[_i].ID)>>
+			<</if>>
+		<<elseif $slaveUnits[_i].loyalty < 66>>
+			<<if random(1,100) <= 10>>
+				<<set $rebellingID.push($slaveUnits[_i].ID)>>
+			<</if>>
+		<</if>>
+		<<if !($rebellingID.includes($slaveUnits[_i].ID))>>
+			<<set $loyalID.push($slaveUnits[_i].ID)>>
 		<</if>>
 	<</for>>
 	<<for _i = 0; _i < $mercUnits.length; _i++>>
 		<<if $mercUnits[_i].loyalty < 10>>
 			<<if random(1,100) <= 70>>
-				<<set $rebellingUnits.push($mercUnits[_i])>>
+				<<set $rebellingID.push($mercUnits[_i].ID)>>
 			<</if>>
 		<<elseif $mercUnits[_i].loyalty < 33>>
 			<<if random(1,100) <= 30>>
-				<<set $rebellingUnits.push(mercUnits)>>
+				<<set $rebellingID.push($mercUnits[_i].ID)>>
 			<</if>>
 		<<elseif $mercUnits[_i].loyalty < 66>>
 			<<if random(1,100) <= 10>>
-				<<set $rebellingUnits.push($mercUnits[_i])>>
+				<<set $rebellingID.push($mercUnits[_i].ID)>>
 			<</if>>
+		<</if>>
+		<<if !($rebellingID.includes($mercUnits[_i].ID))>>
+			<<set $loyalID.push($mercUnits[_i].ID)>>
 		<</if>>
 	<</for>>
 	<<set $attackEquip = Math.clamp($weaponsLaw + random(-1,1),0,4)>>
