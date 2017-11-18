@@ -74,6 +74,7 @@
 <<set _enemyMod = 1>>
 <<set _SFMod = 1>>
 <<set _expBonus = 0>>
+<<set _loyaltyBonus = 0>>
 <<set _armyMod = 0>>
 
 /* major battle */
@@ -81,7 +82,7 @@
 	<<set _militiaMod = 1.5>>
 	<<set _slaveMod = 1.5>>
 	<<set _mercMod = 1.5>>
-	<<set _enemyMod = 3>>
+	<<set _enemyMod = 2>>
 	<<set _SFMod = 1.5>>
 	<<set _turns = $maxTurns * 2>>
 	<<if $securityForceCreate == 1>>
@@ -133,15 +134,6 @@
 		<<set _militiaMod += 0.10>>
 	<<elseif $PC.career == "gang" || $PC.career == "escort">>
 		<<set _militiaMod -= 0.10>>
-	<</if>>
-	<<if $mercLoyalty <= 25>>
-		<<set _mercMod -= 0.10>>
-	<<elseif $mercLoyalty <= 10>>
-		<<set _mercMod -= 0.25>>
-	<<elseif $mercLoyalty >= 50 && $mercLoyalty < 75>>
-		<<set _mercMod += 0.10>>
-	<<elseif $mercLoyalty >= 75>>
-		<<set _mercMod += 0.25>>
 	<</if>>
 	<<if $PC.career == "mercenary">>
 		<<set _mercMod += 0.10>>
@@ -882,8 +874,17 @@
 		<<else>>
 			<<set _expBonus = 0.50>>
 		<</if>>
-		<<set _attack += ($militiaBaseAttack + $militiaBaseAttack * $militiaUnits[_i].equip * $equipMod + $militiaBaseAttack * _expBonus + $militiaUnits[_i].SF) * _atkMod>>
-		<<set _defense += ($militiaBaseDefense + $militiaBaseDefense * $militiaUnits[_i].equip * $equipMod + $militiaBaseDefense * _expBonus + $militiaUnits[_i].SF) * _defMod>>
+		<<if $militiaUnits[_i].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $militiaUnits[_i].loyalty <= 33>>
+			<<set _loyaltyBonus = 0.10>>
+		<<elseif $militiaUnits[_i].loyalty <= 66>>
+			<<set _loyaltyBonus = 0.20>>
+		<<else>>
+			<<set _loyaltyBonus = 0.30>>
+		<</if>>
+		<<set _attack += ($militiaBaseAttack + $militiaBaseAttack * $militiaUnits[_i].equip * $equipMod + $militiaBaseAttack * _expBonus + $militiaBaseAttack * _loyaltyBonus + $militiaBaseAttack * $militiaUnits[_i].SF * 0.20) * _atkMod>>
+		<<set _defense += ($militiaBaseDefense + $militiaBaseDefense * $militiaUnits[_i].equip * $equipMod + $militiaBaseDefense * _expBonus + $militiaBaseDefense * _loyaltyBonus + $militiaBaseDefense * $militiaUnits[_i].SF * 0.20) * _defMod>>
 		<<set _hp += ($militiaBaseHp + $militiaBaseHp * $militiaUnits[_i].medics * $equipMod) * $militiaUnits[_i].troops>>
 	<</if>>
 <</for>>
@@ -896,8 +897,17 @@
 		<<else>>
 			<<set _expBonus = 0.50>>
 		<</if>>
-		<<set _attack += ($slaveBaseAttack + $slaveBaseAttack * $slaveUnits[_i].equip * $equipMod + $slaveBaseAttack * _expBonus + $slaveUnits[_i].SF) * _atkMod>>
-		<<set _defense += ($slaveBaseDefense + $slaveBaseDefense * $slaveUnits[_i].equip * $equipMod + $slaveBaseDefense * _expBonus + $slaveUnits[_i].SF) * _defMod>>
+		<<if $slaveUnits[_i].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $slaveUnits[_i].loyalty <= 33>>
+			<<set _loyaltyBonus = 0.10>>
+		<<elseif $slaveUnits[_i].loyalty <= 66>>
+			<<set _loyaltyBonus = 0.20>>
+		<<else>>
+			<<set _loyaltyBonus = 0.30>>
+		<</if>>
+		<<set _attack += ($slaveBaseAttack + $slaveBaseAttack * $slaveUnits[_i].equip * $equipMod + $slaveBaseAttack * _expBonus + $slaveBaseAttack * _loyaltyBonus + $slaveBaseAttack * $slaveUnits[_i].SF * 0.20) * _atkMod>>
+		<<set _defense += ($slaveBaseDefense + $slaveBaseDefense * $slaveUnits[_i].equip * $equipMod + $slaveBaseDefense * _expBonus + $slaveBaseDefense * _loyaltyBonus + $slaveBaseDefense * $slaveUnits[_i].SF * 0.20) * _defMod>>
 		<<set _hp += ($slaveBaseHp + $slaveBaseHp * $slaveUnits[_i].medics * 0.25) * $slaveUnits[_i].troops>>
 	<</if>>
 <</for>>
@@ -910,8 +920,17 @@
 		<<else>>
 			<<set _expBonus = 0.50>>
 		<</if>>
-		<<set _attack += ($mercBaseAttack + $mercBaseAttack * $mercUnits[_i].equip * $equipMod + $mercBaseAttack * _expBonus + $mercUnits[_i].SF) * _atkMod>>
-		<<set _defense += ($mercBaseDefense + $mercBaseDefense * $mercUnits[_i].equip * $equipMod + $mercBaseDefense * _expBonus + $mercUnits[_i].SF) * _defMod>>
+		<<if $mercUnits[_i].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $mercUnits[_i].loyalty <= 33>>
+			<<set _loyaltyBonus = 0.10>>
+		<<elseif $mercUnits[_i].loyalty <= 66>>
+			<<set _loyaltyBonus = 0.20>>
+		<<else>>
+			<<set _loyaltyBonus = 0.30>>
+		<</if>>
+		<<set _attack += ($mercBaseAttack + $mercBaseAttack * $mercUnits[_i].equip * $equipMod + $mercBaseAttack * _expBonus + $mercBaseAttack * _loyaltyBonus + $mercBaseAttack * $mercUnits[_i].SF * 0.20) * _atkMod>>
+		<<set _defense += ($mercBaseDefense + $mercBaseDefense * $mercUnits[_i].equip * $equipMod + $mercBaseDefense * _expBonus + $mercBaseDefense * _loyaltyBonus + $mercBaseDefense * $mercUnits[_i].SF * 0.20) * _defMod>>
 		<<set _hp += ($mercBaseHp + $mercBaseHp * $mercUnits[_i].medics * 0.25) * $mercUnits[_i].troops>>
 	<</if>>
 <</for>>
@@ -960,15 +979,15 @@
 				
 /* calculates enemy army stats */
 <<if $week <= 30>>
-	<<set _armyMod = $attackTroops / 60>>
+	<<set _armyMod = $attackTroops / 100>>
 <<elseif $week <= 60>>
-	<<set _armyMod = $attackTroops / 50>>
+	<<set _armyMod = $attackTroops / 90>>
 <<elseif $week <= 90>>
-	<<set _armyMod = $attackTroops / 40>>
+	<<set _armyMod = $attackTroops / 80>>
 <<elseif $week <= 120>>
-	<<set _armyMod = $attackTroops / 30>>
+	<<set _armyMod = $attackTroops / 70>>
 <<else>>
-	<<set _armyMod = $attackTroops / 20>>
+	<<set _armyMod = $attackTroops / 60>>
 <</if>>
 <<set _armyMod = Math.trunc(_armyMod)>>
 <<if $majorBattle == 1>>
@@ -978,7 +997,7 @@
 	<<set _armyMod = 1>>
 <</if>>
 
-<<set _enemyMoraleTroopMod = Math.clamp($attackTroops / 300,1,10)>>
+<<set _enemyMoraleTroopMod = Math.clamp($attackTroops / 400,1,5)>>
 
 <<if $attackType == "raiders">>
 	<<set _enemyAttack = ($raBaseAttack + $weapManu * $sellTo.raiders + $raBaseAttack * $attackEquip * $equipMod) * _armyMod>>
@@ -1043,7 +1062,7 @@
 <<set _atkMod = Math.round(_atkMod * 100)>>
 <<set _defMod = Math.round(_defMod * 100)>>
 <<set _militiaMod = Math.round(_militiaMod * 100)>>
-<<set _mercMod = Math.round(_mercMod)>>
+<<set _mercMod = Math.round(_mercMod * 100)>>
 <<set _slaveMod = Math.round(_slaveMod * 100)>>
 <<set _SFMod = Math.round(_SFMod * 100)>>
 <<set _enemyMod = Math.round(_enemyMod * 100)>>
@@ -1083,7 +1102,7 @@ __Army__:
 <br>security force morale modifier: <<if _SFMod > 0>>+<</if>>_SFMod%
 <</if>>
 <<if $secBarracksUpgrades.luxury >= 1>>
-<br>Barracks bnous morale modifier: +<<print _barracksBonus>>%
+<br>Barracks bonus morale modifier: +<<print _barracksBonus>>%
 <</if>>
 <<if _moraleTroopMod>>
 	<br>morale increase due to troop numbers: +<<print _moraleTroopMod>>%

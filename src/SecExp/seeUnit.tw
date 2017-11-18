@@ -26,8 +26,19 @@
 		<</link>>
 		Invest in the development of more refined controls for your drones to increase the maximum number of drones in the unit.
 		<br>//Costs 5000 per upgrade and each will increase the max by 10//
+	<<elseif $secBots.maxTroops < 100 && $SFSupportLevel >= 1>>
+		<br>
+		<<link "Refine the drone network with $securityForceName assistance">>
+		<<set $secBots.maxTroops += 10>>
+			<<set $cash -= 5000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Utilize the technological developments made by $securityForceName to further improve the control matrix of the security drones.
+		<br>//Costs 5000 per upgrade and each will increase the max by 10//
+	<<elseif $SFSupportLevel < 1 && $securityForceCreate == 1>>
+		There's little left to improve in the matrix. However support from $securityForceName might give some more room from improvement.
 	<<else>>
-		There's little left to improve in the matrix. Your control systems are at top capacity and won't be able to handle bigger drone units.
+		There's little left to improve in the matrix. Your control systems are at top capacity and won't be able to handle bigger a drone unit.
 	<</if>>
 	<<if $secBots.equip < 3>>
 		<br>
@@ -44,8 +55,8 @@
 	<</if>>
 	<<if $showBattleStatistics == 1>>
 		<br>
-		<br>Security drones base attack: $secBotsBaseAttack (<<print ($secBotsBaseAttack + $secBotsBaseAttack * $secBots.equip * 0.15)>>)
-		<br>Security drones base defense: $secBotsBaseDefense (<<print ($secBotsBaseDefense + $secBotsBaseDefense * $secBots.equip * 0.15)>>)
+		<br>Security drones base attack: $secBotsBaseAttack (<<print Math.round($secBotsBaseAttack + $secBotsBaseAttack * $secBots.equip * 0.15)>>)
+		<br>Security drones base defense: $secBotsBaseDefense (<<print Math.round($secBotsBaseDefense + $secBotsBaseDefense * $secBots.equip * 0.15)>>)
 		<br>Equipment bonus: + <<print $secBots.equip * 15>>%
 		<br>Security drones base morale: $secBotsMorale
 		<br>Security drones base hp: $secBotsBaseHp
@@ -149,14 +160,47 @@
 			<br>The unit has attached advisors from $securityForceName that will help the squad remain tactically aware and active. 
 		<</if>>
 	<</if>>
+	
 	<<if $showBattleStatistics == 1>>
+		<<if $militiaUnits[$targetIndex].training <= 10>>
+			<<set _expBonus = 0>>
+		<<elseif $militiaUnits[$targetIndex].training <= 33>>
+			<<set _expBonus = 10>>
+		<<elseif $militiaUnits[$targetIndex].training <= 66>>
+			<<set _expBonus = 25>>
+		<<else>>
+			<<set _expBonus = 50>>
+		<</if>>
+		<<if $militiaUnits[$targetIndex].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $militiaUnits[$targetIndex].loyalty <= 33>>
+			<<set _loyaltyBonus = 10>>
+		<<elseif $militiaUnits[$targetIndex].loyalty <= 66>>
+			<<set _loyaltyBonus = 20>>
+		<<else>>
+			<<set _loyaltyBonus = 30>>
+		<</if>>
 		<br>
-		<br>Militia base attack: $militiaBaseAttack (<<print ($militiaBaseAttack + $militiaBaseAttack * $militiaUnits[$targetIndex].equip * 0.15)>>)
-		<br>Militia base defense: $militiaBaseDefense (<<print ($militiaBaseDefense + $militiaBaseDefense * $militiaUnits[$targetIndex].equip * 0.15)>>)
+		<br>Militia base attack: $militiaBaseAttack (<<print Math.round($militiaBaseAttack + $militiaBaseAttack * $militiaUnits[$targetIndex].equip * $equipMod + $militiaBaseAttack * _expBonus * 0.01 + $militiaBaseAttack * _loyaltyBonus * 0.01 + $militiaBaseAttack * $militiaUnits[$targetIndex].SF * 0.20)>>)
+		<br>Militia base defense: $militiaBaseDefense (<<print Math.round($militiaBaseDefense + $militiaBaseDefense * $militiaUnits[$targetIndex].equip * $equipMod + $militiaBaseDefense * _expBonus * 0.01 + $militiaBaseDefense * _loyaltyBonus * 0.01 + $militiaBaseDefense * $militiaUnits[$targetIndex].SF * 0.20)>>)
 		<br>Equipment bonus: + <<print $militiaUnits[$targetIndex].equip * 15>>%
-		<br>Militia base morale: $militiaBaseMorale (<<print ($militiaBaseMorale + $militiaBaseMorale * $secBarracksUpgrades.luxury * 0.05)>>)
-		<br>Barracks bonus: + <<print $secBarracksUpgrades.luxury * 5>>%
-		<br>Militia base hp: $militiaBaseHp
+		<<if _expBonus > 0>>
+			<br>Experience bonus: +<<print _expBonus>>%
+		<</if>>
+		<<if _loyaltyBonus > 0>>
+			<br>Loyalty bonus: +<<print _loyaltyBonus>>%
+		<</if>>
+		<<if $militiaUnits[$targetIndex].SF > 0>>
+			<br>Security Force advisors bonus: +20%
+		<</if>>
+		<br>Militia base morale: $militiaBaseMorale (<<print Math.round($militiaBaseMorale + $militiaBaseMorale * $secBarracksUpgrades.luxury * 0.05)>>)
+		<<if $secBarracksUpgrades.luxury > 0>>
+			<br>Barracks bonus: + <<print $secBarracksUpgrades.luxury * 5>>%
+		<</if>>
+		<br>Militia base hp: $militiaBaseHp (<<print Math.round($militiaBaseHp + $militiaBaseHp * $militiaUnits[$targetIndex].medics * 0.25)>>)
+		<<if $militiaUnits[$targetIndex].medics > 0>>
+			<br>Medics detachment bonus: +25%
+		<</if>>
 	<</if>>
 <<elseif $targetUnit == "slaveUnits">>
 	<<slaveUnitsDescription $slaveUnits[$targetIndex]>>
@@ -256,13 +300,45 @@
 		<</if>>
 	<</if>>
 	<<if $showBattleStatistics == 1>>
+		<<if $slaveUnits[$targetIndex].training <= 10>>
+			<<set _expBonus = 0>>
+		<<elseif $slaveUnits[$targetIndex].training <= 33>>
+			<<set _expBonus = 10>>
+		<<elseif $slaveUnits[$targetIndex].training <= 66>>
+			<<set _expBonus = 25>>
+		<<else>>
+			<<set _expBonus = 50>>
+		<</if>>
+		<<if $slaveUnits[$targetIndex].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $slaveUnits[$targetIndex].loyalty <= 33>>
+			<<set _loyaltyBonus = 10>>
+		<<elseif $slaveUnits[$targetIndex].loyalty <= 66>>
+			<<set _loyaltyBonus = 20>>
+		<<else>>
+			<<set _loyaltyBonus = 30>>
+		<</if>>
 		<br>
-		<br>Slaves base attack: $slaveBaseAttack (<<print ($slaveBaseAttack + $slaveBaseAttack * $slaveUnits[$targetIndex].equip * 0.15)>>)
-		<br>Slaves base defense: $slaveBaseDefense (<<print ($slaveBaseDefense + $slaveBaseDefense * $slaveUnits[$targetIndex].equip * 0.15)>>)
+		<br>Slaves base attack: $slaveBaseAttack (<<print Math.round($slaveBaseAttack + $slaveBaseAttack * $slaveUnits[$targetIndex].equip * $equipMod + $slaveBaseAttack * _expBonus * 0.01 + $slaveBaseAttack * _loyaltyBonus * 0.01 + $slaveBaseAttack * $slaveUnits[$targetIndex].SF * 0.20)>>)
+		<br>Slaves base defense: $slaveBaseDefense (<<print Math.round($slaveBaseDefense + $slaveBaseDefense * $slaveUnits[$targetIndex].equip * $equipMod + $slaveBaseDefense * _expBonus * 0.01 + $slaveBaseDefense * _loyaltyBonus * 0.01 + $slaveBaseDefense * $slaveUnits[$targetIndex].SF * 0.20)>>)
 		<br>Equipment bonus: + <<print $slaveUnits[$targetIndex].equip * 15>>%
-		<br>Slaves base morale: $slaveBaseMorale (<<print ($slaveBaseMorale + $slaveBaseMorale * $secBarracksUpgrades.luxury * 0.05)>>)
-		<br>Barracks bonus: + <<print $secBarracksUpgrades.luxury * 5>>%
-		<br>Slaves base hp: $slaveBaseHp
+		<<if _expBonus > 0>>
+			<br>Experience bonus: +<<print _expBonus>>%
+		<</if>>
+		<<if _loyaltyBonus > 0>>
+			<br>Loyalty bonus: +<<print _loyaltyBonus>>%
+		<</if>>
+		<<if $slaveUnits[$targetIndex].SF > 0>>
+			<br>Security Force advisors bonus: +20%
+		<</if>>
+		<br>Slaves base morale: $slaveBaseMorale (<<print Math.round($slaveBaseMorale + $slaveBaseMorale * $secBarracksUpgrades.luxury * 0.05)>>)
+		<<if $secBarracksUpgrades.luxury > 0>>
+			<br>Barracks bonus: + <<print $secBarracksUpgrades.luxury * 5>>%
+		<</if>>
+		<br>Slaves base hp: $slaveBaseHp (<<print Math.round($slaveBaseHp + $slaveBaseHp * $slaveUnits[$targetIndex].medics * 0.25)>>)
+		<<if $slaveUnits[$targetIndex].medics > 0>>
+			<br>Medics detachment bonus: +25%
+		<</if>>
 	<</if>>
 <<elseif $targetUnit == "mercUnits">>
 	<<mercUnitsDescription $mercUnits[$targetIndex]>>
@@ -362,12 +438,44 @@
 		<</if>>
 	<</if>>
 	<<if $showBattleStatistics == 1>>
+		<<if $mercUnits[$targetIndex].training <= 10>>
+			<<set _expBonus = 0>>
+		<<elseif $mercUnits[$targetIndex].training <= 33>>
+			<<set _expBonus = 10>>
+		<<elseif $mercUnits[$targetIndex].training <= 66>>
+			<<set _expBonus = 25>>
+		<<else>>
+			<<set _expBonus = 50>>
+		<</if>>
+		<<if $mercUnits[$targetIndex].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $mercUnits[$targetIndex].loyalty <= 33>>
+			<<set _loyaltyBonus = 10>>
+		<<elseif $mercUnits[$targetIndex].loyalty <= 66>>
+			<<set _loyaltyBonus = 20>>
+		<<else>>
+			<<set _loyaltyBonus = 30>>
+		<</if>>
 		<br>
-		<br>Mercenaries base attack: $mercBaseAttack (<<print ($mercBaseAttack + $mercBaseAttack * $mercUnits[$targetIndex].equip * 0.15)>>)
-		<br>Mercenaries base defense: $mercBaseDefense (<<print ($mercBaseDefense + $mercBaseDefense * $mercUnits[$targetIndex].equip * 0.15)>>)
+		<br>Mercenaries base attack: $mercBaseAttack (<<print Math.round($mercBaseAttack + $mercBaseAttack * $mercUnits[$targetIndex].equip * $equipMod + $mercBaseAttack * _expBonus * 0.01 + $mercBaseAttack * _loyaltyBonus * 0.01 + $mercBaseAttack * $mercUnits[$targetIndex].SF * 0.20)>>)
+		<br>Mercenaries base defense: $mercBaseDefense (<<print Math.round($mercBaseDefense + $mercBaseDefense * $mercUnits[$targetIndex].equip * $equipMod + $mercBaseDefense * _expBonus * 0.01 + $mercBaseDefense * _loyaltyBonus * 0.01 + $mercBaseDefense * $mercUnits[$targetIndex].SF * 0.20)>>)
 		<br>Equipment bonus: + <<print $mercUnits[$targetIndex].equip * 15>>%
-		<br>Mercenaries base morale: $mercBaseMorale (<<print ($mercBaseMorale + $mercBaseMorale * $secBarracksUpgrades.luxury * 0.05)>>)
-		<br>Barracks bonus: + <<print $secBarracksUpgrades.luxury * 5>>%
-		<br>Mercenaries base hp: $mercBaseHp
+		<<if _expBonus > 0>>
+			<br>Experience bonus: +<<print _expBonus>>%
+		<</if>>
+		<<if _loyaltyBonus > 0>>
+			<br>Loyalty bonus: +<<print _loyaltyBonus>>%
+		<</if>>
+		<<if $mercUnits[$targetIndex].SF > 0>>
+			<br>Security Force advisors bonus: +20%
+		<</if>>
+		<br>Mercenaries base morale: $mercBaseMorale (<<print Math.round($mercBaseMorale + $mercBaseMorale * $secBarracksUpgrades.luxury * 0.05)>>)
+		<<if $secBarracksUpgrades.luxury > 0>>
+			<br>Barracks bonus: + <<print $secBarracksUpgrades.luxury * 5>>%
+		<</if>>
+		<br>Mercenaries base hp: $mercBaseHp (<<print Math.round($mercBaseHp + $mercBaseHp * $mercUnits[$targetIndex].medics * 0.25)>>)
+		<<if $mercUnits[$targetIndex].medics > 0>>
+			<br>Medics detachment bonus: +25%
+		<</if>>
 	<</if>>
 <</if>>
