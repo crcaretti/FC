@@ -3,34 +3,7 @@
 //
 <<set $target = "">>
 <<if $familyTesting == 1 && totalRelatives($activeSlave) > 0 && random(1,100) > 80>>
-	<<set $relations = 0>>
-	<<set $relations = []>>
-	<<if $activeSlave.sisters > 0>>
-		<<for _j = 0; _j < $slaves.length; _j++>>
-			<<if areSisters($activeSlave, $slaves[_j]) > 0>>
-				<<set $relations.push($slaves[_j])>>
-			<</if>>
-		<</for>>
-	<</if>>
-	<<if $activeSlave.daughters > 0>>
-		<<for _j = 0; _j < $slaves.length; _j++>>
-			<<if $slaves[_j].mother == $activeSlave.ID || $slaves[_j].father == $activeSlave.ID>>
-				<<set $relations.push($slaves[_j])>>
-			<</if>>
-		<</for>>
-	<</if>>
-	<<if $activeSlave.mother > 0>>
-		<<set _j = $slaves.find(function(s) { return s.ID == $activeSlave.mother; })>>
-		<<if _j != -1>>
-			<<set $relations.push($slaves[_j])>>
-		<</if>>
-	<</if>>
-	<<if $activeSlave.father > 0>>
-		<<set _j = $slaves.find(function(s) { return s.ID == $activeSlave.father; })>>
-		<<if _j != -1>>
-				<<set $relations.push($slaves[_j])>>
-		<</if>>
-	<</if>>
+	<<set $relations = $slaves.filter(function(s) { return areSisters($activeSlave, s) > 0 || s.mother == $activeSlave.ID || s.father == $activeSlave.ID || s.ID == $activeSlave.mother || ; s.ID == $activeSlave.father})>>
 	<<set $relation = $relations.random()>>
 	<<if $relation.mother == $activeSlave.ID || $relation.father == $activeSlave.ID>>
 		<<set $relationType = "daughter">>
@@ -387,8 +360,8 @@
 	<<set _partnerSlave = null>>
 	<<for _i = 0; _i < $slaves.length; _i++>>
 		<<if $slaves[_i].ID == $activeSlave.rivalryTarget>>
-		<<set _partnerSlave = $slaves[_i]>>
-		<<break>>
+			<<set _partnerSlave = $slaves[_i]>>
+			<<break>>
 		<</if>>
 	<</for>>
 	<<if _partnerSlave == null>>
@@ -405,6 +378,8 @@
 	<</if>>
 
 	<<switch _partnerSlave.assignment>>
+	<<case "be your agent">>
+		is shaping society in her assigned arcology.
 	<<case "stay confined">>
 		is confined, but you have a fine view of her <<if $seeRace == 1>>_partnerSlave.race body <</if>>on the feed from her cell.
 	<<case "work in the brothel">>
@@ -571,7 +546,15 @@
 
 	$activeSlave.slaveName and _partnerSlave.slaveName are
 	<<set _seed = random(1,3)>>
-	<<if _seed == 1>> /* SEXY TIMES */
+	<<if ["be your agent", "be confined in the arcade"].includes(_partnerSlave.assignment) || (_partnerSlave.assignment == "work in the dairy" && $DairyRestraintsSetting >= 2)>>
+		<<if _partnerSlave.assignment == "work in the dairy" && $DairyRestraintsSetting >= 2>>
+			trying their best to maintain their relationship with _partnerSlave.slaveName being part of $dairyName.
+		<<elseif _partnerSlave.assignment == "be your agent">>
+			catching up with each other over a video call. Running an arcology in your stead comes with its perks.
+		<<elseif _partnerSlave.assignment == "be confined in the arcade">>
+			trying their best to maintain their relationship with _partnerSlave.slaveName being nothing more than holes in $arcadeName.
+		<</if>>
+	<<elseif _seed == 1>> /* SEXY TIMES */
 
 	<<if (($activeSlave.fetish == "dom") || ($activeSlave.fetish == "sadist")) && ($activeSlave.dick > 0) && canPenetrate($activeSlave) && ((_partnerSlave.fetish == "dom") || (_partnerSlave.fetish == "sadist")) && (_partnerSlave.dick > 0) && canPenetrate(_partnerSlave)>>
 		performing double anal on another slave. They're face to face over their sub's shoulders, looking into each other's eyes with every appearance of enjoyment and love, since for them rubbing dicks inside another slave's butt is what constitutes healthy sexual activity. _partnerSlave.slaveName is on the bottom, and holds their victim atop her with _partnerSlave.slaveName's cock already hilted in her ass so $activeSlave.slaveName can force herself inside as well. They enjoy the overstimulated girl's struggles.
@@ -871,11 +854,11 @@
 	<<set _partnerSlave = null>>
 	<<if ($partner == "relation")>>
 		<<if $familyTesting == 1>>
-			<<set _partnerSlave = $relation>>
+				<<set _partnerSlave = $relation>>
 		<<else>>
 			<<for _i = 0; _i < $slaves.length; _i++>>
 				<<if $slaves[_i].ID == $activeSlave.relationTarget>>
-					<<set _partnerSlave = $slaves[_i]>>
+						<<set _partnerSlave = $slaves[_i]>>
 					<<break>>
 				<</if>>
 			<</for>>
@@ -905,6 +888,10 @@
 
 	Her <<if ($partner == "relation")>><<if $familyTesting == 1>>$relationType<<else>>_partnerSlave.relation<</if>><<else>>_activeSlaveRel<</if>> _partnerSlave.slaveName
 	<<switch _partnerSlave.assignment>>
+	<<case "be your agent">>
+		is off managing an arcology in your stead, but you call her back for a visit if you were inclined.
+	<<case "be confined in the arcade">>
+		is nothing more than holes in $arcadeName, but you have a fine view of her <<if $seeRace == 1>>_partnerSlave.race rear <</if>>on the feed from the facility.
 	<<case "stay confined">>
 		is confined, but you have a fine view of her <<if $seeRace == 1>>_partnerSlave.race body <</if>>on the feed from her cell.
 	<<case "work in the brothel">>

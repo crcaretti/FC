@@ -1,9 +1,8 @@
 :: Security Force EOW Report
 
 /* The upgrades are currently ordered as:
-($terrain != "oceanic") (102)
-	Barracks(13)
-		securityForceArcologyUpgrades(13)
+	Barracks(16)
+		securityForceArcologyUpgrades(16)
 	Armory(11)
 		securityForceInfantryPower(11)
 	Stimulant Lab(9)
@@ -17,7 +16,7 @@
 		securityForceFortressZeppelin(3)
 		securityForceAC130(5)
 	<</if>>
-	<<if $securityForceArcologyUpgrades >= 2>>Drone Bay/fleet(6)
+	<<if $securityForceArcologyUpgrades >= 2>>Drone Bay(6)
 		securityForceDronePower(6)
 	<</if>>
 	<<if $securityForceArcologyUpgrades >= 4>>Launch Bay(29)
@@ -27,31 +26,14 @@
 	<</if>>
 	securityForceX
 
-($terrain == "oceanic") (99)
-	Barracks(13)
-		securityForceArcologyUpgrades(13)
-	Armory(11)
-		securityForceInfantryPower(11)
-	Stimulant Lab(9)
-		securityForceStimulantPower(9)
-	<<if $securityForceArcologyUpgrades >= 1>>Garage(7)
-		securityForceVehiclePower(7)
-	<</if>>
-	<<if $securityForceArcologyUpgrades >= 4>>Hangar(27)
-		securityForceAircraftPower(8)
-		securityForceSpacePlanePower(11)
-		securityForceFortressZeppelin(3)
-		securityForceAC130(5)
-	<</if>>
-	<<if $securityForceArcologyUpgrades >= 2>>Drone Bay/fleet(6)
-		securityForceDronePower(6)
-	<</if>>
+($terrain == "oceanic")
 	<<if $securityForceArcologyUpgrades >= 4>>Launch Bay(17)
 		securityForceSatalitePower(17)
 	<</if>>
-	Naval Yard (9)
+	Naval Yard (12)
 		securityForceAircraftCarrier(4)
 		securityForceSubmarine(5)
+		securityForceHeavyAmphibiousTransport (3)
 securityForceX */
 <<silently>>
 /* Manpower Fluctuation Calculations - loss from attrition, random casualties, etc. Baseline is ~3%/week. Heavier for raiding/slaving, reduced for securing trade. Maxes out between 1000-1500, though never exactly that. If over 1500 for some reason, set to 1455-1495. If under 100, cannot fluctuate further negatively. */
@@ -193,8 +175,9 @@ securityForceX */
 			<<set $securityForceTrade += (0.25*($securityForceAircraftCarrier))>> <</if>>
 		<<if $securityForceSubmarine > 0>>
 			<<set $securityForceTrade += (0.25*($securityForceSubmarine))>> <</if>>
-		
-
+		<<if $securityForceHeavyAmphibiousTransport > 0>>
+			<<set $securityForceTrade += (0.25*($securityForceHeavyAmphibiousTransport))>> <</if>>	
+			
 	/* Manpower effects - extra 0.5% per 100-gate in terms of manpower. Kicks in at over 200, since some of the SF is on overhead, logistics, repairs, rest, etc. */
 	<<if $securityForcePersonnel > 200>>
 		<<set $securityForceTrade += (0.005*Math.trunc($securityForcePersonnel/100))>>
@@ -239,61 +222,70 @@ securityForceX */
 	
 	/* Facilities */
 	<<set _SFNO = $securityForceArcologyUpgrades+$securityForceInfantryPower+$securityForceStimulantPower+$securityForceVehiclePower+$securityForceAircraftPower+$securityForceSpacePlanePower+$securityForceFortressZeppelin+$securityForceDronePower+$securityForceSatalitePower+$securityForceGiantRobot+$securityForceMissileSilo>> 
-	<<set _SFO = $securityForceArcologyUpgrades+$securityForceInfantryPower+$securityForceStimulantPower+$securityForceVehiclePower+$securityForceAircraftPower+$securityForceSpacePlanePower+$securityForceFortressZeppelin+$securityForceDronePower+$securityForceSatalitePower+$securityForceAircraftCarrier+$securityForceSubmarine>>
+	<<set _SFO = $securityForceArcologyUpgrades+$securityForceInfantryPower+$securityForceStimulantPower+$securityForceVehiclePower+$securityForceAircraftPower+$securityForceSpacePlanePower+$securityForceFortressZeppelin+$securityForceDronePower+$securityForceSatalitePower+$securityForceAircraftCarrier+$securityForceSubmarine+$securityForceHeavyAmphibiousTransport>>
 	<<set _SFNOPercentage = _SFNO*_RaidingEfficienyPercentage>>
 	<<set _SFOPercentage = __SFO*_RaidingEfficienyPercentage>>
 	
-	Barracks(13)
-		<<if $securityForceArcologyUpgrades > 0>>							 /* (13) */						
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceArcologyUpgrades*_RaidingEfficienyPercentage)))>> 
+	/* Barracks(16) */
+		<<if $securityForceArcologyUpgrades > 0>>							 /* (16) */						
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceArcologyUpgrades*_RaidingEfficienyPercentage)))>> 
 		<</if>>
-	Armory(11)
+	/* Armory(11) */
 		<<if $securityForceInfantryPower > 0>>								/* 	(11) */							
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceInfantryPower*_RaidingEfficienyPercentage))>> 
-	<</if>> 
-	Stimulant Lab(9)
-		<<if $securityForceStimulantPower > 0>>								/* (9) 	*/ 						
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceStimulantPower*_RaidingEfficienyPercentage)))>> 
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceInfantryPower*_RaidingEfficienyPercentage))>> 
 		<</if>> 
-	Garage(7)
+	/* Stimulant Lab(9) */
+		<<if $securityForceStimulantPower > 0>>								/* (9) 	*/ 						
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceStimulantPower*_RaidingEfficienyPercentage)))>> 
+		<</if>> 
+	<<if $securityForceArcologyUpgrades >= 1>>Garage(7)
 		<<if $securityForceVehiclePower > 0>>								/* (7)	*/		
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceVehiclePower*_RaidingEfficienyPercentage))>> 
-		<</if>> 	
-	Hangar(27)
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceVehiclePower*_RaidingEfficienyPercentage))>> 
+		<</if>>
+	<</if>> 	
+	<<if $securityForceArcologyUpgrades >= 4>>Hangar(27)
 		<<if $securityForceAircraftPower > 0>> 								/*	(8) */					
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceAircraftPower*_RaidingEfficienyPercentage)))>> 
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceAircraftPower*_RaidingEfficienyPercentage)))>> 
 		<</if>>
 		<<if $securityForceSpacePlanePower > 0>> 							/* (11) */					
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceSpacePlanePower*_RaidingEfficienyPercentage))>> 
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceSpacePlanePower*_RaidingEfficienyPercentage))>> 
 		<</if>>
 		<<if $securityForceFortressZeppelin > 0>> 							/*	(3) */						
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceFortressZeppelin*_RaidingEfficienyPercentage))>> 
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceFortressZeppelin*_RaidingEfficienyPercentage))>> 
 		<</if>>
 		<<if $securityForceAC130 > 0>> 										/*	(5) */							
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceAC130*_RaidingEfficienyPercentage)))>> 
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceAC130*_RaidingEfficienyPercentage)))>> 
 		<</if>>
-	Drone Bay/fleet(6)
+	<</if>>
+	<<if $securityForceArcologyUpgrades >= 2>>Drone Bay(6)
 		<<if $securityForceDronePower > 0>> 								/*	(6)	*/							
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceDronePower*_RaidingEfficienyPercentage))>> 
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceDronePower*_RaidingEfficienyPercentage))>> 
 		<</if>>
-	Launch Bay(29)
-		<<if $securityForceSatalitePower > 0 && $terrain != "oceanic">>	 	/* (17) */
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceSatalitePower*_RaidingEfficienyPercentage)))>> <</if>>
-		<<if $securityForceGiantRobot > 0>> 								/* (9) 	*/		
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceGiantRobot*_RaidingEfficienyPercentage))>> <</if>> 
+	<</if>>
+	<<if $securityForceArcologyUpgrades >= 4>>Launch Bay(29)
+		<<if $securityForceSatalitePower > 0>>	 	/* (17) */
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(1+($securityForceSatalitePower*_RaidingEfficienyPercentage)))>> 
+		<</if>>
+		<<if $securityForceGiantRobot > 0 && $terrain != "oceanic">> 								/* (9) 	*/		
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceGiantRobot*_RaidingEfficienyPercentage))>> 
+		<</if>> 
 		<<if $securityForceMissileSilo > 0 && $terrain != "oceanic">> 		/* (3) 	*/
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceMissileSilo*_RaidingEfficienyPercentage))>> <</if>> 
-	
-	Naval Yard (9)
-		<<if $securityForceAircraftCarrier > 0 && $terrain == "oceanic">> 	/* (4) */
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*($securityForceAircraftCarrier*_RaidingEfficienyPercentage))>> 
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($securityForceMissileSilo*_RaidingEfficienyPercentage))>> 
+		<</if>> 
+	<</if>>
+	<<if $terrain == "oceanic">>Naval Yard (12)
+		<<if $securityForceAircraftCarrier > 0>> 							/* (4) */
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*($securityForceAircraftCarrier*_RaidingEfficienyPercentage))>> 
 		<</if>>
-		<<if $securityForceSubmarine > 0 && $terrain == "oceanic">> 		/* (5) */	
-		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*($securityForceSubmarine*_RaidingEfficienyPercentage))>> 
+		<<if $securityForceSubmarine > 0>> 									/* (5) */	
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*($securityForceSubmarine*_RaidingEfficienyPercentage))>> 
 		<</if>>
+		<<if $securityForceHeavyAmphibiousTransport > 0>> 					/* (3) */	
+			<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*($securityForceHeavyAmphibiousTransport*_RaidingEfficienyPercentage))>> 
+		<</if>>
+	<</if>>
 		
 	/* Colonel */
-	/* 
 	<<if $ColonelCore ==  "warmonger">>
 		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency*(_RaidingEfficienyPercentage))>>
 	<</if>>
@@ -303,7 +295,6 @@ securityForceX */
 	<<if $OverallTradeShowAttendance > 0>>
 		<<set $securityForceMissionEfficiency = ($securityForceMissionEfficiency+($OverallTradeShowAttendance*_RaidingEfficienyPercentage))>> 
 	<</if>>
-	*/
 	
 	/*LieutenantColonel and Facility Support */
 	/* 
@@ -358,14 +349,24 @@ securityForceX */
 	<</if>>
 	
 	<<switch $ColonelCore>>
-	<<case "kind" "collected">> 
+	<<case "kind">> 
 		<<set $securityForceDepravity -= 0.02>>
-	<<case "cruel" "sociopathic">>
+	<<case "collected">> 
+		<<set $securityForceDepravity -= 0.015>>
+		<<set $securityForceDepravity += 0.015>>
+	
+	<<case "Cruel">>
 		<<set $securityForceDepravity += 0.05>>
-	<<case "warmonger">>
+	<<case "Psychopath">>
 		<<set $securityForceDepravity += 0.10>>
+	<<case "sociopathic">>
+		<<set $securityForceDepravity += 0.15>>
+	
+	<<case "Brazen">>
+		<<set $securityForceDepravity += 1.05>>
+		<<set $securityForceDepravity -= 1.05>>
 	<</switch>>
-
+		
 /* Reset the token counters for speaking or such to The Colonel in the barracks */
 	<<set $securityForceUpgradeToken = 0>>
 	<<set $securityForceGiftToken = 0>>
@@ -446,6 +447,15 @@ securityForceX */
 <<elseif $securityForceArcologyUpgrades == 13>>
 	The barracks has (mostly) taken on the appearance of a professional military installation, with clearly defined soldier and logistical areas, dedicated support and recreation facilities, and advanced command and control apparatus. As final measures, quad heavy, long range, tri barreled electromagnetic railgun artillery 160 inch pieces have been installed in fortified EMP/jammer resistant casemates along the aerial launch pads and a powerful arcology wide electromagnetic forcefield has been installed, giving $securityForceName an immense superiority in local firepower.
 	<br>After pooling resources between several departemental R&D teams, $securityForceName now has a faster and much more efficient custom network.
+<<elseif $securityForceArcologyUpgrades == 14>>
+	The barracks has (mostly) taken on the appearance of a professional military installation, with clearly defined soldier and logistical areas, dedicated support and recreation facilities, and advanced command and control apparatus. As final measures, quad heavy, long range, tri barreled electromagnetic railgun artillery 160 inch pieces have been installed in fortified EMP/jammer resistant casemates along the aerial launch pads and a powerful arcology wide electromagnetic forcefield has been installed, giving $securityForceName an immense superiority in local firepower.
+	<br>After pooling resources between several departmental R&D teams, $securityForceName now has a faster and much more efficient custom network.<br>'Borowwed' the old world designs for a kill house.
+<<elseif $securityForceArcologyUpgrades == 15>>
+	The barracks has (mostly) taken on the appearance of a professional military installation, with clearly defined soldier and logistical areas, dedicated support and recreation facilities, and advanced command and control apparatus. As final measures, quad heavy, long range, tri barreled electromagnetic railgun artillery 160 inch pieces have been installed in fortified EMP/jammer resistant casemates along the aerial launch pads and a powerful arcology wide electromagnetic forcefield has been installed, giving $securityForceName an immense superiority in local firepower.
+	<br>After pooling resources between several departmental R&D teams, $securityForceName now has a faster and much more efficient custom network.<br>Added electronics to the kill house.
+<<elseif $securityForceArcologyUpgrades == 16>>
+	The barracks has (mostly) taken on the appearance of a professional military installation, with clearly defined soldier and logistical areas, dedicated support and recreation facilities, and advanced command and control apparatus. As final measures, quad heavy, long range, tri barreled electromagnetic railgun artillery 160 inch pieces have been installed in fortified EMP/jammer resistant casemates along the aerial launch pads and a powerful arcology wide electromagnetic forcefield has been installed, giving $securityForceName an immense superiority in local firepower.
+	<br>After pooling resources between several departmental R&D teams, $securityForceName now has a faster and much more efficient custom network.<br>Added VR support to the kill house.
 <</if>>
 		
 <br><br>
@@ -526,7 +536,7 @@ securityForceX */
 <<elseif $securityForceVehiclePower == 6>>
 	The garage has replaced both its armoured and support vehicles with the most advanced light variants possible, making the mobile unit of the $securityForceName far superior to anything in the arcology's immediate area.
 <<elseif $securityForceVehiclePower == 7>>
-	The garage has replaced both its armoured and support vehicles with the most advanced heavy variants possible, making the mobile unit of the $securityForceName far superior to anything in the arcology's immediate area.
+	The garage has replaced both its armoured and support vehicles with the most advanced light and medium variants possible, making the mobile unit of the $securityForceName far superior to anything in the arcology's immediate area.
 <</if>>
 <</if>>
 
@@ -560,36 +570,36 @@ securityForceX */
 	<<if $securityForceSpacePlanePower == 1>>
 		A basic two engine SpacePlane has been 'borrowed' from the old world.
 	<<elseif $securityForceSpacePlanePower == 2>>
-		Upgraded the Space Plane's shielding, reducing both potential heat damage and radar signature.
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature.
 	<<elseif $securityForceSpacePlanePower == 3>>
-		Mounted another engine on top of the Space Plane's tail.
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature,also mounted another engine on top of the space plane's tail.
 	<<elseif $securityForceSpacePlanePower == 4>>
-		Modernised the electronics.
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature,mounted another engine on top of the space plane's tail and modernized the electronics.
 	<<elseif $securityForceSpacePlanePower == 5>>
-		Modernised the fuel lines to increase efficiency.
-	<<elseif $securityForceSpacePlanePower == 6>>
-		Modernised the Space Plane's engines to allow for more efficient fuel.
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature,mounted another engine on top of the space plane's tail,modernized the electronics in addition to the fuel lines to increase efficiency.
+		<<elseif $securityForceSpacePlanePower == 6>>
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature,mounted another engine on top of the space plane's tail.Modernized; the electronics in addition to the fuel lines to increase efficiency and the space plane's engines to allow for more efficient fuel.
 	<<elseif $securityForceSpacePlanePower == 7>>
-		Reduced Space Plane's weight and reworked the body to reduce drag.
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature,mounted another engine on top of the space plane's tail.Modernized; the electronics in addition to the fuel lines to increase efficiency and the space plane's engines to allow for more efficient fuel.Reduced the space plane's weight and reworked the body to reduce drag.
 	<<elseif $securityForceSpacePlanePower == 8>>
-		Increased the SpacePlane's crew comfort and life support systems to increase operational time.
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature,mounted another engine on top of the space plane's tail.Modernized; the electronics in addition to the fuel lines to increase efficiency and the space plane's engines to allow for more efficient fuel.Reduced the space plane's weight and reworked the body to reduce drag.Increased the crew comfort and life support systems to increase operational time.
 	<<elseif $securityForceSpacePlanePower == 9>>
-		Added an additional engine per wing wich greatly increases acceleration and raises the top speed to mach 15, making $securityForceName's Space Plane untouchable.
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature,mounted another engine on top of the space plane's tail.Modernized; the electronics in addition to the fuel lines to increase efficiency and the space plane's engines to allow for more efficient fuel.Reduced the space plane's weight and reworked the body to reduce drag.Increased the crew comfort and life support systems to increase operational time.Added an additional engine per wing which greatly increases acceleration and raises the top speed to mach 15, making $securityForceName Space Plane untouchable.
 	<<elseif $securityForceSpacePlanePower == 10>>
-		Replaced the skin of $securityForceName's Space Plane with a basic optical illusion kit.
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature,mounted another engine on top of the space plane's tail.Modernized; the electronics in addition to the fuel lines to increase efficiency and the space plane's engines to allow for more efficient fuel.Reduced the space plane's weight and reworked the body to reduce drag.Increased the crew comfort and life support systems to increase operational time.Added an additional engine per wing which greatly increases acceleration and raises the top speed to mach 15, making $securityForceName Space Plane untouchable.Replaced the skin of $securityForceName Space Plane with a basic optical illusion kit.
 	<<elseif $securityForceSpacePlanePower == 11>>
-		Replaced the skin of $securityForceName's Space Plane with an advanced optical illusion kit.
+		Upgraded the space plane's shielding, reducing both potential heat damage and radar signature,mounted another engine on top of the space plane's tail.Modernized; the electronics in addition to the fuel lines to increase efficiency and the space plane's engines to allow for more efficient fuel.Reduced the space plane's weight and reworked the body to reduce drag.Increased the crew comfort and life support systems to increase operational time.Added an additional engine per wing which greatly increases acceleration and raises the top speed to mach 15, making $securityForceName Space Plane untouchable.Replaced the skin of $securityForceName Space Plane with an advanced optical illusion kit.
 	<</if>> 
 <</if>>
 <<if $securityForceFortressZeppelin > 0>>
 	<br>
 	/* 3 upgrades */
 	<<if $securityForceFortressZeppelin == 1>>
-		A basic Fortress Zeppelin has been 'borrowed' from the old world.
+		A basic fortress zeppelin has been 'borrowed' from the old world.
 	<<elseif $securityForceFortressZeppelin == 2>>
-		Modernised the armor.
+		Modernised fortress zeppelin's armor.
 	<<elseif $securityForceFortressZeppelin == 3>>
-		Modernised the weaponry.
+		Modernized the fortress zeppelin's armor and weaponry.
 	<</if>>
 <</if>>
 <<if $securityForceAC130 > 0>>
@@ -600,11 +610,11 @@ securityForceX */
 	<<elseif $securityForceAC130 == 2>>
 		Modernised the AC-130's armor.
 	<<elseif $securityForceAC130 == 3>>
-		Modernised the AC-130's weaponry.
+		Modernized the AC-130's armor and weaponry.
 	<<elseif $securityForceAC130 == 4>>
-		Modernised the AC-130's eletronics.
+		Modernized the AC-130's armor, weaponry and electronics.
 	<<elseif $securityForceAC130 == 5>>
-		Modernised the AC-130's crew seating.
+		Modernized the AC-130's armor, weaponry, electronics and crew seating.
 	<</if>>
 <</if>>
 <</if>>
@@ -641,72 +651,72 @@ securityForceX */
 		A basic satalite 'borrowed' from the old world.
 	<<elseif $securityForceSatalitePower == 2>>
 		Modernised the satalite's eletronics.
-	<<elseif $securityForceSatalitePower == 3>>
-		Modernised the satalite's wiring and circuitry. 
+		<<elseif $securityForceSatalitePower == 3>>
+		Modernized the satalite's electronics, wiring and circuitry. 
 	<<elseif $securityForceSatalitePower == 4>>
-		Installed a basic localised communications jammer to the satalite (excludes your own frequencies with little to no leway) that will "slightly" anger locals until it is deactivated.
+		Modernized the satalite's electronics, wiring and circuitry.Installed a basic localized communications jammer to the satalite (excludes your own frequencies with little to no leeway) that will "slightly" anger locals until it is deactivated.
 	<<elseif $securityForceSatalitePower == 5>>
-		An advanced communications jammer is installed in the satalite, increasing the AO localisation, reducing the number of effected equipement.
+		Modernized the satalite's electronics, wiring and circuitry.An advanced communications jammer is installed in the satalite, increasing the AO localization, reducing the number of effected equipment.
 	<<elseif $securityForceSatalitePower == 6>>
-		Boosted the satalite's coms jammer power by 25% (now can damage effected equipment).
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer power by 25% (now can damage effected equipment).
 	<<elseif $securityForceSatalitePower == 7>>
-		Boosted the satalite's coms jammer's power by 50% (now can destroy effected equipment).
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).
 	<<elseif $securityForceSatalitePower == 8>>
-		The satalite is now equipped with a basic EMP generator (advanced EMP hardering was applied before the instulation and activation) will "slightly" anger locals until it is deactivated.
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).The satalite is now equipped with a basic EMP generator (advanced EMP hardening was applied before the insulation and activation) will "slightly" anger locals until it is deactivated.
 	<<elseif $securityForceSatalitePower == 9>>
-		The satalite is now equipped with an advanced EMP generator, increasing the AO localisation which reduces the qunatiy of effected equipement.
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).The satalite is now equipped with an advanced EMP generator, increasing the AO localization which reduces the quantity of effected equipment.
 	<<elseif $securityForceSatalitePower == 10>>
-		Bosted the output of the satalite's advanced EMP generator by 25% (now can damage effected equipment).
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).Boosted the output of the satalite's advanced EMP generator by 25% (now can damage effected equipment).
 	<<elseif $securityForceSatalitePower == 11>>
-		Bosted the output of the satalite's advanced EMP generator 50% (now can destroy effected equipment).
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).Boosted the output of the satalite's advanced EMP generator 50% (now can destroy effected equipment).
 	<<elseif $securityForceSatalitePower == 12>>
-		Povided R&D funds to be able to shoot a concentrated beam of pure enegery that is able to level an entire city block. It required overhualling the satalite's battery systen and shielding.
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).Boosted the output of the satalite's advanced EMP generator 50% (now can destroy effected equipment).Provided R&D funds to be able to shoot a concentrated beam of pure energy that is able to level an entire city block. It required overhauling the satalite's battery system and shielding.
 	<<elseif $securityForceSatalitePower == 13>>
-		Povided R&D funds to focus the bean enough to level a suburb.
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).Boosted the output of the satalite's advanced EMP generator 50% (now can destroy effected equipment).Provided R&D funds to focus the bean enough to level a suburb.
 	<<elseif $securityForceSatalitePower == 14>>
-		Povided R&D funds to focus the beam enough to level a box of houses.
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).Boosted the output of the satalite's advanced EMP generator 50% (now can destroy effected equipment).Provided R&D funds to focus the beam enough to level a box of houses.
 	<<elseif $securityForceSatalitePower == 15>>
-		Povided R&D funds to focus the beam enough to level a single house.
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).Boosted the output of the satalite's advanced EMP generator 50% (now can destroy effected equipment).Provided R&D funds to focus the beam enough to level a single house.
 	<<elseif $securityForceSatalitePower == 16>>
-		Povided R&D funds to focus the beam enough to level twelve feet.
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).Boosted the output of the satalite's advanced EMP generator 50% (now can destroy effected equipment).Provided R&D funds to focus the beam enough to level twelve feet.
 	<<elseif $securityForceSatalitePower == 17>>
-		Provided R&D funds to focus the beam enough to level one foot.
+		Modernized the satalite's electronics, wiring and circuitry.Boosted the satalite's advanced comms jammer's power by 50% (now can destroy effected equipment).Boosted the output of the satalite's advanced EMP generator 50% (now can destroy effected equipment).Provided R&D funds to focus the beam enough to level one foot.
 	<</if>>
 <</if>>
 <<if $securityForceGiantRobot > 0>>
 	<br>
 	/* 9 upgrades */
 	<<if $securityForceGiantRobot == 1>>
-		An old world Giant Robot has been 'Borrowed'.
+		An old world giant robot has been 'Borrowed'.
 	<<elseif $securityForceGiantRobot == 2>>
-		Upgraded the Giant Robot's wiring and circuitry.
+		Upgraded the giant robot's wiring and circuitry.
 	<<elseif $securityForceGiantRobot == 3>>
-		Upgraded the Giant Robot's power efficiency.
+		Upgraded the giant robot's wiring, circuitry and power efficiency.
 	<<elseif $securityForceGiantRobot == 4>>
-		Reduced the Giant Robot's weight.
+		Upgraded the giant robot's wiring, circuitry and power efficiency.Reduced the giant robot's weight.
 	<<elseif $securityForceGiantRobot == 5>>
-		Upgraded the Giant Robot's battery capacity.
+		Upgraded the giant robot's wiring, circuitry, power efficiency and battery capacity.Reduced the giant robot's weight.
 	<<elseif $securityForceGiantRobot == 6>>
-		Upgraded the Giant Robot's armour.
+		Upgraded the giant robot's wiring, circuitry, power efficiency,battery capacity and armour.Reduced the giant robot's weight.
 	<<elseif $securityForceGiantRobot == 7>>
-		Upgraded the Giant Robot's weapons to add heat seeking missiles and a massive long sword in addition to quad 140 inch electromagnetic cannons.
+		Upgraded the giant robot's wiring, circuitry, power efficiency,battery capacity,armour and weapons to include heat seeking missiles plus a massive long sword in addition to quad 140 inch back mounted electromagnetic cannons.
 	<<elseif $securityForceGiantRobot == 8>>
-		Upgraded the Giant Robot to support two pilot's via a synced neural link.
+		Upgraded the giant robot's wiring, circuitry, power efficiency,battery capacity,armour,weapons to include heat seeking missiles plus a massive long sword in addition to quad 140 inch back mounted electromagnetic cannons and the amount of pilot's to two via a synced neural link.
 	<<elseif $securityForceGiantRobot == 9>>
-		Improved the life support systems, allowing for longer operational time.
+		Upgraded the giant robot's wiring, circuitry, power efficiency,battery capacity,armour,weapons to include heat seeking missiles plus a massive long sword in addition to quad 140 inch back mounted electromagnetic cannons and the amount of pilot's to two via a synced neural link.Improved the life support systems, allowing for longer operational time.
 	<<elseif $securityForceGiantRobot == 10>>
-		Replaced the skin of $securityForceName's Giant Robot with an advanced optical illusion kit.
+		Upgraded the giant robot's wiring, circuitry, power efficiency,battery capacity,armour,weapons to include heat seeking missiles plus a massive long sword in addition to quad 140 inch back mounted electromagnetic cannons and the amount of pilot's to two via a synced neural link.Improved the life support systems, allowing for longer operational time.Replaced the skin of $securityForceName's giant robot with an advanced optical illusion kit.
 	<</if>> 
 <</if>>
 <<if $securityForceMissileSilo > 0>>
 	<br>
 	/* 3 upgrades */
 	<<if $securityForceMissileSilo == 1>>
-		A basic Missile Silo has been 'borrowed' from the old world.
+		A basic missile silo has been 'borrowed' from the old world.
 	<<elseif $securityForceMissileSilo == 2>>
-		Modernised Missile Silo's lauching elentroics.
+		Modernised the missile silo's lauching elentroics.
 	<<elseif $securityForceMissileSilo == 3>>
-		Modernised Missile Silo's lauching wiring and circuitry.
+		Modernized the missile silo's launching electronics, wiring and circuitry.
 	<</if>>
 <</if>>
 <</if>>
@@ -718,29 +728,40 @@ securityForceX */
 	<br>
 	/* 4 upgrades */
 	<<if $securityForceAircraftCarrier == 1>>
-		A basic Aircraft Carrier has been 'borrowed' from the old world.
+		A basic aircraft carrier has been 'borrowed' from the old world.
 	<<elseif $securityForceAircraftCarrier == 2>>
-		Modernised the Aircraft Carrier's eletronics.
-	<<elseif $securityForceAircraftCarrier == 3>>
-		Modernised the Aircraft Carrier's weaponry.
+		Modernised the aircraft carrier's eletronics.
+		<<elseif $securityForceAircraftCarrier == 3>>
+		Modernized the aircraft carrier's electronics and weaponry.
 	<<elseif $securityForceAircraftCarrier == 4>>
-		Modernised the Aircraft Carrier's armour.
+		Modernized the aircraft carrier's electronics, weaponry and armour.
 	<</if>>
 <</if>>
 <<if $securityForceSubmarine > 0>>
 	<br>
 	/* 5 upgrades */ 
 	<<if $securityForceSubmarine == 1>>
-	A basic Submarine has been 'borrowed' from the old world.
-	<<elseif $securityForceSubmarine == 2>>
-	Modernised the Submarine's engines for silence.
-	<<elseif $securityForceSubmarine == 3>>
-	Upgraded the Submarine's hull for silence.
-	<<elseif $securityForceSubmarine == 4>>
-	Upgraded the Submarine's weaponry.
-	<<elseif $securityForceSubmarine == 5>>
-	Upgraded the Submarine's air srubbers, allowing the sub be submerged for longer.
+	A basic submarine has been 'borrowed' from the old world.
+	<<elseif $securityForcesubmarine == 2>>
+	Modernized the submarine's engines for silence.
+	<<elseif $securityForcesubmarine == 3>>
+	Modernized the submarine's engines for silence.Upgraded the submarine's hull for silence.
+	<<elseif $securityForcesubmarine == 4>>
+	Modernized the submarine's engines for silence.Upgraded the submarine's hull for silence and weaponry.
+	<<elseif $securityForcesubmarine == 5>>
+	Modernized the submarine's engines for silence.Upgraded the submarine's hull for silence, weaponry and air scrubbers, allowing the sub to stay submerged for longer.
+	<</if>>
 <</if>>
+<<if $securityForceHeavyAmphibiousTransport > 0>>
+	<br>
+	/* 3 upgrades */ 
+	<<if $securityForceHeavyAmphibiousTransport == 1>> 
+		A basic heavy amphibious transport has been 'borrowed' from the old world.
+	<<elseif $securityForceHeavyAmphibiousTransport == 2>>
+		Modernized the heavy amphibious transport's armor.
+	<<elseif $securityForceHeavyAmphibiousTransport == 3>>
+		Modernized the heavy amphibious transport's armor and speed.
+	<</if>>
 <</if>>
 <</if>>
 <</nobr>>
