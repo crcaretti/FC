@@ -159,15 +159,42 @@
 <</if>>
 
 /* if there is an advancement selects a random mini event */
+<<set _oldTension  = $tension>>
 <<if $slaveRebellionEventFires == 1 || $citizenRebellionEventFires == 1>>
 	<br>
 	<br>
 	<<include "rebellionEvents">>
-	/* and resets flags */
-	<<set $slaveRebellionEventFires = 0>>
-	<<set $citizenRebellionEventFires = 0>>
+<<elseif $tension > 0>>
+	/* otherwise tension decays */
+	<br>
+	<br>
+	<strong>Tension</strong>:
+	<<if $riotUpgrades.freeMedia >= 1>>
+		The guaranteed free media access you offer does wonders to lower tensions in the arcology.
+		<<set $tension = Math.trunc(Math.clamp($tension - $riotUpgrades.freeMedia / 2,0,100))>>
+	<</if>>
+	In the absence of noteworthy events, tensions in the arcology are able to relax.
+	<<set $tension  = Math.trunc(Math.clamp($tension * 0.97,0,100))>>
+<</if>>
+<br>
+<<if $tension < _oldTension>>
+	This week @@.green;tensions relaxed@@.
+<<elseif $tension == _oldTension>>
+	This week @@.yellow;tensions did not change@@.
+<<else>>
+	This week @@.red;tension rose@@ and
+	<<if $slaveRebellionEventFires == 1>>
+		@@.red;slave malcontent increased@@.
+	<<elseif $citizenRebellionEventFires == 1>>
+		@@.red;citizen malcontent increased@@.
+	<</if>>
 <</if>>
 
+/* resets flags */
+<<set $slaveRebellionEventFires = 0>>
+<<set $citizenRebellionEventFires = 0>>
+
+/* rolls for rebellions */
 <<if $slaveProgress >= 100>>
 	<<if random(1,100) <= 80>>												/* 80% of firing a rebellion once progress is at 100 */
 		<<set $slaveRebellion = 1>>
@@ -215,6 +242,7 @@
 <<unset $loyalID>>
 <<set $loyalID = []>>
 
+/* if a rebellion fires determine amount of rebels and rebelling units */
 <<if $slaveRebellion == 1>>
 	<<set $engageRule = 0>>
 	<<set $lastRebellionWeeks = 0>>
