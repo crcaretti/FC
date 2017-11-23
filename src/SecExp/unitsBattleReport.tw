@@ -38,30 +38,44 @@
 <<elseif $losses > 0>>
 	/* if the losses are more than zero */
 	/* generates a list of randomized losses, from which each unit picks one at random */
+	<<set _losses = $losses>>
 	<<if $SFIntervention == 1>>
 		<<set $deployedUnits++>>
 	<</if>>
-	<<set _averageLosses = Math.trunc($losses / $deployedUnits)>>
+	<<set _averageLosses = Math.trunc(_losses / $deployedUnits)>>
 	<<set _lossesList = []>>
 	<<set _validityCount = 0>>
 	<<for _i = 0; _i < $deployedUnits; _i++>>
 		<<set _assignedLosses = Math.trunc(Math.clamp(_averageLosses + random(-5,5), 0, 100))>>
-		<<if _assignedLosses > $losses>>
-			<<set _assignedLosses = $losses>>
-			<<set $losses = 0>>
+		<<if _assignedLosses > _losses>>
+			<<set _assignedLosses = _losses>>
+			<<set _losses = 0>>
 		<<else>>
-			<<set $losses -= _assignedLosses>>
+			<<set _losses -= _assignedLosses>>
 		<</if>>
 		<<set _lossesList.push(_assignedLosses)>>
 		<<set _validityCount += _assignedLosses>>
 	<</for>>
-	<<if $losses > 0>>
-		<<set _lossesList[random(_lossesList.length)] += $losses>>
+	<<if _losses > 0>>
+		<<set _lossesList[random(_lossesList.length - 1)] += _losses>>
 	<</if>>
 	<<set _lossesList.shuffle()>>
 	
+	/* sanity check for losses */
+	<<set _count = 0>>
+	<<for _i = 0; _i < _lossesList.length; _i++>>
+		<<if !isInt(_lossesList[_i])>>
+			<<set _lossesList[_i] = 0>>
+		<</if>>
+		<<set _count += _lossesList[_i]>>
+	<</for>>
+	<<if _count < $losses>>
+		<<set _lossesList[random(_lossesList.length - 1)] += $losses - _count>>
+	<<elseif _count > $losses>>
+		<br>@@.red;Error: assigned losses higher than actual losses@@
+	<</if>>
+	
 	/* assigns the losses and notify the player */
-
 	<<if $deployingBots == 1>>
 		<br>
 		<br>
