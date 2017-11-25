@@ -1,0 +1,545 @@
+:: miscSecExpWidgets [widget nobr]
+
+
+<<widget "calcInitialTrade">>
+	<<set _initialTrade = random(20,30)>>
+	<<if $terrain == "urban">>
+		<<set _initialTrade += random(10)>>
+	<</if>>
+	<<if $terrain == "ravine">>
+		<<set _initialTrade -= random(5)>>
+	<</if>>
+	<<if $PC.career == "wealth" || $PC.career == "capitalist" || $PC.career == "celebrity">>
+		<<set _initialTrade += random(5)>>
+	<<elseif $PC.career == "escort" || $PC.career == "servant" || $PC.career == "gang">>
+		<<set _initialTrade -= random(5)>>
+	<</if>>
+	<<set $trade = _initialTrade>>
+<</widget>>
+
+<<widget "recalcManpower">>
+	<<if $wasToggledBefore == 0>>
+		<<if $mercenaries == 1>>
+			<<set $mercFreeManpower = random(5,20)>>
+		<<elseif $mercenaries > 1>>
+			<<set $mercFreeManpower = random(10,30)>>
+		<</if>>
+	<</if>>
+	
+	<<set _correctEmployedMP = 0>>
+	<<for _i = 0; _i < $slaveUnits.length; _i++>>
+		<<set _correctEmployedMP += $slaveUnits[_i].troops>>
+	<</for>>
+	
+	<<if $slavesEmployedManpower != _correctEmployedMP>>
+		<<set $slavesEmployedManpower = _correctEmployedMP>>
+	<</if>>
+
+	<<set _correctEmployedMP = 0>>
+	<<for _i = 0; _i < $militiaUnits.length; _i++>>
+		<<set _correctEmployedMP += $militiaUnits[_i].troops>>
+	<</for>>
+	
+	<<if $militiaEmployedManpower != _correctEmployedMP>>
+		<<set $militiaEmployedManpower = _correctEmployedMP>>
+	<</if>>
+	
+	<<set _correctEmployedMP = 0>>
+	<<for _i = 0; _i < $mercUnits.length; _i++>>
+		<<set _correctEmployedMP += $mercUnits[_i].troops>>
+	<</for>>
+	
+	<<if $mercEmployedManpower != _correctEmployedMP>>
+		<<set $mercEmployedManpower = _correctEmployedMP>>
+	<</if>>
+	
+	<<set $militiaTotalManpower = $militiaEmployedManpower + $militiaFreeManpower>>
+	<<set $mercTotalManpower = $mercEmployedManpower + $mercFreeManpower>>
+<</widget>>
+
+<<widget "recalcSecRestPoint">>
+	<<set _newRest = 0>>
+	<<set _baseRest = 30>>
+	<<if $secUpgrades.nanoCams == 1>>
+		<<set _newRest += 15>>
+	<</if>>
+	<<if $secUpgrades.cyberBots == 1>>
+		<<set _newRest += 15>>
+	<</if>>
+	<<if $secUpgrades.eyeScan == 1>>
+		<<set _newRest += 20>>
+	<</if>>
+	<<if $secUpgrades.cryptoAnalyzer == 1>>
+		<<set _newRest += 20>>
+	<</if>>
+	<<set _newRest += _baseRest>>
+	<<set $secRestPoint = _newRest>>
+<</widget>>
+
+<<widget "recalcCrimeCap">>
+	<<set _baseCap = 100>>
+	<<set _newCap = _baseCap>>
+	<<if $crimeUpgrades.autoTrial == 1>>
+		<<set _newCap -= 10>>
+	<</if>>
+	<<if $crimeUpgrades.autoArchive == 1>>
+		<<set _newCap -= 10>>
+	<</if>>
+	<<if $crimeUpgrades.worldProfiler == 1>>
+		<<set _newCap -= 15>>
+	<</if>>
+	<<if $crimeUpgrades.advForensic == 1>>
+		<<set _newCap -= 15>>
+	<</if>>
+	<<set $crimeCap = _newCap>>
+<</widget>>
+
+<<widget "recalcReqHelots">>
+	<<set _newReq = 0>>
+	<<set _baseReq = 20>>
+	<<if $secUpgrades.nanoCams == 1>>
+		<<set _newReq += 5>>
+	<</if>>
+	<<if $secUpgrades.cyberBots == 1>>
+		<<set _newReq += 5>>
+	<</if>>
+	<<if $secUpgrades.eyeScan == 1>>
+		<<set _newReq += 10>>
+	<</if>>
+	<<if $secUpgrades.cryptoAnalyzer == 1>>
+		<<set _newReq += 10>>
+	<</if>>
+	<<if $crimeUpgrades.autoTrial == 1>>
+		<<set _newReq += 5>>
+	<</if>>
+	<<if $crimeUpgrades.autoArchive == 1>>
+		<<set _newReq += 5>>
+	<</if>>
+	<<if $crimeUpgrades.worldProfiler == 1>>
+		<<set _newReq += 10>>
+	<</if>>
+	<<if $crimeUpgrades.advForensic == 1>>
+		<<set _newReq += 10>>
+	<</if>>
+	<<if $intelUpgrades.sensors == 1>>
+		<<set _newReq += 5>>
+	<</if>>
+	<<if $intelUpgrades.signalIntercept == 1>>
+		<<set _newReq += 5>>
+	<</if>>
+	<<if $intelUpgrades.radar == 1>>
+		<<set _newReq += 10>>
+	<</if>>
+	<<if $readinessUpgrades.rapidVehicles == 1>>
+		<<set _newReq += 5>>
+	<</if>>
+	<<if $readinessUpgrades.rapidPlatforms == 1>>
+		<<set _newReq += 10>>
+	<</if>>
+	<<if $readinessUpgrades.earlyWarn == 1>>
+		<<set _newReq += 10>>
+	<</if>>
+	<<if $SFSupportLevel >= 1>>
+		<<set _newReq -= 5 * $SFSupportLevel>>
+	<</if>>
+	<<if $secUpgrades.coldstorage >= 1>>
+		<<set _newReq -= 10 * $secUpgrades.coldstorage>>
+	<</if>>
+	<<set _newReq += _baseReq>>
+	<<set $reqHelots = _newReq>>
+<</widget>>
+
+<<widget "recalcEdictsUpkeep">>
+	/* authority cost */
+	<<set _newAuthUpkeep = 0>>
+	
+	<<if $sellData == 1>>
+		<<set _newAuthUpkeep += 10>>
+	<</if>>
+	
+	<<if $slaveSoldierPrivilege == 1>>
+		<<set _newAuthUpkeep += 10>>
+	<</if>>
+
+	<<if $weaponsLaw == 0>>
+		<<set _newAuthUpkeep += 30>>
+	<<elseif $weaponsLaw == 2>>
+		<<set _newAuthUpkeep += 10>>
+	<<elseif $weaponsLaw == 1>>
+		<<set _newAuthUpkeep += 20>>
+	<</if>>
+
+	<<if $slavesOfficers == 1>>
+		<<set _newAuthUpkeep += 10>>
+	<</if>>
+	
+	/* cash cost */
+	<<set _newUpkeep = 0>>
+	
+	<<if $slaveWatch == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+
+	<<if $subsidyChurch == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+
+	<<if $martialSchool == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+	
+	<<if $legionTradition == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+	
+	<<if $pharaonTradition == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+	
+	<<if $eagleWarriors == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+	
+	<<if $ronin == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+
+	<<if $mamluks == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+	
+	<<if $sunTzu == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+	
+	<<if $tradeLegalAid == 1>>
+		<<set _newUpkeep += 1000>>
+	<</if>>
+	
+	<<set $edictsUpkeep = _newUpkeep>>
+	<<set $edictsAuthUpkeep = _newAuthUpkeep>>
+<</widget>>
+
+<<widget "recalcUnits">>
+	<<set $maxUnits = 6 + $secBarracksUpgrades.size * 2>>
+	<<set $activeUnits = $militiaUnits.length + $slaveUnits.length + $mercUnits.length>>
+<</widget>>
+
+<<widget "fixBrokenUnits">>
+	<<if $secBots.maxTroops < 30>>
+		<br>Fixed security bots wrong max troop count.
+		<<set $secBots.maxTroops = 30>>
+	<</if>>
+	<<if !isInt($secBots.troops)>>
+		<br>Fixed security bots wrong max troop count.
+		<<set $secBots.troops = $secBots.maxTroops>>
+	<</if>>
+	<<if $secBots.troops > 0 && $secBots.active != 1>>
+		<br>Fixed security bots wrong "active" flag.
+		<<set $secBots.active = 1>>
+	<</if>>
+
+	<<for _i = 0; _i < $militiaUnits.length; _i++>>
+		<<if ndef $militiaUnits[_i].SF>>
+			<br>Set militia missing flag
+			<<set $militiaUnits[_i].SF = 0>>
+		<</if>>
+		<<if ndef $militiaUnits[_i].ID>>
+			<br>Set militia missing ID
+			<<generateUnitID $militiaUnits[_i]>>
+		<</if>>
+		<<if ndef $militiaUnits[_i].commissars>>
+			<br>Set militia missing flag
+			<<set $militiaUnits[_i].commissars = 0>>
+		<</if>>
+		<<if $militiaUnits[_i].maxTroops < 30>>
+			<br>Fixed militia unit wrong max troop count.
+			<<set $militiaUnits[_i].maxTroops = 30>>
+		<</if>>
+		<<if !isInt($militiaUnits[_i].troops)>>
+			<<set $militiaUnits[_i].troops = $militiaUnits[_i].maxTroops>>
+			<br>Fixed militia unit wrong troop count.
+		<</if>>
+		<<if $militiaUnits[_i].troops > 0 && $militiaUnits[_i].active != 1>>
+			<br>Fixed militia unit wrong "active" flag.
+			<<set $militiaUnits[_i].active = 1>>
+		<</if>>
+	<</for>>
+
+	<<for _i = 0; _i < $slaveUnits.length; _i++>>
+		<<if ndef $slaveUnits[_i].SF>>
+			<br>Set slave missing flag
+			<<set $slaveUnits[_i].SF = 0>>
+		<</if>>
+		<<if ndef $slaveUnits[_i].ID>>
+			<br>Set slave missing ID
+			<<generateUnitID $slaveUnits[_i]>>
+		<</if>>
+		<<if ndef $slaveUnits[_i].commissars>>
+			<br>Set slave missing flag
+			<<set $slaveUnits[_i].commissars = 0>>
+		<</if>>
+		<<if $slaveUnits[_i].maxTroops < 30>>
+			<br>Fixed slave unit wrong max troop count.
+			<<set $slaveUnits[_i].maxTroops = 30>>
+		<</if>>
+		<<if !isInt($slaveUnits[_i].troops)>>
+			<<set $slaveUnits[_i].troops = $slaveUnits[_i].maxTroops>>
+			<br>Fixed slave unit wrong troop count.
+		<</if>>
+		<<if $slaveUnits[_i].troops > 0 && $slaveUnits[_i].active != 1>>
+			<br>Fixed slave unit wrong "active" flag.
+			<<set $slaveUnits[_i].active = 1>>
+		<</if>>
+	<</for>>
+	
+	<<for _i = 0; _i < $mercUnits.length; _i++>>
+		<<if ndef $mercUnits[_i].SF>>
+			<br>Set merc missing flag
+			<<set $mercUnits[_i].SF = 0>>
+		<</if>>
+		<<if ndef $mercUnits[_i].ID>>
+			<br>Set slave missing ID
+			<<generateUnitID $mercUnits[_i]>>
+		<</if>>
+		<<if ndef $mercUnits[_i].commissars>>
+			<br>Set merc missing flag
+			<<set $mercUnits[_i].commissars = 0>>
+		<</if>>
+		<<if $mercUnits[_i].maxTroops < 30>>
+			<br>Fixed merc unit wrong max troop count.
+			<<set $mercUnits[_i].maxTroops = 30>>
+		<</if>>
+		<<if !isInt($mercUnits[_i].troops)>>
+			<<set $mercUnits[_i].troops = $mercUnits[_i].maxTroops>>
+			<br>Fixed merc unit wrong troop count.
+		<</if>>
+		<<if $mercUnits[_i].troops > 0 && $mercUnits[_i].active != 1>>
+			<br>Fixed merc unit wrong "active" flag.
+			<<set $mercUnits[_i].active = 1>>
+		<</if>>
+	<</for>>
+<</widget>>
+
+<<widget "fixBrokenStats">>
+	<<if !isInt($totalKills)>>
+		<<set $totalKills = 0>>
+	<</if>>
+	<<if !isInt($mercTotalCasualties)>>
+		<<set $mercTotalCasualties = 0>>
+	<</if>>
+	<<if !isInt($mercEmployedManpower)>>
+		<<set $mercEmployedManpower = 0>>
+	<</if>>
+	<<if !isInt($mercTotalManpower)>>
+		<<set $mercTotalManpower = 0>>
+	<</if>>
+	<<if !isInt($slavesTotalCasualties)>>
+		<<set $slavesTotalCasualties = 0>>
+	<</if>>
+	<<if !isInt($slavesEmployedManpower)>>
+		<<set $slavesEmployedManpower = 0>>
+	<</if>>
+	<<if !isInt($militiaTotalCasualties)>>
+		<<set $militiaTotalCasualties = 0>>
+	<</if>>
+	<<if !isInt($militiaEmployedManpower)>>
+		<<set $militiaEmployedManpower = 0>>
+	<</if>>
+	<<if !isInt($militiaFreeManpower)>>
+		<<set $militiaFreeManpower = 0>>
+	<</if>>
+	<<if !isInt($militiaTotalManpower)>>
+		<<set $militiaTotalManpower = 0>>
+	<</if>>
+	<<if !isInt($battlesCount)>>
+		<<set $battlesCount = 0>>
+	<</if>>
+<</widget>>
+
+<<widget "fixBrokenFS">>
+	<<if $arcologies[0].FSSubjugationist != "unset" && !(isInt($arcologies[0].FSSubjugationist) || isFloat($arcologies[0].FSSubjugationist))>>
+		<<set $arcologies[0].FSSubjugationist = 0>>
+		<<FSChange "Subjugationist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSGenderRadicalist != "unset" && !(isInt($arcologies[0].FSGenderRadicalist) || isFloat($arcologies[0].FSGenderRadicalist))>>
+		<br>Debug: FSGenderRadicalist = $arcologies[0].FSGenderRadicalist
+		<<set $arcologies[0].FSGenderRadicalist = 0>>
+		<<FSChange "GenderRadicalist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSRestart != "unset" && !(isInt($arcologies[0].FSRestart) || isFloat($arcologies[0].FSRestart))>>
+		<<set $arcologies[0].FSRestart = 0>>
+		<<FSChange "Eugenics" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSRepopulationFocus != "unset" && !(isInt($arcologies[0].FSRepopulationFocus) || isFloat($arcologies[0].FSRepopulationFocus))>>
+		<<set $arcologies[0].FSRepopulationFocus = 0>>
+		<<FSChange "Repopulationist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSSupremacist != "unset" && !(isInt($arcologies[0].FSSupremacist) || isFloat($arcologies[0].FSSupremacist))>>
+		<<set $arcologies[0].FSSupremacist = 0>>
+		<<FSChange "Supremacist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSBodyPurist != "unset" && !(isInt($arcologies[0].FSBodyPurist) || isFloat($arcologies[0].FSBodyPurist))>>
+		<<set $arcologies[0].FSBodyPurist = 0>>
+		<<FSChange "BodyPurist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSPaternalist != "unset" && !(isInt($arcologies[0].FSPaternalist) || isFloat($arcologies[0].FSPaternalist))>>
+		<<set $arcologies[0].FSPaternalist = 0>>
+		<<FSChange "Paternalist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSSlimnessEnthusiast != "unset" && !(isInt($arcologies[0].FSSlimnessEnthusiast) || isFloat($arcologies[0].FSSlimnessEnthusiast))>>
+		<<set $arcologies[0].FSSlimnessEnthusiast = 0>>
+		<<FSChange "SlimnessEnthusiast" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSGenderFundamentalist != "unset" && !(isInt($arcologies[0].FSGenderFundamentalist) || isFloat($arcologies[0].FSGenderFundamentalist))>>
+		<<set $arcologies[0].FSGenderFundamentalist = 0>>
+		<<FSChange "GenderFundamentalist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSMaturityPreferentialist != "unset" && !(isInt($arcologies[0].FSMaturityPreferentialist) || isFloat($arcologies[0].FSMaturityPreferentialist))>>
+		<<set $arcologies[0].FSMaturityPreferentialist = 0>>
+		<<FSChange "MaturityPreferentialist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSYouthPreferentialist != "unset" && !(isInt($arcologies[0].FSYouthPreferentialist) || isFloat($arcologies[0].FSYouthPreferentialist))>>
+		<<set $arcologies[0].FSYouthPreferentialist = 0>>
+		<<FSChange "YouthPreferentialist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSTransformationFetishist != "unset" && !(isInt($arcologies[0].FSTransformationFetishist) || isFloat($arcologies[0].FSTransformationFetishist))>>
+		<<set $arcologies[0].FSTransformationFetishist = 0>>
+		<<FSChange "TransformationFetishist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSHedonisticDecadence != "unset" && !(isInt($arcologies[0].FSHedonisticDecadence) || isFloat($arcologies[0].FSHedonisticDecadence))>>
+		<<set $arcologies[0].FSHedonisticDecadence = 0>>
+		<<FSChange "Hedonism" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSPhysicalIdealist != "unset" && !(isInt($arcologies[0].FSPhysicalIdealist) || isFloat($arcologies[0].FSPhysicalIdealist))>>
+		<<set $arcologies[0].FSPhysicalIdealist = 0>>
+		<<FSChange "PhysicalIdealist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSPastoralist != "unset" && !(isInt($arcologies[0].FSPastoralist) || isFloat($arcologies[0].FSPastoralist))>>
+		<<set $arcologies[0].FSPastoralist = 0>>
+		<<FSChange "Pastoralist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSAssetExpansionist != "unset" && !(isInt($arcologies[0].FSAssetExpansionist) || isFloat($arcologies[0].FSAssetExpansionist))>>
+		<<set $arcologies[0].FSAssetExpansionist = 0>>
+		<<FSChange "AssetExpansionist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSDegradationist != "unset" && !(isInt($arcologies[0].FSDegradationist) || isFloat($arcologies[0].FSDegradationist))>>
+		<<set $arcologies[0].FSDegradationist = 0>>
+		<<FSChange "Degradationist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSRomanRevivalist != "unset" && !(isInt($arcologies[0].FSRomanRevivalist) || isFloat($arcologies[0].FSRomanRevivalist))>>
+		<<set $arcologies[0].FSRomanRevivalist = 0>>
+		<<FSChange "RomanRevivalist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSChattelReligionist != "unset" && !(isInt($arcologies[0].FSChattelReligionist) || isFloat($arcologies[0].FSChattelReligionist))>>
+		<<set $arcologies[0].FSChattelReligionist = 0>>
+		<<FSChange "ChattelReligionist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSChineseRevivalist != "unset" && !(isInt($arcologies[0].FSChineseRevivalist) || isFloat($arcologies[0].FSChineseRevivalist))>>
+		<<set $arcologies[0].FSChineseRevivalist = 0>>
+		<<FSChange "ChineseRevivalist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSArabianRevivalist != "unset" && !(isInt($arcologies[0].FSArabianRevivalist) || isFloat($arcologies[0].FSArabianRevivalist))>>
+		<<set $arcologies[0].FSArabianRevivalist = 0>>
+		<<FSChange "ArabianRevivalist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSEdoRevivalist != "unset" && !(isInt($arcologies[0].FSEdoRevivalist) || isFloat($arcologies[0].FSEdoRevivalist))>>
+		<<set $arcologies[0].FSEdoRevivalist = 0>>
+		<<FSChange "EdoRevivalist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSEgyptianRevivalist != "unset" && !(isInt($arcologies[0].FSEgyptianRevivalist) || isFloat($arcologies[0].FSEgyptianRevivalist))>>
+		<<set $arcologies[0].FSEgyptianRevivalist = 0>>
+		<<FSChange "EgyptianRevivalist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+	<<if $arcologies[0].FSAztecRevivalist != "unset" && !(isInt($arcologies[0].FSAztecRevivalist) || isFloat($arcologies[0].FSAztecRevivalist))>>
+		<<set $arcologies[0].FSAztecRevivalist = 0>>
+		<<FSChange "AztecRevivalist" 10>>
+		<br>Fixed NaN FS value
+	<</if>>
+<</widget>>
+
+<<widget "recalcBaseStats">>
+	<<if $secBotsBaseAttack != 7 + $droneUpgrades.attack>>
+		<<set $secBotsBaseAttack = 7 + $droneUpgrades.attack>>
+	<</if>>
+	<<if $secBotsBaseDefense != 3 + $droneUpgrades.defense>>
+		<<set $secBotsBaseDefense = 3 + $droneUpgrades.defense>>
+	<</if>>
+	<<if $secBotsMorale != 200>>
+		<<set $secBotsMorale = 200>>
+	<</if>>
+	<<if $secBotsBaseHp != 3 + $droneUpgrades.hp>>
+		<<set $secBotsBaseHp = 3 + $droneUpgrades.hp>>
+	<</if>>
+	<<if $militiaBaseAttack != 7 + $humanUpgrade.attack>>
+		<<set $militiaBaseAttack = 7 + $humanUpgrade.attack>>
+	<</if>>
+	<<if $militiaBaseDefense != 5 + $humanUpgrade.defense>>
+		<<set $militiaBaseDefense = 5 + $humanUpgrade.defense>>
+	<</if>>
+	<<if $militiaBaseMorale != 140 + $humanUpgrade.morale>>
+		<<set $militiaBaseMorale = 140 + $humanUpgrade.morale>>
+	<</if>>
+	<<if $militiaBaseHp != 3 + $humanUpgrade.hp>>
+		<<set $militiaBaseHp = 3 + $humanUpgrade.hp>>
+	<</if>>
+	<<if $slaveBaseAttack != 8 + $humanUpgrade.attack>>
+		<<set $slaveBaseAttack = 8 + $humanUpgrade.attack>>
+	<</if>>
+	<<if $slaveBaseDefense != 3 + $humanUpgrade.defense>>
+		<<set $slaveBaseDefense = 3 + $humanUpgrade.defense>>
+	<</if>>
+	<<if $slaveBaseMorale != 110 + $humanUpgrade.morale>>
+		<<set $slaveBaseMorale = 110 + $humanUpgrade.morale>>
+	<</if>>
+	<<if $slaveBaseHp != 3 + $humanUpgrade.hp>>
+		<<set $slaveBaseHp = 3 + $humanUpgrade.hp>>
+	<</if>>
+	<<if $mercBaseAttack != 8 + $humanUpgrade.attack>>
+		<<set $mercBaseAttack = 8 + $humanUpgrade.attack>>
+	<</if>>
+	<<if $mercBaseDefense != 4 + $humanUpgrade.defense>>
+		<<set $mercBaseDefense = 4 + $humanUpgrade.defense>>
+	<</if>>
+	<<if $mercBaseMorale != 125 + $humanUpgrade.morale>>
+		<<set $mercBaseMorale = 125 + $humanUpgrade.morale>>
+	<</if>>
+	<<if $mercBaseHp != 4 + $humanUpgrade.hp>>
+		<<set $mercBaseHp = 4 + $humanUpgrade.hp>>
+	<</if>>
+	<<if $SFBaseAttack != 8 + $humanUpgrade.attack>>
+		<<set $SFBaseAttack = 8 + $humanUpgrade.attack>>
+	<</if>>
+	<<if $SFBaseDefense != 4 + $humanUpgrade.defense>>
+		<<set $SFBaseDefense = 4 + $humanUpgrade.defense>>
+	<</if>>
+	<<if $SFBaseMorale != 140 + $humanUpgrade.morale>>
+		<<set $SFBaseMorale = 140 + $humanUpgrade.morale>>
+	<</if>>
+	<<if $SFBaseHp != 4 + $humanUpgrade.hp>>
+		<<set $SFBaseHp = 4 + $humanUpgrade.hp>>
+	<</if>>
+<</widget>>
