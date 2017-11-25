@@ -143,7 +143,21 @@ Mousetrap.bind("x", function () {
 Mousetrap.bind("z", function () {
 	$("#story-caption #SFMButton a.macro-link").trigger("click");
 });
-
+Mousetrap.bind("d", function () { 		
+	$("#story-caption #edictButton a.macro-link").trigger("click"); 			
+}); 
+Mousetrap.bind("shift+s", function () {
+	$("#story-caption #securityHQ a.macro-link").trigger("click");
+});
+Mousetrap.bind("shift+a", function () {
+	$("#story-caption #secBarracks a.macro-link").trigger("click");
+});
+Mousetrap.bind("shift+h", function () {
+	$("#story-caption #propHub a.macro-link").trigger("click");
+});
+Mousetrap.bind("shift+r", function () {
+	$("#story-caption #riotCenter a.macro-link").trigger("click");
+});
 /**
  * BoobGenerator namespace.
  */
@@ -286,6 +300,8 @@ window.isFertile = function(slave) {
 	} else if (slave.pubertyXX == 0) { /* pregmod start */
 		return false;
 	} else if (slave.ovaryAge >= 47) {
+		return false;
+	} else if (slave.inflation != 0) {
 		return false;
 	} else if (slave.bellyImplant != -1) {
 		return false;
@@ -1786,7 +1802,6 @@ postdisplay["doAccordion"] = function (content) {
     }
 };
 
-
 /*:: EconomyJS [script]*/
 
 window.LivingRule = Object.freeze({LUXURIOUS: 'luxurious', NORMAL: 'normal', SPARSE: 'sparse'});
@@ -1815,6 +1830,8 @@ window.getCost = function(array) {
 		+ (State.variables.club * facilityCost)
 		+ (State.variables.dairy * facilityCost)
 		+ (State.variables.incubator * facilityCost * 10);
+	var secExpCost = 0;
+	var soldierMod = 0;
 		
 	//facility expenses
 	costs += (0.1 * State.variables.brothelUpgradeDrugs * brothel * facilityCost)
@@ -1848,6 +1865,58 @@ window.getCost = function(array) {
 	}
 	if(State.variables.masterSuitePregnancyFertilitySupplements === 1) {
 		costs += 1000;
+	}
+	
+	//security expansion
+	if(State.variables.secExp == 1) {
+		if(State.variables.edictsUpkeep > 0) {
+			secExpCost += State.variables.edictsUpkeep;
+		}
+		if(State.variables.SFSupportUpkeep > 0) {
+			secExpCost += State.variables.SFSupportUpkeep;
+		}
+		if(State.variables.propHub > 0) {
+			secExpCost += State.variables.propHubUpkeep;
+		}
+		if(State.variables.secHQ > 0) {
+			secExpCost += State.variables.secHQUpkeep + 20 * state.variables.secHelots;
+		}
+		if(State.variables.secBarracks > 0) {
+			secExpCost += State.variables.secBarracksUpkeep;
+		}
+		if(State.variables.riotCenter > 0) {
+			secExpCost += State.variables.riotUpkeep;
+		}
+		if(State.variables.soldierWages == 0) {
+			soldierMod = 1;
+		}
+		else if(State.variables.soldierWages == 1) {
+			soldierMod = 1.5;
+		}
+		else {
+			soldierMod = 2;
+		}
+		if (State.variables.militiaUnits != null) {
+			for (var i = 0; i < State.variables.militiaUnits.length; i++) {
+				if( !(State.variables.militiaUnits[i] === null) ){
+					secExpCost += State.variables.militiaUnits[i].troops * State.variables.soldierUpkeep * soldierMod;
+				}
+			}
+		}
+		if (State.variables.slaveUnits != null) {
+			for (var i = 0; i < State.variables.slaveUnits.length; i++) {
+				if( !( State.variables.slaveUnits[i] === null) ){
+					secExpCost +=  State.variables.slaveUnits[i].troops * State.variables.soldierUpkeep * 0.5 * soldierMod;
+				}
+			}
+		}
+		if (State.variables.mercUnits != null) {
+			for (var i = 0; i < State.variables.mercUnits.length; i++) {
+				if( !(State.variables.mercUnits[i] === null) ){
+					secExpCost += State.variables.mercUnits[i].troops * State.variables.soldierUpkeep * 1.5 * soldierMod;
+				}
+			}
+		}
 	}
 	
 	//general arcology costs
@@ -2019,6 +2088,15 @@ window.getCost = function(array) {
 		}
 	}
 
+	if(State.variables.secExp == 1) {
+		if(State.variables.terrain === 'oceanic' || State.variables.terrain === 'marine') {
+			if(State.variables.docks > 0) {
+				costs *= (1 - State.variables.docks * 0.05);
+			}
+		} else if(State.variables.railway > 0) {
+			costs *= (1 - State.variables.railway * 0.05);
+		}
+	}
 	
 	// clean up
 	if(costs < 0) {
