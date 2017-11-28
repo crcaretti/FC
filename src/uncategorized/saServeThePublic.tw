@@ -998,10 +998,10 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 <<if ($slaves[$i].sexualFlaw == "none")>>
 <<if $slaves[$i].devotion < 10>>
 <<if random(1,100) > 70>>
-<<if ($slaves[$i].vaginalSkill <= 30) && ($slaves[$i].vagina != -1) && ($slaves[$i].vaginalAccessory != "chastity belt")>>
+<<if ($slaves[$i].vaginalSkill <= 30) && canDoVaginal($slaves[$i])>>
 	After being fucked too hard too often, she now @@.red;dislikes being penetrated.@@
 	<<set $slaves[$i].sexualFlaw = "hates penetration">>
-<<elseif ($slaves[$i].analSkill <= 30)>>
+<<elseif ($slaves[$i].analSkill <= 30) && canDoAnal($slaves[$i])>>
 	After so much anal pain, she now @@.red;dislikes being buttfucked.@@
 	<<set $slaves[$i].sexualFlaw = "hates anal">>
 <<elseif ($slaves[$i].oralSkill <= 30)>>
@@ -1077,22 +1077,25 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 
 <<set _oralUse = $oralUseWeight+($slaves[$i].oralSkill/30)+$slaves[$i].lips>>
 <<set _analUse = 0>>
-<<if canDoAnal($slaves[$i])>><<set _analUse =  $analUseWeight+($slaves[$i].analSkill/30)-$slaves[$i].anus>><</if>>
+<<if canDoAnal($slaves[$i])>><<set _analUse = $analUseWeight+($slaves[$i].analSkill/30)-$slaves[$i].anus>><</if>>
 <<set _vaginalUse = 0>>
-<<if canDoVaginal($slaves[$i])>><<set _vaginalUse =  $vaginalUseWeight+($slaves[$i].vaginalSkill/30)-$slaves[$i].vagina>><</if>>
-<<set _mammaryUse = $mammaryUseWeight>>
-<<if $slaves[$i].boobs > 10000>><<set $mammaryUseWeight += 5>><<elseif $slaves[$i].boobs > 2000>><<set $mammaryUseWeight += $slaves[$i].boobs/2000>><</if>>
-<<set _penetrativeUse = $penetrativeUseWeight>>
-<<if $slaves[$i].clit > 1>><<set $penetrativeUseWeight += ($slaves[$i].vaginalSkill/30)+$slaves[$i].clit>><</if>>
+<<if canDoVaginal($slaves[$i])>><<set _vaginalUse = $vaginalUseWeight+($slaves[$i].vaginalSkill/30)-$slaves[$i].vagina>><</if>>
+<<set _mammaryUse = 0>>
+<<if $slaves[$i].boobs > 10000>><<set _mammaryUse += 5+$mammaryUseWeight>><<elseif $slaves[$i].boobs > 2000>><<set _mammaryUse += $mammaryUseWeight+($slaves[$i].boobs/2000)>><</if>>
+<<set _penetrativeUse = 0>>
+<<if canDoVaginal($slaves[$i]) && $slaves[$i].clit > 1>><<set _penetrativeUse += $penetrativeUseWeight+($slaves[$i].vaginalSkill/30)+$slaves[$i].clit>><</if>>
 <<if $slaves[$i].dick>>
-<<if canAchieveErection($slaves[$i])>>
-<<if ($slaves[$i].dickAccessory != "chastity belt")>>
-	<<set $penetrativeUseWeight += ($slaves[$i].dick+$slaves[$i].balls)/4>>
-<<if ($slaves[$i].drugs == "hyper testicle enhancement")>>
-	<<set $penetrativeUseWeight += ($slaves[$i].balls)*4>>
-<</if>>
-<</if>>
-<</if>>
+	<<if canPenetrate($slaves[$i])>>
+		<<set _penetrativeUse += $penetrativeUseWeight+$slaves[$i].dick+Math.min($slaves[$i].balls,10)/4>>
+		<<if ($slaves[$i].drugs == "hyper testicle enhancement")>>
+			<<set _penetrativeUse += Math.min($slaves[$i].balls,5)>>
+		<</if>>
+	<<elseif !["chastity", "combined chastity"].includes($slaves[$i].dickAccessory)>>
+		<<set _penetrativeUse += $penetrativeUseWeight+$slaves[$i].dick+Math.min($slaves[$i].balls,10)/8>>
+		<<if ($slaves[$i].drugs == "hyper testicle enhancement")>>
+			<<set _penetrativeUse += Math.min($slaves[$i].balls,5)>>
+		<</if>>
+	<</if>>
 <</if>>
 
 <<set _demand = _oralUse+_analUse+_vaginalUse+_mammaryUse+_penetrativeUse>>
