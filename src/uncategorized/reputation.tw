@@ -48,10 +48,10 @@ On formal occasions, you are announced as $PCTitle.
 
 <<set $repDecay = 0.2>>
 <<if $arcologies[0].FSChattelReligionistLaw == 1>>
-	<<set $repLoss = 0>>
+	<<set $repLoss = 0, $PC.degeneracy = 0>>
 	Since you are the Prophet, your reputation no longer degrades at all.
 <<elseif $arcologies[0].FSRestartDecoration == 100>>
-	<<set $repLoss = 0>>
+	<<set $repLoss = 0, $PC.degeneracy = 0>>
 	Since you are an established member of the Societal Elite, your public reputation no longer decays.
 <<elseif $rep > $enduringRep>>
 	<<if $arcologies[0].FSMaturityPreferentialistLaw == 1>>
@@ -126,7 +126,7 @@ On formal occasions, you are announced as $PCTitle.
 <<if $arcologies[0].FSRestartDecoration == 100>>
 	As a member of the societal elite, your appearance has no bearing on your reputation.
 <<else>>
-<<if ($PC.dick == 0) && ($PC.boobs == 1)>>
+<<if ($PC.dick == 0) && ($PC.boobs == 1) && $PC.title == 0>>
 	<<if $rep > 18000>>
 		Your reputation is so well-established that society has accepted your notoriously feminine appearance despite how unusual it is for a prominent slaveowner to look like you do.
 		<<if $arcologies[0].FSGenderRadicalist > 30>>
@@ -143,13 +143,13 @@ On formal occasions, you are announced as $PCTitle.
 		<</if>>
 	<<else>>
 		Most prominent slaveowners are male, and your obviously feminine appearance makes it @@.red;harder for you to maintain your reputation.@@
-		<<set $repLoss += Math.trunc($rep*0.05)>>
+		<<set $repLoss += Math.trunc($rep*0.1)>>
 		<<if $arcologies[0].FSGenderFundamentalist > 10>>
 			Society @@.red;strongly resents@@ your being an arcology owner; this damages the idea that women should not be in positions of responsibility.
 			<<FSChange "GenderFundamentalist" -5>>
 		<</if>>
 	<</if>>
-<<elseif ($PC.boobs == 1)>>
+<<elseif ($PC.boobs == 1) || $PC.title == 0>>
 	<<if $rep > 15000>>
 		Your reputation is so strong that society has accepted your feminine appearance despite how unusual it is for a prominent slaveowner to look like you do.
 		<<if $arcologies[0].FSGenderRadicalist > 30>>
@@ -166,7 +166,7 @@ On formal occasions, you are announced as $PCTitle.
 		<</if>>
 	<<else>>
 		Most prominent slaveowners are very masculine, and your feminine appearance makes it @@.red;harder for you to maintain your reputation.@@
-		<<set $repLoss += Math.trunc($rep*0.03)>>
+		<<set $repLoss += Math.trunc($rep*0.05)>>
 		<<if $arcologies[0].FSGenderFundamentalist > 30>>
 			Society @@.red;strongly resents@@ your being an arcology owner; this damages the idea that feminine people should not be in positions of responsibility.
 			<<FSChange "GenderFundamentalist" -5>>
@@ -189,13 +189,57 @@ On formal occasions, you are announced as $PCTitle.
 		<</if>>
 	<<else>>
 		Most prominent slaveowners are very masculine, and though your unorthodox arrangement downstairs isn't obvious when you're clothed, the rumors are unavoidable and it's @@.red;harder for you to maintain your reputation.@@
-		<<set $repLoss += Math.trunc($rep*0.03)>>
+		<<set $repLoss += Math.trunc($rep*0.05)>>
 		<<if $arcologies[0].FSGenderFundamentalist > 30>>
 			Society @@.red;strongly resents@@ your being an arcology owner; this damages the idea that people who are not men should not be in positions of responsibility.
 			<<FSChange "GenderFundamentalist" -5>>
 		<</if>>
 	<</if>>
 <</if>>
+<</if>>
+
+<<if $sexualOpeness == 1>>
+	<<if $arcologies[0].FSChattelReligionistLaw == 1 || $arcologies[0].FSRestartDecoration == 100>>
+		/* already handled above */
+	<<else>>
+		<<if $arcologies[0].FSGenderRadicalist != "unset">>
+			<<if $rep > 18000>>
+				You are so well regarded that society has acquiesced that getting penetrated is not a sure sign of femininity.
+			<<else>>
+				Society views getting fucked as sign of femininity and is @@.red;strongly against your sexual preferences.@@
+				<<FSChange "GenderRadicalist" -1>>
+				<<set $rep -= 1000>>
+			<</if>>
+		<<elseif $arcologies[0].FSGenderFundamentalist != "unset" && $PC.vagina == 1 && $PC.title == 0>>
+			<<if $rep > 10000>>
+				Society has grown accustomed to your efforts enough to not care that you enjoy slave dick. In fact, it even @@.green;strengthens@@ tradional gender roles, even though you insist on breaking them.
+				<<FSChange "GenderFundamentalist" 1>>
+			<<else>>
+				Society wonders if you would be happier in a whore house getting fucked all day instead of trying to lead an arcology. Your efforts @@.red;strongly support@@ the idea that women should not be in positions of responsibility.
+				<<FSChange "GenderFundamentalist" -3>>
+				<<set $rep -= 1000>>
+			<</if>>
+		<<else>>
+			<<if $rep > 15000>>
+				You are so well liked that society has accepted that you enjoy taking everything a slave has to offer.
+			<<else>>
+				Society finds your penchant for taking slave dick @@.red;very distasteful@@ for a slaveowner.
+				<<set $rep -= 500>>
+			<</if>>
+		<</if>>
+	<</if>>
+<</if>>
+
+<<if $secExp == 1>>
+	<<if $smilingManFate == 1>>
+		The grim statue of the Smiling Man outside your arcology @@.green;reminds the world of who managed to eliminate such a threat@@.
+		<<set $rep += 100>>
+	<</if>>
+
+	<<if $weaponsLaw == 3>>
+		The absence of any kind of restriction on weaponry within your arcology is @@.green;welcomed by your citizens@@ as sign of your respect for the ideals the Free Cities stand for.
+		<<set $rep += 20>>	
+	<</if>>
 <</if>>
 
 <<if $arcologies[0].FSSupremacist != "unset">>
@@ -279,7 +323,13 @@ On formal occasions, you are announced as $PCTitle.
 	<<if $arcologies[0].FSRestart != "unset">>
 		<<if $arcologies[0].FSRestartDecoration == 100>>
 			<<if $PC.pregSource != -1>>
-				Most prominent female owners avoid being penetrated on principle; your fecund figure exposes not only your willingness to be penetrated, but your breach of eugenics. Your citizens are @@.red;livid@@ over your actions and are calling for your removal.
+				Most prominent female owners avoid being penetrated on
+				<<if $sexualOpeness == 1>>
+					principle, though you choose the opposite; your fecund figure suggests a slave knocked you up, a huge
+				<<else>>
+					principle; your fecund figure exposes your willingness to be penetrated, but your 
+				<</if>>
+				breach of eugenics. Your citizens are @@.red;livid@@ over your actions and are calling for your removal.
 				<<set $rep -= 500>>
 				<<set $failedElite += 100>>
 			<<else>>
@@ -288,15 +338,32 @@ On formal occasions, you are announced as $PCTitle.
 				<<set $failedElite -= 10>>
 			<</if>>
 		<<else>>
-			Most prominent female owners avoid being penetrated on principle; your fecund figure exposes not only your willingness to be penetrated, but your breach of the eugenics you are pushing for. Your citizens are @@.red;disgusted@@ by both your body and your lack of commitment.
+			Most prominent female owners avoid being penetrated on
+			<<if $sexualOpeness == 1>>
+				principle, though you choose the opposite; your fecund figure suggests a slave knocked you up, a huge
+			<<else>>
+				principle; your fecund figure exposes your willingness to be penetrated, but your 
+			<</if>>
+			breach of the eugenics you are pushing for. Your citizens are @@.red;disgusted@@ by both your body and your lack of commitment.
 			<<set $rep -= 500>>
 			<<set $failedElite += 50>>
 		<</if>>
 	<<elseif $arcologies[0].FSRepopulationFocus >= 60>>
-		Most prominent female owners avoid being penetrated on principle, but your arcology values motherhood so much that it is more @@.green;pleased@@ with your dedication than it is disappointed in your penetration.
+		Most prominent female owners avoid being penetrated on principle, but your arcology values motherhood so much that it is more @@.green;pleased@@ with your dedication than it is disappointed in your 
+		<<if $sexualOpeness == 1>>
+			suspected slave baby.
+		<<else>>
+			penetration.
+		<</if>>
 		<<set $rep += 10>>
 	<<else>>
-		Most prominent female owners avoid being penetrated on principle; your fecund figure exposes your willingness to be penetrated, making it @@.red;harder for you to maintain your reputation.@@
+		Most prominent female owners avoid being penetrated on 
+		<<if $sexualOpeness == 1>>
+			principle, though you choose the opposite; your fecund figure suggests a slave knocked you up,
+		<<else>>
+			principle; your fecund figure exposes your willingness to be penetrated,
+		<</if>>
+		making it @@.red;harder for you to maintain your reputation.@@
 		<<set $rep -= 200>>
 	<</if>>
 <</if>>
@@ -580,13 +647,32 @@ On formal occasions, you are announced as $PCTitle.
 	<</if>>
 <</if>>
 
+<<if $secExp == 1>>
+	<<if $fakeNews == 1>>
+		The authenticity department produces and distributes copious amounts of plausible enough news and reports, @@.green;increasing your reputation@@
+		<<set $repGain += 10 * $miniTruth>>
+	<</if>>
+<</if>>
+
 <<set $rep -= $repLoss>>
 <<set $rep += $repGain>>
+
+<br>
 
 <<if $repGain > $repLoss>>
 	@@.green;Your reputation increased this week.@@
 <<elseif $repGain < $repLoss>>
 	@@.red;Your reputation decreased this week.@@
+<</if>>
+
+<<if isNaN($repGain)>>
+	<br>@@.red;Error: repGain is outside accepted range, please report this issue@@
+<</if>>
+<<if isNaN($repLoss)>>
+	<br>@@.red;Error: repLoss is outside accepted range, please report this issue@@
+<</if>>
+<<if isNaN($rep)>>
+	<br>@@.red;Error: rep is outside accepted range, please report this issue@@
 <</if>>
 
 <<if $rep > 19000>>
@@ -610,6 +696,12 @@ On formal occasions, you are announced as $PCTitle.
 <<if $rep <= 19900>>
 	<<set $rep += 100>>
 	Reputation subsidized as planned.
+	<<if $PC.degeneracy > 1>>
+		<<set $PC.degeneracy -= 1>>
+	<</if>>
+<<elseif $PC.degeneracy > 1>>
+	<<set $PC.degeneracy -= 1>>
+	Rumors quelled as planned.
 <<else>>
 	<<set $cash += 1000>>
 	Reputation subsidy reclaimed this week since your reputation is capped.

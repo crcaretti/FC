@@ -1,0 +1,1218 @@
+:: attackHandler [nobr]
+
+<<set $nextButton = " ", $nextLink = "attackReport", $showEncyclopedia = 0>>
+
+/* updates deployed flags */
+<<for _i = 0; _i < $militiaUnits.length; _i++>>
+	<<if $militiaUnits[_i].isDeployed == 1>>
+		<<set $deployingMilitia = 1>>
+		<<break>>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < $slaveUnits.length; _i++>>
+	<<if $slaveUnits[_i].isDeployed == 1>>
+		<<set $deployingSlaves = 1>>
+		<<break>>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < $mercUnits.length; _i++>>
+	<<if $mercUnits[_i].isDeployed == 1>>
+		<<set $deployingMercs = 1>>
+		<<break>>
+	<</if>>
+<</for>>
+
+<<if $battleResult == 1>>	/* bribery check */
+	<<if $showBattleStatistics == 1>>bribery chosen<</if>>
+	<<if $cash >= $bribeCost>>						/* if there's enough cash there's a 10% chance bribery fails. If there isn't there's instead a 50% chance it fails */
+		<<if random(1,100) <= 10>>
+			<<set $battleResult = 0>>
+		<</if>>
+	<<else>>
+		<<if random(1,100) <= 50>>
+			<<set $battleResult = 0>>
+		<</if>>
+	<</if>>
+	<<if $showBattleStatistics == 1>>
+		<<if $battleResult == 0>>
+			<br>Bribery failed!
+		<<else>>
+			<br>Bribery Successful!
+		<</if>>
+		<br><br>
+		<<link "proceed">>
+			<<goto "attackReport">>
+		<</link>>
+	<<else>>
+		<<goto "attackReport">>
+	<</if>>
+
+<<else>>
+
+/*Init*/
+<<if $majorBattle == 0>>
+	<<set _turns = $maxTurns>>
+<</if>>
+<<set _turn = 0>>
+<<set _attack = 0>>
+<<set _defense = 0>>
+<<set _morale = 0>>
+<<set _hp = 0>>
+<<set _baseHp = 0>>
+<<set _enemyAttack = 0>>
+<<set _enemyDefense = 0>>
+<<set _enemyMorale = 0>>
+<<set _enemyHp = 0>>
+<<set _enemyBaseHp = 0>>
+<<set _woundChance = 5>>								/* leader has a base chance of 5% to get wounded */
+<<set _tacChance = 0.5>> 								/* by default tactics have a 50% chance of succeeding */
+<<set _atkMod = 1>>
+<<set _defMod = 1>>
+<<set _militiaMod = 1>>
+<<set _slaveMod = 1>>
+<<set _mercMod = 1>>
+<<set _enemyMod = 1>>
+<<set _SFMod = 1>>
+<<set _expBonus = 0>>
+<<set _loyaltyBonus = 0>>
+<<set _armyMod = 0>>
+
+/* major battle */
+<<if $majorBattle == 1>>
+	<<set _militiaMod = 1.5>>
+	<<set _slaveMod = 1.5>>
+	<<set _mercMod = 1.5>>
+	<<set _enemyMod = 1.5>>
+	<<set _SFMod = 1.5>>
+	<<set _turns = $maxTurns * 2>>
+	<<if $securityForceCreate == 1>>
+		<<if $securityForceArcologyUpgrades >= 7>>
+			<<set _atkMod += ($securityForceArcologyUpgrades - 6) * 0.05>>
+		<</if>>
+		<<if $securityForceFortressZeppelin >= 1>>
+			<<set _defMod += $securityForceFortressZeppelin * 0.05>>
+		<</if>>
+		<<if $securityForceSatalitePower >= 11>>
+			<<set _atkMod += ($securityForceSatalitePower - 10) * 0.05>>
+		<</if>>
+		<<if $securityForceGiantRobot >= 6>>
+			<<set _defMod += ($securityForceGiantRobot - 5) * 0.05>>
+		<</if>>
+		<<if $securityForceMissileSilo >= 1>>
+			<<set _atkMod += $securityForceMissileSilo * 0.05>>
+			<<set _defMod += $securityForceMissileSilo * 0.05>>
+		<</if>>
+	<</if>>
+<</if>>
+
+/* Leaders */
+<<if $leadingTroops == "PC">>
+	<<if $authority <= 2500 && $authority > 1000>>
+		<<set _slaveMod -= 0.10>>
+	<<elseif $authority <= 1000>>
+		<<set _slaveMod -= 0.25>>
+	<<elseif $authority >= 5000 && $authority < 15000>>
+		<<set _slaveMod += 0.10>>
+	<<elseif $authority >= 15000>>
+		<<set _slaveMod += 0.25>>
+	<</if>>
+	<<if $PC.career == "escort" || $PC.career == "servant">>
+		<<set _slaveMod += 0.10>>
+	<<elseif $PC.career == "slaver">>
+		<<set _slaveMod -= 0.10>>
+	<</if>>
+	<<if $rep <= 2500 && $rep > 1000>>
+		<<set _militiaMod -= 0.10>>
+	<<elseif $rep <= 1000>>
+		<<set _militiaMod -= 0.25>>
+	<<elseif $rep >= 5000 && $rep < 15000>>
+		<<set _militiaMod += 0.10>>
+	<<elseif $rep >= 15000>>
+		<<set _militiaMod += 0.25>>
+	<</if>>
+	<<if $PC.career == "celebrity" || $PC.career == "capitalist">>
+		<<set _militiaMod += 0.10>>
+	<<elseif $PC.career == "gang" || $PC.career == "escort">>
+		<<set _militiaMod -= 0.10>>
+	<</if>>
+	<<if $PC.career == "mercenary" || $PC.warfare > 75>>
+		<<set _mercMod += 0.10>>
+		<<set _SFMod += 0.10>>
+	<<elseif $PC.career == "wealth" || $PC.career == "servant">>
+		<<set _mercMod -= 0.10>>
+		<<set _SFMod -= 0.10>>
+	<</if>>
+	<<if $rep >= 15000>>
+		<<set _enemyMod -= 0.10>>
+	<</if>>
+	<<if $PC.warfare <= 25 && $PC.warfare > 10>>
+		<<set _atkMod -= 0.15>>
+		<<set _tacChance -= 0.15>>
+	<<elseif $PC.warfare <= 10>>
+		<<set _atkMod -= 0.20>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.30>>
+	<<elseif $PC.warfare >= 50 && $PC.warfare >= 50>>
+		<<set _atkMod += 0.15>>
+		<<set _tacChance += 0.15>>
+	<<elseif $PC.warfare >= 75>>
+		<<set _atkMod += 0.20>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.30>>
+	<</if>>
+	/* 80% chance of increasing warfare */
+	<<if $PC.warfare < 100 && random(1,100) <= 80>>
+		<<set $gainedWarfare = 1>>
+		<<set $PC.warfare += 10>>
+		<<set $PC.warfare = Math.clamp($PC.warfare,-100,100)>>
+	<</if>>
+		/* does the PC get wounded? */
+	<<if $PC.career == "mercenary" || $PC.career == "gang">>
+		<<set _woundChance -= 3>>
+	<</if>>
+	<<if $PC.physicalAge >= 60>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $PC.belly > 5000>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $PC.boobsBonus >= 2>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $PC.butt >= 2>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $PC.preg >= 30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $PC.balls == 2>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $PC.ballsImplant >= 2>>
+		<<set _woundChance += 1>>
+	<</if>>	
+	<<if random(1,100) <= _woundChance>>
+		<<set $leaderWounded = 1>>
+		<<set _militiaMod -= 0.2>>
+		<<set _slaveMod -= 0.2>>
+		<<set _mercMod -= 0.2>>
+		<<set _SFMod -= 0.2>>
+		<<set _enemyMod += 0.2>>
+		<<set $PCWounded = 1>>
+	<</if>>
+<<elseif $leadingTroops == "assistant">>
+	<<if $rep < 10000 && $authority < 10000>>
+		<<set _militiaMod -= 0.15>>
+		<<set _slaveMod -= 0.15>>
+		<<set _mercMod -= 0.15>>
+		<<set _SFMod -= 0.15>>
+	<</if>>
+	<<if $assistantPower == 0>>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
+	<<elseif $assistantPower == 2>>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.30>>
+	<</if>>
+<<elseif $leadingTroops == "bodyguard">>
+	<<if $Bodyguard.devotion < -20>>
+		<<set _slaveMod -= 0.15>>
+	<<elseif $Bodyguard.devotion >= 50>>
+		<<set _slaveMod += 0.15>>
+	<</if>>
+	<<if ($rep < 10000 && $authority < 10000) || $Bodyguard.prestige < 1>>
+		<<set _militiaMod -= 0.15>>
+		<<set _mercMod -= 0.15>>
+		<<set _SFMod -= 0.15>>
+	<<elseif $Bodyguard.prestige >= 2>>
+		<<set _militiaMod += 0.10>>
+		<<set _mercMod += 0.10>>
+		<<set _SFMod += 0.10>>
+	<</if>>
+	<<if (setup.bodyguardCareers.includes($Bodyguard.career) || setup.HGCareers.includes($Bodyguard.career)) && $Bodyguard.intelligence == 3>>
+		<<set _atkMod += 0.25>>
+		<<set _defMod += 0.25>>
+		<<set _tacChance += 0.50>>
+	<<elseif $Bodyguard.intelligence == 3>>
+		<<set _atkMod += 0.20>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.35>>
+	<<elseif (setup.bodyguardCareers.includes($Bodyguard.career) || setup.HGCareers.includes($Bodyguard.career)) && $Bodyguard.intelligence == 2>>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
+	<<elseif $Bodyguard.intelligence == 2>>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
+	<<elseif setup.bodyguardCareers.includes($Bodyguard.career) || setup.HGCareers.includes($Bodyguard.career) && $Bodyguard.intelligence >= 1>>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.15>>
+	<<elseif !(setup.bodyguardCareers.includes($Bodyguard.career) && setup.HGCareers.includes($Bodyguard.career)) || $Bodyguard.intelligence <= -2>>
+		<<set _atkMod -= 0.15>>
+		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.30>>
+	<<elseif $Bodyguard.intelligence <= -2>>
+		<<set _atkMod -= 0.15>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.25>>
+	<<elseif !(setup.bodyguardCareers.includes($Bodyguard.career) && setup.HGCareers.includes($Bodyguard.career)) || $Bodyguard.intelligence <= -1>>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
+	<<elseif $Bodyguard.intelligence <= -1>>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.15>>
+	<</if>>
+		/* does she get wounded? */
+	<<if $Bodyguard.combatSkill == 1>>
+		<<set _woundChance -= 2>>
+	<</if>>
+	<<if $Bodyguard.amp >= -4>>
+		<<set _woundChance -= 1>>
+	<</if>>
+	<<if $Bodyguard.health >= 50>>
+		<<set _woundChance -= 1>>
+	<</if>>
+	<<if $Bodyguard.weight > 130>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.muscles < -30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.eyes <= -2>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.heels == 1>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.boobs >= 1400>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.butt >= 6>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.preg >= 30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.dick >= 8>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.balls >= 8>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $Bodyguard.intelligence <= -3>>
+		<<set _woundChance += 1>>
+	<</if>>	
+	<<if random(1,100) <= _woundChance>>
+		<<set $leaderWounded = 1>>
+		<<set _militiaMod -= 0.2>>
+		<<set _slaveMod -= 0.2>>
+		<<set _mercMod -= 0.2>>
+		<<set _SFMod -= 0.2>>
+		<<set _enemyMod += 0.2>>
+		<<set $woundType = random(1,10)>>
+		<<if $woundType == 1>>
+			<<set $Bodyguard.voice = 0>>
+		<<elseif $woundType == 2>>
+			<<set $Bodyguard.eyes = -2>>
+		<<elseif $woundType == 3>>
+			<<set $Bodyguard.amp = 1>>
+		<<elseif $woundType >= 4>>
+			<<if $Bodyguard.health >= -60>>
+				<<set $Bodyguard.health -= 30>>
+			<<else>>
+				<<set $Bodyguard.health -= Math.abs(90 - $Bodyguard.health)>>
+			<</if>>
+		<</if>>
+	<</if>>
+	/* 60% chance of getting combat skill if not already have it */
+	<<if $Bodyguard.combatSkill == 0 && random(1,100) <= 60>>
+		<<set $gainedCombat = 1>>
+		<<set $Bodyguard.combatSkill = 1>>
+	<</if>>
+<<elseif $leadingTroops == "headGirl">>
+	<<if $HeadGirl.devotion < -20>>
+		<<set _slaveMod -= 0.15>>
+	<<elseif $HeadGirl.devotion > 51>>
+		<<set _slaveMod += 0.15>>
+	<</if>>
+	<<if ($rep < 10000 && $authority < 10000) || $HeadGirl.prestige < 1>>
+		<<set _militiaMod -= 0.15>>
+		<<set _mercMod -= 0.15>>
+		<<set _SFMod -= 0.15>>
+	<<elseif $HeadGirl.prestige >= 2>>
+		<<set _militiaMod += 0.10>>
+		<<set _mercMod += 0.10>>
+		<<set _SFMod += 0.10>>
+	<</if>>
+	<<if (setup.bodyguardCareers.includes($HeadGirl.career) || setup.HGCareers.includes($HeadGirl.career)) && $HeadGirl.intelligence == 3>>
+		<<set _atkMod += 0.25>>
+		<<set _defMod += 0.25>>
+		<<set _tacChance += 0.50>>
+	<<elseif $HeadGirl.intelligence == 3>>
+		<<set _atkMod += 0.20>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.35>>
+	<<elseif (setup.bodyguardCareers.includes($HeadGirl.career) || setup.HGCareers.includes($HeadGirl.career)) && $HeadGirl.intelligence == 2>>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
+	<<elseif $HeadGirl.intelligence == 2>>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
+	<<elseif setup.bodyguardCareers.includes($HeadGirl.career) || setup.HGCareers.includes($HeadGirl.career) && $HeadGirl.intelligence >= 1>>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.15>>
+	<<elseif !(setup.bodyguardCareers.includes($HeadGirl.career) && setup.HGCareers.includes($HeadGirl.career)) || $HeadGirl.intelligence <= -2>>
+		<<set _atkMod -= 0.15>>
+		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.30>>
+	<<elseif $HeadGirl.intelligence <= -2>>
+		<<set _atkMod -= 0.15>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.25>>
+	<<elseif !(setup.bodyguardCareers.includes($HeadGirl.career) && setup.HGCareers.includes($HeadGirl.career)) || $HeadGirl.intelligence <= -1>>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
+	<<elseif $HeadGirl.intelligence <= -1>>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.15>>
+	<</if>>
+	/* does she get wounded? */
+	<<if $HeadGirl.combatSkill == 1>>
+		<<set _woundChance -= 3>>
+	<</if>>
+	<<if $HeadGirl.amp >= -4>>
+		<<set _woundChance -= 1>>
+	<</if>>
+	<<if $HeadGirl.health >= 50>>
+		<<set _woundChance -= 2>>
+	<</if>>
+	<<if $HeadGirl.weight > 130>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.muscles < -30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.eyes <= -2>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.heels == 1>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.boobs >= 1400>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.butt >= 6>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.preg >= 30>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.dick >= 8>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.balls >= 8>>
+		<<set _woundChance += 1>>
+	<</if>>
+	<<if $HeadGirl.intelligence <= -3>>
+		<<set _woundChance += 1>>
+	<</if>>	
+	<<if random(1,100) <= _woundChance>>
+		<<set $leaderWounded = 1>>
+		<<set _militiaMod -= 0.2>>
+		<<set _slaveMod -= 0.2>>
+		<<set _mercMod -= 0.2>>
+		<<set _SFMod -= 0.2>>
+		<<set _enemyMod += 0.2>>
+		<<set $woundType = random(1,10)>>
+		<<if $woundType == 1>>
+			<<set $HeadGirl.voice = 0>>
+		<<elseif $woundType == 2>>
+			<<set $HeadGirl.eyes = -2>>
+		<<elseif $woundType == 3>>
+			<<set $HeadGirl.amp = 1>>
+		<<elseif $woundType >= 4>>
+			<<set $HeadGirl.health -= 40>>
+		<</if>>
+	<</if>>
+	/* 60% chance of getting combat skill if nto already have it */
+	<<if $HeadGirl.combatSkill == 0 && random(1,100) <= 60>>
+		<<set $gainedCombat = 1>>
+		<<set $HeadGirl.combatSkill = 1>>
+	<</if>>
+<<elseif $leadingTroops == "citizen">>
+	<<if $arcologies[0].FSDegradationist == "unset" && $arcologies[0].FSPaternalist == "unset">>
+		<<set _militiaMod += 0.15>>
+		<<set _slaveMod -= 0.15>>
+	<<elseif $arcologies[0].FSPaternalist != "unset">>
+		<<set _militiaMod += 0.15>>
+		<<set _slaveMod += 0.10>>
+	<<elseif $arcologies[0].FSDegradationist != "unset">>
+		<<set _militiaMod += 0.15>>
+		<<set _slaveMod -= 0.35>>
+	<</if>>
+	<<if $arcologies[0].FSRomanRevivalist != "unset">>
+		<<set _mercMod += 0.10>>
+		<<set _SFMod += 0.10>>
+	<<else>>
+		<<set _mercMod -= 0.10>>
+		<<set _SFMod -= 0.10>>
+	<</if>>
+	<<set _atkMod += either(-1,1) * random(10) * 0.1>>
+	<<set _defMod += either(-1,1) * random(10) * 0.1>>
+	<<set _tacChance += either(-1,1) * random(20) * 0.1>>
+<<elseif $leadingTroops == "mercenary">>
+	<<set _mercMod += 0.10>>
+	<<set _SFMod += 0.10>>
+	<<if $arcologies[0].FSRomanRevivalist != "unset">>
+		<<set _militiaMod += 0.10>>
+	<<else>>
+		<<set _militiaMod -= 0.10>>
+	<</if>>
+	<<if $arcologies[0].FSDegradationist != "unset">>
+		<<set _slaveMod -= 0.35>>
+	<</if>>
+	<<set _atkMod += random(15) * 0.1>>
+	<<set _defMod += random(15) * 0.1>>
+	<<set _tacChance += random(30) * 0.1>>
+<<elseif $leadingTroops == "colonel">>
+	<<set _mercMod += 0.10>>
+	<<set _SFMod += 0.15>>
+	<<if $arcologies[0].FSRomanRevivalist != "unset">>
+		<<set _militiaMod += 0.10>>
+	<<else>>
+		<<set _militiaMod -= 0.10>>
+	<</if>>
+	<<if $arcologies[0].FSDegradationist != "unset">>
+		<<set _slaveMod -= 0.35>>
+	<</if>>
+	<<set _atkMod += random(30) * 0.1>>
+	<<set _defMod += random(30) * 0.1>>
+	<<set _tacChance += random(40) * 0.1>>
+<</if>>
+/* Terrain and Tactics */
+<<if $battleTerrain == "urban">>
+	<<if $chosenTactic == "Bait and Bleed">>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Guerrilla">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Choke Points">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Interior Lines">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.15>>
+	<<elseif $chosenTactic == "Pincer Manouver">>
+		<<set _atkMod -= 0.05>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.15>>
+	<<elseif $chosenTactic == "Defense In Depth">>
+		<<set _atkMod -= 0.05>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.10>>
+	<<elseif $chosenTactic == "Blitzkrieg">>
+		<<set _atkMod -= 0.15>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.25>>
+	<<elseif $chosenTactic == "Human Wave">>
+		<<set _atkMod -= 0.15>>
+		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.30>>
+	<</if>>
+<<elseif $battleTerrain == "rural">>
+	<<if $chosenTactic == "Bait and Bleed">>
+		<<set _atkMod -= 0.05>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.15>>
+	<<elseif $chosenTactic == "Guerrilla">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
+	<<elseif $chosenTactic == "Choke Points">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.25>>
+	<<elseif $chosenTactic == "Interior Lines">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Pincer Manouver">>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Defense In Depth">>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.30>>
+	<<elseif $chosenTactic == "Blitzkrieg">>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Human Wave">>
+		<<set _atkMod += 0.20>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.25>>
+	<</if>>
+<<elseif $battleTerrain == "hills">>
+	<<if $chosenTactic == "Bait and Bleed">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.10>>
+	<<elseif $chosenTactic == "Guerrilla">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.15>>
+	<<elseif $chosenTactic == "Choke Points">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
+	<<elseif $chosenTactic == "Interior Lines">>
+		<<set _atkMod -= 0.05>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.10>>
+	<<elseif $chosenTactic == "Pincer Manouver">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.15>>
+	<<elseif $chosenTactic == "Defense In Depth">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.15>>
+	<<elseif $chosenTactic == "Blitzkrieg">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.15>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Human Wave">>
+		<<set _atkMod -= 0.15>>
+		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.30>>
+	<</if>>
+<<elseif $battleTerrain == "coast">>
+	<<if $chosenTactic == "Bait and Bleed">>
+		<<set _atkMod -= 0.05>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.10>>
+	<<elseif $chosenTactic == "Guerrilla">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.10>>
+	<<elseif $chosenTactic == "Choke Points">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.15>>
+	<<elseif $chosenTactic == "Interior Lines">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
+	<<elseif $chosenTactic == "Pincer Manouver">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
+	<<elseif $chosenTactic == "Defense In Depth">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
+	<<elseif $chosenTactic == "Blitzkrieg">>
+		<<set _atkMod -= 0.05>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.10>>
+	<<elseif $chosenTactic == "Human Wave">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod -= 0.05>>
+	<</if>>
+<<elseif $battleTerrain == "outskirts">>
+	<<if $chosenTactic == "Bait and Bleed">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.15>>
+		<<set _tacChance -= 0.25>>
+	<<elseif $chosenTactic == "Guerrilla">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance -= 0.15>>
+	<<elseif $chosenTactic == "Choke Points">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Interior Lines">>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Pincer Manouver">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.15>>
+	<<elseif $chosenTactic == "Defense In Depth">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Blitzkrieg">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance += 0.05>>
+	<<elseif $chosenTactic == "Human Wave">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod -= 0.10>>
+	<</if>>
+<<elseif $battleTerrain == "mountains">>
+	<<if $chosenTactic == "Bait and Bleed">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Guerrilla">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Choke Points">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod += 0.20>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Interior Lines">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
+	<<elseif $chosenTactic == "Pincer Manouver">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod -= 0.05>>
+		<<set _tacChance += 0.05>>
+	<<elseif $chosenTactic == "Defense In Depth">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.20>>
+	<<elseif $chosenTactic == "Blitzkrieg">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
+	<<elseif $chosenTactic == "Human Wave">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod -= 0.10>>
+		<<set _tacChance -= 0.20>>
+	<</if>>
+<<elseif $battleTerrain == "wasteland">>
+	<<if $chosenTactic == "Bait and Bleed">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.10>>
+	<<elseif $chosenTactic == "Guerrilla">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.15>>
+	<<elseif $chosenTactic == "Choke Points">>
+		<<set _atkMod -= 0.10>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance -= 0.05>>
+	<<elseif $chosenTactic == "Interior Lines">>
+		<<set _atkMod += 0.10>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Pincer Manouver">>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.25>>
+	<<elseif $chosenTactic == "Defense In Depth">>
+		<<set _atkMod += 0.05>>
+		<<set _defMod += 0.10>>
+		<<set _tacChance += 0.15>>
+	<<elseif $chosenTactic == "Blitzkrieg">>
+		<<set _atkMod += 0.15>>
+		<<set _defMod += 0.15>>
+		<<set _tacChance += 0.30>>
+	<<elseif $chosenTactic == "Human Wave">>
+		<<set _atkMod += 0.20>>
+		<<set _defMod += 0.05>>
+		<<set _tacChance += 0.25>>
+	<</if>>
+<</if>>
+
+<<if $chosenTactic == "Bait and Bleed">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.10>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.25>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.15>>
+	<</if>>
+<<elseif $chosenTactic == "Guerrilla">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.20>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.15>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.25>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.25>>
+	<</if>>
+<<elseif $chosenTactic == "Choke Points">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance += 0.25>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance -= 0.05>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance -= 0.10>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance += 0.05>>
+	<</if>>
+<<elseif $chosenTactic == "Interior Lines">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.15>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.15>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.20>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.10>>
+	<</if>>
+<<elseif $chosenTactic == "Pincer Manouver">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance += 0.15>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance -= 0.10>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance += 0.15>>
+	<</if>>
+<<elseif $chosenTactic == "Defense In Depth">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.20>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.20>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.05>>
+	<</if>>
+<<elseif $chosenTactic == "Blitzkrieg">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance -= 0.20>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance += 0.25>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance -= 0.10>>
+	<</if>>
+<<elseif $chosenTactic == "Human Wave">>
+	<<if $attackType == "raiders">>
+		<<set _tacChance -= 0.10>>
+	<<elseif $attackType == "free city">>
+		<<set _tacChance += 0.10>>
+	<<elseif $attackType == "old world">>
+		<<set _tacChance -= 0.15>>
+	<<elseif $attackType == "freedom fighters">>
+		<<set _tacChance += 0.10>>
+	<</if>>
+<</if>>
+
+/* Calculates if tactics are successful */
+/* minimum chance is 10% */
+<<if _tacChance <= 0>>
+	<<set _tacChance = 0.1>>
+<</if>>
+<<if random(1,100) <= _tacChance * 100>>
+	<<set _enemyMod -= 0.30>>
+	<<set _militiaMod += 0.20>>
+	<<set _slaveMod += 0.20>>
+	<<set _mercMod += 0.20>>
+	<<set _atkMod += 0.10>>
+	<<set _defMod += 0.10>>
+	<<set $tacticsSuccessful = 1>>
+<<else>>
+	<<set _enemyMod += 0.20>>
+	<<set _militiaMod -= 0.20>>
+	<<set _slaveMod -= 0.20>>
+	<<set _mercMod -= 0.20>>
+	<<set _atkMod -= 0.10>>
+	<<set _defMod -= 0.10>>
+	<<set $tacticsSuccessful = 0>>
+<</if>>
+
+/* enemy morale mods */
+<<if $week < 30>>
+	<<set _enemyMod += 0.15>>
+<<elseif $week < 60>>
+	<<set _enemyMod += 0.30>>
+<<elseif $week < 90>>
+	<<set _enemyMod += 0.45>>
+<<elseif $week < 120>>
+	<<set _enemyMod += 0.60>>
+<<else>>
+	<<set _enemyMod += 0.75>>
+<</if>>
+
+/* calculates PC army stats */
+<<if $secBots.isDeployed == 1>>
+	<<set _attack += ($secBotsBaseAttack + $secBotsBaseAttack * $secBots.equip * $equipMod) * _atkMod>>
+	<<set _defense += ($secBotsBaseDefense + $secBotsBaseDefense * $secBots.equip * $equipMod) * _defMod>>
+	<<set _hp += $secBotsBaseHp * $secBots.troops>>
+<</if>>
+<<for _i = 0; _i < $militiaUnits.length; _i++>>
+	<<if $militiaUnits[_i].isDeployed == 1>>
+		<<if $militiaUnits[_i].training <= 10>>
+			<<set _expBonus = 0>>
+		<<elseif $militiaUnits[_i].training <= 33>>
+			<<set _expBonus = 0.10>>
+		<<elseif $militiaUnits[_i].training <= 66>>
+			<<set _expBonus = 0.25>>
+		<<else>>
+			<<set _expBonus = 0.50>>
+		<</if>>
+		<<if $militiaUnits[_i].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $militiaUnits[_i].loyalty <= 33>>
+			<<set _loyaltyBonus = 0.10>>
+		<<elseif $militiaUnits[_i].loyalty <= 66>>
+			<<set _loyaltyBonus = 0.20>>
+		<<else>>
+			<<set _loyaltyBonus = 0.30>>
+		<</if>>
+		<<set _attack += ($militiaBaseAttack + $militiaBaseAttack * $militiaUnits[_i].equip * $equipMod + $militiaBaseAttack * _expBonus + $militiaBaseAttack * _loyaltyBonus + $militiaBaseAttack * $militiaUnits[_i].SF * 0.20 + $militiaUnits[_i].cyber) * _atkMod>>
+		<<set _defense += ($militiaBaseDefense + $militiaBaseDefense * $militiaUnits[_i].equip * $equipMod + $militiaBaseDefense * _expBonus + $militiaBaseDefense * _loyaltyBonus + $militiaBaseDefense * $militiaUnits[_i].SF * 0.20 + $militiaUnits[_i].cyber) * _defMod>>
+		<<set _hp += ($militiaBaseHp + $militiaUnits[_i].cyber + $militiaBaseHp * $militiaUnits[_i].medics * 0.25) * $militiaUnits[_i].troops>>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < $slaveUnits.length; _i++>>
+	<<if $slaveUnits[_i].isDeployed == 1>>
+		<<if $slaveUnits[_i].training <= 33>>
+			<<set _expBonus = 0>>
+		<<elseif $slaveUnits[_i].training <= 66>>
+			<<set _expBonus = 0.25>>
+		<<else>>
+			<<set _expBonus = 0.50>>
+		<</if>>
+		<<if $slaveUnits[_i].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $slaveUnits[_i].loyalty <= 33>>
+			<<set _loyaltyBonus = 0.10>>
+		<<elseif $slaveUnits[_i].loyalty <= 66>>
+			<<set _loyaltyBonus = 0.20>>
+		<<else>>
+			<<set _loyaltyBonus = 0.30>>
+		<</if>>
+		<<set _attack += ($slaveBaseAttack + $slaveBaseAttack * $slaveUnits[_i].equip * $equipMod + $slaveBaseAttack * _expBonus + $slaveBaseAttack * _loyaltyBonus + $slaveBaseAttack * $slaveUnits[_i].SF * 0.20 + $slaveUnits[_i].cyber) * _atkMod>>
+		<<set _defense += ($slaveBaseDefense + $slaveBaseDefense * $slaveUnits[_i].equip * $equipMod + $slaveBaseDefense * _expBonus + $slaveBaseDefense * _loyaltyBonus + $slaveBaseDefense * $slaveUnits[_i].SF * 0.20 + $slaveUnits[_i].cyber) * _defMod>>
+		<<set _hp += ($slaveBaseHp + $slaveUnits[_i].cyber + $slaveBaseHp * $slaveUnits[_i].medics * 0.25) * $slaveUnits[_i].troops>>
+	<</if>>
+<</for>>
+<<for _i = 0; _i < $mercUnits.length; _i++>>
+	<<if $mercUnits[_i].isDeployed == 1>>
+		<<if $mercUnits[_i].training <= 33>>
+			<<set _expBonus = 0>>
+		<<elseif $mercUnits[_i].training <= 66>>
+			<<set _expBonus = 0.25>>
+		<<else>>
+			<<set _expBonus = 0.50>>
+		<</if>>
+		<<if $mercUnits[_i].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $mercUnits[_i].loyalty <= 33>>
+			<<set _loyaltyBonus = 0.10>>
+		<<elseif $mercUnits[_i].loyalty <= 66>>
+			<<set _loyaltyBonus = 0.20>>
+		<<else>>
+			<<set _loyaltyBonus = 0.30>>
+		<</if>>
+		<<set _attack += ($mercBaseAttack + $mercBaseAttack * $mercUnits[_i].equip * $equipMod + $mercBaseAttack * _expBonus + $mercBaseAttack * _loyaltyBonus + $mercBaseAttack * $mercUnits[_i].SF * 0.20 + $mercUnits[_i].cyber) * _atkMod>>
+		<<set _defense += ($mercBaseDefense + $mercBaseDefense * $mercUnits[_i].equip * $equipMod + $mercBaseDefense * _expBonus + $mercBaseDefense * _loyaltyBonus + $mercBaseDefense * $mercUnits[_i].SF * 0.20 + $mercUnits[_i].cyber) * _defMod>>
+		<<set _hp += ($mercBaseHp + $mercUnits[_i].cyber + $mercBaseHp * $mercUnits[_i].medics * 0.25) * $mercUnits[_i].troops>>
+	<</if>>
+<</for>>
+
+<<if $SFIntervention == 1>>
+	<<set $SFatk = 0>>
+	<<set $SFdef = 0>>
+	<<set $SFhp = 0>>
+	<<calcSFStatistics>>
+	<<set _attack += $SFatk>>
+	<<set _defense += $SFdef>>
+	<<set _hp += $SFhp>>
+<</if>>
+
+/* morale and baseHp calculation */
+/* minimum modifier is -50%, maximum is +50% */
+<<if _militiaMod < 0.5>>
+	<<set _militiaMod = 0.5>>
+<<elseif _militiaMod > 1.5>>
+	<<set _militiaMod = 1.5>>
+<</if>>
+<<if _slaveMod < 0.5>>
+	<<set _slaveMod = 0.5>>
+<<elseif _slaveMod > 1.5>>
+	<<set _slaveMod = 1.5>>
+<</if>>
+<<if _mercMod < 0.5>>
+	<<set _mercMod = 0.5>>
+<<elseif _mercMod > 1.5>>
+	<<set _mercMod = 1.5>>
+<</if>>
+<<if _SFMod < 0.5>>
+	<<set _SFMod = 0.5>>
+<<elseif _SFMod > 1.5>>
+	<<set _SFMod = 1.5>>
+<</if>>
+
+<<set $troopCount = 0>>
+<<calcTroopCount>>
+<<set _moraleTroopMod = Math.clamp($troopCount / 100,1,10)>>
+
+<<set _morale = ($secBotsMorale * $deployingBots + $militiaBaseMorale * _militiaMod * $deployingMilitia + $slaveBaseMorale * _slaveMod * $deployingSlaves + $mercBaseMorale * _mercMod * $deployingMercs + $SFBaseMorale * $SFIntervention * _SFMod) / ($deployingBots + $deployingMilitia +$deployingSlaves + $deployingMercs + $SFIntervention)>>
+<<set _morale = _morale + _morale * $secBarracksUpgrades.luxury * 0.05>>	/* barracks bonus */
+<<set _morale *= _moraleTroopMod>>
+<<set _baseHp = ($secBotsBaseHp * $deployingBots + $militiaBaseHp * $deployingMilitia + $slaveBaseHp * $deployingSlaves + $mercBaseHp * $deployingMercs + $SFBaseHp * $SFIntervention) / ($deployingBots + $deployingMilitia +$deployingSlaves + $deployingMercs + $SFIntervention)>>
+				
+/* calculates enemy army stats */
+<<if $week <= 30>>
+	<<set _armyMod = $attackTroops / 80>>
+<<elseif $week <= 60>>
+	<<set _armyMod = $attackTroops / 75>>
+<<elseif $week <= 90>>
+	<<set _armyMod = $attackTroops / 70>>
+<<elseif $week <= 120>>
+	<<set _armyMod = $attackTroops / 65>>
+<<else>>
+	<<set _armyMod = $attackTroops / 60>>
+<</if>>
+<<set _armyMod = Math.trunc(_armyMod)>>
+<<if $majorBattle == 1>>
+	<<set _armyMod *= 2>>
+<</if>>
+<<if _armyMod <= 0>>
+	<<set _armyMod = 1>>
+<</if>>
+
+<<set _enemyMoraleTroopMod = Math.clamp($attackTroops / 200,1,5)>>
+
+<<if $attackType == "raiders">>
+	<<set _enemyAttack = ($raBaseAttack + $weapManu * $sellTo.raiders + $raBaseAttack * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyDefense = ($raBaseDefense + $weapManu * $sellTo.raiders + $raBaseDefense * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyMorale = $raBaseMorale * _enemyMod * _enemyMoraleTroopMod>>
+	<<set _enemyHp = $raBaseHp * $attackTroops>>
+	<<set _enemyBaseHp = $raBaseHp>>
+<<elseif $attackType == "free city">>
+	<<set _enemyAttack = ($fcBaseAttack + $weapManu * $sellTo.FC + $fcBaseAttack * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyDefense = ($fcBaseDefense + $weapManu * $sellTo.FC + $fcBaseDefense * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyMorale = $fcBaseMorale * _enemyMod * _enemyMoraleTroopMod>>
+	<<set _enemyHp = $fcBaseHp * $attackTroops>>
+	<<set _enemyBaseHp = $fcBaseHp>>
+<<elseif $attackType == "old world">>
+	<<set _enemyAttack = ($owBaseAttack + $weapManu * $sellTo.oldWorld + $owBaseAttack * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyDefense = ($owBaseDefense + $weapManu * $sellTo.oldWorld + $owBaseDefense * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyMorale = $owBaseMorale * _enemyMod * _enemyMoraleTroopMod>>
+	<<set _enemyHp = $owBaseHp * $attackTroops>>
+	<<set _enemyBaseHp = $owBaseHp>>
+<<elseif $attackType == "freedom fighters">>
+	<<set _enemyAttack = ($ffBaseAttack + $weapManu * $sellTo.oldWorld + $ffBaseAttack * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyDefense = ($ffBaseDefense + $weapManu * $sellTo.oldWorld + $ffBaseDefense * $attackEquip * $equipMod) * _armyMod>>
+	<<set _enemyMorale = $ffBaseMorale * _enemyMod * _enemyMoraleTroopMod>>
+	<<set _enemyHp = $ffBaseHp * $attackTroops>>
+	<<set _enemyBaseHp = $ffBaseHp>>
+<</if>>
+
+/* difficulty */
+<<set _enemyAttack *= $difficulty>>
+<<set _enemyDefense *= $difficulty>>
+<<set _enemyMorale *= $difficulty>>
+<<set _enemyHp *= $difficulty>>
+<<set _enemyBaseHp *= $difficulty>>
+
+<<if isNaN(_attack)>>
+	<br>@@.red;Error: attack value reported NaN@@
+<</if>>
+<<if isNaN(_defense)>>
+	<br>@@.red;Error: defense value reported NaN@@
+<</if>>
+<<if isNaN(_hp)>>
+	<br>@@.red;Error: hp value reported NaN@@
+<</if>>
+<<if isNaN(_morale)>>
+	<br>@@.red;Error: morale value reported NaN@@
+<</if>>
+<<if isNaN(_enemyAttack)>>
+	<br>@@.red;Error: enemy attack value reported NaN@@
+<</if>>
+<<if isNaN(_enemyDefense)>>
+	<br>@@.red;Error: enemy defense value reported NaN@@
+<</if>>
+<<if isNaN(_enemyHp)>>
+	<br>@@.red;Error: enemy hp value reported NaN@@
+<</if>>
+<<if isNaN(_enemyMorale)>>
+	<br>@@.red;Error: enemy morale value reported NaN@@
+<</if>>
+
+<<if $showBattleStatistics == 1>>
+<<set _atkMod -= 1, _defMod -= 1, _militiaMod -= 1, _mercMod -= 1, _slaveMod -= 1, _SFMod -= 1, _enemyMod -= 1, _moraleTroopMod -= 1, _enemyMoraleTroopMod -= 1, _difficulty = $difficulty -1>>
+<<set _atkMod = Math.round(_atkMod * 100)>>
+<<set _defMod = Math.round(_defMod * 100)>>
+<<set _militiaMod = Math.round(_militiaMod * 100)>>
+<<set _mercMod = Math.round(_mercMod * 100)>>
+<<set _slaveMod = Math.round(_slaveMod * 100)>>
+<<set _SFMod = Math.round(_SFMod * 100)>>
+<<set _enemyMod = Math.round(_enemyMod * 100)>>
+<<set _barracksBonus = $secBarracksUpgrades.luxury * 5>>
+<<set _moraleTroopMod = Math.round(_moraleTroopMod * 100)>>
+<<set _enemyMoraleTroopMod = Math.round(_enemyMoraleTroopMod * 100)>>
+<<set _difficulty *= 100>>
+
+__Difficulty__:
+<br>
+<<if $difficulty == 0.5>>
+	Very easy
+<<elseif $difficulty == 0.75>>
+	Easy
+<<elseif $difficulty == 1>>
+	Normal
+<<elseif $difficulty == 1.25>>
+	Hard
+<<else>>
+	Very hard
+<</if>>
+<br>
+<br>
+__Army__:
+<br>troops: <<print $troopCount>>
+<br>attack: <<print Math.round(_attack)>>
+<br>defense: <<print Math.round(_defense)>>
+<br>hp: <<print Math.round(_hp)>>
+<br>morale: <<print Math.round(_morale)>>
+<br>attack modifier: <<if _atkMod > 0>>+<</if>>_atkMod%
+<br>defense modifier: <<if _defMod > 0>>+<</if>>_defMod%
+<br>average base HP: <<print Math.round(_baseHp)>>
+<br>militia morale modifier: <<if _militiaMod > 0>>+<</if>>_militiaMod%
+<br>slaves morale modifier: <<if _slaveMod > 0>>+<</if>>_slaveMod%
+<br>mercenaries morale modifier: <<if _mercMod > 0>>+<</if>>_mercMod%
+<<if $SFIntervention == 1>>
+<br>security force morale modifier: <<if _SFMod > 0>>+<</if>>_SFMod%
+<</if>>
+<<if $secBarracksUpgrades.luxury >= 1>>
+<br>Barracks bonus morale modifier: +<<print _barracksBonus>>%
+<</if>>
+<<if _moraleTroopMod>>
+	<br>morale increase due to troop numbers: +<<print _moraleTroopMod>>%
+<</if>>
+<br>
+<br>
+__Tactics__:
+<br>tactic chance of success: <<print Math.round(_tacChance * 100)>>%
+<br>was tactic chosen successful?: <<if $tacticsSuccessful == 1>> yes <<else>> no<</if>>
+<br>
+<br>
+__Enemy__:
+<br>enemy troops: <<print $attackTroops>>
+<br>enemy attack: <<print Math.round(_enemyAttack)>>
+<br>enemy defense: <<print Math.round(_enemyDefense)>>
+<br>enemy Hp: <<print Math.round(_enemyHp)>>
+<br>enemy morale: <<print Math.round(_enemyMorale)>>
+<br>enemy base Hp: <<print Math.round(_enemyBaseHp)>>
+<br>enemy morale modifier: <<if _enemyMod > 0>>+<</if>>_enemyMod%
+<<if _enemyMoraleTroopMod > 0>>
+	<br>enemy morale increase due to troop numbers: +<<print _enemyMoraleTroopMod>>%
+<</if>>
+<br>Difficulty modifier: <<if _difficulty > 0>>+<</if>><<print _difficulty>>%
+<</if>>
+
+
+/* simulates the combat by pitting attk against def */
+<<for _i = 0; _i < _turns; _i++>>
+	<br><br>
+	<<if $showBattleStatistics == 1>> turn: <<print _i + 1>><</if>>
+	/* player army attacks */
+	<<set _damage = Math.clamp(_attack - _enemyDefense,_attack * 0.1,_attack)>>
+	<br>
+	<<if $showBattleStatistics == 1>> player damage: <<print Math.round(_damage)>><</if>>
+	<<set _enemyHp -= _damage>>
+	<br>
+	<<if $showBattleStatistics == 1>> remaining enemy Hp: <<print Math.round(_enemyHp)>><</if>>
+	<<set $enemyLosses +=  _damage / _enemyBaseHp>>
+	<<set _moraleDamage = Math.clamp(_damage / 2 + _damage / _enemyBaseHp,0,_damage*1.5)>>
+	<<set _enemyMorale -= _moraleDamage>>
+	<br>
+	<<if $showBattleStatistics == 1>> remaining enemy morale: <<print Math.round(_enemyMorale)>><</if>>
+	<<if _enemyHp <= 0 || _enemyMorale <= 0>>
+		<br>
+		<<if $showBattleStatistics == 1>> <br>Victory!<</if>>
+		<<set $battleResult = 3>>
+		<<set $battleTurns = _i>>
+		<<break>>
+	<</if>>
+	
+	/* attacker army attacks */
+	<<set _damage = _enemyAttack - _defense>>
+	<<if _damage < _enemyAttack * 0.1>>
+		<<set _damage = _enemyAttack * 0.1>>
+	<</if>>
+	<br>
+	<<if $showBattleStatistics == 1>> enemy damage: <<print Math.round(_damage)>><</if>>
+	<<set _hp -= _damage>>
+	<br>
+	<<if $showBattleStatistics == 1>> remaining hp: <<print Math.round(_hp)>><</if>>
+	<<set $losses += _damage / _baseHp>>	
+	<<set _moraleDamage = Math.clamp(_damage / 2 + _damage / _baseHp,0,_damage*1.5)>>
+	<<set _morale -= _moraleDamage>>
+	<br>
+	<<if $showBattleStatistics == 1>> remaining morale: <<print Math.round(_morale)>><</if>>
+	<<if _hp <= 0 || _morale <= 0>>
+		<br>
+		<<if $showBattleStatistics == 1>> <br>Defeat!<</if>>
+		<<set $battleResult = -3>>
+		<<set $battleTurns = _i>>
+		<<break>>
+	<</if>>
+<</for>>
+<<if $battleResult != 3 && $battleResult != -3>>
+	<br>
+	<<if _morale > _enemyMorale>>
+		<<if $showBattleStatistics == 1>> <br>Partial victory!<</if>>
+		<<set $battleResult = 2>>
+	<<elseif _morale < _enemyMorale>>
+		<<if $showBattleStatistics == 1>> <br>Partial defeat!<</if>>
+		<<set $battleResult = -2>>
+	<</if>>
+<</if>>
+
+<<if $showBattleStatistics == 1>>
+	<br>
+	<br>Losses: <<print Math.trunc($losses)>>
+	<br>Enemy losses: <<print Math.trunc($enemyLosses)>>
+<</if>>
+
+<<if $battleResult > 3 || $battleResult < -3>>
+	<br><br>@@.red;Error: failed to determine battle result@@
+<</if>>
+
+<<if $showBattleStatistics == 1 && $majorBattle == 1 && $majorBattleGameOver == 1 && $battleResult == -3>>
+	<br><br>
+	<<link "Proceed">>
+		<<set $gameover to "major battle defeat">>
+		<<goto "Gameover">>
+	<</link>>
+<<elseif $majorBattle == 1 && $majorBattleGameOver == 1 && $battleResult == -3>>
+	<<set $gameover to "major battle defeat">>
+	<<goto "Gameover">>
+<<elseif $showBattleStatistics == 1>>
+	<br><br>
+	<<link "Proceed">>
+		<<goto "attackReport">>
+	<</link>>
+<<else>>
+	<<goto "attackReport">>
+<</if>>
+
+<</if>> /* closes check for bribery */

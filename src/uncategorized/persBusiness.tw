@@ -2,6 +2,22 @@
 
 <<if $useTabs == 0>>__Personal Business__<</if>>
 <br>
+<<if $secExp == 1>>
+	<<if $PCWounded == 1>>
+		<<set $PCWoundCooldown-->>
+		<<if $PCWoundCooldown > 0>>
+			The injuries received in the recent battle prevents you from engaging in tiring endeavours.
+		<</if>>
+		<<if $PCWoundCooldown == 1>>
+			You are starting to feel better. It's very likely you will be back to full working order within the next week.
+		<<elseif $PCWoundCooldown == 0>>
+			<<set $PCWounded = 0>>
+			You finally recovered from your injuries.
+		<<else>>
+			Your trusted physician believes it will still take a few weeks to fully recover.
+		<</if>>
+	<</if>>
+<</if>>
 
 <<if $cash < 0>>
 	@@.red;You are in debt.@@ This week, interest came to ¤<<print (1+Math.trunc(Math.abs($cash)/100))>>.
@@ -22,6 +38,8 @@
 		<<set $gameover = "debt">><<goto "Gameover">>
 		<</if>>
 	<</if>>
+<<elseif $PCWounded == 1 && $secExp == 1>>
+	/* does nothing for this week */
 <<elseif ($personalAttention == "whoring")>>
 	<<if $PC.belly >= 1500>>
 		<<if $arcologies[0].FSRepopulationFocus != "unset">>
@@ -71,6 +89,8 @@
 	<<else>>
 		You spend your free time hustling around your penthouse, cleaning and making sure everything is in order. You manage to reduce your upkeep by 25%. <<if $PC.vagina == 1>>This is much easier to do without a big baby bump in the way.<</if>>
 	<</if>>
+<<elseif ($personalAttention == "proclamation")>>
+	/* handled after this if chain */
 <<elseif ($personalAttention == "smuggling")>>
 	<<set $qualifiedFS to []>>
 	<<if $arcologies[0].FSDegradationistDecoration >= 80>>
@@ -356,7 +376,35 @@
 	You have enough cash to manage your affairs, but not enough to do much business.
 <</if>>
 
-<<if ($personalAttention == "trading")>>
+<<if ($personalAttention == "proclamation")>>
+	After several days of preparation you are ready to issue the proclamation. You announce to the arcology your plans and in short order you use <<if $proclamationCurrency == "authority">>control over the arcology<<elseif $proclamationCurrency == "reputation">>great influence<<elseif $proclamationCurrency == "cash">> vast financial means<</if>> to
+	<<if $proclamationType == "security">>
+		gather crucial information for your security department. In just a few many hours holes are plugged and most moles are eliminated. @@.green;Your security greatly increased@@.
+		<<set $security = Math.clamp($security + 25,0,100)>>
+		<<if $proclamationCurrency == "authority">>
+			<<set $authority = Math.clamp($authority - 2000,0,20000)>>
+		<<elseif $proclamationCurrency == "reputation">>
+			<<set $rep = Math.clamp($rep - 4000,0,20000)>>
+		<<else>>
+			<<set $cash = Math.clamp($cash - 8000,0,20000)>>
+		<</if>>
+	<<elseif $proclamationType == "crime">>
+		force the arrest of many suspected citizens. Their personal power allowed them to avoid justice for a long time, but this day is their end. @@.green;Your crime greatly decreased@@.
+		<<set $crime = Math.clamp($crime - 25,0,100)>>
+		<<if $proclamationCurrency == "authority">>
+			<<set $authority = Math.clamp($authority - 2000,0,20000)>>
+		<<elseif $proclamationCurrency == "reputation">>
+			<<set $rep = Math.clamp($rep - 4000,0,20000)>>
+		<<else>>
+			<<set $cash = Math.clamp($cash - 8000,0,20000)>>
+		<</if>>
+	<</if>>
+	<<set $proclamationsCooldown = 4, $personalAttention = "business">>
+<</if>>
+
+<<if $PCWounded == 1 && $secExp == 1>>
+ /* does nothing this week */
+<<elseif ($personalAttention == "trading")>>
 	<<set _oldSkill = $PC.trading>>
 	<<set $PC.trading += random(1,3)>>
 	<<if _oldSkill <= 10>>
@@ -508,11 +556,25 @@
 
 <</if>>
 
-<<if $cash > 1000>>
 <<if $CashForRep == 1>>
-	This week you gave up business opportunities worth ¤$policyCost to help deserving citizens, @@.green;burnishing your reputation.@@
-	<<set $rep += 100, $cash -= $policyCost>>
+	<<if $cash > 1000>>
+		This week you gave up business opportunities worth ¤$policyCost to help deserving citizens, @@.green;burnishing your reputation.@@
+		<<set $rep += 100, $cash -= $policyCost>>
+		<<if $PC.degeneracy > 1>>
+			This also helps @@.green;offset any rumors@@ about your private actions.
+			<<set $PC.degeneracy -= 1>>
+		<</if>>
+	<<else>>
+		Money was too tight this week to risk giving up any business opportunities.
+	<</if>>
 <</if>>
+<<if $goodImageCampaign == 1>>
+	<<if $cash > 1000>>
+		This week you paid ¤$policyCost to have positive rumors spread about you, @@.green;making you look good<<if $PC.degeneracy > 1>> and weakening existing undesirable rumors<<set $PC.degeneracy -= 2>><</if>>.@@
+		<<set $rep += 50, $cash -= $policyCost>>
+	<<else>>
+		You lacked enough extra ¤ to pay people to spread positive rumors about you this week.
+	<</if>>
 <</if>>
 <<if $rep > 100>>
 <<if $RepForCash == 1>>
@@ -529,6 +591,70 @@
 	Though you are not hosting regular social events for your leading citizens, your lack of renown prevents this from damaging your reputation; they don't expect someone so relatively unknown to be throwing parties.
 <</if>>
 <</if>>
+<</if>>
+
+<<if $secExp == 1>>
+	<<if $smilingManFate == 0 && random(1,100) >= 85>>
+		This week one of the offside adventures of The Smiling Man produced a copious amount of money, of which @@.yellowgreen;you receive your share@@.
+		<<set $cash += random(10,20) * 1000>>
+	<</if>>
+
+	<<if $sellData == 1>>
+		<<set _upgradeCount = 0>>
+		<<if $secUpgrades.nanoCams == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $secUpgrades.cyberBots == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $secUpgrades.eyeScan == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $secUpgrades.cryptoAnalyzer == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $crimeUpgrades.autoTrial == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $crimeUpgrades.autoArchive == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $crimeUpgrades.worldProfiler == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $crimeUpgrades.advForensic == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $intelUpgrades.sensors == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $intelUpgrades.radar == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<if $intelUpgrades.signalIntercept == 1>>
+			<<set _upgradeCount += 1>>
+		<</if>>
+		<<set _dataGain = _upgradeCount * 200>>
+		You are selling the data collected by your security department, making @@.yellowgreen;¤a discreet sum@@.
+		<<if !isInt(_dataGain)>>
+			<br>@@.red;Error, dataGain is NaN@@
+		<</if>>
+		<<set $cash += _dataGain>>
+		Many of your citizens are not enthusiastic of this however, @@.red;damaging your authority@@.
+		<<set $authority -= 50>>
+	<</if>>
+
+	<<if $marketInfiltration == 1>>
+		Your secret service makes use of black markets and illegal streams of goods to make a profit, making you @@.yellowgreen;¤a discreet sum@@. This however allows @@.red;crime to flourish@@ in the underbelly of the arcology.
+		<<set $cash += 1000 * random(4,8)>>
+		<<set $crime += random(0,2)>>
+	<</if>>
+
+	<<if $arcRepairTime > 0>>
+		The recent rebellion left the arcology wounded and it falls to its owner to fix it. It will still take <<if $arcRepairTime > 1>>$arcRepairTime weeks<<else>>a week<</if>> to finish repair works.
+		<<set $cash -= 5000>>
+		<<set $arcRepairTime-->>
+	<</if>>
 <</if>>
 
 Routine upkeep of your demesne costs @@.yellow;¤$costs.@@
@@ -575,8 +701,67 @@ Routine upkeep of your demesne costs @@.yellow;¤$costs.@@
 <</if>>
 <</if>>
 <</if>>
+<<if !isInt($costs)>>
+	<br>@@.red;Error, costs is NaN@@
+<</if>>
 <<set $cash -= $costs>>
 
+<<if $secExp == 1>>
+	<br>
+	<br>
+	<<if $weapManu == 1>>
+		The weapons manufactoring complex produces armaments
+		<<if $weapProductivity <= 2>>
+			at a steady pace.
+		<<else>>
+			with great efficiency.
+		<</if>>
+		<<set _income = 0>>
+		<<set _price = Math.trunc(Math.clamp(random(1,2) + ($arcologies[0].prosperity / 15) - ($week / 30), 2, 8))>>
+		<<set _factoryMod = Math.round(1 + ($weapProductivity + $weapLab) / 2 + ($weapHelots / 100))>>
+		<<if $sellTo.citizen == 1>>
+			<<if $weaponsLaw == 3>>
+				Your lax regulations regarding weapons allows your citizens to buy much of what you are capable of producing.
+				<<set _income += Math.round(($ACitizens * 0.1) * _price * _factoryMod)>>
+			<<elseif $weaponsLaw >= 1>>
+				Your policies allow your citizen to buy your weaponry and they buy much of what you are capable of producing.
+				<<set _income += Math.round((($ACitizens * 0.1) * _price * _factoryMod) / (3 - $weaponsLaw))>>
+			<<else>>
+				Your policies do allow your citizen to buy weaponry, meaning all your income will come from exports.
+			<</if>>
+		<</if>>
+		<<if $sellTo.raiders == 1>>
+			Some weapons are sold to the various raider gangs infesting the wastelands.
+			<<set _income += Math.round($week / 3 * (_price / 2) * 10 * _factoryMod)>>
+		<</if>>
+		<<if $sellTo.oldWorld == 1>>
+			Part of our production is sold to some old world nations.
+			<<set _income += Math.round($week / 3 * _price * 10 * _factoryMod)>>
+		<</if>>
+		<<if $sellTo.raiders == 1>>
+			A share of our weapons production is sold to other free cities.
+			<<set _income += Math.round($week / 3 * _price * 10 * _factoryMod)>>
+		<</if>>
+		<<if $peacekeepers.strength >= 50>>
+			The peacekeeping force is always in need of new armaments and is happy to be supplied by their ally.
+			<<set _income += Math.round($peacekeepers.strength * _price * 10 * _factoryMod)>>
+		<</if>>
+		<<set _income = Math.trunc(_income * 0.5)>>
+		This week we made @@.yellowgreen;¤<<print _income>>@@
+		<<if !isInt(_income)>>
+			<br>@@.red;Error failed to calculate income@@
+		<<else>>
+			<<set $cash += _income>>
+		<</if>>
+	<</if>>
+	
+	<<if $taxTrade == 1>>
+		<br>Fees on transitioning goods this week made @@.yellowgreen;¤<<print $trade * random(80,120)>>@@
+		<<set $cash += $trade * 100>>
+	<</if>>
+<</if>>
+
+<br>
 <br>
 
 <<set $seed = random(1,100)>>
