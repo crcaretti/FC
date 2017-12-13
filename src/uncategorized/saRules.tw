@@ -317,7 +317,7 @@
 
 			<<if ($slaves[$i].devotion <= 20)>>
 				<<switch $brothelDecoration>>
-				<<case "Chattel Religionist" "Degradationist" "standard">>
+				<<case "Degradationist" "standard">>
 					The spare living conditions of $brothelName @@.hotpink;get her used@@ to the routine of
 					<<if ($slaves[$i].trust > 20)>>
 						slavery and @@.gold;keep her aware of her lowly place.@@
@@ -326,12 +326,15 @@
 						slavery.
 					<</if>>
 					<<set $slaves[$i].devotion += 1>>
+				<<case "Chattel Religionist">>
+					The open, yet comfortable, conditions of $brothelName @@.hotpink;get her used@@ to the routine of slavery.
+					<<set $slaves[$i].devotion += 1>>
 				<<default>>
 					She gets a little room all to herself, allowing her to feel self-reliant; or it would, if it didn't reek of sex and shame after all the customers she serviced in it.
 				<</switch>>
 			<<else>>
 				<<switch $brothelDecoration>>
-				<<case "Chattel Religionist" "Degradationist" "standard">>
+				<<case "Degradationist" "standard">>
 					<<if ($slaves[$i].trust > 40)>>
 						The spare living conditions of $brothelName @@.gold;remind her not to get too comfortable@@ with her life.
 						<<set $slaves[$i].trust -= 2>>
@@ -339,6 +342,8 @@
 						The spare living conditions of $brothelName @@.gold;keep her aware of her place.@@
 						<<set $slaves[$i].trust -= 1>>
 					<</if>>
+				<<case "Chattel Religionist">>
+					The open, yet comfortable, conditions of $brothelName's slave quarters are quite refreshing after a day of public sex, even if she has to share it with all the other whores.
 				<<default>>
 					She likes her little room in $brothelName, even if it smells of sex after fucking in it all day.
 				<</switch>>
@@ -1074,112 +1079,70 @@
 				<</switch>>
 			<</if>>
 		<<case "get treatment in the clinic">>
+			<<if $slaves[$i].relationship > 2>>
+				<<set _lover = $slaves.findIndex(function(s) { return s.ID == $slaves[$i].relationshipTarget; })>>
+				<<if !canWalk($slaves[_lover]) || !isSlaveAvailable($slaves[_lover])>>
+					<<set _lover = 0>>
+				<</if>>
+			<<else>>
+				<<set _lover = 0>>
+			<</if>>
 			<<if $slaves[$i].devotion < -50>>
 				is so unhappy that she has little interest in getting off<<if ($slaves[$i].releaseRules != "permissive")>>, making the rule restricting her sexual outlets superfluous<</if>>.
 				<<set $slaves[$i].need = 0>>
 			<<elseif $slaves[$i].energy <= 20>>
 				is frigid and has little interest in getting off<<if ($slaves[$i].releaseRules != "permissive")>>, making the rule restricting her sexual outlets superfluous<</if>>.
 				<<set $slaves[$i].need = 0>>
-			<<else>>
-				<<if ($slaves[$i].releaseRules == "restrictive")>>
-					<<if ($slaves[$i].devotion <= 20) && ($slaves[$i].trust > -20)>>
-						refuses to call on you for sexual release, and is @@.gold;severely punished@@ for illicit masturbation.
-						<<set $slaves[$i].trust -= 2>>
-					<<elseif ($slaves[$i].devotion < 50)>>
-						<<if $slaves[$i].devotion <= 20>>
-							occasionally calls you to beg for sexual release.
-						<<else>>
-							doesn't mind having to call you to beg for sexual release.
-						<</if>>
-						<<saRulesPlayerEnergy>>
-					<<else>> /* $slaves[$i].devotion >= 50 */
-						willingly calls and begs you to
-						<<saRulesPlayerFetishPlay>>
-						whenever she gets the chance.
-						<<saRulesPlayerEnergy>>
-					<</if>> /* closes $slaves[$i].devotion >= 50 */
-					<<saRulesPlayerDiscoversFetish>>
-					<<saRulesPlayerDrugEffects>>
-				<<elseif ($slaves[$i].releaseRules == "masturbation")>>
-					<<if ($slaves[$i].devotion <= 20) && ($slaves[$i].trust > -20)>>
-						takes solace in her permission to masturbate rather than being forced to beg for sex, @@.mediumaquamarine;reducing her fear@@ of you.
-						<<set $slaves[$i].trust += 2, $slaves[$i].need = 0>>
-					<<elseif ($slaves[$i].devotion <= 20)>>
-						enjoys being allowed to masturbate rather than trading sex with other slaves, @@.mediumaquamarine;slightly reducing her fear@@ of you but @@.mediumorchid;allowing her to remain in control of her sexuality.@@
-						<<set $slaves[$i].trust += 1, $slaves[$i].devotion -= 1, $slaves[$i].need = 0>>
-					<<elseif ($slaves[$i].devotion < 50)>>
-						accepts having to relieve herself solely through masturbation.
-						<<set $slaves[$i].need = 0>>
+			<<elseif $slaves[$i].relationship == -3>>
+				You make sure your wife's every sexual need is taken care of during her stay in $clinicName.
+				<<set $slaves[$i].need = 0>>
+				<<if $PC.dick == 1 && $slaves[$i].eggType == "human" && canGetPregnant($slaves[$i]) && (($slaves[$i].vagina > 0 && $slaves[$i].ovaries == 1)||($slaves[$i].anus != 0 && $slaves[$i].mpreg == 1))>>
+					<<KnockMeUp $slaves[$i] 10 0 -1 1>>
+					<<if ($slaves[$i].vagina > 0 && $slaves[$i].ovaries == 1)>>
+						<<set $slaves[$i].vaginalCount += 7, $vaginalTotal += 7>>
 					<<else>>
-						is a little disapointed that she's limited to her hands and toys, but @@.mediumaquamarine;understands you care about her current health.@@ 
-						<<set $slaves[$i].trust += 1, $slaves[$i].need = 0>>
+						<<set $slaves[$i].analCount += 7, $analTotal += 7>>
 					<</if>>
-					<<if $slaves[$i].devotion > 20>>
-						When she does play with herself, she
-						<<saRulesMasturbationFetishPlay>>
-						<<saRulesMasturbationDiscoversFetish>>
+					<<if $slaves[$i].preg > 0>>
+						It comes as little surprise when routine health checks start to show @@.lime;she's pregnant!@@
 					<</if>>
-					<<saRulesMasturbationDrugEffects>>
-				<<else>> /* releaseRules not restrictive */
-					<<if ($universalRulesConsent == 0)>>
-						<<if ($slaves[$i].devotion <= 20) && ($slaves[$i].trust > -20)>>
-							<<if ($slaves[$i].releaseRules == "permissive")>>
-								masturbates whenever she can find a private moment to take care of the urges induced by the food, @@.mediumaquamarine;slightly reducing her fear@@ of you.
-								<<set $slaves[$i].trust += 1, $slaves[$i].need = 0>>
-							<<else>>
-								refuses to use other slaves to get off, and is @@.gold;punished@@ for illicit masturbation.
-								<<set $slaves[$i].trust -= 2, $slaves[$i].need -= 10>>
-							<</if>>
-						<<elseif ($slaves[$i].devotion <= 20)>>
-							<<if ($slaves[$i].releaseRules == "permissive")>>
-								prefers to masturbate rather than demanding sex from other slaves or giving free samples, @@.mediumaquamarine;slightly reducing her fear@@ of you.
-								<<set $slaves[$i].trust += 1, $slaves[$i].need = 0>>
-							<<else>>
-								is forced by the urges induced by the food to either demand sex from other slaves or attempt to attract additional clients. She @@.hotpink;hates herself@@ for it.
-								<<set $slaves[$i].devotion += 1, $slaves[$i].need *= 0.5>>
-							<</if>>
-						<<elseif ($slaves[$i].devotion < 50)>>
-							@@.hotpink;accepts the need@@ to
-							<<set $slaves[$i].devotion += 1, $slaves[$i].need = 0>>
-						<<else>>
-							happily @@.mediumaquamarine;avails herself@@ of your permission to
-							<<set $slaves[$i].trust += 1, $slaves[$i].need = 0>>
-						<</if>>
-						<<if $slaves[$i].devotion > 20>>
-							<<saRulesRapeFetish>>
-							<<saRulesRapeDiscoversFetish>>
-						<</if>>
-					<<else>> /* universalRulesConsent is not zero */
-						<<if ($slaves[$i].devotion <= 20) && ($slaves[$i].trust > -20)>>
-							<<if ($slaves[$i].releaseRules == "permissive")>>
-								prefers to masturbate rather than asking other slaves for sex or giving free samples, @@.mediumaquamarine;slightly reducing her fear@@ of you.
-								<<set $slaves[$i].trust += 1, $slaves[$i].need = 0>>
-							<<else>>
-								refuses to ask other slaves for sex, and is @@.gold;punished@@ for illicit masturbation.
-								<<set $slaves[$i].trust -= 2, $slaves[$i].need -= 10>>
-							<</if>>
-						<<elseif ($slaves[$i].devotion <= 20)>>
-							<<if ($slaves[$i].releaseRules == "permissive")>>
-								prefers to masturbate rather than trading sex with other slaves, @@.mediumaquamarine;slightly reducing her fear@@ of you.
-								<<set $slaves[$i].trust += 1, $slaves[$i].need = 0>>
-							<<else>>
-								is forced by the urges induced by the food to either swap sex with other slaves. She @@.hotpink;hates herself@@ for it.
-								<<set $slaves[$i].devotion += 1, $slaves[$i].need *= 0.5>>
-							<</if>>
-						<<elseif ($slaves[$i].devotion < 50)>>
-							@@.hotpink;accepts having to ask@@ other slaves for sex,
-							<<set $slaves[$i].devotion += 1, $slaves[$i].need = 0>>
-						<<else>>
-							@@.mediumaquamarine;relies@@ on your other slaves for mutual satisfaction,
-							<<set $slaves[$i].trust += 1, $slaves[$i].need = 0>>
-						<</if>>
-						<<if $slaves[$i].devotion > 20>>
-							<<saRulesConsentFetish>>
-							<<saRulesConsentDiscoversFetish>>
-						<</if>>
-					<</if>> /* closes universalRulesConsent */
-					<<saRulesPermissiveDrugEffects>>
-				<</if>> /* closes releaseRules not restrictive */
+				<</if>>
+			<<elseif _lover != 0>>
+				<<set $slaves[$i].need = 0>>
+				Her <<if $slaves[$i].relationship == 3>>friend with benefits<<elseif $slaves[$i].relationship == 4>>sweetheart<<else>>wife<</if>> frequently stops by when she gets the chance to make sure her sexual needs are well taken care of.
+				<<set $slaves[_lover].oralCount += 14, $oralTotal += 14>>
+			<<elseif $Nurse != 0>>
+				is routinely brought to orgasm by $Nurse.slaveName as part of her duties.
+				<<if canPenetrate($slaves[$i]) && $Nurse.boobs >= 500>>
+					<<set $slaves[_FLs].mammaryCount += 14, $mammaryTotal += 14>>
+				<<else>>
+					<<set $slaves[_FLs].oralCount += 14, $oralTotal += 14>>
+					/* possible cumflation code here */
+				<</if>>
+				<<set $slaves[$i].need -= 60>>
+			<<elseif ($slaves[$i].releaseRules == "masturbation") || ($slaves[$i].releaseRules == "permisive")>>
+				<<if ($slaves[$i].devotion <= 20) && ($slaves[$i].trust > -20)>>
+					takes solace in her permission to masturbate rather than being forced to seek other means of release, @@.mediumaquamarine;reducing her fear@@ of you.
+					<<set $slaves[$i].trust += 2, $slaves[$i].need = 0>>
+				<<elseif ($slaves[$i].devotion <= 20)>>
+					enjoys being allowed to masturbate rather than having to seek other means of release, @@.mediumaquamarine;slightly reducing her fear@@ of you but @@.mediumorchid;allowing her to remain in control of her sexuality.@@
+					<<set $slaves[$i].trust += 1, $slaves[$i].devotion -= 1, $slaves[$i].need = 0>>
+				<<elseif ($slaves[$i].devotion < 50)>>
+					accepts having to relieve herself solely through masturbation.
+					<<set $slaves[$i].need = 0>>
+				<<else>>
+					is a little disapointed that she's limited to her hands and toys, but @@.mediumaquamarine;understands you care about her current health.@@ 
+					<<set $slaves[$i].trust += 1, $slaves[$i].need = 0>>
+				<</if>>
+				<<if $slaves[$i].devotion > 20>>
+					When she does play with herself, she
+					<<saRulesMasturbationFetishPlay>>
+					<<saRulesMasturbationDiscoversFetish>>
+				<</if>>
+				<<saRulesMasturbationDrugEffects>>
+			<<else>>
+				eventually gives in to her urges and is @@.gold;punished@@ for illicit masturbation.
+				<<set $slaves[$i].trust -= 2, $slaves[$i].need -= 10>>
 			<</if>>
 
 			<<if ($slaves[$i].devotion <= 20)>>
@@ -1196,31 +1159,60 @@
 			<</if>>
 
 			<<if ($slaves[$i].devotion <= 20)>>
-				<<switch $brothelDecoration>>
-				<<case "Chattel Religionist" "Degradationist" "standard">>
-					The spare living conditions of $brothelName @@.hotpink;get her used@@ to the routine of
+				<<switch $clinicDecoration>>
+				<<case "Repopulation Focus" "Eugenics" "Gender Radicalist" "Gender Fundamentalist" "Paternalist" "Maturity Preferentialist" "Youth Preferentialist" "Slimness Enthusiast" "Hedonistic">>
+					The luxurious living conditions encourage her to @@.mediumaquamarine;feel respectable.@@ She can't help but @@.hotpink;feel you care@@ about her as something more than just an object under such lovely treatment.
+					<<set $slaves[$i].trust += 3, $slaves[$i].devotion += 1>>
+				<<case "Roman Revivalist" "Aztec Revivalist" "Egyptian Revivalist" "Arabian Revivalist" "Chinese Revivalist" "Chattel Religionist">>
+					The living conditions, despite their open nature, are @@.mediumaquamarine;quite relaxing.@@ Her opinion of you @@.hotpink;can only rise@@ with such lovely treatment.
+					<<set $slaves[$i].trust += 2, $slaves[$i].devotion += 1>>
+				<<case "Edo Revivalist">>
+					The living conditions, despite their spartan nature, are @@.mediumaquamarine;calming.@@ Her opinion of you @@.hotpink;improves@@ with such a contrast to her usual life.
+					<<set $slaves[$i].trust += 1, $slaves[$i].devotion += 1>>
+				<<case "standard">>
+					The spare living conditions of $clinicName serve as a constant reminder that @@.hotpink;you only care about her body@@ and not about her.
 					<<if ($slaves[$i].trust > 20)>>
-						slavery and @@.gold;keep her aware of her lowly place.@@
+						@@.gold;She fully understands what this means for her.@@
 						<<set $slaves[$i].trust -= 1>>
-					<<else>>
-						slavery.
 					<</if>>
 					<<set $slaves[$i].devotion += 1>>
 				<<default>>
-					She gets a little room all to herself, allowing her to feel self-reliant; or it would, if it didn't reek of sex and shame after all the customers she serviced in it.
+					The spare living conditions of $clinicName serve as a constant reminder that @@.hotpink;she is nothing more than an object@@ for your amusement.
+					<<if ($slaves[$i].trust > 20)>>
+						She can only @@.gold;invision the horrors@@ that await her under your care.
+						<<set $slaves[$i].trust -= 2>>
+					<</if>>
+					<<set $slaves[$i].devotion += 1>>
 				<</switch>>
 			<<else>>
-				<<switch $brothelDecoration>>
-				<<case "Chattel Religionist" "Degradationist" "standard">>
+				<<switch $clinicDecoration>>
+				<<case "Repopulation Focus" "Eugenics" "Gender Radicalist" "Gender Fundamentalist" "Paternalist" "Maturity Preferentialist" "Youth Preferentialist" "Slimness Enthusiast" "Hedonistic">>
+					She loves her stay in $clinicName and almost wishes it didn't have to end.
+				<<case "Roman Revivalist" "Aztec Revivalist" "Egyptian Revivalist" "Arabian Revivalist" "Chinese Revivalist" "Chattel Religionist">>
+					The living conditions, despite their open nature, are @@.mediumaquamarine;quite relaxing.@@ She savors her stay at $clinicName.
+					<<set $slaves[$i].trust += 1>>
+				<<case "Edo Revivalist">>
+					The living conditions, despite their spartan nature, are @@.mediumaquamarine;calming.@@  She enjoys her stay at $clinicName.
+					<<set $slaves[$i].trust += 1>>
+				<<case "standard">>
 					<<if ($slaves[$i].trust > 40)>>
-						The spare living conditions of $brothelName @@.gold;remind her not to get too comfortable@@ with her life.
+						The spare living conditions of $clinicName @@.gold;remind her not to get too comfortable@@ with her life.
 						<<set $slaves[$i].trust -= 2>>
 					<<elseif ($slaves[$i].trust > 10)>>
-						The spare living conditions of $brothelName @@.gold;keep her aware of her place.@@
+						The spare living conditions of $clinicName @@.gold;keep her aware of her place.@@
 						<<set $slaves[$i].trust -= 1>>
 					<</if>>
 				<<default>>
-					She likes her little room in $brothelName, even if it smells of sex after fucking in it all day.
+					<<if ($slaves[$i].devotion >= 80)>>
+						The spare living conditions of $clinicName remind her that she is just an object for your amusement, and that is fine with her.
+						<<set $slaves[$i].trust -= 2>>
+					<<elseif ($slaves[$i].trust > 40)>>
+						The spare living conditions of $clinicName @@.gold;remind her that she is just an object to you.@@
+						<<set $slaves[$i].trust -= 2>>
+					<<elseif ($slaves[$i].trust > 10)>>
+						The spare living conditions of $clinicName @@.gold;keep her aware of her place as your plaything.@@
+						<<set $slaves[$i].trust -= 1>>
+					<</if>>
 				<</switch>>
 			<</if>>
 
