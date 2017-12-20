@@ -3,7 +3,7 @@ Common problems:
 I get a error on gamestart.
 -clear cookies
 
-I can't save more than once of twice.
+I can't save more than once or twice.
 -Known issue caused by sugarcube level changes. Save to file doesn't have this problem and will likely avoid the first problem as well.
 
 How to mod (basic doc):
