@@ -1,3 +1,11 @@
+Common problems:
+
+I get a error on gamestart.
+-clear cookies
+
+I can't save more than once of twice.
+-Known issue caused by sugarcube level changes. Save to file doesn't have this problem and will likely avoid the first problem as well.
+
 How to mod (basic doc):
 
 1. All sources now in the src subdir, in separate files. 1 passage = 1 file.
