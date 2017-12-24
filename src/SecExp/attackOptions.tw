@@ -250,6 +250,7 @@ With your current readiness level you can <<if $deployedUnits > 0>>still send <s
 				<<set $deployableUnits-->>
 				<<set $deployedUnits++>>
 				<<set $deployingBots = 1>>
+				<<set $saveValid = 0>>
 				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
@@ -263,6 +264,7 @@ With your current readiness level you can <<if $deployedUnits > 0>>still send <s
 				<<set $militiaUnits[_i].isDeployed = 1>>
 				<<set $deployableUnits-->>
 				<<set $deployedUnits++>>
+				<<set $saveValid = 0>>
 				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
@@ -278,6 +280,7 @@ With your current readiness level you can <<if $deployedUnits > 0>>still send <s
 				<<set $slaveUnits[_i].isDeployed = 1>>
 				<<set $deployableUnits-->>
 				<<set $deployedUnits++>>
+				<<set $saveValid = 0>>
 				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
@@ -293,6 +296,7 @@ With your current readiness level you can <<if $deployedUnits > 0>>still send <s
 				<<set $mercUnits[_i].isDeployed = 1>>
 				<<set $deployableUnits-->>
 				<<set $deployedUnits++>>
+				<<set $saveValid = 0>>
 				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
@@ -317,6 +321,7 @@ Units about to be deployed:
 				<<set $deployableUnits++>>
 				<<set $deployedUnits-->>
 				<<set $deployingBots = 0>>
+				<<set $saveValid = 0>>
 				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
@@ -330,6 +335,7 @@ Units about to be deployed:
 				<<set $militiaUnits[_i].isDeployed = 0>>
 				<<set $deployableUnits++>>
 				<<set $deployedUnits-->>
+				<<set $saveValid = 0>>
 				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
@@ -345,6 +351,7 @@ Units about to be deployed:
 				<<set $slaveUnits[_i].isDeployed = 0>>
 				<<set $deployableUnits++>>
 				<<set $deployedUnits-->>
+				<<set $saveValid = 0>>
 				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
@@ -360,6 +367,7 @@ Units about to be deployed:
 				<<set $mercUnits[_i].isDeployed = 0>>
 				<<set $deployableUnits++>>
 				<<set $deployedUnits-->>
+				<<set $saveValid = 0>>
 				<<goto "attackOptions">>
 			<</link>>
 		<</if>>
@@ -390,6 +398,109 @@ Units about to be deployed:
 		//The security force will not join the battle//
 	<</if>>
 	<br>//Some upgrades will be able to support the troops even if the security force does not intervene directly in the fight.//
+<</if>>
+
+<br><br>	
+
+<<if $lastSelection.length > 0>>
+	<<link "Restore saved roster">>
+		<<set $deployableUnits = $readiness * 2>>
+		<<set $deployedUnits = 0>>
+		<<for _i = 0; _i < $lastSelection.length; _i++>>
+			<<if $lastSelection[_i] == -1>>
+				<<set $secBots.isDeployed = 1>>
+			<<else>>
+				<<for _j = 0; _j < $militiaUnits.length; _j++>>
+					<<if $lastSelection[_i] == $militiaUnits[_j].ID>>
+						<<set $militiaUnits[_j].isDeployed = 1>>
+						<<set $deployableUnits-->>
+						<<set $deployedUnits++>>
+						<<break>>
+					<</if>>
+				<</for>>
+				<<for _j = 0; _j < $slaveUnits.length; _j++>>
+					<<if $lastSelection[_i] == $slaveUnits[_j].ID>>
+						<<set $slaveUnits[_j].isDeployed = 1>>
+						<<set $deployableUnits-->>
+						<<set $deployedUnits++>>
+						<<break>>
+					<</if>>
+				<</for>>
+				<<for _j = 0; _j < $mercUnits.length; _j++>>
+					<<if $lastSelection[_i] == $mercUnits[_j].ID>>
+						<<set $mercUnits[_j].isDeployed = 1>>
+						<<set $deployableUnits-->>
+						<<set $deployedUnits++>>
+						<<break>>
+					<</if>>
+				<</for>>
+			<</if>>
+		<</for>>
+		<<set $saveValid = 1>>
+		<<goto "attackOptions">>
+	<</link>>
+<<else>>
+	Restore saved roster
+<</if>>
+|
+<<if $saveValid != 1>>
+	<<link "Save current roster">>
+		<<if $secBots.isDeployed == 1>>
+			<<set _tmp = -1>>
+			<<set $lastSelection.push(_tmp)>>
+		<</if>>
+		<<for _i = 0; _i < $militiaUnits.length; _i++>>
+			<<if $militiaUnits[_i].isDeployed == 1>>
+				<<set $lastSelection.push($militiaUnits[_i].ID)>>
+			<</if>>
+		<</for>>
+		<<for _i = 0; _i < $slaveUnits.length; _i++>>
+			<<if $slaveUnits[_i].isDeployed == 1>>
+				<<set $lastSelection.push($slaveUnits[_i].ID)>>
+			<</if>>
+		<</for>>
+		<<for _i = 0; _i < $mercUnits.length; _i++>>
+			<<if $mercUnits[_i].isDeployed == 1>>
+				<<set $lastSelection.push($mercUnits[_i].ID)>>
+			<</if>>
+		<</for>>
+		<<set $saveValid = 1>>
+		<<goto "attackOptions">>
+	<</link>>
+<<else>>
+	Save current roster
+<</if>>
+|
+<<if $deployedUnits > 0>>
+	<<link "Clear current roster">>
+		<<set $secBots.isDeployed = 0>>
+		<<for _i = 0; _i < $militiaUnits.length; _i++>>
+			<<set $militiaUnits[_i].isDeployed = 0>>
+		<</for>>
+		<<for _i = 0; _i < $slaveUnits.length; _i++>>
+			<<set $slaveUnits[_i].isDeployed = 0>>
+		<</for>>
+		<<for _i = 0; _i < $mercUnits.length; _i++>>
+			<<set $mercUnits[_i].isDeployed = 0>>
+		<</for>>
+		<<set $saveValid = 0>>
+		<<set $deployableUnits = $readiness * 2>>
+		<<set $deployedUnits = 0>>
+		<<goto "attackOptions">>
+	<</link>>
+<<else>>
+	Clear current roster
+<</if>>
+|
+<<if $lastSelection.length > 0>>
+	<<link "Clear saved roster">>
+		<<unset $lastSelection>>
+		<<set $lastSelection = []>>
+		<<set $saveValid = 0>>
+		<<goto "attackOptions">>
+	<</link>>
+<<else>>
+	Clear saved roster
 <</if>>
 		
 <br><br>
