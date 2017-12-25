@@ -32,7 +32,7 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 <br><br>
 Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $incubator tanks, <<print $freeTanks>> <<if $freeTanks == 1>>is<<else>>are<</if>> unoccupied. Of those, $reservedChildren <<if $reservedChildren == 1>>tank is<<else>>tanks are<</if>> reserved.
 <<for _u = 0; _u < _SL; _u++>>
-	<<if $slaves[_u].pregType < 50 && $slaves[_u].pregKnown == 1 && $slaves[_u].eggType == "human">>
+	<<if $slaves[_u].preg > 0 && $slaves[_u].pregType < 50 && $slaves[_u].pregKnown == 1 && $slaves[_u].eggType == "human">>
 	<<if $slaves[_u].assignment == "work in the dairy" && $dairyPregSetting > 0>>
 	<<else>>
 		<br><<print "[[$slaves[" + _u + "].slaveName|Long Slave Description][$activeSlave = $slaves[" + _u + "], $nextLink = passage()]]">> is $slaves[_u].pregWeek weeks pregnant with
@@ -49,7 +49,15 @@ Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $
 		<</if>>
 		<<if $slaves[_u].pregType > 1>>$slaves[_u].pregType babies<<else>>baby<</if>>.
 		<<if $slaves[_u].reservedChildren > 0>>
-			$slaves[_u].reservedChildren of her children will be placed in $incubatorName.
+		    <<if $slaves[_u].pregType == 1>>
+				Her child will be placed in $incubatorName.
+			<<elseif $slaves[_u].reservedChildren < $slaves[_u].pregType>>
+				$slaves[_u].reservedChildren of her children will be placed in $incubatorName.
+			<<elseif $slaves[_u].pregType == 2>>
+				Both of her children will be placed in $incubatorName.
+			<<else>>
+				All $slaves[_u].reservedChildren of her children will be placed in $incubatorName.
+			<</if>>
 			<<if ($slaves[_u].reservedChildren < $slaves[_u].pregType) && ($reservedChildren < $freeTanks)>>
 				<br>&nbsp;&nbsp;&nbsp;&nbsp;
 				<<print "[[Keep another child|Incubator][$slaves[" + _u + "].reservedChildren += 1, $reservedChildren += 1]]">>
@@ -109,7 +117,15 @@ Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $
 			octuplets.
 		<</switch>>
 	<<if $PC.reservedChildren > 0>>
-		$PC.reservedChildren of your children will be placed in $incubatorName.
+		<<if $PC.pregType == 1>>
+			Your child will be placed in $incubatorName.
+		<<elseif $PC.reservedChildren < $PC.pregType>>
+			$PC.reservedChildren of your children will be placed in $incubatorName.
+		<<elseif $PC.pregType == 2>>
+			Both of your children will be placed in $incubatorName.
+		<<else>>
+			All $PC.reservedChildren of your children will be placed in $incubatorName.
+		<</if>>
 		<<if ($PC.reservedChildren < $PC.pregType) && ($reservedChildren < $freeTanks)>>
 			<br>&nbsp;&nbsp;&nbsp;&nbsp;
 			<<print "[[Keep another child|Incubator][$PC.reservedChildren += 1, $reservedChildren += 1]]">>
@@ -354,6 +370,14 @@ Target age for release: <<textbox "$targetAge" $targetAge "Incubator">> [[Minimu
 			<<elseif $incubatorReproductionSetting == 0>>
 				Reproduction management systems are offline; she will undergo normal puberty.
 			<</if>>
+		<</if>>
+		<<if $cheatMode == 1>>
+			<br>''Cheatmode:'' 
+			<<link "Retrieve immediately">>
+				<<set $incubatorOldID = $tanks[$i].ID>>
+				<<set $readySlave = $tanks.pluck([$i], [$i])>>
+				<<goto "Incubator Retrieval Workaround">>
+			<</link>>
 		<</if>>
 		<<if $incubatorUpgradeOrgans == 1>>
 			<br>
