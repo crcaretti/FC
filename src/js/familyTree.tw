@@ -1,12 +1,12 @@
 :: FamilyTreeJS [script]
+'use strict';
 
 var lastActiveSlave, lastSlaves, lastPC;
 
 /*
   To use, add something like:
 
-<div id="editFamily">
-  <div id="graph"></div>
+<div id='familyTree'>
 </div>
 
 <<run updateFamilyTree($activeSlave, $slaves, $PC)>>
@@ -19,6 +19,423 @@ If there's no active slave, you can do:
 <<run updateFamilyTree(null, $slaves, $PC)>>
 
 */
+
+var d3scr = document.createElement('script');
+d3scr.setAttribute('type', 'text/javascript');
+d3scr.setAttribute('src', 'https://d3js.org/d3.v4.min.js');
+document.getElementsByTagName('head')[0].appendChild(d3scr);
+
+window.renderFamilyTree = function(slaves, filterID) {
+
+	var ftreeWidth,ftreeHeight;
+	var chartWidth, chartHeight;
+	var margin;
+	var svg = d3.select('#familyTree').append('svg');
+	var chartLayer = svg.append('g').classed('chartLayer', true);
+
+	var range = 100;
+	var data = buildFamilyTree(slaves, filterID);
+
+	initFtreeSVG(data);
+	runFtreeSim(data);
+
+	function initFtreeSVG(data) {
+		ftreeWidth = data.nodes.length * 45;
+		ftreeHeight = data.nodes.length * 35;
+		if(ftreeWidth < 600) {
+			ftreeWidth = 600;
+		}
+		if(ftreeHeight < 480) {
+			ftreeHeight = 480;
+		}
+
+		margin = {top:0, left:0, bottom:0, right:0 }
+
+
+		chartWidth = ftreeWidth - (margin.left+margin.right)
+		chartHeight = ftreeHeight - (margin.top+margin.bottom)
+
+		svg.attr('width', ftreeWidth).attr('height', ftreeHeight)
+
+		var defs = svg.append('defs');
+
+		svg.append('defs').append('marker')
+			.attr('id','arrowhead')
+			.attr('viewBox','-0 -5 10 10')
+			.attr('refX',13)
+			.attr('refY',0)
+			.attr('orient','auto')
+			.attr('markerWidth',13)
+			.attr('markerHeight',13)
+			.attr('xoverflow','visible')
+			.append('svg:path')
+			.attr('d', 'M 0,-1 L 5,0 L 0,1')
+			.attr('fill', '#a1a1a1')
+			.style('stroke','none');
+
+		chartLayer
+			.attr('width', chartWidth)
+			.attr('height', chartHeight)
+			.attr('transform', 'translate('+[margin.left, margin.top]+')')
+	}
+
+	function runFtreeSim(data) {
+		var simulation = d3.forceSimulation()
+			.force('link', d3.forceLink().id(function(d) { return d.index }))
+			.force('collide',d3.forceCollide( function(d){ return 60; }).iterations(4) )
+			.force('charge', d3.forceManyBody().strength(-200).distanceMin(100).distanceMax(1000))
+			.force('center', d3.forceCenter(chartWidth / 2, chartHeight / 2))
+			.force('y', d3.forceY(100))
+			.force('x', d3.forceX(200))
+
+		var link = svg.append('g')
+			.attr('class', 'link')
+			.selectAll('link')
+			.data(data.links)
+			.enter()
+			.append('line')
+			.attr('marker-end','url(#arrowhead)')
+			.attr('stroke', function(d) {
+				if(d.type == 'homologous') {
+					return '#862d59';
+				} else if(d.type == 'paternal') {
+					return '#24478f';
+				} else {
+					return '#aa909b';
+				}
+			})
+			.attr('stroke-width', 2)
+			.attr('fill', 'none');
+
+		var node = svg.selectAll('.node')
+			.data(data.nodes)
+			.enter().append('g')
+			.attr('class', 'node')
+			.call(d3.drag()
+			.on('start', dragstarted)
+			.on('drag', dragged)
+			.on('end', dragended));
+
+		node.append('circle')
+			.attr('r', function(d){  return d.r })
+			.attr('stroke', '#5a5a5a')
+			.attr('class', 'node-circle')
+			.attr('r', 20);
+
+		node.append('text')
+			.text(function(d) {
+				var ssym;
+				if(d.ID == -1) {
+					ssym = '';
+				} else if(d.dick > 0 && d.vagina > -1) {
+					ssym = '☿'
+				} else if (d.dick > 0) {
+					ssym = '♂';
+				} else if (d.vagina > -1) {
+					ssym = '♀';
+				} else {
+					ssym = '?';
+				}
+				return d.name + '('+ssym+')';
+			})
+			.attr('dy', -5)
+			.attr('dx', function(d) { return -(6*d.name.length)/2; })
+			.attr('class', 'node-text')
+			.style('fill', function(d) {
+				if(d.is_mother && d.is_father) {
+					return '#b84dff';
+				} else if(d.is_father) {
+					return '#00ffff';
+				} else if(d.is_mother) {
+					return '#ff3399';
+				} else if(d.unborn) {
+					return '#a3a3c2';
+				} else {
+					return '#66cc66';
+				}
+			});
+
+		var circles = svg.selectAll('.node-circle');
+		var texts = svg.selectAll('.node-text');
+
+		var ticked = function() {
+			link
+				.attr('x1', function(d) { return d.source.x; })
+				.attr('y1', function(d) { return d.source.y; })
+				.attr('x2', function(d) { return d.target.x; })
+				.attr('y2', function(d) { return d.target.y; });
+
+			node
+				.attr("transform", function (d) {return "translate(" + d.x + ", " + d.y + ")";});
+		}
+
+		simulation.nodes(data.nodes)
+			.on('tick', ticked);
+
+		simulation.force('link')
+			.links(data.links);
+
+		function dragstarted(d) {
+			if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+			d.fx = d.x;
+			d.fy = d.y;
+		}
+
+		function dragged(d) {
+			d.fx = d3.event.x;
+			d.fy = d3.event.y;
+		}
+
+		function dragended(d) {
+			if (!d3.event.active) simulation.alphaTarget(0);
+			d.fx = null;
+			d.fy = null;
+		}
+
+	}
+};
+
+window.buildFamilyTree = function(slaves = SugarCube.State.variables.slaves, filterID) {
+	var family_graph = {
+		nodes: [],
+		links: []
+	};
+	var node_lookup = {};
+	var preset_lookup = {
+		'-2': 'Social elite',
+		'-3': 'Client',
+		'-4': 'Former master',
+		'-5': 'An arcology owner',
+		'-6': 'A citizen'
+	};
+	var outdads = {};
+	var outmoms = {};
+	var kids = {};
+
+	var fake_pc = {
+		slaveName: SugarCube.State.variables.PC.name + '(You)',
+		mother: SugarCube.State.variables.PC.mother,
+		father: SugarCube.State.variables.PC.father,
+		dick: SugarCube.State.variables.PC.dick,
+		vagina: SugarCube.State.variables.PC.vagina,
+		ID: SugarCube.State.variables.PC.ID
+	};
+	var charList = [fake_pc];
+	charList.push.apply(charList, slaves);
+	charList.push.apply(charList, SugarCube.State.variables.tanks);
+
+	var unborn = {};
+	for(var i = 0; i < SugarCube.State.variables.tanks.length; i++) {
+		unborn[SugarCube.State.variables.tanks[i].ID] = true;
+	}
+
+	for(var i  = 0; i < charList.length; i++) {
+		var mom = charList[i].mother;
+		var dad = charList[i].father;
+
+		if(mom) {
+			if(!kids[mom]) {
+				kids[mom] = {};
+			}
+			kids[mom].mother = true;
+		}
+		if(dad) {
+			if(!kids[dad]) {
+				kids[dad] = {};
+			}
+			kids[dad].father = true;
+		}
+	}
+
+	for(var i  = 0; i < charList.length; i++) {
+		var character = charList[i];
+		if(character.mother == 0 && character.father == 0 && !kids[character.ID]) {
+			continue;
+		}
+		var mom = character.mother;
+		if(mom < -6) {
+			if(typeof outmoms[mom] == 'undefined') {
+				outmoms[mom] = [];
+			}
+			outmoms[mom].push(character.slaveName);
+		} else if(mom < 0 && typeof node_lookup[mom] == 'undefined' && typeof preset_lookup[mom] != 'undefined') {
+			node_lookup[mom] = family_graph.nodes.length;
+			charList.push({ID: mom, mother: 0, father: 0, is_father: true, dick: 0, vagina: 1, slaveName: preset_lookup[mom]});
+		}
+
+		var dad = character.father;
+		if(dad < -6) {
+			if(typeof outdads[dad] == 'undefined') {
+				outdads[dad] = [];
+			}
+			outdads[dad].push(character.slaveName);
+		} else if(dad < 0 && typeof node_lookup[dad] == 'undefined' && typeof preset_lookup[dad] != 'undefined') {
+			node_lookup[dad] = family_graph.nodes.length;
+			charList.push({ID: dad, mother: 0, father: 0, is_father: true, dick: 1, vagina: -1, slaveName: preset_lookup[dad]});
+		}
+	}
+	var mkeys = Object.keys(outmoms);
+	for(var i = 0; i < mkeys.length; i++) {
+		var name;
+		var key = mkeys[i];
+		var names = outmoms[key];
+		if(names.length == 1) {
+			name = names[0];
+		} else if(names.length == 2) {
+			name = names.join(' and ');
+		} else {
+			names[-1] = 'and '+names[-1];
+			name = names.join(', ');
+		}
+		node_lookup[key] = family_graph.nodes.length;
+		//Outside extant slaves set
+		charList.push({ID: key, mother: 0, father: 0, is_mother: true, dick: 0, vagina: 1, slaveName: name+"'s mother"});
+	}
+
+	var dkeys = Object.keys(outdads);
+	for(var i = 0; i < dkeys.length; i++) {
+		var name;
+		var key = dkeys[i];
+		var names = outdads[key];
+		if(names.length == 1) {
+			name = names[0];
+		} else if(names.length == 2) {
+			name = names.join(' and ');
+		} else {
+			names[-1] = 'and '+names[-1];
+			name = names.join(', ');
+		}
+		node_lookup[key] = family_graph.nodes.length;
+		//Outside extant slaves set
+		charList.push({ID: key, mother: 0, father: 0, is_father: true, dick: 1, vagina: -1, slaveName: name+"'s father"});
+	}
+
+	var charHash = {};
+	for(var i = 0; i < charList.length; i++) {
+		charHash[charList[i].ID] = charList[i];
+	}
+
+	var related = {};
+	var seen = {};
+	var saveTree = {};
+	function relatedTo(character, targetID, relIDs = {tree: {}, related: false}) {
+		relIDs.tree[character.ID] = true;
+		if(related[character.ID]) {
+			relIDs.related = true;
+			return relIDs;
+		}
+		if(character.ID == targetID) {
+			relIDs.related = true;
+		}
+		if(seen[character.ID]) {
+			return relIDs;
+		}
+		seen[character.ID] = true;
+		if(character.mother != 0) {
+			if(charHash[character.mother]) {
+				relatedTo(charHash[character.mother], targetID, relIDs);
+			}
+		}
+		if(character.father != 0) {
+			if(charHash[character.father]) {
+				relatedTo(charHash[character.father], targetID, relIDs);
+			}
+		}
+		return relIDs;
+	}
+	if(filterID) {
+		if(charHash[filterID]) {
+			var relIDs = relatedTo(charHash[filterID], filterID);
+			for(var k in relIDs.tree) {
+				related[k] = true;
+			}
+			for(var i  = 0; i < charList.length; i++) {
+				if(charHash[charList[i].ID]) {
+					var pRelIDs = relatedTo(charHash[charList[i].ID], filterID);
+					if(pRelIDs.related) {
+						for(var k in pRelIDs.tree) {
+							related[k] = true;
+							if(saveTree[k]) {
+								for(var k2 in saveTree[k].tree) {
+									related[k2] = true;
+								}
+							}
+						}
+					}
+					saveTree[charList[i].ID] = pRelIDs;
+				}
+			}
+		}
+	}
+
+	for(var i  = 0; i < charList.length; i++) {
+		var character = charList[i];
+		var char_id = character.ID;
+		if(character.mother == 0 && character.father == 0 && !kids[char_id]) {
+			continue;
+		}
+		if(filterID && !related[char_id]) {
+			continue;
+		}
+		node_lookup[char_id] = family_graph.nodes.length;
+		var char_obj = {
+			id: char_id,
+			name: character.slaveName,
+			dick: character.dick,
+			unborn: !!unborn[char_id],
+			vagina: character.vagina
+		};
+		if(kids[char_id]) {
+			char_obj.is_mother = !!kids[char_id].mother;
+			char_obj.is_father = !!kids[char_id].father;
+		}	else {
+			char_obj.is_mother = false;
+			char_obj.is_father = false;
+		}
+		family_graph.nodes.push(char_obj);
+	}
+
+	for(var i = 0; i < charList.length; i++) {
+		var character = charList[i];
+		var char_id = character.ID;
+		if(character.mother == 0 && character.father == 0 && !kids[char_id]) {
+			continue;
+		}
+		if(filterID && !related[char_id]) {
+			if(related[character.mother]) {
+				console.log('wtf, mom');
+			}
+			if(related[character.father]) {
+				console.log('wtf, dad');
+			}
+			continue;
+		}
+		if(typeof node_lookup[character.mother] != 'undefined') {
+			var ltype;
+			if(character.mother == character.father) {
+				ltype = 'homologous';
+			} else {
+				ltype = 'maternal';
+			}
+			family_graph.links.push({
+				type: ltype,
+				target: node_lookup[char_id]*1,
+				source: node_lookup[character.mother]*1
+			});
+		}
+		if(character.mother == character.father) {
+			continue;
+		}
+		if(typeof node_lookup[character.father] != 'undefined') {
+			family_graph.links.push({
+				type: 'paternal',
+				target: node_lookup[char_id]*1,
+				source: node_lookup[character.father]*1
+			});
+		}
+	}
+	return family_graph;
+};
 
 window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastSlaves, PC = lastPC) {
   lastActiveSlave = activeSlave;
