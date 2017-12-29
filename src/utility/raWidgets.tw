@@ -123,7 +123,7 @@
             <br>@@.red;Frigid@@: 20 or under, @@.red;Poor@@: 21 to 40, @@.yellow;Average@@: 41 to 60, @@.green;Powerful@@: 61 to 80, @@.green;Sex addict@@: 81 to 99, @@.green;Nympho@@: 100
         <<case "weight">>
             <br>@@.red;Emaciated@@: under -95, @@.red;Skinny@@: -95 to less than -30,
-            <br>Thin: -30 to less than -10 Average weight: -10 to 10, Plush: over 10 to 30,
+            <br>Thin: -30 to less than -10, Average weight: -10 to 10, Plush: over 10 to 30,
             <br>@@.red;Fat@@: over 30 to 95, @@.red;Overweight@@: over 95
         <<case "lactation">>
             <br>// 0 - none, 1 - natural, 2 - lactation implant. //
@@ -1882,7 +1882,7 @@ Diet support for growth drugs:
 <<if $currentRule.pornFameSpending == -1>>
 	Release of feeds showing excellent slaves' sex lives: ''off.''
 <<else>>
-	Weekly porn publicity subsidy: ''¤$currentRule.pornFameSpending.''
+	Weekly porn publicity subsidy: ''<<print cashFormat($currentRule.pornFameSpending)>>.''
 <</if>>
 <</replace>>
 <</widget>>
@@ -2329,12 +2329,13 @@ Your brand design is ''$brandDesign.''
 %/
 <<widget "RASurgeryChangeEyes">>
 <<replace #eyes>>
-	<<if ($currentRule.surgery.eyes == "no default setting")>>
-		''no default setting.''
+	<<if ($currentRule.surgery.eyes == -1)>>
+		''blurred.''
 	<<elseif ($currentRule.surgery.eyes == 1)>>
 		''fixed.''
 	<<else>>
-		''blurred.''
+		''no default setting.''
+		
 	<</if>>
 
 	<br>
@@ -3580,7 +3581,7 @@ Your brand design is ''$brandDesign.''
 /* Asset Growth */
 	<<set _tempAssetGrowthDrugs = ["breast injections", "intensive breast injections", "breast redistributors", "butt injections", "intensive butt injections", "butt redistributors", "lip injections", "lip atrophiers", "penis enhancement", "intensive penis enhancement", "penis atrophiers", "testicle enhancement", "intensive testicle enhancement", "testicle atrophiers", "hyper breast injections", "hyper butt injections", "hyper penis enhancement", "hyper testicle enhancement"]>>
 	<<for _g = 0; _g < 1; _g++>> /* Growth drugs. Single loop broken when we find a drug to apply, or that a currently active drug is working on an unsatisfied growth target. Please advise if cleaner or more efficient code is possible. */
-	<<if $args[0].drugs == "super fertility drugs" || $args[0].drugs == "fertility drugs">>
+	<<if ($args[0].drugs == "super fertility drugs" || $args[0].drugs == "fertility drugs") && isFertile($args[0])>>
 	<br>$args[0].slaveName is on $args[0].drugs and will not be considered for drug enhancement until that regime is complete.
 	<<break>>
 	<<elseif (_combinedRule.growth.boobs == "no default setting" && _combinedRule.growth.butt == "no default setting" && _combinedRule.growth.lips == "no default setting" && _combinedRule.growth.dick == "no default setting" && _combinedRule.growth.dick == "no default setting" && _combinedRule.growth.balls == "no default setting")>>
@@ -4050,9 +4051,16 @@ Your brand design is ''$brandDesign.''
 				<br>$args[0].slaveName has been put on a diet that favors masculine development.
 			<</if>>
 		<<elseif (_combinedRule.diet == "XXY")>>
-			<<if ($args[0].diet !== "XXY")>>
-				<<set $args[0].diet = "XXY">>
-				<br>$args[0].slaveName has been put on a diet that enhances a herm's unique sexuality.
+			<<if $args[0].balls > 0 && ($args[0].ovaries == 1 || $args[0].mpreg == 1)>>
+				<<if ($args[0].diet !== "XXY")>>
+					<<set $args[0].diet = "XXY">>
+					<br>$args[0].slaveName has been put on a diet that enhances a herm's unique sexuality.
+				<</if>>
+			<<else>>
+				<<if ($args[0].diet !== "healthy")>>
+					<<set $args[0].diet = "healthy">>
+					<br>$args[0].slaveName has been put on a standard diet since she is not a hermaphrodite.
+				<</if>>
 			<</if>>
 		<<elseif (_combinedRule.diet == "cleansing")>>
 			<<if (($args[0].diet !== "cleansing") && ($args[0].health < 100))>>
@@ -4173,8 +4181,10 @@ Your brand design is ''$brandDesign.''
 <<if $args[0].fuckdoll == 0>>
 
 <<if (def _combinedRule.livingRules) && (_combinedRule.livingRules !== "no default setting")>>
-<<if setup.facilityCareers.includes($args[0].assignemnt)>>
+<<if setup.facilityCareers.includes($args[0].assignment)>>
 	<br>$args[0].slaveName's living standards are controlled by her assignment.
+<<elseif (($args[0].assignment == "be your Head Girl") && ($HGSuite == 1)) || (($args[0].assignment == "guard you") && ($dojo > 1))>>
+	<br>$args[0].slaveName has a private room.
 <<elseif ($args[0].fetish == "mindbroken")>>
 	<<if ($args[0].livingRules !== "spare")>>
 	<<set $args[0].livingRules = "spare">>

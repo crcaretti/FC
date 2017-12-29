@@ -124,7 +124,7 @@
 		<</if>>
 		| [[Use another slave to impregnate her|FSlaveImpreg]]
 	<</if>>
-	<<if $activeSlave.assignment != "work in the dairy" && $activeSlave.assignment != "be confined in the arcade">>
+	<<if $activeSlave.assignment != "work in the dairy" && $activeSlave.assignment != "be confined in the arcade" && $activeSlave.assignment != "be confined in the cellblock">>
 		<<if $enema == 1>>
 			<<if ($activeSlave.inflation < 3 && $activeSlave.pregKnown == 0 && $activeSlave.bellyImplant < 1500) || ($activeSlave.inflation < 1)>>
 				<<if $activeSlave.inflationType == "water" || $activeSlave.inflationType == "none">>
@@ -167,7 +167,7 @@
 		<</if>>
 	<</if>>
 	<<if $activeSlave.inflation == 0 && $activeSlave.bellyImplant < 1500>>
-		<<if $activeSlave.assignment != "work in the dairy" || $activeSlave.assignment != "be confined in the arcade">>
+		<<if $activeSlave.assignment != "work in the dairy" && $activeSlave.assignment != "be confined in the arcade" && $activeSlave.assignment != "be confined in the cellblock">>
 			| [[Use another slave to forcefeed her|SlaveOnSlaveFeedingWorkAround]]
 			<<if $buckets == 1>>
 				| <<link "Make her consume two liters of slave food">><<set $activeSlave.inflationType = "food">><<set $activeSlave.inflationMethod = 1>><<set $activeSlave.inflation = 1>><<replace "#miniscene">><<include "forceFeeding">><br><</replace>><<SlaveInteractImpreg>><<SlaveInteractFertility>><</link>>
@@ -333,7 +333,7 @@
 		| <<link "Fuck its rear hole">><<replace "#miniscene">><<FFuckdollAnal>><br><</replace>><</link>>
 	<</if>>
 <</if>>
-<<if _activeSlaveRepSacrifice > 0 && $arcologies[0].FSPaternalist != "unset" && $activeSlave.breedingMark == 0>>
+<<if _activeSlaveRepSacrifice > 0 && $arcologies[0].FSPaternalist == "unset" && $activeSlave.breedingMark == 0>>
 	<<set _activeSlaveRepSacrifice = repGainSacrifice()>>
 	| [[Sacrifice her on the altar|Aztec Slave Sacrifice][$sacrificeType = "life"]] //This will kill her and gain you _activeSlaveRepSacrifice reputation//
 <</if>>
@@ -1087,13 +1087,21 @@ __Contraception__: <span id="fertility"><strong><<if $activeSlave.preg == -1>><<
 <</if>>
 </span>
 <<if $incubator > 0>>
-<<if $activeSlave.pregType < 50 && $activeSlave.pregKnown == 1 && $activeSlave.eggType == "human">>
+<<if $activeSlave.preg > 0 && $activeSlave.pregType < 50 && $activeSlave.pregKnown == 1 && $activeSlave.eggType == "human">>
 <<if $activeSlave.assignment == "work in the dairy" && $dairyPregSetting > 0>>
 <<else>>
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;
 	<<set $freeTanks = ($incubator-$tanks.length)>>
 	<<if $activeSlave.reservedChildren > 0>>
-		$activeSlave.reservedChildren of her children will be placed in $incubatorName.
+	    <<if $activeSlave.pregType == 1>>
+			Her child will be placed in $incubatorName.
+		<<elseif $activeSlave.reservedChildren < $activeSlave.pregType>>
+			$activeSlave.reservedChildren of her children will be placed in $incubatorName.
+		<<elseif $activeSlave.pregType == 2>>
+			Both of her children will be placed in $incubatorName.
+		<<else>>
+			All $activeSlave.reservedChildren of her children will be placed in $incubatorName.
+		<</if>>
 		<<if ($activeSlave.reservedChildren < $activeSlave.pregType) && ($reservedChildren < $freeTanks)>>
 			[[Keep another child|Slave Interact][$activeSlave.reservedChildren += 1, $reservedChildren += 1]]
 			<<if $activeSlave.reservedChildren > 0>>
@@ -1218,7 +1226,7 @@ Hormones: <strong><span id="hormones">
 <<else>>
 	<<set $dormitoryPopulation = 0, $roomsPopulation = 0>>
 	<<for $i = 0; $i < _SL; $i++>>
-		<<if $slaves[$i].assignmentVisible == 1>>
+		<<if $slaves[$i].assignmentVisible == 1 && ($slaves[$i].assignment != "be your Head Girl" || $HGSuite != 1) && ($slaves[$i].assignment != "guard you" || $dojo <= 1)>>
 			<<if $slaves[$i].livingRules == "luxurious">>
 				<<if $slaves[$i].relationship >= 4>>
 					<<set $roomsPopulation += 0.5>>
@@ -1233,6 +1241,10 @@ Hormones: <strong><span id="hormones">
 	Living standard: ''<span id="livingRules">$activeSlave.livingRules</span>.''
 	<<if setup.facilityCareers.includes($activeSlave.assignment)>>
 		//Her living conditions are managed by her assignment.//
+	<<elseif ($activeSlave.assignment == "be your Head Girl") && ($HGSuite == 1)>>
+		//She has her own little luxurious room in the penthouse with everything she needs to be a proper Head Girl.//
+	<<elseif ($activeSlave.assignment == "guard you") && ($dojo > 1)>>
+		//She has a comfortable room in the armory to call her own.//
 	<<else>>
 		<<link "Spare">><<set $activeSlave.livingRules = "spare">><<replace "#livingRules">>$activeSlave.livingRules<</replace>><</link>> |
 		<<link "Normal">><<set $activeSlave.livingRules = "normal">><<replace "#livingRules">>$activeSlave.livingRules<</replace>><</link>> |
@@ -1311,9 +1323,9 @@ Relationship rules: ''<span id="relationshipRules">$activeSlave.relationshipRule
 			<</if>> highlights of her sex life. 
 			<<if $activeSlave.pornFameSpending == 0>>
 				[[Begin publicizing?|Slave Interact][$activeSlave.pornFameSpending += 1000]]  
-				//Will cost ¤1000 weekly.//
+				//Will cost <<print cashFormat(1000)>> weekly.//
 			<<else>>
-				¤$activeSlave.pornFameSpending weekly is spent to publicize them.
+				<<print cashFormat($activeSlave.pornFameSpending)>> weekly is spent to publicize them.
 				<<if $activeSlave.pornFameSpending < 5000>>
 					[[Increase|Slave Interact][$activeSlave.pornFameSpending += 1000]] |
 				<</if>>
@@ -1339,7 +1351,7 @@ Relationship rules: ''<span id="relationshipRules">$activeSlave.relationshipRule
 	<<elseif $activeSlave.accent > 3>>
 	//Her lack of language and basic life skills is a red sign to most slave appraisers. She must not act like a child to be sold without raising suspicion.//
 	<<else>>
-	[[Sell her|Sell Slave][$cash -= 500]] //Listing her for sale will cost ¤500// |
+	[[Sell her|Sell Slave][$cash -= 500]] //Listing her for sale will cost <<print cashFormat(500)>>// |
 	<<if ($seeAge != 0) && ($activeSlave.indenture < 1)>>
 	<<if ($retiree == 0)>>
 		[[Retire her|Slave Interact][$retiree = $activeSlave, $manuallyRetired = 1]] |
