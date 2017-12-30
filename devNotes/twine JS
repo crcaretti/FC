@@ -3389,6 +3389,21 @@ Macro.add('foreach', {
  *                           paired with a high spread value results in the generator having to
  *                           do lots of work generating and re-generating random heights until
  *                           one "fits".
+ *
+ * Anon's explination:
+ *limitMult: [0, -30]
+ *
+ *This specifies a range going up from 0 to -30. It needs to go [-30, 0] instead. Same thing with [0, -5] two lines down. note: technically, this isn't true, because for some bizarre reason Height.random reverses the numbers for you if you get them wrong. But it's important to establish good habits, so.
+ *
+ *Skew, spread, limitMult: These are statistics things. BTW, a gaussian distribution is a normal distribution. Just a naming thing.
+ *
+ *Skew: See https://brownmath.com/stat/shape.htm#Skewness. Basically a measure of how asymmetrical the curve is. It doesn't change the mean, and can't move the main mass of the distribution far from the mean! The normal distribution can't do that. You can, however, use it to fatten one or the other tail.
+ *
+ *Spread: Changes the average distance from the mean, making the graph wider and shorter. Moves "mass" from the center to the tail. It's basically standard deviation, but named funny because FC codebase.
+ *
+ *limitMult: A clamp, expressed in z-score. (z=1 is one standard dev above mean, for ex.) If it excludes too much of the distribution the other parameters describe, you're going to spend lots of CPU making and throwing away heights. Don't worry about this unless you run into it.
+ *
+ *There's also limitHeight which you're not using. It's basically limitMult in different units.
  */
 window.Height = (function(){
 	'use strict';
@@ -3735,6 +3750,26 @@ window.isInt = function(n) {
 }
 window.numberWithCommas = function(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+
+window.jsRandom = function(min,max) {
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+window.jsRandomMany = function (arr, count) {
+	var result = [];
+	var _tmp = arr.slice();
+	for (var i = 0; i < count; i++) {
+		var index = Math.ceil(Math.random() * 10) % _tmp.length;
+		result.push(_tmp.splice(index, 1)[0]);
+	}
+	return result;
+}
+
+window.jsEither = function(choices) {
+	var index = Math.floor(Math.random() * choices.length);
+	return choices[index];
 }
 
 /*
