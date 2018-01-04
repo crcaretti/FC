@@ -94,23 +94,28 @@
 
 <<for $i = 0; $i < $slaves.length; $i++>>
 
-<<if ($slaves[$i].assignment == "work in the dairy" && $dairyRestraintsSetting >= 2) || ($slaves[$i].assignment == "be confined in the arcade")>>
+<<switch $slaves[$i].assignment>>
+<<case "be confined in the arcade">>
 	<<set $costs += ($rulesCost*.75)>>
-<<elseif ($slaves[$i].assignment == "be the Madam")>>
-	<<set $costs += ($rulesCost*2)>>
-<<elseif ($slaves[$i].assignment == "work in the brothel")>>
+<<case "work in the dairy">>
+	<<if $dairyRestraintsSetting >= 2>>
+		<<set $costs += ($rulesCost*.75)>>
+	<<elseif $slaves[$i].livingRules == "normal">>
+		<<set $costs += ($rulesCost*1.5)>>
+	<<elseif $dairyDecoration == "Degradationist">>
+		<<set $costs += ($rulesCost*.9)>>
+	<<else>>
+		<<set $costs += $rulesCost>>
+	<</if>>
+<<case "work in the brothel">>
 	<<if $slaves[$i].livingRules == "normal">>
 		<<set $costs += ($rulesCost*1.5)>>
 	<<else>>
 		<<set $costs += $rulesCost>>
 	<</if>>
-<<elseif ($slaves[$i].assignment == "be the DJ")>>
-	<<set $costs += ($rulesCost*2)>>
-<<elseif ($slaves[$i].assignment == "serve in the club")>>
+<<case "serve in the club" "learn in the schoolroom">>
 	<<set $costs += ($rulesCost*1.5)>>
-<<elseif ($slaves[$i].assignment == "be the Nurse")>>
-	<<set $costs += ($rulesCost*2)>>
-<<elseif ($slaves[$i].assignment == "get treatment in the clinic")>>
+<<case "get treatment in the clinic">>
 	<<if $slaves[$i].livingRules == "luxurious">>
 		<<set $costs += ($rulesCost*2)>>
 	<<elseif $slaves[$i].livingRules == "normal">>
@@ -118,17 +123,7 @@
 	<<else>>
 		<<set $costs += $rulesCost>>
 	<</if>>
-<<elseif ($slaves[$i].assignment == "be the Wardeness")>>
-	<<set $costs += ($rulesCost*2)>>
-<<elseif ($slaves[$i].assignment == "be confined in the cellblock")>>
-	<<if $slaves[$i].livingRules == "normal">>
-		<<set $costs += ($rulesCost*1.25)>>
-	<<else>>
-		<<set $costs += ($rulesCost*.9)>>
-	<</if>>
-<<elseif ($slaves[$i].assignment == "be the Attendant")>>
-	<<set $costs += ($rulesCost*2)>>
-<<elseif ($slaves[$i].assignment == "rest in the spa")>>
+<<case "rest in the spa">>
 	<<if $slaves[$i].livingRules == "luxurious">>
 		<<set $costs += ($rulesCost*1.75)>>
 	<<elseif $slaves[$i].livingRules == "normal">>
@@ -136,13 +131,7 @@
 	<<else>>
 		<<set $costs += $rulesCost>>
 	<</if>>
-<<elseif ($slaves[$i].assignment == "be the Schoolteacher")>>
-	<<set $costs += ($rulesCost*2)>>
-<<elseif ($slaves[$i].assignment == "learn in the schoolroom")>>
-	<<set $costs += ($rulesCost*1.5)>>
-<<elseif ($slaves[$i].assignment == "be the Stewardess")>>
-	<<set $costs += ($rulesCost*2)>>
-<<elseif ($slaves[$i].assignment == "be a servant")>>
+<<case "be a servant">>
 	<<if $slaves[$i].livingRules == "normal">>
 		<<set $costs += ($rulesCost*1.5)>>
 	<<else>>
@@ -152,31 +141,27 @@
 			<<set $costs += $rulesCost>>
 		<</if>>
 	<</if>>
-<<elseif ($slaves[$i].assignment == "be the Milkmaid")>>
-	<<set $costs += ($rulesCost*2)>>
-<<elseif ($slaves[$i].assignment == "work in the dairy")>>
+<<case "be confined in the cellblock">>
 	<<if $slaves[$i].livingRules == "normal">>
-		<<set $costs += ($rulesCost*1.5)>>
+		<<set $costs += ($rulesCost*1.25)>>
 	<<else>>
-		<<if $dairyDecoration == "Degradationist">>
-			<<set $costs += ($rulesCost*.9)>>
-		<<else>>
-			<<set $costs += $rulesCost>>
-		<</if>>
+		<<set $costs += ($rulesCost*.9)>>
 	<</if>>
-<<else>>
+<<case "be the Madam" "be the DJ" "be the Nurse" "be the Wardeness" "be the Attendant" "be the Schoolteacher" "be the Stewardess" "be the Milkmaid">>
+	<<set $costs += ($rulesCost*2)>>
+<<default>>
 	<<if $slaves[$i].livingRules == "luxurious">>
 		<<if $slaves[$i].relationship >= 4>>
-		<<set $costs += ($rulesCost*3)>>
+			<<set $costs += ($rulesCost*3)>>
 		<<else>>
-		<<set $costs += ($rulesCost*4)>>
+			<<set $costs += ($rulesCost*4)>>
 		<</if>>
 	<<elseif $slaves[$i].livingRules == "normal">>
 		<<set $costs += ($rulesCost*2)>>
 	<<else>>
 		<<set $costs += $rulesCost>>
 	<</if>>
-<</if>>
+<</switch>>
 
 <<set $costs += $foodCost*4>>
 <<switch $slaves[$i].diet>>
@@ -495,6 +480,9 @@
 	<<set $costs += 50>>
 <<elseif $PC.preg >= 16>>
 	<<set $costs += 100>>
+<</if>>
+<<if $PC.staminaPills == 1>>
+	<<set $costs += 50>>
 <</if>>
 
 <<if $PC.career == "servant">>

@@ -282,6 +282,9 @@ window.getCost = function(array) {
 	} else if(State.variables.PC.preg >= 16) {
 		costs += 100;
 	}
+	if(State.variables.PC.staminaPills === 1) {
+		costs += 50;
+	}
 
 	if(State.variables.PC.career === 'servant') {
 		if(State.variables.personalAttention === PersonalAttention.MAID) {
@@ -324,23 +327,32 @@ window.getSlaveCost = function(s) {
 	var drugsCost = State.variables.drugsCost;
 	
 	// Living expenses	
-	if((s.assignment === Job.DAIRY && State.variables.dairyRestraintsSetting >= 2) || (s.assignment === Job.ARCADE)) {
+	switch(s.assignment) {
+	case Job.ARCADE:
 		cost += rulesCost * .75;
-	} else if(s.assignment === Job.MADAM) {
-		cost += rulesCost * 2;
-	} else if(s.assignment === Job.BROTHEL) {
+		break;
+	case Job.DAIRY:
+		if(State.variables.dairyRestraintsSetting >= 2) {
+			cost += rulesCost * .75;
+		} else if(s.livingRules == LivingRule.NORMAL) {
+			cost += rulesCost * 1.5;
+		} else if(State.variables.dairyDecoration === 'Degradationist') {
+			cost += rulesCost * .90;
+		} else {
+			cost += rulesCost;
+		}
+		break;
+	case Job.BROTHEL:
 		if(s.livingRules == LivingRule.NORMAL) {
 			cost += rulesCost * 1.5;
 		} else {
 			cost += rulesCost;
 		}
-	} else if(s.assignment === Job.DJ) {
-		cost += rulesCost * 2;
-	} else if(s.assignment === Job.CLUB) {
+		break;
+	case Job.SCHOOL: case Job.CLUB:
 		cost += rulesCost * 1.5;
-	} else if(s.assignment === Job.NURSE) {
-		cost += rulesCost * 2;
-	} else if(s.assignment === Job.CLINIC) {
+		break;
+	case Job.CLINIC:
 		if(s.livingRules === LivingRule.LUXURIOUS) {
 			cost += rulesCost * 2;
 		} else if(s.livingRules == LivingRule.NORMAL) {
@@ -348,17 +360,8 @@ window.getSlaveCost = function(s) {
 		} else {
 			cost += rulesCost;
 		}
-	} else if(s.assignment === Job.WARDEN) {
-		cost += rulesCost * 2;
-	} else if(s.assignment === Job.JAIL) {
-		if(s.livingRules == LivingRule.NORMAL) {
-			cost += rulesCost * 1.25;
-		} else {
-			cost += rulesCost * .90;
-		}
-	} else if(s.assignment === Job.ATTEND) {
-		cost += rulesCost * 2;
-	} else if(s.assignment === Job.SPA) {
+		break;
+	case Job.SPA:
 		if(s.livingRules === LivingRule.LUXURIOUS) {
 			cost += rulesCost * 1.75;
 		} else if(s.livingRules == LivingRule.NORMAL) {
@@ -366,9 +369,8 @@ window.getSlaveCost = function(s) {
 		} else {
 			cost += rulesCost;
 		}
-	} else if(s.assignment === Job.STEWARD) {
-		cost += rulesCost * 2;
-	} else if(s.assignment === Job.SERVER) {
+		break;
+	case Job.SERVER:
 		if(s.livingRules == LivingRule.NORMAL) {
 			cost += rulesCost * 1.5;
 		} else {
@@ -378,23 +380,19 @@ window.getSlaveCost = function(s) {
 				cost += rulesCost;
 			}
 		}
-	} else if(s.assignment === Job.MILKMAID) {
-		cost += rulesCost * 2;
-	} else if(s.assignment === Job.DAIRY) {
+		break;
+	case Job.JAIL:
 		if(s.livingRules == LivingRule.NORMAL) {
-			cost += rulesCost * 1.5;
+			cost += rulesCost * 1.25;
 		} else {
-			if(State.variables.dairyDecoration === 'Degradationist') {
-				cost += rulesCost * .90;
-			} else {
-				cost += rulesCost;
-			}
+			cost += rulesCost * .90;
 		}
-	} else if(s.assignment === Job.TEACHER) {
+		break;
+	case Job.MADAM: case Job.DJ: case Job.NURSE: case Job.WARDEN:
+	case Job.ATTEND: case Job.STEWARD: case Job.MILKMAID: case Job.TEACHER:
 		cost += rulesCost * 2;
-	} else if(s.assignment === Job.SCHOOL) {
-		cost += rulesCost * 1.5;
-	} else {	
+		break;
+	default:	
 		if(s.livingRules === LivingRule.LUXURIOUS) {
 			cost += rulesCost * (s.relationship >= 4 ? 3 : 4);
 		} else if(s.livingRules == LivingRule.NORMAL) {
@@ -402,6 +400,7 @@ window.getSlaveCost = function(s) {
 		} else {
 			cost += rulesCost;
 		}
+		break;
 	}
 
 	// Food
