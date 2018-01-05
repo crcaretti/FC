@@ -4,9 +4,9 @@
 </span>
 
 <<SlaveSort $BrothiIDs>>
-<<set _DL = $BrothiIDs.length, $brothelSlaves = _DL, _SL = $slaves.length, $implanted = 0, $legendaryWhoreID = 0, $madamCashBonus = 0, $modded = 0, $old = 0, $pure = 0, $slim = 0, $stacked = 0, $unmodded = 0, $XX = 0, $XY = 0, $young = 0, _FLsFetish = 0, _profits = 0>>
-
+<<set _DL = $BrothiIDs.length, $brothelSlaves = _DL, _SL = $slaves.length, $legendaryWhoreID = 0, $madamCashBonus = 0, _FLsFetish = 0, _profits = 0>>
 <<set $legendaryWombID = 0, $pregYes = 0, $pregNo = 0>>
+<<set _modded = 0, _old = 0, _pure = 0, _slim = 0, _stacked = 0, _unmodded = 0, _XX = 0, _XY = 0, _young = 0, _pregYes = 0, _pregNo = 0, _minBonus = 50, _maxBonus = 150>>
 
 <!-- Statistics gathering -->
 <<set $facility = $facility || {}, $facility.brothel = initFacilityStatistics($facility.brothel)>>
@@ -253,6 +253,37 @@
 		<</silently>>
 	<</if>>
 	<<set $Madam = $slaves[_FLs]>>
+	<<if isSlim($slaves[_FLs]) == true>>
+		<<set _slim += 1>>
+	<</if>>
+	<<if isStacked($slaves[_FLs]) == true>>
+		<<set _stacked += 1>>
+	<</if>>
+	<<if isYoung($slaves[_FLs]) == true>>
+		<<set _young += 1>>
+	<<else>>
+		<<set _old += 1>>
+	<</if>>
+	<<if isModded($slaves[_FLs]) == true>>
+		<<set _modded += 1>>
+	<<elseif isUnmodded($slaves[_FLs]) == true>>
+		<<set _unmodded += 1>>
+	<</if>>
+	<<if isXY($slaves[_FLs]) == true>>
+		<<set _XY += 1>>
+	<<else>>
+		<<set _XX += 1>>
+	<</if>>
+	<<if isPure($slaves[_FLs]) == true>>
+		<<set _pure += 1>>
+	<<else>>
+		<<set _implanted += 1>>
+	<</if>>
+	<<if isPreg($slaves[_FLs]) == true>>
+		<<set _pregYes += 1>>
+	<<elseif isNotPreg($slaves[_FLs]) == true>>
+		<<set _pregNo += 1>>
+	<</if>>
 <</if>>
 
 <<if (_DL > 0)>>
@@ -342,6 +373,37 @@
 			<<include "SA devotion">>
 			<</silently>>
 		<</if>>
+		<<if isSlim($slaves[$i]) == true>>
+			<<set _slim += 1>>
+		<</if>>
+		<<if isStacked($slaves[$i]) == true>>
+			<<set _stacked += 1>>
+		<</if>>
+		<<if isYoung($slaves[$i]) == true>>
+			<<set _young += 1>>
+		<<else>>
+			<<set _old += 1>>
+		<</if>>
+		<<if isModded($slaves[$i]) == true>>
+			<<set _modded += 1>>
+		<<elseif isUnmodded($slaves[$i]) == true>>
+			<<set _unmodded += 1>>
+		<</if>>
+		<<if isXY($slaves[$i]) == true>>
+			<<set _XY += 1>>
+		<<else>>
+			<<set _XX += 1>>
+		<</if>>
+		<<if isPure($slaves[$i]) == true>>
+			<<set _pure += 1>>
+		<<else>>
+			<<set _implanted += 1>>
+		<</if>>
+		<<if isPreg($slaves[$i]) == true>>
+			<<set _pregYes += 1>>
+		<<elseif isNotPreg($slaves[$i]) == true>>
+			<<set _pregNo += 1>>
+		<</if>>
 		<<if $brothelAdsSpending != 0>>
 			<<set _seed = 0>>
 			<<if $brothelAdsStacked == 1>>
@@ -425,59 +487,437 @@
 	<br><br>&nbsp;&nbsp;&nbsp;
 	<<if $brothelAdsSpending != 0>>
 		An ad campaign is supporting business there, and whores that match it make more ¤.
-	<</if>>
-	<<if ($arcologies[0].FSAssetExpansionist == "unset") && ($arcologies[0].FSSlimnessEnthusiast == "unset")>>
-		<<if ($brothelAdsSpending == 0) || ($brothelAdsStacked == 0)>>
-			<<set _possibleBonuses++>>
-			<<if ($slim > 0) && ($stacked > 0) && (Math.abs($slim-$stacked) <= (_DL/3))>>
-				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
-				The brothel offers a @@.yellowgreen;wide@@ variety of slim and stacked slaves.
-			<</if>>
+		
+		<br>
+		
+		<<if $brothelAdsStacked == 1>>
+			Its advertisements feature stacked girls.
+			<<set _ads = 1>>
+		<<elseif $brothelAdsStacked == -1>>
+			Its advertisements feature slim girls.
+			<<set _ads = -1>>
+		<<else>>
+			Its advertisements feature a variety of girls, some that are slim and some others that are stacked.
+			<<set _ads = 0>>
 		<</if>>
 	<</if>>
-	<<if ($arcologies[0].FSRepopulationFocus == "unset") && ($arcologies[0].FSRestart == "unset")>>
-		<<if ($brothelAdsSpending == 0) || ($brothelAdsPreg == 0)>>
-			<<set _possibleBonuses++>>
-			<<if ($pregYes > 0) && ($pregNo > 0) && (Math.abs($pregYes-$pregNo) <= (_DL/3))>>
-				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
-				The brothel offers a @@.yellowgreen;wide@@ variety of slaves with big bellies and slaves with flat bellies.
-			<</if>>
+	<<if ($arcologies[0].FSAssetExpansionist != "unset") && ($arcologies[0].FSAssetExpansionist >= 80)>>
+		Most customers prefer stacked girls.
+		<<set _pref = 1>>
+	<<elseif  ($arcologies[0].FSSlimnessEnthusiast != "unset") && ($arcologies[0].FSSlimnessEnthusiast >= 80) >>
+		Most customers prefer slim girls.
+		<<set _pref = -1>>
+	<<else>>
+	    <<if ($arcologies[0].FSAssetExpansionist == "unset") && ($arcologies[0].FSSlimnessEnthusiast == "unset")>>
+    		<<if ($brothelAdsSpending == 0) || ($brothelAdsStacked == 0)>>
+    			<<set _possibleBonuses++>>
+    			<<if (_slim > 0) && (_stacked > 0) && (Math.abs(_slim-_stacked) <= (_DL/3))>>
+    				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+    				The brothel offers a @@.yellowgreen;wide@@ variety of slim and stacked slaves.
+    			<</if>>
+    		<</if>>
+	    <</if>>
+		Most customers don't have preferences for either slim or stacked slaves.
+		<<set _pref = 0>>
+	<</if>>
+	<<if (_slim > (_DL/2))>>
+		<<set _girls = -1>>
+		Most of the the slaves in the brothel are slim.
+	<<elseif (_stacked > (_DL/2))>>
+		<<set _girls = 1>>
+		Most of the the slaves in the brothel are stacked.
+	<<elseif (_slim > 0) && (_stacked > 0) && (Math.abs(_slim-_stacked) <= (_DL/3))>>
+		<<set _girls = 0>>
+		The slaves in the brothel vary in slimness.
+	<</if>>
+	<br>
+	<<if (_pref == 0)>> /*customers don't care*/
+	<<elseif ($brothelAdsSpending > 0)>>
+		<<elseif (_ads == _pref) && (_girls == _ads)>>
+			<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+			Its advertising for <<if _ads == 1>>stacked <<elseif _ads == -1>>slim <</if>>girls matched most customers' preferences and the girls in the brothel matched its advertisements. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<elseif (_ads == _pref) && (_girls != _ads)>>
+			Its advertising for <<if _ads == 1>>stacked <<elseif _ads == -1>>slim <</if>>girls matched most customers preferences, but most of the girls in the brothel were not as advertised. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<<elseif (_girls == _pref) && (_girls != _ads)>>
+			The <<if _girls == 1>>stacked <<elseif _girls == -1>>slim <</if>>girls in the brothel did not match its advertisements, but since the girls in the brothel matched most customers preferences for <<if _pref == 1>>stacked <<elseif _pref == -1>>slim <</if>>girls, your reputation was not affected.
+		<<elseif (_girls != _pref)>>
+			Some customers were put off since the <<if _girls == 1>>stacked <<elseif _girls == -1>>slim <</if>>girls there did not match their preferences for <<if _pref == 1>>stacked <<elseif _pref == -1>>slim <</if>>girls. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<</if>>
+	<<elseif >>	
+		<<if (_girls == _pref)>>
+			The <<if _girls == 1>>stacked <<elseif _girls == -1>>slim <</if>>girls in the brothel match most customers' preferences for <<if _pref == 1>>stacked <<elseif _pref == -1>>slim <</if>>girls. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<else>>
+			Some customers were put off since the <<if _girls == 1>>stacked <<elseif _girls == -1>>slim <</if>>girls there did not match their preferences for <<if _pref == 1>>stacked <<elseif _pref == -1>>slim <</if>>girls. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
 		<</if>>
 	<</if>>
-	<<if ($arcologies[0].FSDegradationist == "unset") && ($arcologies[0].FSBodyPurist == "unset")>>
-		<<if ($brothelAdsSpending == 0) || ($brothelAdsModded == 0)>>
-			<<set _possibleBonuses++>>
-			<<if ($modded > 0) && ($unmodded > 0) && (Math.abs($modded-$unmodded) <= (_DL/3))>>
-				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
-				The brothel offers a @@.yellowgreen;both@@ heavily pierced and tattooed slaves and slaves with more natural bodies.
-			<</if>>
+	
+	<br>
+	
+	<<if ($brothelAdsSpending > 0)>>
+		<<if $brothelAdsPreg == 1>>
+			Its advertisements feature girls that have firm, rounded bellies.
+			<<set _ads = 1>>
+		<<elseif $brothelAdsPreg == -1>>
+			Its advertisements feature girls have firm, flat bellies.
+			<<set _ads = -1>>
+		<<else>>
+			Its advertisements feature some girls that are pregnant.
+			<<set _ads = 0>>
 		<</if>>
 	<</if>>
-	<<if ($arcologies[0].FSTransformationFetishist == "unset") && ($arcologies[0].FSBodyPurist == "unset")>>
-		<<if ($brothelAdsSpending == 0) || ($brothelAdsImplanted == 0)>>
-			<<set _possibleBonuses++>>
-			<<if ($implanted > 0) && ($pure > 0) && (Math.abs($implanted-$pure) <= (_DL/3))>>
-				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
-				The brothel offers @@.yellowgreen;both@@ all-natural girls, and slaves whose beauty has been improved by surgical means.
-			<</if>>
+	<<if ($arcologies[0].FSRepopulationFocus != "unset") && ($arcologies[0].FSRepopulationFocus >= 80)>>
+		Most customers prefer girls with big bellies.
+		<<set _pref = 1>>
+	<<elseif  ($arcologies[0].FSRestart != "unset") && ($arcologies[0].FSRestart >= 80) >>
+		Most customers prefer girls with flat bellies.
+		<<set _pref = -1>>
+	<<else>>
+	    <<if ($arcologies[0].FSRepopulationFocus == "unset") && ($arcologies[0].FSRestart == "unset")>>
+    		<<if ($brothelAdsSpending == 0) || ($brothelAdsPreg == 0)>>
+    			<<set _possibleBonuses++>>
+    			<<if (_pregYes > 0) && (_pregNo > 0) && (Math.abs(_pregYes-_pregNo) <= (_DL/3))>>
+    				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+    				The brothel offers a @@.yellowgreen;wide@@ variety of slaves with big bellies and slaves with flat bellies.
+    			<</if>>
+    		<</if>>
+    	<</if>>
+	    Most customers don't have preferences for either big-bellied or flat-bellied girls.
+		<<set _pref = 0>>
+	<</if>>
+	<<if (_pregNo > (_DL/2))>>
+		<<set _girls = -1>>
+		Most of the the slaves in the brothel have flat bellies.
+	<<elseif (_pregYes > (_DL/2))>>
+		<<set _girls = 1>>
+		Most of the the slaves in the brothel have big bellies.
+	<<else>>
+		<<set _girls = 0>>
+		The slaves in the brothel vary in belly size.
+	<</if>>
+	<br>
+	<<if _pref == 0>> /*customers don't care*/
+	<<elseif ($brothelAdsSpending > 0)>>
+		<<if (_ads == _pref) && (_girls == _ads)>>
+			<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+			Its advertising for <<if _ads == 1>>big-bellied <<elseif _ads == -1>>flat-bellied <</if>>girls matched most customers' preferences and the girls in the brothel matched its advertisements. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<elseif (_ads == _pref) && (_girls != _ads)>>
+			Its advertising for <<if _ads == 1>>big-bellied <<elseif _ads == -1>>flat-bellied <</if>>girls matched most customers preferences, but the girls in the brothel did not. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<<elseif (_girls == _pref) && (_girls != _ads)>>
+			The <<if _girls == 1>>big-bellied <<elseif _girls == -1>>flat-bellied <</if>>girls in the brothel did not match its advertisements, but since the girls in the brothel matched most customers preferences for <<if _pref == 1>>big-bellied <<elseif _pref == -1>>flat-bellied <</if>>girls, your reputation was not affected.
+		<<elseif (_girls != _pref)>>
+			Some customers were put off since the <<if _girls == 1>>big-bellied <<elseif _girls == -1>>flat-bellied <</if>>girls there did not match their preferences for <<if _pref == 1>>big-bellied <<elseif _pref == -1>>flat-bellied <</if>>girls. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<</if>>
+	<<else>>	
+		<<if (_girls == _pref)>>
+			The <<if _girls == 1>>big-bellied <<elseif _girls == -1>>flat-bellied <</if>>girls in the brothel match most customers' preferences for <<if _pref == 1>>big-bellied <<elseif _pref == -1>>flat-bellied <</if>>girls. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<else>>
+			Some customers were put off since the <<if _girls == 1>>big-bellied <<elseif _girls == -1>>flat-bellied <</if>>girls there did not match their preferences for <<if _pref == 1>>big-bellied <<elseif _pref == -1>>flat-bellied <</if>>girls. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<</if>>
+	<</if>>
+	
+	<br>
+
+    <<if ($brothelAdsSpending > 0)>>
+		<<if $brothelAdsModded == 1>>
+			Its advertisements feature girls that are heavily pierced and tattooed.
+			<<set _ads = 1>>
+		<<elseif $brothelAdsModded == -1>>
+			Its advertisements feature girls that free from piercings and tattoos.
+			<<set _ads = -1>>
+		<<else>>
+			Its advertisements feature some girls that are tattooed and pierced, and some that aren't.
+			<<set _ads = 0>>
+		<</if>>
+	<</if>>
+	<<if ($arcologies[0].FSDegradationist != "unset") && ($arcologies[0].FSDegradationist >= 80)>>
+		Most customers prefer heavily pierced and tattoed girls.
+		<<set _pref = 1>>
+	<<elseif ($arcologies[0].FSBodyPurist != "unset") && ($arcologies[0].FSBodyPurist >= 80) >>
+		Most customers prefer natural girls.
+		<<set _pref = -1>>
+    <<else>>
+	    <<if ($arcologies[0].FSDegradationist == "unset") && ($arcologies[0].FSBodyPurist == "unset")>>
+    		<<if ($brothelAdsSpending == 0) || ($brothelAdsModded == 0)>>
+    			<<set _possibleBonuses++>>
+    			<<if (_modded > 0) && (_unmodded > 0) && (Math.abs(_modded-_unmodded) <= (_DL/3))>>
+    				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+    				The brothel offers a @@.yellowgreen;both@@ heavily pierced and tattooed slaves and slaves with more natural bodies.
+    			<</if>>
+    		<</if>>
+		<</if>>
+    	Most customers don't have preferences for either heavily modded or more natural slaves.
+		<<set _pref = 0>>
+	<</if>>
+	<<if (_modded > (_DL/2))>>
+		<<set _girls = -1>>
+		Most of the the slaves in the brothel are heavily pierced and tattoed.
+	<<elseif (_unmodded > (_DL/2))>>
+		<<set _girls = 1>>
+		Most of the the slaves in the brothel have natural unmodded bodies.
+	<<else>>
+		<<set _girls = 0>>
+		Some girls in the brothel have piercings or tattoos, some do not and others have both.
+	<</if>>
+	<br>
+	<<if (_pref == 0)>> /*customers don't care*/
+	<<elseif ($brothelAdsSpending > 0) && (_pref != 0)>>
+		<<if (_ads == _pref) && (_girls == _ads)>>
+			<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+			Its advertising for <<if _ads == 1>>heavily modded <<elseif _ads == -1>>natural bodied <</if>>girls matched most customers' preferences and the girls in the brothel matched its advertisements. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<elseif (_ads == _pref) && (_girls != _ads)>>
+			Its advertising for <<if _ads == 1>>heavily modded <<elseif _ads == -1>>natural bodied <</if>>girls matched most customers preferences, but the girls in the brothel did not. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<<elseif (_girls == _pref) && (_girls != _ads)>>
+			The <<if _girls == 1>>heavily modded <<elseif _girls == -1>>natural bodied <</if>>girls in the brothel did not match its advertisements, but since the girls in the brothel matched most customers preferences for <<if _pref == 1>>heavily modded <<elseif _pref == -1>>natural bodied <</if>>girls, your reputation was not affected.
+		<<elseif (_girls != _pref)>>
+			Some customers were put off since the <<if _girls == 1>>heavily modded <<elseif _girls == -1>>natural bodied <</if>>girls there did not match their preferences for <<if _pref == 1>>heavily modded <<elseif _pref == -1>>natural bodied <</if>>girls. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<</if>>
+	<<else>>	
+		<<if (_girls == _pref)>>
+			The <<if _girls == 1>>heavily modded <<elseif _girls == -1>>natural bodied <</if>>girls in the brothel match most customers' preferences for <<if _pref == 1>>heavily modded <<elseif _pref == -1>>natural unmodded <</if>>girls. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<else>>
+			Some customers were put off since the <<if _girls == 1>>heavily modded <<elseif _girls == -1>>natural bodied <</if>>girls there did not match their preferences for <<if _pref == 1>>heavily modded <<elseif _pref == -1>>natural bodied <</if>>girls. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<</if>>
+	<</if>>
+	
+	<br>
+	
+	<<if ($brothelAdsSpending > 0)>>
+		<<if ($brothelAdsImplanted == 1)>>
+			Its advertisements feature girls that are augmented by implants or improved surgically.
+			<<set _ads = 1>>
+		<<elseif ($brothelAdsImplanted == -1)>>
+			Its advertisements feature girls that have all natural bodies.
+			<<set _ads = -1>>
+		<<else>>
+			Its advertisements feature some girls that are surgically improved and implanted and some that are all-natural.
+			<<set ads = 0>>
+		<</if>>
+	<</if>>
+	<<if ($arcologies[0].FSTransformationFetishist != "unset") && ($arcologies[0].FSDegradationist >= 80)>>
+		Most customers prefer heavily implanted and surgically enhanced girls.
+		<<set _pref = 1>>
+	<<elseif ($arcologies[0].FSBodyPurist != "unset") && ($arcologies[0].FSBodyPurist >= 80) >>
+		Most customers prefer all-natural girls.
+		<<set _pref = -1>>
+	<<else>>
+    	<<if ($arcologies[0].FSTransformationFetishist == "unset") && ($arcologies[0].FSBodyPurist == "unset")>>
+    		<<if ($brothelAdsSpending == 0) || ($brothelAdsImplanted == 0)>>
+    			<<set _possibleBonuses++>>
+    			<<if (_implanted > 0) && (_pure > 0) && (Math.abs(_implanted-_pure) <= (_DL/3))>>
+    				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+    				The brothel offers @@.yellowgreen;both@@ all-natural girls, and slaves whose beauty has been improved by surgical means.
+    			<</if>>
+    		<</if>>
+    	<</if>>
+	    Most customers don't have preferences for either all-natural or surgically enhanced and implanted girls.
+		<<set _pref = 0>>
+	<</if>>
+	<<if (_implanted > (_DL/2))>>
+		<<set _girls = -1>>
+		Most of the the slaves in the brothel are heavily implanted or surgically enhanced.
+	<<elseif (_pure > (_DL/2))>>
+		<<set _girls = 1>>
+		Most of the the slaves in the brothel have naturally pure bodies.
+	<<else>>
+		<<set _girls = 0>>
+		The slaves in the brothel vary in body modification.
+	<</if>>
+	<br>
+	<<if _pref == 0>> /*customers don't care*/
+	<<elseif ($brothelAdsSpending > 0)>>
+		<<if (_ads == _pref) && (_girls == _ads)>>
+			<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+			Its advertising for <<if _ads == 1>>implanted or surgically improved <<elseif _ads == -1>>naturally pure <</if>>girls matched most customers' preferences and the girls in the brothel matched its advertisements. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<elseif (_ads == _pref) && (_girls != _ads)>>
+			Its advertising for <<if _ads == 1>>implanted or surgically improved <<elseif _ads == -1>>naturally pure <</if>>girls matched most customers preferences, but the girls in the brothel did not. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<<elseif (_girls == _pref) && (_girls != _ads)>>
+			The <<if _girls == 1>>implanted or surgically improved <<elseif _girls == -1>>naturally pure <</if>>girls in the brothel did not match its advertisements, but since the girls in the brothel matched most customers preferences for <<if _pref == 1>>implanted or surgically improved <<elseif _pref == -1>>naturally pure <</if>>girls, your reputation was not affected.
+		<<elseif (_girls != _pref)>>
+			Some customers were put off since the <<if _girls == 1>>implanted or surgically improved <<elseif _girls == -1>>naturally pure <</if>>girls there did not match their preferences for <<if _pref == 1>>implanted or surgically improved <<elseif _pref == -1>>naturally pure <</if>>girls. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<</if>>
+	<<else>>	
+		<<if (_girls == _pref)>>
+			The <<if _girls == 1>>implanted or surgically improved <<elseif _girls == -1>>naturally pure <</if>>girls in the brothel match most customers' preferences for <<if _pref == 1>>implanted or surgically improved <<elseif _pref == -1>>natural unmodded <</if>>girls. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<else>>
+			Some customers were put off since the <<if _girls == 1>>implanted or surgically improved <<elseif _girls == -1>>naturally pure <</if>>girls there did not match their preferences for <<if _pref == 1>>implanted or surgically improved <<elseif _pref == -1>>naturally pure <</if>>girls. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<</if>>
+	<</if>>
+	
+	<br>
+	
+	<<if ($brothelAdsSpending > 0)>>
+		<<if ($brothelAdsXX == 1)>>
+			Its advertisements feature girls with female genitalia.
+			<<set _ads = 1>>
+		<<elseif ($brothelAdsXX == -1)>>
+			Its advertisements feature girls with male genitalia.
+			<<set _ads = -1>>
+		<<else>>
+			Its advertisements feature a variety of girls with both male and female genitalia.
+			<<set _ads = 0>>
 		<</if>>
 	<</if>>
 	<<if $seeDicks != 0>>
-		<<if ($brothelAdsSpending == 0) || ($brothelAdsXX == 0)>>
-			<<set _possibleBonuses++>>
-			<<if ($XX > 0) && ($XY > 0) && (Math.abs($XX-$XY) <= (_DL/3))>>
+	    <<if ($brothelAdsSpending > 0)>>
+			<<if ($brothelAdsXX == 1)>>
+				Its advertisements feature girls with female genitalia.
+				<<set _ads = 1>>
+			<<elseif ($brothelAdsXX == -1)>>
+				Its advertisements feature girls with male genitalia.
+				<<set _ads = -1>>
+			<<else>>
+				Its advertisements feature a variety of girls with both male and female genitalia.
+				<<set _ads = 0>>
+			<</if>>
+		<</if>>
+		<<if ($arcologies[0].FSGenderFundamentalist != "unset") && ($arcologies[0].FSGenderFundamentalist >= 80)>>
+			Most customers prefer girls with pussies.
+			<<set _pref = 1>>
+		<<elseif ($arcologies[0].FSGenderRadicalist != "unset") && ($arcologies[0].FSGenderRadicalist >= 80)>>
+			Most customers prefer girls with dicks.
+			<<set _pref = -1>>
+		<<else>>
+			<<if ($brothelAdsSpending == 0) || ($brothelAdsXX == 0)>>
+				<<set _possibleBonuses++>>
+				<<if (_XX > 0) && (_XY > 0) && (Math.abs(_XX-_XY) <= (_DL/3))>>
+					<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+					The brothel offers a @@.yellowgreen;mix@@ of whores that can appeal to varied tastes in genitalia.
+				<</if>>
+			<</if>>
+			Most customers don't have preferences for either girls with dicks or girls with pussies.
+			<<set _pref = 0>>
+		<</if>>
+		<<if (_XX > (_DL/2))>>
+			<<set _girls = 1>>
+			Most of the the slaves in the brothel have female genitalia.
+		<<elseif (_XY > (_DL/2))>>
+			Most of the the slaves in the brothel have male genitalia.
+			<<set _girls = -1>>
+		<<else>>
+			<<set _girls = 0>>
+			The slaves in the brothel vary in genitalia.
+		<</if>>
+		<br>
+		<<if _pref == 0>> /*customers don't care*/
+		<<elseif ($brothelAdsSpending > 0) >>
+			<<if (_ads == _pref) && (_girls == _ads)>>
 				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
-				The brothel offers a @@.yellowgreen;mix@@ of whores that can appeal to varied tastes in genitalia.
+				Its advertising for girls <<if _ads == 1>>with pussies <<elseif _ads == -1>>with dicks <</if> matches most customers' age preferences and the girls in the brothel match as advertised. Your @@.green;reputation@@ increased slightly as a result.
+				<<set $rep += random(_minBonus,_maxBonus)>>
+			<<elseif (_ads == _pref) && (_girls != _ads)>>
+				Its advertising for girls <<if _ads == 1>>with pussies <<elseif _ads == -1>>with dicks <</if> matched most customers preferences, but the girls in the brothel are not as advertised. Your @@.red;reputation@@ dropped slightly as a result.
+				<<set $rep -= random(_minBonus,_maxBonus)>>
+			<<elseif (_girls == _pref) && (_girls != _ads)>>
+				The girls <<if _girls == 1>> with pussies<<else if _girls == -1>> with dicks<</if>>in the brothel did not match the advertisements, but since the girls in the brothel matched most customers preferences for girls<<if _pref == 1>> with pussies<<else if _pref == -1>> with dicks<</if>>, your reputation was not affected.
+			<<elseif (_girls != _pref)>>
+				Some customers were put off since the ages of girls there did not match their preferences. Your @@.red;reputation@@ dropped slightly as a result.
+				<<set $rep -= random(_minBonus,_maxBonus)>>
+			<</if>>
+		<<else>>	
+			<<if (_girls == _pref)>>
+				The girls in the brothel match most customers preferences for girls <<if _girls == 1>>with female genitalia <<elseif _girls == -1>>with male genitalia <</if>. Your @@.green;reputation@@ increased slightly as a result.
+				<<set $rep += random(_minBonus,_maxBonus)>>
+			<<else>>
+				Some customers were put off since the girls <<if _girls == 1>>with female genitalia <<elseif _girls == -1>>with male genitalia <</if>> did not match their preferences for girls<<if _pref == 1>> with pussies<<else if _pref == -1>> with dicks<</if>>. Your @@.red;reputation@@ dropped slightly as a result.
+				<<set $rep -= random(_minBonus,_maxBonus)>>
 			<</if>>
 		<</if>>
 	<</if>>
-	<<if ($arcologies[0].FSMaturityPreferentialist == "unset") && ($arcologies[0].FSYouthPreferentialist == "unset")>>
-		<<if ($brothelAdsSpending == 0) || ($brothelAdsOld == 0)>>
-			<<set _possibleBonuses++>>
-			<<if ($young > 0) && ($old > 0) && (Math.abs($young-$old) <= (_DL/3))>>
-				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
-				The brothel offers girls @@.yellowgreen;both@@ young and mature.
-			<</if>>
+	
+	<br>
+		
+	<<if ($brothelAdsSpending > 0)>>
+		<<switch ($brothelAdsOld == 0)>>
+			<<case 1>>
+				Its advertisements feature mature slaves.
+				<<set _ads = 1>>
+			<<case -1>>
+				Its advertisements feature young slaves.
+				<<set _ads = -1>>
+			<<case -2>>
+				Its advertisements feature teenagers.
+				<<set _ads = -1>>
+			<<case -3>>
+				Its advertisements feature lolis.
+				<<set _ads = -1>>
+			<<default>>
+				Its advertisements feature slaves of a variety of ages.
+				<<set _ads = 0>>
+		<</switch>>
+	<</if>>
+	
+	<<if ($arcologies[0].FSMaturityPreferentialist != "unset") && ($arcologies[0].FSMaturityPreferentialist >= 80)>>
+		Most customers prefer mature girls.
+		<<set _pref = 1>>
+	<<elseif ($arcologies[0].FSYouthPreferentialist != "unset") && ($arcologies[0].FSYouthPreferentialist >= 80)>>
+		Most customers prefer young girls.
+		<<set _pref = -1>>
+	<<else>>
+    	<<if ($arcologies[0].FSMaturityPreferentialist == "unset") && ($arcologies[0].FSYouthPreferentialist == "unset")>>
+    		<<if ($brothelAdsSpending == 0) || ($brothelAdsOld == 0)>>
+    			<<set _possibleBonuses++>>
+    			<<if ($young > 0) && ($old > 0) && (Math.abs($young-$old) <= (_DL/3))>>
+    				<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+    				The brothel offers girls @@.yellowgreen;both@@ young and mature.
+    			<</if>>
+    		<</if>>
+    	<</if>>
+    	Most customers don't have preferences for either mature or young girls.
+		<<set _pref = 0>>
+	<</if>>
+	<<if (_young > 0) && (_old > 0) && (Math.abs(_young-_old) <= (_DL/3))>>
+		<<set _girls = 0>>
+		The slaves in the brothel vary in age.
+	<<elseif (_young > (_DL/2))>>
+		<<set _girls = -1>>
+		Most of the the slaves in the brothel are young.
+	<<elseif (_old > (_DL/2))>>
+		<<set _girls = 1>>
+		Most of the the slaves in the brothel are mature.
+	<</if>>
+	<br>
+	<<if _pref == 0>> /*customers don't care*/
+	<<elseif ($brothelAdsSpending > 0) >>
+		<<if (_ads == _pref) && (_girls == _ads)>>
+			<<set _adsIncome = _DL*random(20,30), $cash += _adsIncome, $facility.brothel.adsIncome += _adsIncome, _brothelBonuses++>>
+			Its advertising matches most customers' age preferences and the girls in the brothel match the ages as advertised. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<elseif (_ads == _pref) && (_girls != _ads)>>
+			Its advertising matched most customers age preferences, but the girls in the brothel are not as advertised. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<<elseif (_girls == _pref) && (_girls != _ads)>>
+			The ages of girls in the brothel did not match the ages as advertised, but since the girls in the brothel matched most customers age preferences, your reputation was not affected.
+		<<elseif (_girls != _pref)>>
+			Some customers were put off since the ages of girls there did not match their preferences. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
+		<</if>>
+	<<else>>	
+		<<if (_girls == _pref)>>
+			The girls in the brothel match most customers' age preferences. Your @@.green;reputation@@ increased slightly as a result.
+			<<set $rep += random(_minBonus,_maxBonus)>>
+		<<else>>
+			Some customers were put off since the ages of girls there did not match their preferences. Your @@.red;reputation@@ dropped slightly as a result.
+			<<set $rep -= random(_minBonus,_maxBonus)>>
 		<</if>>
 	<</if>>
 
