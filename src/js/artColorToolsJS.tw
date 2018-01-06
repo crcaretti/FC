@@ -1,0 +1,73 @@
+:: Art Color Tools JS [script]
+
+/* 
+This takes a textual hair colour description and tries to guess the appropriate HTML compliant color code.
+
+hColor should be a color name, but can also be a string describing hair colour
+*/
+window.extractHairColor = function(hColor) {
+	/* 
+	these are color names known and used in FreeCities 
+	attributed color names are at the front of the array
+	*/
+	var FCname2HTMLarray = [
+		["blazing red", "#E00E2B"],
+		["neon green", "#25d12b"],
+		["neon blue", "#2284C3"],
+		["neon pink", "#cc26aa"],
+		["strawberry-blonde", "#e5a88c"],
+		["platinum blonde", "#fcf3c1"],
+		["dark brown", "#463325"],
+		["brown", "#8D4F21"],
+		["auburn", "#7e543e"],
+		["black", "#3F4040"],
+		["blonde", "#F4F1A3"],
+		["blue", "#4685C5"],
+		["burgundy", "#5f3946"],
+		["chestnut", "#663622"],
+		["chocolate", "#6e4937"],
+		["copper", "#a16145"],
+		["ginger", "#da822d"],
+		["golden", "#ffdf31"],
+		["green", "#5FBA46"],
+		["grey", "#9e9fa4"],
+		["hazel", "#8d6f1f"],
+		["pink", "#D18CBC"],
+		["red", "#BB2027"],
+		["silver", "#cdc9c6"],
+		/* these are not actually FreeCities canon, but like to appear in custom descriptions */
+		["dark", "#463325"],
+		["brunette", "#8D4F21"]
+	];
+	
+	/* these are HTML color names supported by most browsers */
+	var HTMLstandardColors = ["aliceblue","antiquewhite","aqua","aquamarine","azure","beige","bisque","black","blanchedalmond","blue","blueviolet","brown","burlywood","cadetblue","chartreuse","chocolate","coral","cornflowerblue","cornsilk","crimson","cyan","darkblue","darkcyan","darkgoldenrod","darkgray","darkgrey","darkgreen","darkkhaki","darkmagenta","darkolivegreen","darkorange","darkorchid","darkred","darksalmon","darkseagreen","darkslateblue","darkslategray","darkslategrey","darkturquoise","darkviolet","deeppink","deepskyblue","dimgray","dimgrey","dodgerblue","firebrick","floralwhite","forestgreen","fuchsia","gainsboro","ghostwhite","gold","goldenrod","gray","grey","green","greenyellow","honeydew","hotpink","indianred ","indigo ","ivory","khaki","lavender","lavenderblush","lawngreen","lemonchiffon","lightblue","lightcoral","lightcyan","lightgoldenrodyellow","lightgray","lightgrey","lightgreen","lightpink","lightsalmon","lightseagreen","lightskyblue","lightslategray","lightslategrey","lightsteelblue","lightyellow","lime","limegreen","linen","magenta","maroon","mediumaquamarine","mediumblue","mediumorchid","mediumpurple","mediumseagreen","mediumslateblue","mediumspringgreen","mediumturquoise","mediumvioletred","midnightblue","mintcream","mistyrose","moccasin","navajowhite","navy","oldlace","olive","olivedrab","orange","orangered","orchid","palegoldenrod","palegreen","paleturquoise","palevioletred","papayawhip","peachpuff","peru","pink","plum","powderblue","purple","rebeccapurple","red","rosybrown","royalblue","saddlebrown","salmon","sandybrown","seagreen","seashell","sienna","silver","skyblue","slateblue","slategray","slategrey","snow","springgreen","steelblue","tan","teal","thistle","tomato","turquoise","violet","wheat","white","whitesmoke","yellow","yellowgreen"];
+	
+	var FCnames = new Map(FCname2HTMLarray);
+	hColor = hColor.toLowerCase(); /* normalization: lowercase color name */
+	var colorCode = FCnames.get(hColor); /* look up in FreeCities color names */
+	if (!colorCode) { /* not a FreeCities color name*/
+		if (HTMLstandardColors.includes(hColor) || hColor.match(/^#([0-9a-f]{3}){1,2}$/) !== null) {
+			colorCode = hColor; /* is a HTML color name or value, use it directly */
+		} else { 
+			/* 
+			is not even a HTML color name. hColor probably is a description.
+			look for anything resembling a valid color name within the description.
+			*/
+			var hColorNoSpaces = hColor.replace(/\s+/g, ''); /* remove all spaces from description */
+			var FCkeys = Array.from(FCnames.keys());
+			var colorCodes = [
+				FCnames.get(FCkeys.find(function (e){return hColor.startsWith(e);})),
+				HTMLstandardColors.find(function (e){return hColorNoSpaces.startsWith(e);}),
+				FCnames.get(FCkeys.find(function (e){return hColor.includes(e);})),
+				HTMLstandardColors.find(function (e){return hColorNoSpaces.includes(e);})
+			];
+			colorCode = colorCodes.find(function (e){return e;}); /* picks the first successful guess */
+		}
+	}
+	if (!colorCode) {
+		console.log("Art Color Tools JS: Unable to determine HTML compliant color code for hair color string '"+hColor+"'.");
+		colorCode = "fuchsia"; /* use fuchsia as error marker */
+	}
+	return colorCode;
+};
