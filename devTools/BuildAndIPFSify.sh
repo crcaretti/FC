@@ -22,7 +22,7 @@ fi
 
 # If we've done this before then unpin the previous hash so IPFS can GC it if it needs to
 if [ -r ../IPFS_hash.txt ]; then
-	ipfs pin rm --recursive=true "$(cut -d : -f 2 ../IPFS_hash.txt)"
+	ipfs pin rm --recursive=true "$(cut -d : -f 2 ../IPFS_hash.txt | tr -d ' ')"
 fi
 
 ./compile || exit 1
