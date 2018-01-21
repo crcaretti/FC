@@ -2,22 +2,15 @@
 
 <<if $losses == 0>>
 	<<if $irregulars > 0>>
-		The volunteering citizens were quickly organized into an irregular militia unit and deployed in the arcology. While without the discipline of your other instruments, they nonetheless provided precious extra firepower and standing strength.
-		<br>During the battle they suffered no casualties.
-	<br>
+		The volunteering citizens were quickly organized into an irregular militia unit and deployed in the arcology. No casualties suffered.
 	<</if>>
 	<<if $deployingBots == 1>>
 		<br>
-		Your squadron of security drones participated in the battle, dominating the airspace and providing vital intelligence to the rest of the army.
-		<br>During the battle they suffered no casualties.
-	<br>
+		Security drones: no casualties suffered.
 	<</if>>
 	<<if $securityForceCreate == 1>>
 		<br>
-		$securityForceName, <<print commaNum($securityForcePersonnel)>> strong, was called to join the battle aboard their<<if $securityForceVehiclePower >= 4>> armored<</if>> vehicles <<if $securityForceAC130 > 0>>and their AC130<</if>>.
-		They brought their unmatched strength to crush those that would want you deposed.
-		<br>During the battle they suffered no casualties.
-	<br>
+		$securityForceName, <<print commaNum($securityForcePersonnel)>> strong, was called to join the battle: no casualties suffered.
 	<</if>>
 	<<set _count = 0>>
 	<<if $loyalID.length > 0>>
@@ -298,7 +291,9 @@
 		<<set _rand = random(_lossesList.length - 1)>>
 		<<set _lossesList[_rand] += $losses - _count>>
 	<<elseif _count > $losses>>
-		<br>@@.red;Error: assigned losses higher than actual losses@@
+		<<set _diff = _count - $losses>>
+		<<set _rand = random(_lossesList.length - 1)>>
+		<<set _lossesList[_rand] = Math.trunc(_lossesList[_rand]-_diff,0,100)>>
 	<</if>>
 	
 	/* assigns the losses and notify the player */
@@ -311,19 +306,19 @@
 		<<else>>
 			<<set $ACitizens = 100>>
 		<</if>>
-		The volunteering citizens were quickly organized into an irregular militia unit and deployed in the arcology. While without the discipline of your other instruments, they nonetheless provided precious extra firepower and standing strength.
-		<br>During the battle they suffered 
+		The volunteering citizens were quickly organized into an irregular militia unit and deployed in the arcology:
 		<<if _loss <= 0>>
-			no casualties.
+			no casualties
 		<<elseif _loss <= 10>>
-			light casualties.
+			light casualties
 		<<elseif _loss <= 30>>
-			moderate casualties.
+			moderate casualties
 		<<elseif _loss <= 60>>
-			heavy casualties.
+			heavy casualties
 		<<else>>
-			catastrophic casualties.
+			catastrophic casualties
 		<</if>>
+		suffered.
 	<</if>>
 	<<if $secBots.active == 1>>
 		<br>
@@ -331,19 +326,19 @@
 		<<set _loss = _lossesList.pluck()>>
 		<<set _loss = Math.clamp(_loss,0,$secBots.troops)>>
 		<<set $secBots.troops -= _loss>>
-		Your squadron of security drones participated in the battle, dominating the airspace and providing vital intelligence to the rest of the army.
-		<br>During the battle they suffered 
+		Security drones:
 		<<if _loss <= 0>>
-			no casualties.
+			no casualties
 		<<elseif _loss <= 10>>
-			light casualties.
+			light casualties
 		<<elseif _loss <= 30>>
-			moderate casualties.
+			moderate casualties
 		<<elseif _loss <= 60>>
-			heavy casualties.
+			heavy casualties
 		<<else>>
-			catastrophic casualties.
+			catastrophic casualties
 		<</if>>
+		suffered.
 		<<if $secBots.troops <= 0>>
 			<<set $secBots.active = 0>>
 			Unfortunately the losses they took were simply too great, their effective combatants are in so small number you can no longer call them a deployable unit. It will take quite the investment to rebuild them. 
@@ -357,20 +352,19 @@
 		<<set _loss = _lossesList.pluck()>>
 		<<set _loss = Math.clamp(_loss,0,$securityForcePersonnel)>>
 		<<set $securityForcePersonnel -= _loss>>
-		$securityForceName, $securityForcePersonnel strong, is called to join the battle aboard their<<if $securityForceVehiclePower >= 4>> armored<</if>> vehicles<<if $securityForceAC130 > 0>> and their AC130<</if>>.
-		They brought their unmatched strength to crush those that would want you deposed.
-		<br>During the battle they suffered 
+		$securityForceName, $securityForcePersonnel strong, is called to join the battle:
 		<<if _loss <= 0>>
-			no casualties.
+			no casualties
 		<<elseif _loss <= 10>>
-			light casualties.
+			light casualties
 		<<elseif _loss <= 30>>
-			moderate casualties.
+			moderate casualties
 		<<elseif _loss <= 60>>
-			heavy casualties.
+			heavy casualties
 		<<else>>
-			catastrophic casualties.
+			catastrophic casualties
 		<</if>>
+		suffered.
 	<</if>>
 	<<if $deployingMilitia == 1>>
 		<<for _j = 0; _j < $militiaUnits.length; _j++>>
@@ -380,31 +374,29 @@
 				<<set $militiaUnits[_j].battlesFought++>>
 				<<set _loss = _lossesList.pluck()>>
 				<<set _loss = Math.clamp(_loss,0,$militiaUnits[_j].troops)>>
-				$militiaUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
-				<br>During the battle they suffered 
+				$militiaUnits[_j].platoonName participated in the battle. They remained loyal to you.
 				<<if _loss <= 0>>
-					no casualties
-				<<elseif _loss <= 10>>
-					light casualties
-				<<elseif _loss <= 30>>
-					moderate casualties
-				<<elseif _loss <= 60>>
-					heavy casualties
+					No casualties
+				<<elseif _loss <= $militiaUnits[_j].troops * 0.2>>
+					Light casualties
+				<<elseif _loss <= $militiaUnits[_j].troops * 0.4>>
+					Moderate casualties
+				<<elseif _loss <= $militiaUnits[_j].troops * 0.6>>
+					Heavy casualties
 				<<else>>
-					catastrophic casualties
+					Catastrophic casualties
 				<</if>>
+				suffered.
 				<<set _med = Math.round(Math.clamp(_loss * $militiaUnits[_j].medics * 0.25,1,_loss))>>
 				<<if $militiaUnits[_j].medics == 1 && _loss > 0>>
-					, however some men were saved by the medics attached to this unit.
-				<<else>>
-					.
+					Some men were saved by their medics.
 				<</if>>
 				<<set $militiaUnits[_j].troops -= Math.trunc(Math.clamp(_loss - _med,0,$militiaUnits[_j].maxTroops))>>
 				<<set $militiaEmployedManpower -= Math.trunc(_loss - _med)>>
 				<<set $militiaTotalCasualties += Math.trunc(_loss - _med)>>
 				<<if $militiaUnits[_j].training < 100>>
 					<<if random(1,100) > 60>>
-						Fighting in the field increased the experience of the unit, making it more effective in future fights.
+						Experience has increased.
 						<<set $militiaUnits[_j].training += random(5,15) + $majorBattle * random(5,15)>>
 					<</if>>
 				<</if>>
@@ -430,31 +422,29 @@
 					<<break>>
 				<</if>>
 				<<set _loss = Math.clamp(_loss,0,$slaveUnits[_j].troops)>>
-				$slaveUnits[_j].platoonName participated in the battle. They remained loyal to you to the end.
-				<br>During the battle they suffered 
+				$slaveUnits[_j].platoonName participated in the battle. They remained loyal to you.
 				<<if _loss <= 0>>
-					no casualties
-				<<elseif _loss <= 10>>
-					light casualties
-				<<elseif _loss <= 30>>
-					moderate casualties
-				<<elseif _loss <= 60>>
-					heavy casualties
+					No casualties
+				<<elseif _loss <= $slaveUnits[_j].troops * 0.2>>
+					Light casualties
+				<<elseif _loss <= $slaveUnits[_j].troops * 0.4>>
+					Moderate casualties
+				<<elseif _loss <= $slaveUnits[_j].troops * 0.6>>
+					Heavy casualties
 				<<else>>
-					catastrophic casualties
+					Catastrophic casualties
 				<</if>>
+				suffered.
 				<<set _med = Math.round(Math.clamp(_loss * $slaveUnits[_j].medics * 0.25,1,_loss))>>
 				<<if $slaveUnits[_j].medics == 1 && _loss > 0>>
-					, however some men were saved by the medics attached to this unit.
-				<<else>>
-					.
+					Some men were saved by their medics.
 				<</if>>
 				<<set $slaveUnits[_j].troops -= Math.trunc(Math.clamp(_loss - _med,0,$slaveUnits[_j].maxTroops))>>
 				<<set $slavesEmployedManpower -= _loss - _med>>
 				<<set $slavesTotalCasualties += _loss - _med>>
 				<<if $slaveUnits[_j].training < 100>>
 					<<if random(1,100) > 60>>
-						Fighting in the field increased the experience of the unit, making it more effective in future fights.
+						Experience gained.
 						<<set $slaveUnits[_j].training += random(5,15) + $majorBattle * random(5,15)>>
 					<</if>>
 				<</if>>
@@ -475,31 +465,29 @@
 				<<set $mercUnits[_j].battlesFought++>>
 				<<set _loss = _lossesList.pluck()>>
 				<<set _loss = Math.clamp(_loss,0,$mercUnits[_j].troops)>>
-				$mercUnits[_j].platoonName participated in the battle. Mercenaries are a common sight on the modern battlefield and yours are proud to serve their generous contractor.
-				<br>During the battle they suffered
+				$mercUnits[_j].platoonName participated in the battle. They remained loyal to you.
 				<<if _loss <= 0>>
-					no casualties
-				<<elseif _loss <= 10>>
-					light casualties
-				<<elseif _loss <= 30>>
-					moderate casualties
-				<<elseif _loss <= 60>>
-					heavy casualties
+					No casualties
+				<<elseif _loss <= $mercUnits[_j].troops * 0.2>>
+					Light casualties
+				<<elseif _loss <= $mercUnits[_j].troops * 0.4>>
+					Moderate casualties
+				<<elseif _loss <= $mercUnits[_j].troops * 0.6>>
+					Heavy casualties
 				<<else>>
-					catastrophic casualties
+					Catastrophic casualties
 				<</if>>
+				suffered.
 				<<set _med = Math.round(Math.clamp(_loss * $mercUnits[_j].medics * 0.25,1,_loss))>>
 				<<if $mercUnits[_j].medics == 1 && _loss > 0>>
-					, however some men were saved by the medics attached to this unit.
-				<<else>>
-					.
+					Some men were saved by their medics.p
 				<</if>>
 				<<set $mercUnits[_j].troops -= Math.trunc(Math.clamp(_loss - _med,0,$mercUnits[_j].maxTroops))>>
 				<<set $mercEmployedManpower -= Math.trunc(_loss - _med)>>
 				<<set $mercTotalCasualties += Math.trunc(_loss - _med)>>
 				<<if $mercUnits[_j].training < 100>>
 					<<if random(1,100) > 60>>
-						Fighting in the field increased the experience of the unit, making it more effective in future fights.
+						Experience gained.
 						<<set $mercUnits[_j].training += random(5,15) + $majorBattle * random(5,15)>>
 					<</if>>
 				<</if>>					
@@ -512,6 +500,8 @@
 			<</if>>
 		<</for>>		
 	<</if>>
+	<br>
+	<br>
 	<<if $rebellingID.length > 0 && $battleResult >= 2>>
 		/* win */
 		/* militia */
