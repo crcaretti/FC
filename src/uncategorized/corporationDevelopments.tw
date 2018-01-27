@@ -50,14 +50,15 @@ Your corporation was valued at <<print cashFormat($corpValue)>> and made a profi
 in total, the corporation has enslaved <<print commaNum($corpPeopleEnslaved)>> people.
 <<if $slaveAssets < ($trainingAssets+$surgicalAssets+$drugAssets)>>
 	The corporation has enough training and medical assets to rapidly improve its human holdings.
-	<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)*300)>>
+	<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)*400)>>
 <<elseif $slaveAssets < ($trainingAssets+$surgicalAssets+$drugAssets)*2>>
 	The corporation uses its training and medical assets to improve its human holdings.
-	<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)*100)>>
+	<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)*200)>>
 <<else>>
 	The corporation has only enough training and medical assets to maintain the value of its human holdings.
 <</if>>
-<<set $trainingAssets = Math.ceil($trainingAssets * random(90,95)/100), $surgicalAssets = Math.ceil($surgicalAssets * random(90,95)/100), $drugAssets = Math.ceil($drugAssets * random(90,95)/100)>>
+/* model weekly corporate expenses as random 3-5% reduction in all asset types (including cash) ... except slaves, whose value is tied to $slaveCostFactor (which the corporation does not affect) */
+<<set $trainingAssets = Math.ceil($trainingAssets * random(95,97)/100), $surgicalAssets = Math.ceil($surgicalAssets * random(95,97)/100), $drugAssets = Math.ceil($drugAssets * random(95,97)/100), $generalAssets = Math.ceil($generalAssets * random(95,97)/100), $entrapmentAssets = Math.ceil($entrapmentAssets * random(95,97)/100), $captureAssets = Math.ceil($captureAssets * random(95,97)/100), $corpCash = Math.ceil($corpCash * random(95,97)/100)>>
 <<if $corpMarket>>
 	<<if $rep > 5000>>
 		<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)/Math.log(10)*(($rep-5000)/15000))>>
@@ -129,69 +130,92 @@ Shares in your corporation are trading at <<print cashFormat($sharePrice)>>:
 <<set $oldSharePrice = Math.ceil($sharePrice)>>
 
 You hold <<print commaNum($personalShares)>> shares personally while <<print commaNum($publicShares)>> are publicly held.
+<<set _PrivateOwnershipPercentage = Math.trunc(($personalShares/($personalShares+$publicShares))*100)>>
+<<set _PublicOwnershipPercentage = Math.trunc(($publicShares/($personalShares+$publicShares))*100)>>
 <span id="CorpAction">
 
 <br><br>
-<<if $cash > 1000*$sharePrice>>
-<br>Purchase shares from corporation:
+
+<<if _PrivateOwnershipPercentage < 51>>//You cannot give up majority control.//
+<<else>> /* actions that reduce private ownership percentage */
+
+	<br>Sell personal shares:
+	<<if $personalShares-1000 > $publicShares>>
+		 <<link "1000">><<set $personalShares -= 1000>><<set $publicShares += 1000>><<set $cash += 1000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "You sold 1000 shares, driving the share price down slightly.">><</replace>><</link>><</if>>
+	<<if $personalShares-5000 > $publicShares>>
+		 | <<link "5000">><<set $personalShares -= 5000>><<set $publicShares += 5000>><<set $cash += 5000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "You sold 5000 shares, driving the share price down slightly.">><</replace>><</link>><</if>>
+	<<if $personalShares-10000 > $publicShares>>
+		 | <<link "10000">><<set $personalShares -= 10000>><<set $publicShares += 10000>><<set $cash += 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(97,99)))/100>><<replace "#CorpAction">><br><<print "You sold 10000 shares, driving the share price down slightly.">><</replace>><</link>><</if>>
+	<<if $personalShares-15000 > $publicShares>>
+		 | <<link "15000">><<set $personalShares -= 15000>><<set $publicShares += 15000>><<set $cash += 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(96,98)))/100>><<replace "#CorpAction">><br><<print "You sold 15000 shares, driving the share price down somewhat.">><</replace>><</link>><</if>>
+	<<if $personalShares-20000 > $publicShares>>
+		 | <<link "20000">><<set $personalShares -= 20000>><<set $publicShares += 20000>><<set $cash += 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(95,97)))/100>><<replace "#CorpAction">><br><<print "You sold 20000 shares, driving the share price down significantly.">><</replace>><</link>><</if>>
+
+	<br>Issue new public shares:
+	<<if $personalShares-1000 > $publicShares>>
+		 <<link "1000">><<set $publicShares += 1000>><<set $corpCash += 1000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 1000 new shares, driving the share price down slightly.">><</replace>><</link>><</if>>
+	<<if $personalShares-5000 > $publicShares>>
+		 | <<link "5000">><<set $publicShares += 5000>><<set $corpCash += 5000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 5000 new shares, driving the share price down slightly.">><</replace>><</link>><</if>>
+	<<if $personalShares-10000 > $publicShares>>
+		 | <<link "10000">><<set $publicShares += 10000>><<set $corpCash += 10000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*random(97,99)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 10000 new shares, driving the share price down slightly.">><</replace>><</link>><</if>>
+	<<if $personalShares-15000 > $publicShares>>
+		 | <<link "15000">><<set $publicShares += 15000>><<set $corpCash += 15000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*random(96,98)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 15000 new shares, driving the share price down somewhat.">><</replace>><</link>><</if>>
+	<<if $personalShares-20000 > $publicShares>>
+		 | <<link "20000">><<set $publicShares += 20000>><<set $corpCash += 20000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*random(95,97)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 20000 new shares, driving the share price down significantly.">><</replace>><</link>><</if>>
+
+<</if>>/* closes actions that reduce private ownership percentage */
+
+<<if _PublicOwnershipPercentage <= 5>>//You cannot make the corporation privately held.//
+<<else>> /* actions that reduce public ownership percentage */
+	<br>Purchase shares from corporation:
 	<<if $cash > 1000*$sharePrice>>
-	<<link "1000">><<set $personalShares += 1000>><<set $cash -= 1000*$sharePrice>><<set $corpCash += 1000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(101,102)))/100>><<replace "#CorpAction">><br><<print "You purchased 1000 shares from the corporation, driving the share price up slightly.">><</replace>><</link>><</if>>
-	<<if $cash > 5000*$sharePrice>>
-	| <<link "5000">><<set $personalShares += 5000>><<set $cash -= 5000*$sharePrice>><<set $corpCash += 5000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(101,102)))/100>><<replace "#CorpAction">><br><<print "You purchased 5000 shares from the corporation, driving the share price up slightly.">><</replace>><</link>><</if>>
-	<<if $cash > 10000*$sharePrice>>
-	| <<link "10000">><<set $personalShares += 10000>><<set $cash -= 10000*$sharePrice>><<set $corpCash += 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(101,103)))/100>><<replace "#CorpAction">><br><<print "You purchased 10000 shares from the corporation, driving the share price up slightly.">><</replace>><</link>><</if>>
-	<<if $cash > 15000*$sharePrice>>
-	| <<link "15000">><<set $personalShares += 15000>><<set $cash -= 15000*$sharePrice>><<set $corpCash += 15000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(103,104)))/100>><<replace "#CorpAction">><br><<print "You purchased 15000 shares from the corporation, driving the share price up somewhat.">><</replace>><</link>><</if>>
-	<<if $cash > 20000*$sharePrice>>
-	| <<link "20000">><<set $personalShares += 20000>><<set $cash -= 20000*$sharePrice>><<set $corpCash += 20000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(104,106)))/100>><<replace "#CorpAction">><br><<print "You purchased 20000 shares from the corporation, driving the share price up significantly.">><</replace>><</link>><</if>>
-<<else>>
-You are unable to purchase 1000 shares at the current share price.
-<</if>>
+		<<if $cash > 1000*$sharePrice>>
+			 <<link "1000">><<set $personalShares += 1000>><<set $cash -= 1000*$sharePrice>><<set $corpCash += 1000*Math.floor($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "You purchased 1000 shares from the corporation, driving the share price down slightly.">><</replace>><</link>><</if>>
+		<<if $cash > 5000*$sharePrice>>
+			 | <<link "5000">><<set $personalShares += 5000>><<set $cash -= 5000*$sharePrice>><<set $corpCash += 5000*Math.floor($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "You purchased 5000 shares from the corporation, driving the share price down slightly.">><</replace>><</link>><</if>>
+		<<if $cash > 10000*$sharePrice>>
+			 | <<link "10000">><<set $personalShares += 10000>><<set $cash -= 10000*$sharePrice>><<set $corpCash += 10000*Math.floor($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*random(97,99)))/100>><<replace "#CorpAction">><br><<print "You purchased 10000 shares from the corporation, driving the share price down slightly.">><</replace>><</link>><</if>>
+		<<if $cash > 15000*$sharePrice>>
+			 | <<link "15000">><<set $personalShares += 15000>><<set $cash -= 15000*$sharePrice>><<set $corpCash += 15000*Math.floor($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*random(96,98)))/100>><<replace "#CorpAction">><br><<print "You purchased 15000 shares from the corporation, driving the share price down somewhat.">><</replace>><</link>><</if>>
+		<<if $cash > 20000*$sharePrice>>
+			 | <<link "20000">><<set $personalShares += 20000>><<set $cash -= 20000*$sharePrice>><<set $corpCash += 20000*Math.floor($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*random(95,97)))/100>><<replace "#CorpAction">><br><<print "You purchased 20000 shares from the corporation, driving the share price down significantly.">><</replace>><</link>><</if>>
+	<<else>>
+		//You are unable to purchase 1000 shares at the current share price.//
+	<</if>>
 
-<br>Issue new shares:
-<<if $personalShares-1000 > $publicShares>>
-	 <<link "1000">><<set $publicShares += 1000>><<set $corpCash += 1000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 1000 new shares, driving the share price down slightly.">><</replace>><</link>><</if>>
-<<if $personalShares-5000 > $publicShares>>
-	 | <<link "5000">><<set $publicShares += 5000>><<set $corpCash += 5000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 5000 new shares, driving the share price down slightly.">><</replace>><</link>><</if>>
-<<if $personalShares-10000 > $publicShares>>
-	 | <<link "10000">><<set $publicShares += 10000>><<set $corpCash += 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(97,99)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 10000 new shares, driving the share price down slightly.">><</replace>><</link>><</if>>
-<<if $personalShares-15000 > $publicShares>>
-	 | <<link "15000">><<set $publicShares += 15000>><<set $corpCash += 15000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(96,98)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 15000 new shares, driving the share price down somewhat.">><</replace>><</link>><</if>>
-<<if $personalShares-20000 > $publicShares>>
-	 | <<link "20000">><<set $publicShares += 20000>><<set $corpCash += 20000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(94,96)))/100>><<replace "#CorpAction">><br><<print "The corporation issued 20000 new shares, driving the share price down significantly.">><</replace>><</link>><</if>>
-
-<<set _PublicOwnershipPercentage = (Math.trunc($publicShares/$personalShares))*100>>	  	
-<<set _PrivateOwnershipPercentage = (Math.trunc($personalShares/$publicShares))*100>>
-	
-<br>Sell personal shares:
-<<if _PrivateOwnershipPercentage < 51>>//You cannot give up majority control.//<</if>>
-<<if _PrivateOwnershipPercentage > 51 && $personalShares-1000 > $publicShares>>
-	 <<link "1000">><<set $personalShares -= 1000>><<set $publicShares += 1000>><<set $cash += 1000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "You sold 1000 shares, driving the share price down slightly.">><</replace>><</link>><</if>>
-<<if $personalShares-5000 > $publicShares>>
-	 | <<link "5000">><<set $personalShares -= 5000>><<set $publicShares += 5000>><<set $cash += 5000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "You sold 5000 shares, driving the share price down slightly.">><</replace>><</link>><</if>>
-<<if $personalShares-10000 > $publicShares>>
-	 | <<link "10000">><<set $personalShares -= 10000>><<set $publicShares += 10000>><<set $cash += 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(97,99)))/100>><<replace "#CorpAction">><br><<print "You sold 10000 shares, driving the share price down slightly.">><</replace>><</link>><</if>>
-<<if $personalShares-15000 > $publicShares>>
-	 | <<link "15000">><<set $personalShares -= 15000>><<set $publicShares += 15000>><<set $cash += 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(96,98)))/100>><<replace "#CorpAction">><br><<print "You sold 15000 shares, driving the share price down somewhat.">><</replace>><</link>><</if>>
-<<if $personalShares-20000 > $publicShares>>
-	 | <<link "20000">><<set $personalShares -= 20000>><<set $publicShares += 20000>><<set $cash += 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(94,96)))/100>><<replace "#CorpAction">><br><<print "You sold 20000 shares, driving the share price down significantly.">><</replace>><</link>><</if>>
-
-<<if $cash > 1000*$sharePrice>>
 	<br>Buy publicly held shares:
-	<<if _PublicOwnershipPercentage <= 5>>//You cannot make the corporation privately held.//<</if>>
-	<<if _PublicOwnershipPercentage < 49 && $publicShares > 1000 && $cash >= 1000*$sharePrice>>
-		  <<link "1000">><<set $personalShares += 1000>><<set $publicShares -= 1000>><<set $cash -= 1000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "You bought 1000 shares, driving the share price up slightly.">><</replace>><</link>><</if>>
-	<<if $publicShares >= 5000 && $cash >= 5000*$sharePrice>>
-		  | <<link "5000">><<set $personalShares += 5000>><<set $publicShares -= 5000>><<set $cash -= 5000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(98,99)))/100>><<replace "#CorpAction">><br><<print "You bought 5000 shares, driving the share price up slightly.">><</replace>><</link>><</if>>
-	<<if $publicShares >= 10000 && $cash >= 10000*$sharePrice>>
-		  | <<link "10000">><<set $personalShares += 10000>><<set $publicShares -= 10000>><<set $cash -= 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(97,99)))/100>><<replace "#CorpAction">><br><<print "You bought 10000 shares, driving the share price up slightly.">><</replace>><</link>><</if>>
-	<<if $publicShares >= 15000 && $cash >= 15000*$sharePrice>>
-		  | <<link "15000">><<set $personalShares += 15000>><<set $publicShares -= 15000>><<set $cash -= 15000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(96,98)))/100>><<replace "#CorpAction">><br><<print "You bought 15000 shares, driving the share price up somewhat.">><</replace>><</link>><</if>>
-	<<if $publicShares >= 20000 && $cash >= 20000*$sharePrice>>
-		  | <<link "20000">><<set $personalShares += 20000>><<set $publicShares -= 20000>><<set $cash -= 20000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(94,96)))/100>><<replace "#CorpAction">><br><<print "You bought 20000 shares, driving the share price up significantly.">><</replace>><</link>><</if>>
-<<else>>
-You are unable to purchase 1000 shares at the current share price.
-<</if>>
+	<<if $cash > 1000*$sharePrice>>
+		<<if $publicShares > 1000 && $cash >= 1000*$sharePrice>>
+			 <<link "1000">><<set $personalShares += 1000>><<set $publicShares -= 1000>><<set $cash -= 1000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(101,102)))/100>><<replace "#CorpAction">><br><<print "You bought 1000 shares, driving the share price up slightly.">><</replace>><</link>><</if>>
+		<<if $publicShares > 5000 && $cash >= 5000*$sharePrice>>
+			 | <<link "5000">><<set $personalShares += 5000>><<set $publicShares -= 5000>><<set $cash -= 5000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*either(101,102)))/100>><<replace "#CorpAction">><br><<print "You bought 5000 shares, driving the share price up slightly.">><</replace>><</link>><</if>>
+		<<if $publicShares > 10000 && $cash >= 10000*$sharePrice>>
+			 | <<link "10000">><<set $personalShares += 10000>><<set $publicShares -= 10000>><<set $cash -= 10000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(101,103)))/100>><<replace "#CorpAction">><br><<print "You bought 10000 shares, driving the share price up slightly.">><</replace>><</link>><</if>>
+		<<if $publicShares > 15000 && $cash >= 15000*$sharePrice>>
+			 | <<link "15000">><<set $personalShares += 15000>><<set $publicShares -= 15000>><<set $cash -= 15000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(102,104)))/100>><<replace "#CorpAction">><br><<print "You bought 15000 shares, driving the share price up somewhat.">><</replace>><</link>><</if>>
+		<<if $publicShares > 20000 && $cash >= 20000*$sharePrice>>
+			 | <<link "20000">><<set $personalShares += 20000>><<set $publicShares -= 20000>><<set $cash -= 20000*$sharePrice>><<set $sharePrice = (Math.trunc($sharePrice*random(103,105)))/100>><<replace "#CorpAction">><br><<print "You bought 20000 shares, driving the share price up significantly.">><</replace>><</link>><</if>>
+	<<else>>
+		//You are unable to purchase 1000 shares at the current share price.//
+	<</if>>
+
+	<br>Direct the corporation to buy back publicly held shares:
+	<<if $corpCash > 1000*$sharePrice>>
+		<<if $publicShares > 1000 && $corpCash >= 1000*$sharePrice>>
+			 <<link "1000">><<set $publicShares -= 1000>><<set $corpCash -= 1000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*either(101,102)))/100>><<replace "#CorpAction">><br><<print "The corporation bought back 1000 public shares, driving the share price up slightly.">><</replace>><</link>><</if>>
+		<<if $publicShares > 5000 && $corpCash >= 5000*$sharePrice>>
+			 | <<link "5000">><<set $publicShares -= 5000>><<set $corpCash -= 5000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*either(101,102)))/100>><<replace "#CorpAction">><br><<print "The corporation bought back 5000 public shares, driving the share price up slightly.">><</replace>><</link>><</if>>
+		<<if $publicShares > 10000 && $corpCash >= 10000*$sharePrice>>
+			 | <<link "10000">><<set $publicShares -= 10000>><<set $corpCash -= 10000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*random(101,103)))/100>><<replace "#CorpAction">><br><<print "The corporation bought back 10000 public shares, driving the share price up slightly.">><</replace>><</link>><</if>>
+		<<if $publicShares > 15000 && $corpCash >= 15000*$sharePrice>>
+			 | <<link "15000">><<set $publicShares -= 15000>><<set $corpCash -= 15000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*random(102,104)))/100>><<replace "#CorpAction">><br><<print "The corporation bought back 15000 public shares, driving the share price up somewhat.">><</replace>><</link>><</if>>
+		<<if $publicShares > 20000 && $corpCash >= 20000*$sharePrice>>
+			 | <<link "20000">><<set $publicShares -= 20000>><<set $corpCash -= 20000*Math.ceil($sharePrice)>><<set $sharePrice = (Math.trunc($sharePrice*random(103,105)))/100>><<replace "#CorpAction">><br><<print "The corporation bought back 20000 public shares, driving the share price up significantly.">><</replace>><</link>><</if>>
+	<<else>>
+		//The corporation is unable to purchase 1000 shares at the current share price.//
+	<</if>>
+
+<</if>> /* closes actions that reduce public ownership percentage */
 </span>
 <br><br>
 
