@@ -132,12 +132,27 @@
 	<<elseif "recruit girls" == _Slave.assignment>>''@@.lightcoral;RC@@''
 	<<elseif "guard you" == _Slave.assignment>>''@@.lightcoral;BG@@''
 	<</if>>
-	<<if $personalAttention == _Slave.ID>>''@@.lightcoral;PA@@''<</if>>
+	<<if Array.isArray($personalAttention) && $personalAttention.findIndex(function(s) { return s.ID == _Slave.ID; }) != -1>>''@@.lightcoral;PA@@''<</if>>
 	[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]] /* lists their names */
 	
 <<case "Personal Attention Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-	[[_slaveName|Personal Attention Select][$activeSlave = $slaves[_ssi], $personalAttention = $slaves[_ssi].ID, $personalAttentionChanged = 1]]
+	<<link _slaveName>>
+		<<if !Array.isArray($personalAttention)>> /* first PA target */
+			<<set $personalAttention = [{ID: $slaves[_ssi].ID, trainingRegimen: "undecided"}]>>
+		<<else>>
+			<<set _pai = $personalAttention.findIndex(function(s) { return s.ID == $slaves[_ssi].ID; })>>
+			<<if _pai == -1>> /* not already a PA target; add */
+				<<set $activeSlave = $slaves[_ssi], $personalAttention.push({ID: $slaves[_ssi].ID, trainingRegimen: "undecided"})>>
+			<<else>> /* already a PA target; remove */
+				<<set $personalAttention.deleteAt(_pai)>>
+				<<if $personalAttention.length == 0>>
+					<<set $personalAttention = "sex">>
+				<</if>>
+			<</if>>
+		<</if>>
+		<<goto "Personal Attention Select">>
+	<</link>>
 <<case "Agent Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 	[[_slaveName|Agent Workaround][$i = _ssi]]
