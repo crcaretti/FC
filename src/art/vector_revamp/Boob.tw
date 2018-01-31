@@ -1,0 +1,58 @@
+:: Art_Vector_Revamp_Boob_ [nobr]
+
+/* BEWARE: _art_have_boobs and _art_scale_factor interfere with Art_Vector_Revamp_Penis_ */
+<<set _art_have_boobs to true>>
+
+/* BEWARE: _art_boob_transform is also read by Art_Vector_Revamp_Boob_Addons_ */
+
+/* 
+Prepare SVG transform matrix for continuous boob scaling.
+This transform affects boobs, areolae and piercings.
+The parameters were fit by points (300,0.75) and (15000,1.5).
+See https://www.wolframalpha.com/input/?i=log+fit+%7B%7B300,1%7D,%7B15000,2.5%7D%7D .
+Boobs start at 300cc as of "flesh description widgets".
+Upper value was discussed at https://github.com/Free-Cities/Free-Cities/issues/950#issuecomment-321359466 .
+*/
+
+<<set _art_scale_factor = 0.255622*Math.log(0.0626767*_artSlave.boobs) >>
+
+<<set _art_translation_x = -283.841*_art_scale_factor+280.349 >>
+<<set _art_translation_y = -198.438*_art_scale_factor+208.274 >>
+<<set _art_boob_transform = "matrix(" + _art_scale_factor +",0,0," + _art_scale_factor + "," + _art_translation_x + "," + _art_translation_y + ")">>
+
+/*
+_art_boob_transform is for internal program usage.
+_art_transform will affect the display.
+*/
+<<set _art_transform = _art_boob_transform>>
+
+<<if _artSlave.boobs < 300 >> 
+	/* BEWARE: this threshold may be used in other art-related code, too */
+	/* boobs too small - draw areolae directly onto torso */
+	<<set _art_scale_factor = 1 >>
+	<<set _art_translation_x = 0 >> /* a little shift to the right is needed due to perspective */
+	<<set _art_translation_y = 0 >>
+	<<set _art_boob_transform = "matrix(" + _art_scale_factor +",0,0," + _art_scale_factor + "," + _art_translation_x + "," + _art_translation_y + ")">>
+	<<set _art_transform = _art_boob_transform>>
+	<<if _showNipples>>
+		<<include Art_Vector_Revamp_Boob_Areola_NoBoob>>
+	<</if>>
+<<else>>
+	<<if _showBoobs == 1>>
+	  <<include Art_Vector_Revamp_Boob>>
+	  <<if _showNipples>>
+		<<include Art_Vector_Revamp_Boob_Areola>>
+	  <</if>>
+	<</if>>
+	/* shiny clothings */
+	<<if $seeVectorArtHighlights == 1>>
+		<<if _showBoobsHighlight == 1>>
+			<<include Art_Vector_Revamp_Boob_Highlights1>>
+			<<include Art_Vector_Revamp_Boob_Highlights2>>
+		<</if>>
+	<</if>>
+<</if>>
+
+
+/* set _art_transform to empty string so stray SVG groups in other passages are not affected */
+<<set _art_transform = "">>
