@@ -95,6 +95,9 @@
 			<</if>>
 		<<case "be your agent" "live with your agent">>
 			<<set $args[0].assignment = $args[1],                       $args[0].assignmentVisible = 0,      $args[0].useRulesAssistant = 0>> /* non-visible roles exempt from Rules Assistant */
+			<<if $args[1] == "be your agent">>
+				<<set $leaders.push($args[0])>>
+			<</if>>
 		<<case "choose her own job">>
 			<<set $args[0].assignment = $args[1],                       $args[0].choosesOwnAssignment = 1>>  /* removeJob already set assignmentVisible = 1 */
 		<<default>>
@@ -197,7 +200,7 @@
 		<<case "serve in the master suite" "master suite" "mastersuite">>
 			<<set $args[0].assignment = "please you">>
 			<<set $MastSiIDs.delete(_wID), $masterSuiteSlaves-->>
-		<<case "live with your head girl" "live with your Head Girl" "head girl suite" "hgsuite">>
+		<<case "live with your head girl" "head girl suite" "hgsuite">>
 			<<set $args[0].assignment = "rest">>
 			<<set $HGSuiteiIDs.delete(_wID), $HGSuiteSlaves-->>
 		<<case "be your head girl">>
@@ -211,6 +214,26 @@
 					<<set $personalAttention = "business">>
 				<</if>>
 				You no longer have a slave assigned to be your Head Girl, so you turn your personal attention to focus on $personalAttention.
+			<</if>>
+		<<case "be your agent" "live with your agent">>
+			<<set $args[0].assignment = "rest">>
+			<<set _leaderIndex = $leaders.findIndex(function(x) { return x.ID == $args[0].ID })>>
+			<<if _leaderIndex != -1>>
+				<<set $leaders.deleteAt(_leaderIndex)>>
+			<</if>>
+			<<if $args[0].preg > 40>>
+				<<set $args[0].birthsTotal += $args[0].pregType, $args[0].preg = 0, $args[0].pregWeek = 0, $args[0].pregSource = 0, $args[0].pregType = 0, $args[0].pregKnown = 0>>
+				<<SetBellySize $args[0]>>
+			<</if>>
+			<<if $args[0].relationshipTarget > 0>> /* following code assumes there can be at most one companion */
+				<<set _lover = $slaves.findIndex(function(s) { return s.relationshipTarget == $args[0].ID && s.assignment == "live with your agent"; })>>
+				<<if _lover != -1>>
+					<<set $slaves[_lover].assignment = "rest", $slaves[_lover].assignmentVisible = 1>>
+					<<if $slaves[_lover].preg > 40>>
+						<<set $slaves[_lover].birthsTotal += $slaves[_lover].pregType, $slaves[_lover].preg = 0, $slaves[_lover].pregWeek = 0, $slaves[_lover].pregSource = 0, $slaves[_lover].pregType = 0, $slaves[_lover].pregKnown = 0>>
+						<<SetBellySize $slaves[_lover]>>
+					<</if>>
+				<</if>>
 			<</if>>
 		<<default>>
 			<<set $args[0].assignment = "rest">>
