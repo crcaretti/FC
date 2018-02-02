@@ -34,9 +34,8 @@
 	<<case "an individual">>
 		<<set $arcologies[$i].prosperity += random(0,3)>>
 	<<case "your agent">>
-		<<set $arcologies[$i].prosperity += random(0,3)>>
 		<<agentLeadership>>
-		<<set $arcologies[$i].prosperity += $agentBonus>>
+		<<set $arcologies[$i].prosperity += random(0,3) + $agentBonus>>
 	<<default>>
 		<<set $arcologies[$i].prosperity += random(-1,1)>>
 	<</switch>>
@@ -51,11 +50,14 @@
 <<for _k = 0; _k < $leaders.length; _k++>>
 <<if $leaders[_k].ID == $arcologies[$i].leaderID>>
 	is being run by your agent @@.deeppink;$leaders[_k].slaveName@@.
-	<<if $leaders[_k].assignment != "be your agent">>
-		<<assignJob $leaders[_k] "be your agent">>
+	<<set _agentIndex = $slaves.findIndex(function(s) { return s.ID == $leaders[_k].ID; })>>
+	<<if _agentIndex != -1 && $slaves[_agentIndex].assignment != "be your agent">>
+		@@.red;BUG: $slaves[_agentIndex].slaveName also was <<print $slaves[_agentIndex].assignment>>!@@
+		<<assignJob $slaves[_agentIndex] "be your agent">>
 	<</if>>
 	<<if $agentBonus > 0>>@@.green;She does an excellent job this week.@@<</if>>
 	The arcology
+	<<break>>
 <</if>>
 <</for>>
 <<elseif $arcologies[$i].government == "your trustees">>
@@ -71,9 +73,20 @@
 has an estimated GSP of @@.yellowgreen;<<print cashFormat(Math.trunc((0.1*$arcologies[$i].prosperity*random(100-_error,100+_error))/100))>>m,@@
 
 <<if ($arcologies[$i].rival == 1) && ($arcologies[$i].government != "an individual")>>
-	undergoing some internal turmoil. @@.yellow;It undergoes a change of government.@@ A power struggle is won by a single individual, leaving the arcology ruled like yours is.
+	but it is undergoing some internal turmoil. @@.red;Resentment that has been quietly building among the arcology's elite turns into open rebellion!@@
+	<<if $arcologies[$i].PCminority > 0>>
+		@@.red;Your ownership interest in $arcologies[$i].name has been annulled!@@
+		<<set $arcologies[$i].PCminority = 0>>
+	<</if>>
+	@@.yellow;After a brief power struggle, it undergoes a change of government.@@ 
+	<<if def _agentIndex && _agentIndex != -1>>
+		@@.deeppink;$slaves[_agentIndex].slaveName@@ manages to escape with the help of a few loyal citizens and returns to you @@.gold;fearing your displeasure at her failure.@@
+		<<set $slaves[_agentIndex].trust -= 40>>
+		<<assignJob $slaves[_agentIndex] "rest">> /* this takes care of necessary cleanup for agent and agent companion (if any) */
+	<</if>>
+	A controlling interest has been taken by a single individual, leaving the arcology ruled like yours is.
 	<<set $arcologies[$i].government = "an individual">>
-	<<set $arcologies[$i].honeymoon += 10>>
+	<<set $arcologies[$i].ownership = random(51,61), $arcologies[$i].minority = 100 - $arcologies[$i].ownership - random(1,19), $arcologies[$i].honeymoon += 10>>
 <<elseif ($arcologies[$i].ownership != 0) && ($arcologies[$i].ownership < $arcologies[$i].PCminority) && ($arcologies[$i].direction != 0) && ($arcologies[$i].rival != 1)>>
 	undergoing a leadership struggle in which you are deeply concerned, since you now own more of it than its current leadership.
 	<<if random(0,10) < $arcologies[$i].PCminority - $arcologies[$i].ownership>>
@@ -144,7 +157,7 @@ has an estimated GSP of @@.yellowgreen;<<print cashFormat(Math.trunc((0.1*$arcol
 		  <<set $arcologies[$i].government = "a corporation">>
 		<<else>>
 		  A power struggle is won by a single individual, leaving the arcology ruled like yours is.
-		  <<set $arcologies[$i].government = 1>>
+		  <<set $arcologies[$i].government = "an individual">>
 		<</if>>
 	  <<case "an individual">>
 		<<if random(0,2) == 0>>
@@ -439,7 +452,7 @@ has an estimated GSP of @@.yellowgreen;<<print cashFormat(Math.trunc((0.1*$arcol
 		Its leadership acquires an increased share of its ownership.
 		<<set $arcologies[$i].ownership += 1>>
 		<<set $arcologies[$i].prosperity -= 5>>
-		This places its government in control of approximately @@.orange;<<print Math.trunc(($arcologies[$i].ownership*random(100-$economicUncertainty,100+$economicUncertainty))/100)>>%@@ of the arcology<<if $arcologies[$i].minority > 0>>, against its most prominent competition, with a @@.tan;<<print Math.trunc(($arcologies[$i].minority*random(100-$economicUncertainty,100+$economicUncertainty))/100)>>%@@ share<</if>>.
+		This places its government in control of approximately @@.orange;<<print Math.trunc(($arcologies[$i].ownership*random(100-$economicUncertainty,100+$economicUncertainty))/100)>>%@@ of the arcology<<if $arcologies[$i].minority > 0>>, against its most prominent competition with a @@.tan;<<print Math.trunc(($arcologies[$i].minority*random(100-$economicUncertainty,100+$economicUncertainty))/100)>>%@@ share<</if>>.
 	<<elseif _prosperityDiff < random(-50,10)>>
 		<<if $arcologies[$i].ownership > 0>>
 			Its leadership sells off some of its ownership to stay afloat.
@@ -1715,12 +1728,10 @@ has an estimated GSP of @@.yellowgreen;<<print cashFormat(Math.trunc((0.1*$arcol
 /* FUTURE SOCIETY ADOPTION */
 
 <<if $arcologies[$i].direction != 0>>
-<<if _societiesAdopted < 4>>
-<<if _societiesAdopted < ($arcologies[$i].prosperity/25)+($week/25)-3>>
+<<if $arcologies[$i].rival == 1 || (_societiesAdopted < 4 && _societiesAdopted < ($arcologies[$i].prosperity/25)+($week/25)-3)>>
 
 <<include "Neighbors FS Adoption">>
 
-<</if>>
 <</if>>
 <</if>> /* CLOSES FUTURE SOCIETY ADOPTION */
 
@@ -2068,7 +2079,7 @@ has an estimated GSP of @@.yellowgreen;<<print cashFormat(Math.trunc((0.1*$arcol
 <<if $desc.length == 0>>
   ''$arcologies[$j].name'' attempts to influence it, but has no significant impacts.
 <<elseif $desc.length > 2>>
-  ''$arcologies[$j].name'''s mature culture influences $arcologies[$i].name's $desc[0],
+  ''$arcologies[$j].name'''s mature culture influences $arcologies[$i].name, $desc[0],
   <<for _k = 1; _k < $desc.length; _k++>>
   <<if _k < $desc.length-1>>
 	$desc[_k],
