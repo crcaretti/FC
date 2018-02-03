@@ -732,11 +732,13 @@
 
 <<if $arcologies[0].FSRepopulationFocus > 40>>
 <<if $args[0].preg > 30>> /*limited huge boost for full term */
-	<<if $args[0].pregType >= 50>>
-		<<set $beauty += 10*($arcologies[0].FSRepopulationFocus/25)>> /*40 limited due to constant presence. Also good breeders, but subpar mothers*/
-	<<elseif $args[0].pregType >= 20>>
+	<<if $args[0].broodmother > 0>>
+		<<set $beauty += 10*$args[0].broodmother*($arcologies[0].FSRepopulationFocus/25)>> /*40-80 limited due to constant presence. Also good breeders, but subpar mothers*/
+	<<elseif $args[0].bellyPreg >= 600000>>
+		<<set $beauty += 15*($arcologies[0].FSRepopulationFocus/10)>> /*150*/
+	<<elseif $args[0].bellyPreg >= 300000>>
 		<<set $beauty += 10*($arcologies[0].FSRepopulationFocus/10)>> /*100*/
-	<<elseif $args[0].pregType >= 10>>
+	<<elseif $args[0].bellyPreg >= 120000>>
 		<<set $beauty += 9*($arcologies[0].FSRepopulationFocus/10)>> /*90*/
 	<<else>>
 		<<set $beauty += 8*($arcologies[0].FSRepopulationFocus/10)>> /*80*/
@@ -772,9 +774,11 @@
 	<</if>>
 <<else>>
 <<if $args[0].preg > 30>>
-	<<if $args[0].pregType >= 20>>
+	<<if $args[0].bellyPreg >= 600000>>
+		<<set $beauty -= 100*($arcologies[0].FSRestart/40)>> /*-250*/
+	<<elseif $args[0].bellyPreg >= 300000>>
 		<<set $beauty -= 50*($arcologies[0].FSRestart/40)>> /*-125*/
-	<<elseif $args[0].pregType >= 10>>
+	<<elseif $args[0].bellyPreg >= 120000>>
 		<<set $beauty -= 40*($arcologies[0].FSRestart/40)>> /*-100*/
 	<<else>>
 		<<set $beauty -= 30*($arcologies[0].FSRestart/40)>> /*-75*/
@@ -1009,7 +1013,7 @@
 		<<set $beauty += ($arcologies[0].FSTransformationFetishist/20)+(Math.abs($args[0].hipsImplant))>>
 	<</if>>
 	<<set _race = $args[0].race>>
-	<<if _race.indexOf("surgically") == 1>>
+	<<if _race.indexOf("surgically") != -1>>
 		<<set $beauty += ($arcologies[0].FSTransformationFetishist/20)>>
 	<</if>>
 	<<if $args[0].faceImplant > 95 && $args[0].face > 40>>
@@ -1022,7 +1026,7 @@
 		<<set $beauty -= ($arcologies[0].FSBodyPurist/100)*($args[0].faceImplant/10)>>
 	<</if>>
 	<<set _race = $args[0].race>>
-	<<if _race.indexOf("surgically") == 1>>
+	<<if _race.indexOf("surgically") != -1>>
 		<<set $beauty -= ($arcologies[0].FSBodyPurist/20)>>
 	<</if>>
 <<elseif $arcologies[0].FSTransformationFetishist == "unset">>
@@ -1179,40 +1183,28 @@
 	<</if>>
 <<else>>
 	<<if $args[0].relation != 0>>
-	<<for $j = 0; $j < $slaves.length; $j++>>
-		<<if $slaves[$j].ID == $args[0].relationTarget>>
-			<<if $slaves[$j].assignment == $args[0].assignment>>
+		<<set _fre = $slaves.findIndex(function(s) { return s.ID == $args[0].relationTarget && s.assignment == $args[0].assignment; })>>
+		<<if _fre != -1>>
 			<<set $FResult += 2>>
-				<<if $arcologies[0].FSEgyptianRevivalist > 20>>
-					<<set $FResult += 2>>
-				<</if>>
+			<<if $arcologies[0].FSEgyptianRevivalist > 20>>
+				<<set $FResult += 2>>
 			<</if>>
-			<<break>>
 		<</if>>
-	<</for>>
 	<</if>>
 <</if>>
 <<if $args[0].relationship > 0>>
-	<<for $j = 0; $j < $slaves.length; $j++>>
-	<<if $slaves[$j].ID == $args[0].relationshipTarget>>
-		<<if $slaves[$j].assignment == $args[0].assignment>>
+	<<set _fre = $slaves.findIndex(function(s) { return s.ID == $args[0].relationshipTarget && s.assignment == $args[0].assignment; })>>
+	<<if _fre != -1>>
 		<<set $FResult += 1>>
-		<</if>>
-		<<break>>
 	<</if>>
-	<</for>>
 <<elseif $args[0].relationship == -1>>
 	<<set $FResult += 2>>
 <</if>>
 <<if $args[0].rivalry != 0>>
-	<<for $j = 0; $j < $slaves.length; $j++>>
-	<<if $slaves[$j].ID == $args[0].rivalryTarget>>
-		<<if $slaves[$j].assignment == $args[0].assignment>>
+	<<set _fre = $slaves.findIndex(function(s) { return s.ID == $args[0].rivalryTarget && s.assignment == $args[0].assignment; })>>
+	<<if _fre != -1>>
 		<<set $FResult -= 1>>
-		<</if>>
-		<<break>>
 	<</if>>
-	<</for>>
 <</if>>
 
 <<if $args[0].drugs == "male hormone injections" || $args[0].drugs == "female hormone injections">>
@@ -1249,12 +1241,12 @@
 
 <<if $arcologies[0].FSSupremacist != "unset">>
 	<<if $args[0].race == $arcologies[0].FSSupremacistRace>>
-		<<set $FResult -= (100/$arcologies[0].FSSupremacist)-($arcologies[0].FSSupremacistLawME)>>
+		<<set $FResult -= ($arcologies[0].FSSupremacist/5)+($arcologies[0].FSSupremacistLawME*10)>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSSubjugationist != "unset">>
 	<<if $args[0].race == $arcologies[0].FSSubjugationistRace>>
-		<<set $FResult += ($arcologies[0].FSSubjugationist/4)+($arcologies[0].FSSubjugationistLawME)>>
+		<<set $FResult += ($arcologies[0].FSSubjugationist/10)+($arcologies[0].FSSubjugationistLawME)>>
 	<</if>>
 <</if>>
 
@@ -1931,13 +1923,13 @@
 <<if $args[0].vaginaTat != 0>><<set $tatScore += 1>><</if>>
 <<if $args[0].dickTat != 0>><<set $tatScore += 1>><</if>>
 <<if $args[0].bellyTat != 0>>
-<<if (($args[0].preg > 30) && ($args[0].pregType >= 20)) || ($args[0].belly >= 300000)>>
+<<if ($args[0].belly >= 300000)>>
 	<<set $tatScore += 0.75>>
-<<elseif (($args[0].preg > 20) && ($args[0].pregType >= 20)) || (($args[0].preg > 30) && ($args[0].pregType >= 10)) || ($args[0].belly >= 150000)>>
+<<elseif ($args[0].belly >= 150000)>>
 	<<set $tatScore += 1>>
-<<elseif ($args[0].belly >= 10000) || ($args[0].bellyImplant >= 8000)>>
+<<elseif ($args[0].belly >= 10000)>>
 	<<set $tatScore += 1>>
-<<elseif (($args[0].preg >= 10) && ($args[0].pregType >= 20)) || (($args[0].preg > 10) && ($args[0].pregType >= 10)) || ($args[0].belly >= 5000)>>
+<<elseif ($args[0].belly >= 5000)>>
 	<<set $tatScore += 0.5>>
 <<elseif ($args[0].belly >= 1500)>>
 	<<set $tatScore += 0.25>>
@@ -2009,7 +2001,9 @@
 <<if $arcologies[0].FSRepopulationFocusSMR == 1>>
 	<<if $args[0].preg < -1>>
 		<<set _slaveMultiplier -= 0.5>>
-	<<elseif ($args[0].pregType >= 10) && ($args[0].preg > 20)>>
+	<<elseif ($args[0].bellyPreg >= 300000)>>
+		<<set _slaveMultiplier += 1>>
+	<<elseif ($args[0].bellyPreg >= 120000)>>
 		<<set _slaveMultiplier += 0.5>>
 	<<elseif $args[0].preg > 10>>
 		<<set _slaveMultiplier += 0.1>>
@@ -2017,7 +2011,9 @@
 <<elseif $arcologies[0].FSRestartSMR == 1>>
 	<<if $args[0].preg < -1>>
 		<<set _slaveMultiplier += 0.5>>
-	<<elseif ($args[0].pregType >= 10) && ($args[0].preg > 20)>>
+	<<elseif ($args[0].bellyPreg >= 300000)>>
+		<<set _slaveMultiplier -= 2.5>>
+	<<elseif ($args[0].bellyPreg >= 30000)>>
 		<<set _slaveMultiplier -= 1.5>>
 	<<elseif $args[0].preg > 10>>
 		<<set _slaveMultiplier -= 1.0>>
@@ -2025,7 +2021,9 @@
 <<else>>
 	<<if $args[0].preg < -1>>
 		<<set _slaveMultiplier -= 0.1>>
-	<<elseif ($args[0].pregType >= 10) && ($args[0].preg > 20)>>
+	<<elseif ($activeSlave.bellyPreg >= 300000)>>
+		<<set _slaveMultiplier -= 1.5>>
+	<<elseif ($activeSlave.bellyPreg >= 120000)>>
 		<<set _slaveMultiplier -= 0.5>>
 	<<elseif $args[0].preg > 10>>
 		<<set _slaveMultiplier -= 0.1>>

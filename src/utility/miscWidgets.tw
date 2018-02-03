@@ -566,7 +566,7 @@
 %/
 <<widget "SlaveInteractImpreg">>
 <<replace #impreg>>
-	<<if ((canGetPregnant($activeSlave)) && ($activeSlave.clothes != "a Fuckdoll suit"))>>
+	<<if (canGetPregnant($activeSlave)) && ($activeSlave.clothes != "a Fuckdoll suit") && $seePreg != 0>>
 		<<if ($PC.dick != 0 && $activeSlave.eggType == "human")>>
 		| <<link "Impregnate her yourself">><<replace "#miniscene">><<include "FPCImpreg">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><<SlaveInteractImpreg>><<SlaveInteractFertility>><</link>>
 		<</if>>
@@ -670,13 +670,13 @@
 		<<link "Let her get pregnant">><<set $activeSlave.preg = 0>><<SlaveInteractImpreg>><<SlaveInteractFertility>><</link>>
 	<<elseif $activeSlave.induce == 1>>
 		//Hormones are being slipped into her food, she will give birth suddenly and rapidly this week//
-	<<elseif ($activeSlave.preg > 38) && ($activeSlave.pregType < 50) && ($activeSlave.labor == 0)>>
+	<<elseif ($activeSlave.preg > 38) && ($activeSlave.broodmother == 0) && ($activeSlave.labor == 0)>>
 		[[Induce labor|Slave Interact][$activeSlave.labor = 1,$activeSlave.induce = 1,$birthee = 1]]
-	<<elseif ($activeSlave.pregType == 50) && ($activeSlave.preg > 38)>>
+	<<elseif ($activeSlave.broodmother > 0) && ($activeSlave.preg > 37)>>
 		[[Induce mass childbirth|BirthStorm]]
-	<<elseif ($activeSlave.preg > 0) && ($activeSlave.pregType < 50) && $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
+	<<elseif ($activeSlave.preg > 0) && ($activeSlave.broodmother == 0) && $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
 		//You are forbidden from aborting an elite child//
-	<<elseif ($activeSlave.preg > 0) && ($activeSlave.pregType < 50)>>
+	<<elseif ($activeSlave.preg > 0) && ($activeSlave.broodmother == 0)>>
 		[[Abort her pregnancy|Abort]]
 	<</if>>
 	<</if>>
@@ -693,14 +693,14 @@
 		<<link "Use contraceptives">><<set $activeSlave.preg = -1>><<SlaveInteractFertility>><</link>>
 	<<elseif ($activeSlave.preg == -1)>>
 		<<link "Let her get pregnant">><<set $activeSlave.preg = 0>><<SlaveInteractFertility>><</link>>
-	<<elseif ($activeSlave.pregType == 50) && ($activeSlave.preg > 38)>>
+	<<elseif ($activeSlave.broodmother > 0) && ($activeSlave.preg > 37)>>
 		[[Induce mass childbirth|BirthStorm]]
-	<<elseif ($activeSlave.preg > 0) && ($activeSlave.pregType < 50)>>
+	<<elseif ($activeSlave.preg > 0) && ($activeSlave.broodmother == 0)>>
 		[[Abort her pregnancy|Abort]]
 	<</if>>
 	<</if>>
 <</if>>
-<<if ($activeSlave.pregKnown == 1) && ($pregSpeedControl == 1) && ($activeSlave.breedingMark != 1) && ($activeSlave.indentureRestrictions < 1) && ($activeSlave.pregType < 50)>>
+<<if ($activeSlave.pregKnown == 1) && ($pregSpeedControl == 1) && ($activeSlave.breedingMark != 1) && ($activeSlave.indentureRestrictions < 1) && ($activeSlave.broodmother == 0)>>
 <br>&nbsp;&nbsp;&nbsp;&nbsp;
 	__Pregnancy control__: <span id="pregControl"><<if $activeSlave.pregControl == "labor supressors">>Labor is suppressed<<elseif $activeSlave.pregControl == "slow gestation">>Slowed gestation<<elseif $activeSlave.pregControl == "speed up">>Faster gestation<<else>>Normal gestation<</if>></span>
 	<<if ($activeSlave.preg >= 38)>>
@@ -1391,8 +1391,7 @@
 <</for>>
 <<set _OverMenialCap = ($helots+$fuckdolls+$menialBioreactors)-$PopCap>>
 <<if _OverMenialCap > 0>>
-	<<set _Price = Math.trunc(($slaveCostFactor*1000)/100)*100>>
-	<<set _Price = Math.clamp(_Price, 500, 1500)>>
+	<<set _Price = menialSlaveCost()>>
 	<<if $helots > 0>>
 		<<if $helots > _OverMenialCap>>
 			<<set $cash += _OverMenialCap*_Price, $menialDemandFactor -= _OverMenialCap,
@@ -2912,46 +2911,48 @@ This experience
  $args[4] is an override if defined - $args[3] must be defined in this case.
 */
 <<widget "KnockMeUp">>
-	<<if random(0,99) < $args[1]>>
-		<<if $args[0].mpreg === $args[2]>>
-			<<set $args[0].preg = 1>>
-			<<set $args[0].pregSource = $args[3] || 0>>
-			<<if $args[0].ID != -1>>
-				<<set $args[0].pregWeek = 1>>
-			<</if>>
-			<<SetPregType $args[0]>>
-			<<if $menstruation == 1>>
-			<<elseif ndef $args[4]>>
-				<<set $args[0].pregKnown = 1>>
-				<<if $args[0].ID == -1>>
-					/*@@.lime;You have gotten pregnant.@@*/
-				<<elseif $args[0].fuckdoll == 0>>
-					@@.lime;She has become pregnant.@@
-				<<else>>
-					@@.lime;It has become pregnant.@@
+	<<if $seePreg != 0>>
+		<<if random(0,99) < $args[1]>>
+			<<if $args[0].mpreg === $args[2]>>
+				<<set $args[0].preg = 1>>
+				<<set $args[0].pregSource = $args[3] || 0>>
+				<<if $args[0].ID != -1>>
+					<<set $args[0].pregWeek = 1>>
 				<</if>>
-			<<else>>
-				<<set $args[0].pregKnown = 1>>
-			<</if>>
-		<<elseif $args[2] == 2>>
-			<<set $args[0].preg = 1>>
-			<<set $args[0].pregSource = $args[3] || 0>>
-			<<if $args[0].ID != -1>>
-				<<set $args[0].pregWeek = 1>>
-			<</if>>
-			<<SetPregType $args[0]>>
-			<<if $menstruation == 1>>
-			<<elseif ndef $args[4]>>
-				<<set $args[0].pregKnown = 1>>
-				<<if $args[0].ID == -1>>
-					/*@@.lime;You have gotten pregnant.@@*/
-				<<elseif $args[0].fuckdoll == 0>>
-					@@.lime;She has become pregnant.@@
+				<<SetPregType $args[0]>>
+				<<if $menstruation == 1>>
+				<<elseif ndef $args[4]>>
+					<<set $args[0].pregKnown = 1>>
+					<<if $args[0].ID == -1>>
+						/*@@.lime;You have gotten pregnant.@@*/
+					<<elseif $args[0].fuckdoll == 0>>
+						@@.lime;She has become pregnant.@@
+					<<else>>
+						@@.lime;It has become pregnant.@@
+					<</if>>
 				<<else>>
-					@@.lime;It has become pregnant.@@
+					<<set $args[0].pregKnown = 1>>
 				<</if>>
-			<<else>>
-				<<set $args[0].pregKnown = 1>>
+			<<elseif $args[2] == 2>>
+				<<set $args[0].preg = 1>>
+				<<set $args[0].pregSource = $args[3] || 0>>
+				<<if $args[0].ID != -1>>
+					<<set $args[0].pregWeek = 1>>
+				<</if>>
+				<<SetPregType $args[0]>>
+				<<if $menstruation == 1>>
+				<<elseif ndef $args[4]>>
+					<<set $args[0].pregKnown = 1>>
+					<<if $args[0].ID == -1>>
+						/*@@.lime;You have gotten pregnant.@@*/
+					<<elseif $args[0].fuckdoll == 0>>
+						@@.lime;She has become pregnant.@@
+					<<else>>
+						@@.lime;It has become pregnant.@@
+					<</if>>
+				<<else>>
+					<<set $args[0].pregKnown = 1>>
+				<</if>>
 			<</if>>
 		<</if>>
 	<</if>>
@@ -2962,7 +2963,10 @@ This experience
  $args[0]: Slave.
 */
 <<widget "SetBellySize">>
-	<<if $args[0].preg > 5>>
+	<<if $args[0].broodmother == 1>>
+		<<set $args[0].bellyPreg = setup.broodSizeOne[$args[0].preg]>>
+		<<set $args[0].pregType = $args[0].preg>>
+	<<elseif $args[0].preg > 5>>
 		<<set $args[0].bellyPreg = getPregBellySize($args[0])>>
 	<<else>>
 		<<set $args[0].bellyPreg = 0>>
@@ -3017,31 +3021,32 @@ This experience
 <<set _names = []>>
 
 <<if ($seeRace == 1)>>
-<<if ($args[0].race == "white")>>
+<<switch $args[0].race>>
+<<case ($args[0].race == "white")>>
 	<<set _names.push("White", "Pale")>>
-<<elseif ($args[0].race == "asian")>>
+<<case "asian">>
 	<<set _names.push("Asian", "Yellow")>>
-<<elseif ($args[0].race == "latina")>>
+<<case "latina">>
 	<<set _names.push("Latina", "Brown")>>
-<<elseif ($args[0].race == "black")>>
+<<case "black">>
 	<<set _names.push("Black", "Dark")>>
-<<elseif ($args[0].race == "pacific islander")>>
+<<case "pacific islander">>
 	<<set _names.push("Islander", "Sea")>>
-<<elseif ($args[0].race == "malay")>>
+<<case "malay">>
 	<<set _names.push("Spice", "Cinnamon", "Pinoy")>>
-<<elseif ($args[0].race == "southern european")>>
+<<case "southern european">>
 	<<set _names.push("Mediterranean", "Olive")>>
-<<elseif ($args[0].race == "amerindian")>>
+<<case "amerindian">>
 	<<set _names.push("Indian", "Reservation")>>
-<<elseif ($args[0].race == "semitic")>>
+<<case "semitic">>
 	<<set _names.push("Semitic")>>
-<<elseif ($args[0].race == "middle eastern")>>
+<<case "middle eastern">>
 	<<set _names.push("Arab", "Sand")>>
-<<elseif ($args[0].race == "indo-aryan")>>
+<<case "indo-aryan">>
 	<<set _names.push("Indian", "Brown")>>
-<<elseif ($args[0].race == "mixed race")>>
+<<case "mixed race">>
 	<<set _names.push("Mulatto", "Mutt")>>
-<</if>>
+<</switch>>
 <</if>>
 
 <<set _names.push($args[0].hColor)>>
@@ -3108,13 +3113,16 @@ This experience
 <<if ($args[0].dick > 5) && ($args[0].balls > 5)>>
 	<<set $prefixes.push("Potent")>>
 <</if>>
-<<if ($args[0].pregType >= 50) && ($args[0].preg > 30)>>
+<<if ($args[0].broodmother == 2) && ($args[0].preg > 30)>>
 	<<set $prefixes.push("Seeded", "Bursting")>>
 <</if>>
-<<if ($args[0].pregType >= 10) && ($args[0].preg > 20)>>
+<<if ($args[0].broodmother == 1) && ($args[0].preg > 30)>>
+	<<set $prefixes.push("Stuffed", "Bloated")>>
+<</if>>
+<<if $args[0].bellyPreg >= 450000>>
 	<<set $prefixes.push("Squirming", "Bulging")>>
 <</if>>
-<<if ($args[0].bellyPreg > 5000)>>
+<<if ($args[0].bellyPreg >= 5000)>>
 	<<set _names.push("Preg")>>
 <</if>>
 <<if ($args[0].dick > 4)>>
@@ -3281,8 +3289,11 @@ This experience
 <<if $args[0].breedingMark == 1>>
 	<<set _suffixes.push("Breeder", "Oven", "Womb")>>
 <</if>>
-<<if ($args[0].pregType >= 50) && ($args[0].preg > 30)>>
+<<if ($args[0].broodmother == 2) && ($args[0].preg > 30)>>
 	<<set _suffixes.push("Nursery", "Factory")>>
+<</if>>
+<<if ($args[0].broodmother == 1) && ($args[0].preg > 30)>>
+	<<set _suffixes.push("Breeder", "Factory")>>
 <</if>>
 <<if $args[0].belly > 150000>>
 	<<set _suffixes.push("Balloon")>>

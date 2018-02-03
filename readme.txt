@@ -1,10 +1,14 @@
 Common problems:
 
+How do I start the game?
+-Run the compile file, go to folder "bin", click the "FC_Pregmod" and play. (Reccomendation: Drag it into incongito mode)
+
 I get a error on gamestart.
 -clear cookies
 
 I can't save more than once or twice.
 -Known issue caused by sugarcube level changes. Save to file doesn't have this problem and will likely avoid the first problem as well.
+
 
 How to mod (basic doc):
 
@@ -18,7 +22,7 @@ How to mod (basic doc):
     - src/pregmod 		- I put all pregmod-only passages here.
     - .gitignore 		- special file for git - to ignore some files. For example - compilation results.
     
-3. Compilation:
+3. Compilation: 
     
     Windows:
     Run compile.bat - result will be file bin/FC_pregmod.html
@@ -31,8 +35,8 @@ How to mod (basic doc):
     compile-git will produce the same result file but with current commit hash in filename.
 
     Mac: 
-    Don't supported directly (I don't have access to Mac for testing). 
-    But potentially can be used linux compilation script if you download tweego for mac from here: https://bitbucket.org/tmedwards/tweego/downloads/ and replace linux executable with mac executable in ./devTools/tweeGo/ folder. This is not tested though.
+    Not supported directly (I don't have access to Mac for testing). 
+    But you can use linux compilation script if you download tweego for mac from here: https://bitbucket.org/tmedwards/tweego/downloads/ and replace linux executable with mac executable in ./devTools/tweeGo/ folder. This is not tested though, so be warned.
     
 4. Simple comparing and merging with original FC:
 

@@ -3,7 +3,7 @@
 <<set setup.passagePreFilters = setup.passagePreFilters || {
 	"Main":                      s => (s.assignmentVisible == 1),
 	"Personal Attention Select": s => (s.assignmentVisible == 1 && s.fuckdoll <= 0),
-	"Agent Select":              s => (s.fuckdoll == 0 && s.devotion >= 20 && s.intelligence > 0 && s.intelligenceImplant > 0 && canWalk(s) && canSee(s) && canTalk(s) && s.pregType < 50 && s.breedingMark != 1),
+	"Agent Select":              s => (s.fuckdoll == 0 && s.devotion >= 20 && s.intelligence > 0 && s.intelligenceImplant > 0 && canWalk(s) && canSee(s) && canTalk(s) && s.broodmother < 2 && s.breedingMark != 1),
 	"BG Select":                 s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "guard you" && canWalk(s) && canSee(s) && s.breedingMark != 1),
 	"Recruiter Select":          s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "recruit girls" && canWalk(s) && canSee(s) && canTalk(s)),
 	"HG Select":                 s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "be your Head Girl" && canWalk(s) && canSee(s) && canTalk(s)),
@@ -132,12 +132,27 @@
 	<<elseif "recruit girls" == _Slave.assignment>>''@@.lightcoral;RC@@''
 	<<elseif "guard you" == _Slave.assignment>>''@@.lightcoral;BG@@''
 	<</if>>
-	<<if $personalAttention == _Slave.ID>>''@@.lightcoral;PA@@''<</if>>
+	<<if Array.isArray($personalAttention) && $personalAttention.findIndex(function(s) { return s.ID == _Slave.ID; }) != -1>>''@@.lightcoral;PA@@''<</if>>
 	[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]] /* lists their names */
 	
 <<case "Personal Attention Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-	[[_slaveName|Personal Attention Select][$activeSlave = $slaves[_ssi], $personalAttention = $slaves[_ssi].ID, $personalAttentionChanged = 1]]
+	<<link _slaveName>>
+		<<if !Array.isArray($personalAttention)>> /* first PA target */
+			<<set $personalAttention = [{ID: $slaves[_ssi].ID, trainingRegimen: "undecided"}]>>
+		<<else>>
+			<<set _pai = $personalAttention.findIndex(function(s) { return s.ID == $slaves[_ssi].ID; })>>
+			<<if _pai == -1>> /* not already a PA target; add */
+				<<set $activeSlave = $slaves[_ssi], $personalAttention.push({ID: $slaves[_ssi].ID, trainingRegimen: "undecided"})>>
+			<<else>> /* already a PA target; remove */
+				<<set $personalAttention.deleteAt(_pai)>>
+				<<if $personalAttention.length == 0>>
+					<<set $personalAttention = "sex">>
+				<</if>>
+			<</if>>
+		<</if>>
+		<<goto "Personal Attention Select">>
+	<</link>>
 <<case "Agent Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 	[[_slaveName|Agent Workaround][$i = _ssi]]
@@ -293,7 +308,7 @@
 	<<elseif _Slave.breedingMark == 1 && $dairyRestriantsSettings > 0>>
 		<br>//_Slave.slaveName may only be a free range cow//
 		<<continue>>
-	<<elseif ($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.pregType >= 50))>>
+	<<elseif ($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother != 0))>>
 		<br>//_Slave.slaveName's womb cannot accommodate current machine settings//
 		<<continue>>
 	<<else>>
@@ -615,7 +630,7 @@ will
 	<</if>>
 
 	<<if $dairy != 0>>
-		<<if $dairy > $dairySlaves && (((_Slave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) || ((_Slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || (_Slave.breedingMark == 1 && $dairyRestriantsSettings > 0) || (($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.pregType >= 50))))>>
+		<<if $dairy > $dairySlaves && (((_Slave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) || ((_Slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || (_Slave.breedingMark == 1 && $dairyRestriantsSettings > 0) || (($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother > 0))))>>
 			Dairy
 		<<elseif ((_Slave.lactation > 0) || (_Slave.balls > 0)) || (($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0) && ($dairySlimMaintainUpgrade == 0))>>
 			 [[Dairy|Assign][$assignTo = "Dairy", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */

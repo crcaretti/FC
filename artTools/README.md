@@ -66,6 +66,10 @@ Execute
 
     python3 vector_layer_split.py vector_source.svg tw ../src/art/vector/layers/
 
+For revamped art 
+
+	python3 vector_revamp_layer_split.py vector_revamp_source.svg tw ../src/art/vector_revamp/layers/
+
 . This application reads all groups in `vector_source.svg`.  
 Each group is stored in a separate file in the target directory `/src/art/vector/layers/`.  
 The group ID sets the file name. Therefore, the group ID **must not** contain spaces or any other weird characters.

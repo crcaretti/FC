@@ -317,7 +317,7 @@
 			<<set $enduringRep *= .8>>
 		<</if>>
 	<</if>>
-	<<set $seed += random(2000 * Math.log($cash), 3000 * Math.log($cash))>>
+	<<set $seed += Math.trunc(Math.min(3000 * Math.log($cash), $cash * 0.07))>>
 	This week, your illicit and legitimate business dealings earned you a combined total of @@.yellowgreen;<<print cashFormat($seed)>>@@.
 	<<set $cash += $seed>>
 <<elseif ($cash > 1000) && ($personalAttention == "business")>>
@@ -328,14 +328,14 @@
 	<</if>>
 	<<if $PC.trading >= 100>>
 		You focus on business and leverage your @@.springgreen;venture capital experience@@ to make good money:
-		<<set $seed += random(5000,10000)>>
+		<<set $seed += random(5000,10000) + Math.trunc(Math.min(4000 * Math.log($cash), $cash * 0.07))>>
 	<<elseif $PC.career == "arcology owner">>
 		You focus on business and leverage your @@.springgreen;Free Cities experience@@ to make good money:
-		<<set $seed += random(5000,10000)>>
+		<<set $seed += random(5000,10000) + Math.trunc(Math.min(4000 * Math.log($cash), $cash * 0.07))>>
 	<<else>>
-		You focus on business this week and make money:
+		You focus on business this week and make money
+		<<set $seed += Math.trunc(Math.min(3500 * Math.log($cash), $cash * 0.07))>>
 	<</if>>
-	<<set $seed += random(4000 * Math.log($cash), 5000 * Math.log($cash))>>
 	@@.yellowgreen;<<print cashFormat($seed)>>.@@
 	<<set $cash += $seed>>
 	<<if $arcologies[0].FSRomanRevivalist != "unset">>
@@ -343,7 +343,7 @@
 		<<FSChange "RomanRevivalist" 2>>
 	<</if>>
 <<elseif ($cash > 1000)>>
-	<<set $seed = random(2000 * Math.log($cash), 3000 * Math.log($cash))>>
+	<<set $seed = Math.trunc(Math.min(3000 * Math.log($cash), $cash * 0.07))>>
 	This week, your business endeavors made you @@.yellowgreen;<<print cashFormat($seed)>>.@@
 	<<set $cash += $seed>>
 <<else>>
@@ -679,18 +679,19 @@
 			<<set _upgradeCount += 1>>
 		<</if>>
 		<<set _dataGain = _upgradeCount * 200>>
-		You are selling the data collected by your security department, making @@.yellowgreen;¤a discreet sum@@.
 		<<if !isInt(_dataGain)>>
 			<br>@@.red;Error, dataGain is NaN@@
+		<<else>>
+			You are selling the data collected by your security department, which earns a discreet sum of @@.yellowgreen;<<print cashFormat(_dataGain)>>@@.
+			<<set $cash += _dataGain>>
+			Many of your citizens are not enthusiastic of this however, @@.red;damaging your authority@@.
+			<<set $authority -= 50>>
 		<</if>>
-		<<set $cash += _dataGain>>
-		Many of your citizens are not enthusiastic of this however, @@.red;damaging your authority@@.
-		<<set $authority -= 50>>
 	<</if>>
 
 	<<if $marketInfiltration == 1>>
-		Your secret service makes use of black markets and illegal streams of goods to make a profit, making you @@.yellowgreen;¤a discreet sum@@. This however allows @@.red;crime to flourish@@ in the underbelly of the arcology.
-		<<set $cash += 1000 * random(4,8)>>
+		<<set $seed = random(7000,8000)>>
+		Your secret service makes use of black markets and illegal streams of goods to make a profit, making you @@.yellowgreen;<<print cashFormat($seed)>>@@. This however allows @@.red;crime to flourish@@ in the underbelly of the arcology.
 		<<set $crime += random(1,3)>>
 	<</if>>
 
@@ -840,40 +841,28 @@ Routine upkeep of your demesne costs @@.yellow;<<print cashFormat($costs)>>.@@
 	<</if>>
 <</if>>
 
-<<if $menialDemandFactor != 0>>
 <<if Math.abs($menialDemandFactor) > 100>>
-<<if ($menialDemandFactor > 1000) && ($slaveCostFactor <= 1.1)>>
-	Your dealings in menial slaves have had a major impact on the slave market, @@.yellow;greatly increasing slave prices.@@
-	<<set $menialDemandFactor = 0>>
-	<<set $slaveCostFactor += 0.15>>
-	<br><br>
-<<elseif ($menialDemandFactor > 500) && ($slaveCostFactor <= 1.15)>>
-	Your dealings in menial slaves have had a noticeable impact on the slave market, @@.yellow;significantly increasing slave prices.@@
-	<<set $menialDemandFactor = 0>>
-	<<set $slaveCostFactor += 0.1>>
-	<br><br>
-<<elseif ($menialDemandFactor > 250) && ($slaveCostFactor <= 1.2)>>
-	Your dealings in menial slaves have had a minor impact on the slave market, @@.yellow;slightly increasing slave prices.@@
-	<<set $menialDemandFactor = 0>>
-	<<set $slaveCostFactor += 0.05>>
-	<br><br>
-<<elseif ($menialDemandFactor < -1000) && ($slaveCostFactor >= 0.9)>>
-	Your dealings in menial slaves have had a major impact on the slave market, @@.yellow;greatly reducing slave prices.@@
-	<<set $menialDemandFactor = 0>>
-	<<set $slaveCostFactor -= 0.15>>
-	<br><br>
-<<elseif ($menialDemandFactor < -500) && ($slaveCostFactor >= 0.85)>>
-	Your dealings in menial slaves have had a noticeable impact on the slave market, @@.yellow;significantly reducing slave prices.@@
-	<<set $menialDemandFactor = 0>>
-	<<set $slaveCostFactor -= 0.1>>
-	<br><br>
-<<elseif ($menialDemandFactor < -250) && ($slaveCostFactor >= 0.8)>>
-	Your dealings in menial slaves have had a minor impact on the slave market, @@.yellow;slightly reducing slave prices.@@
-	<<set $menialDemandFactor = 0>>
-	<<set $slaveCostFactor -= 0.05>>
-	<br><br>
-<</if>>
-<</if>>
+	<<if ($menialDemandFactor > 1000)>>
+		<<set $menialDemandFactor -= random(500, 1000)>>
+	<<elseif ($menialDemandFactor > 500)>>
+		<<set $menialDemandFactor -= random(250, 500)>>
+	<<elseif ($menialDemandFactor > 250)>>
+		<<set $menialDemandFactor -= random(100, 250)>>
+	<<elseif ($menialDemandFactor < -1000)>>
+		<<set $menialDemandFactor += random(500, 1000)>>
+	<<elseif ($menialDemandFactor < -500)>>
+		<<set $menialDemandFactor += random(250, 500)>>
+	<<elseif ($menialDemandFactor < -250)>>
+		<<set $menialDemandFactor += random(100, 250)>>
+	<<else>>
+		<<set $menialDemandFactor += random(-100, 100)>>
+	<</if>>
+<<elseif random(1,100) > 95>>
+	<<set $menialDemandFactor += random(-1500, 1500)>>
+<<elseif random(1,100) > 75>>
+	<<set $menialDemandFactor += random(-500, 500)>>
+<<else>>
+	<<set $menialDemandFactor += random(-250, 250)>>
 <</if>>
 
 <<if $securityForceActive == 1>>

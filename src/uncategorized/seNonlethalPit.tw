@@ -2,28 +2,13 @@
 
 <<nobr>>
 
-<<set $nextButton = "Continue">>
-<<set $nextLink = "Scheduled Event">>
-<<set $returnTo = "Scheduled Event">>
-<<set $pitFought = 1>>
+<<set $nextButton = "Continue", $nextLink = "Scheduled Event", $returnTo = "Scheduled Event", $pitFought = 1, $fighterOne = 0, $fighterTwo = 0>>
 
-<<set $fighterOne = 0>>
-<<set $fighterTwo = 0>>
 <<if $pitBG == 0>>
 	<<set $fighterOne = $fighterIDs.random()>>
-	<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if ($slaves[$i].ID == $fighterOne)>>
-		<<set $fighterOne = $slaves[$i]>>
-		<<break>>
-	<</if>>
-	<</for>>
+	<<set $fighterOne = $slaves.find(function(s) { return s.ID == $fighterOne; })>>
 <<else>>
-	<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if ($slaves[$i].ID == $Bodyguard.ID)>>
-		<<set $fighterOne = $slaves[$i]>>
-		<<break>>
-	<</if>>
-	<</for>>
+	<<set $fighterOne = $slaves.find(function(s) { return s.ID == $Bodyguard.ID; })>>
 <</if>>
 <<set $fighterIDs = $fighterIDs.shuffle()>>
 <<for $i = 0; $i < $fighterIDs.length; $i++>>
@@ -32,13 +17,8 @@
 		<<break>>
 	<</if>>
 <</for>>
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if ($slaves[$i].ID == $fighterTwo)>>
-		<<set $fighterTwo = $slaves[$i]>>
-		<<break>>
-	<</if>>
-<</for>>
-<<if ($fighterOne == 0) || ($fighterTwo == 0)>>
+<<set $fighterTwo = $slaves.find(function(s) { return s.ID == $fighterTwo; })>>
+<<if ndef $fighterOne || ndef $fighterTwo || ($fighterOne == 0) || ($fighterTwo == 0)>>
 	<<goto "Nonrandom Event">>
 <</if>>
 
@@ -427,8 +407,8 @@ You review the rules - the combatants are wearing light gloves, and the fight wi
 			<<set $rep += 50>>
 		<</if>>
 	<</if>>
-<<elseif (((_winner.preg > 30) && (_winner.pregType >= 20)) || _winner.bellyImplant >= 32000) && (((_loser.preg > 30) && (_loser.pregType >= 20)) || _loser.bellyImplant >= 32000)>>
-	_winner.slaveName and _loser.slaveName stare each other down and both come to a realization.  Neither can reach the other around their massive bellies. Instead, they choose to ram their bulk into each other in hopes of toppling the weaker. After a drawn out struggle, both slaves' middles are @@.red;dark red and shuddering@@, ready to burst open.  Rather than continue, _loser.slaveName lets the next strike down her hoping that the outcome of this fight isn't fatal.
+<<elseif (_winner.belly >= 600000) && (_loser.belly >= 600000)>>
+	_winner.slaveName and _loser.slaveName stare each other down and both come to a realization. Neither can reach the other around their massive bellies. Instead, they choose to ram their bulk into each other in hopes of toppling the weaker. After a drawn out struggle, both slaves' middles are @@.red;dark red and shuddering@@, ready to burst open. Rather than continue, _loser.slaveName lets the next strike down her hoping that the outcome of this fight isn't fatal.
 	<<set _winner.health -= 50>>
 	<<set _loser.health -= 50>>
 	<<if $pitAudience == "paid">>
@@ -438,7 +418,7 @@ You review the rules - the combatants are wearing light gloves, and the fight wi
 		The audience is @@.green;very impressed@@ by the showdown.
 		<<set $rep += 75>>
 	<</if>>
-<<elseif (((_winner.preg > 30) && (_winner.pregType >= 20)) || _winner.bellyImplant >= 32000) && (_loser.preg < 10)>>
+<<elseif (_winner.belly >= 600000) && (_loser.belly < 300000)>>
 	_loser.slaveName spies an easy win against her massively bloated opponent and rushes in to topple _winner.slaveName. In an effort to defend herself, _winner.slaveName hoists her belly and turns suddenly, accidentally impacting _loser.slaveName with her massive middle and knocking her to the ground. Seeing an oppertunity, _winner.slaveName releases her grip and slams her weighty womb down on _loser.slaveName, bashing the wind out of her. _loser.slaveName struggles to slip out from under the mass, but the weight is too great and she passes out.
 	<<if $pitAudience == "paid">>
 		The audience is impressed by this absurd win, and your @@.yellowgreen;cut of the betting@@ is reasonably.
@@ -488,8 +468,8 @@ You review the rules - the combatants are wearing light gloves, and the fight wi
 		The audience is @@.green;reasonably impressed@@ by the show of strength.
 		<<set $rep += 50>>
 	<</if>>
-<<elseif ((_loser.preg > 10) && (_loser.pregType >= 10)) || _loser.bellyImplant >= 16000>>
-	_winner.slaveName wants to win badly enough that she takes and extremely brutal shortcut to victory.  The instant the fight starts, she quickly knees _loser.slaveName in the stomach. The massively swollen _loser.slaveName goes down with a loud thud and plenty of jiggling. _winner.slaveName gloats over the struggling _loser.slaveName watching as she is unable to pull her bloated form off the ground.
+<<elseif _loser.belly >= 300000>>
+	_winner.slaveName wants to win badly enough that she takes and extremely brutal shortcut to victory. The instant the fight starts, she quickly knees _loser.slaveName in the stomach. The massively swollen _loser.slaveName goes down with a loud thud and plenty of jiggling. _winner.slaveName gloats over the struggling _loser.slaveName watching as she is unable to pull her bloated form off the ground.
 	<<if $pitAudience == "paid">>
 		The audience is not very impressed by this easy win, and your @@.yellowgreen;cut of the betting@@ is unimpressive.
 		<<set $cash += 500>>
@@ -780,8 +760,7 @@ You throw the victor's strap-on down to _winner.slaveName.
 <<if (_loser.relationship <= 4)>>
 <<if (_loser.relationshipTarget == _winner.ID)>>
 	Fighting and rape have @@.lightsalmon;damaged@@ the relationship between the slaves.
-	<<set _loser.relationship -= 1>>
-	<<set _winner.relationship -= 1>>
+	<<set _loser.relationship -= 1, _winner.relationship -= 1>>
 <</if>>
 <</if>>
 <</if>>
@@ -795,14 +774,12 @@ You throw the victor's strap-on down to _winner.slaveName.
 <</if>>
 
 <<for $i = 0; $i < $slaves.length; $i++>>
-<<if _winner.ID == $slaves[$i].ID>>
-<<set $slaves[$i] = _winner>>
-<</if>>
-<</for>>
-<<for $i = 0; $i < $slaves.length; $i++>>
-<<if _loser.ID == $slaves[$i].ID>>
-<<set $slaves[$i] = _loser>>
-<</if>>
+	<<if _winner.ID == $slaves[$i].ID>>
+		<<set $slaves[$i] = _winner>>
+	<</if>>
+	<<if _loser.ID == $slaves[$i].ID>>
+		<<set $slaves[$i] = _loser>>
+	<</if>>
 <</for>>
 
 <</nobr>>\
