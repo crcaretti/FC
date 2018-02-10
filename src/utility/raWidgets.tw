@@ -2951,63 +2951,56 @@ Your brand design is ''$brandDesign.''
 		<<continue>>
 	<</if>>
 
-    <<set _temp = _combinedRule.setAssignment>>
-	<<set _combinedRule = mergeRules([_combinedRule, _currentRule])>>
-    <<set _combinedRule.setAssignment = _temp>>
-    
-	/% We merge assignments here %/
-	<<if _currentRule.setAssignment == "no default setting">>
-		<<continue>>
-	<</if>>
-
+	/% Before merging rules, we process assignments for each rule separately so we can remove slaves from facilities when they no longer qualify, even if the final "winning" rule assigns them elsewhere %/
+	/% We also ignore inapplicable assignments for the current slave, so we only merge assignments that are valid %/
 	<<switch _currentRule.setAssignment>>
 	<<case "live with your Head Girl">>
 		<<if ($HGSuiteSlaves < 1 && $args[0].indentureRestrictions <= 0)>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "be confined in the arcade">>
 		<<if ($arcadeSlaves < $arcade && $args[0].indentureRestrictions <= 0 && $args[0].breedingMark != 1)>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "serve in the master suite">>
 		<<if ($masterSuiteSlaves < $masterSuite && ($args[0].devotion > 20 || $args[0].trust < -50 || ($args[0].devotion >= -50 && $args[0].trust < -20)))>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "get treatment in the clinic">>
 		<<if ($clinicSlaves < $clinic && ($args[0].health < 20 || ($args[0].chem > 15 && $Nurse != 0 && $clinicUpgradeFilters == 1)) || (($args[0].bellyImplant > -1) && ($bellyImplants == 1)) || $args[0].preg > 1)>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "rest in the spa">>
 		<<if ($spaSlaves < $spa) && ($args[0].health < 20) || ($args[0].trust < 60) || ($args[0].devotion <= 60) || ($args[0].fetish == "mindbroken") && ($args[0].devotion >= -20)>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "work in the brothel">>
 		<<if ($brothelSlaves < $brothel && ($args[0].devotion > 50 || $args[0].trust > 50 || $args[0].trust < -50 || ($args[0].devotion >= -50 && $args[0].trust < -20)) && $args[0].breedingMark != 1)>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "serve in the club">>
 		<<if ($clubSlaves < $club && ($args[0].devotion > 50 || $args[0].trust > 50 || $args[0].trust < -50 || ($args[0].devotion >= -50 && $args[0].trust < -20)) && $args[0].breedingMark != 1)>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "work in the dairy">>
@@ -3019,80 +3012,94 @@ Your brand design is ''$brandDesign.''
 					<<if ($args[0].devotion > 20) || (($args[0].devotion >= -50) && ($args[0].trust < -20)) || ($args[0].trust < -50) || ($args[0].amp == 1) || ($dairyRestraintsUpgrade == 1)>>
 						<<if ($dairyStimulatorsSetting < 2) || ($args[0].anus > 2) || ($dairyPrepUpgrade == 1)>>
 							<<if ($dairyPregSetting < 2) || ($args[0].vagina > 2) || ($args[0].ovaries == 0) || ($dairyPrepUpgrade == 1)>>
-								<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 							<<else>>
-								<<RAFacilityRemove $args[0] _currentRule>>
+								<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+								<<run delete _currentRule.setAssignment>>
 							<</if>>
 						<<else>>
-							<<RAFacilityRemove $args[0] _currentRule>>
+							<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+							<<run delete _currentRule.setAssignment>>
 						<</if>>
 					<<else>>
-						<<RAFacilityRemove $args[0] _currentRule>>
+						<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+						<<run delete _currentRule.setAssignment>>
 					<</if>>
 				<<else>>
-					<<RAFacilityRemove $args[0] _currentRule>>
+					<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+					<<run delete _currentRule.setAssignment>>
 				<</if>>
 			<</if>>
 		<</if>>
 
 	<<case "work as a servant">>
 		<<if ($servantsQuartersSlaves < $servantsQuarters && canSee($args[0]) && canWalk($args[0]) && ($args[0].devotion >= -20 || $args[0].trust < -20 || ($args[0].devotion >= -50 && $args[0].trust <= 20)))>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "learn in the schoolroom">>
 		<<if ($schoolroomSlaves < $schoolroom && $args[0].fetish != "mindbroken" && ($args[0].devotion >= -20 || $args[0].trust < -50 || ($args[0].devotion >= -50 && $args[0].trust < -20)))>>
 			<<if ($args[0].intelligenceImplant < 1) || ($args[0].voice != 0 && $args[0].accent+$schoolroomUpgradeLanguage > 2) || ($args[0].oralSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].whoreSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].entertainSkill <= 10+$schoolroomUpgradeSkills*20) || ($args[0].analSkill < 10+$schoolroomUpgradeSkills*20) || (($args[0].vagina >= 0) && ($args[0].vaginalSkill < 10+$schoolroomUpgradeSkills*20))>>
-				<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 			<<else>>
-				<<RAFacilityRemove $args[0] _currentRule>>
+				<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+				<<run delete _currentRule.setAssignment>>
 			<</if>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "be confined in the cellblock">>
 		<<if ($cellblockSlaves < $cellblock && (($args[0].devotion < -20 && $args[0].trust >= -20) || ($args[0].devotion < -50 && $args[0].trust >= -50)))>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
 		<<else>>
-			<<RAFacilityRemove $args[0] _currentRule>>
+			<<RAFacilityRemove $args[0] _currentRule>> /% before deleting _currentRule.setAssignment %/
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "take classes">>
 		<<if (!$args[0].intelligenceImplant && $args[0].fetish != "mindbroken" && ($args[0].devotion >= -20 || $args[0].trust < -50 || ($args[0].trust < -20 && $args[0].devotion >= -50)))>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
+		<<else>>
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "choose her own job">>
 		<<if ($args[0].fetish != "mindbroken")>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
+		<<else>>
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "get milked">>
 		<<if ($args[0].lactation > 0 || $args[0].balls > 0)>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
+		<<else>>
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "be a servant">>
 		<<if (canWalk($args[0]) && canSee($args[0]) && ($args[0].devotion >= -20 || $args[0].trust < -50 || ($args[0].trust < -20 && $args[0].devotion >= -50)))>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
+		<<else>>
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "work a glory hole">>
 		<<if $args[0].indentureRestrictions <= 0 && $args[0].breedingMark != 1>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
+		<<else>>
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<case "whore" "serve the public" "stay confined">>
 		<<if ($args[0].fuckdoll == 0) && $args[0].breedingMark != 1>>
-			<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
+		<<else>>
+			<<run delete _currentRule.setAssignment>>
 		<</if>>
 
 	<<default>>
-		<<set _combinedRule.setAssignment = _currentRule.setAssignment>>
+		@@.red;raWidgets missing case for assignment '<<print _currentRule.setAssignment>>'@@.
+
 	<</switch>>
+
+	/% merge the current rule (possibly modified by the code above) into the combined rule %/
+	<<set _combinedRule = mergeRules([_combinedRule, _currentRule])>>
 
 <</for>> /* done merging rules; from here onwards, we should only use _combinedRule */
 
