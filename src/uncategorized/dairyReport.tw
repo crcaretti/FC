@@ -1,9 +1,15 @@
 :: Dairy Report [nobr]
 
+<span id="dairystats">
+</span>
+
 <<set _MMWorkout = 0>>
 
 <<SlaveSort $DairyiIDs>>
 <<set _DL = $DairyiIDs.length, $dairySlaves = _DL, _SL = $slaves.length, $bioreactorPerfectedID = 0, $legendaryBallsID = 0, $legendaryCowID = 0, $milkmaidDevotionBonus = 1, $milkmaidHealthBonus = 0, $milkmaidTrustBonus = 1, $milkmaidDevotionThreshold = 45, $milkmaidTrustThreshold = 35, _anusesStretched = 0, _birthers = 0, _births = 0, _cumWeek = 0, _femCumWeek = 0, _FLsFetish = 0, _milkWeek = 0, _balltacular = 0, _boobtacular = 0, _careerForgotten = 0, _chemMinor = 0, _chemSevere = 0, _desterilized = 0, _hatefilled = 0, _horrified = 0, $intelligenceLost = 0, _mindbroken = 0, _profits = 0, _skillsLost = 0, _stupidified = 0, _vaginasStretched = 0>>
+
+<!-- Statistics gathering -->
+<<set $facility = $facility || {}, $facility.dairy = initFacilityStatistics($facility.dairy)>>
 
 <<if ($Milkmaid != 0)>>
 	<<set _FLs = $slaves.findIndex(function(s) { return s.ID == $Milkmaid.ID; })>>
@@ -28,6 +34,9 @@
 	<<if ($slaves[_FLs].health >= 80)>>
 		<<set $milkmaidHealthBonus++>>
 	<</if>>
+	<<if $slaves[_FLs].livingRules != "luxurious">>
+		<<set $slaves[_FLs].livingRules = "luxurious">>
+	<</if>>
 	<<if $slaves[_FLs].fetishStrength <= 95>>
 		<<if $slaves[_FLs].fetish != "boobs">>
 			<<fetishChangeChance $slaves[_FLs]>>
@@ -40,6 +49,7 @@
 			<<set _FLsFetish = 2, $slaves[_FLs].fetishStrength += 4>>
 		<</if>>
 	<</if>>
+	<<run getSlaveStatisticData($Milkmaid, $facility.dairy)>>
 	<<set $Milkmaid = $slaves[_FLs], $i = _FLs>>
 	&nbsp;&nbsp;&nbsp;&nbsp;<<SlaveFullName $Milkmaid>> is serving as your Milkmaid.
 	<<if $Milkmaid.relationship == -3 && $Milkmaid.devotion > 50>>
@@ -67,6 +77,7 @@
 				<<set $slaves[_FLs].devotion++>>
 			<</if>>
 			<<set _Tmult = (_milkmaidImpregnated * 10), $slaves[_FLs].penetrativeCount += _Tmult, $Milkmaid.penetrativeCount += _Tmult, $penetrativeTotal += _Tmult>>
+			<<set $slaves[_FLs].need = 0>>
 		<</if>>
 	<</if>>
 	<<if (_FLsFetish == 1)>>
@@ -102,7 +113,7 @@
 			<<if $slaves[$i].balls >= 30>>
 				<<set _MMWorkout++>>
 			<</if>>
-			<<if bigBellyPreg($slaves[$i])>>
+			<<if $slaves[$i].belly >= 5000>>
 				<<set _MMWorkout++>>
 			<</if>>
 			<<if !canWalk($slaves[$i])>> /* big bonus if they can't move themselves and are fat as cows */
@@ -118,7 +129,7 @@
 				<<if $slaves[$i].balls >= 30>>
 					<<set _MMWorkout += 2>>
 				<</if>>
-				<<if bigBellyPreg($slaves[$i])>>
+				<<if $slaves[$i].belly >= 5000>>
 					<<set _MMWorkout += 2>>
 				<</if>>
 			<</if>>
@@ -146,12 +157,18 @@
 	<<if setup.milkmaidCareers.includes($Milkmaid.career)>>
 		<<set $milkmaidHealthBonus++>>
 		She has career experience dealing with milk animals.
+	<<elseif $Milkmaid.skillMM >= $masteredXP>>
+		<<set $milkmaidHealthBonus++>>
+		She has experience dealing with milk animals from working for you.
+	<<else>>
+		<<set $slaves[_FLs].skillMM += random(1,($Milkmaid.intelligence+4)*2)>>
 	<</if>>
 	<<if ($dairyStimulatorsSetting < 2) && ($Milkmaid.dick > 4) && (canPenetrate($Milkmaid))>>
 		<<for _dI = 0; _dI < _DL; _dI++>>
 			<<set $i = $slaveIndices[$DairyiIDs[_dI]]>>
 			<<if ($slaves[$i].balls > 0)>>
 				She uses her turgid cock to give prostate stimulation to slaves that need help ejaculating.
+				<<set $slaves[_FLs].need -= 50>>
 				<<break>>
 			<</if>>
 		<</for>>
@@ -178,15 +195,18 @@
 			<<elseif $slaves[$i].ID == $Milkmaid.father>>
 				She pays special attention to her father, $slaves[$i].slaveName, making sure she is well kept and happy.
 				<<set $slaves[$i].trust++>>
-			<<elseif areSisters($slaves[$i], $Milkmaid) == 1>>
-				She pays special attention to her twin sister, $slaves[$i].slaveName, making sure she is well kept and happy.
-				<<set $slaves[$i].trust++>>
-			<<elseif areSisters($slaves[$i], $Milkmaid) == 2>>
-				She pays special attention to her sister, $slaves[$i].slaveName, making sure she is well kept and happy.
-				<<set $slaves[$i].trust++>>
-			<<elseif areSisters($slaves[$i], $Milkmaid) == 3>>
-				She pays special attention to her half-sister, $slaves[$i].slaveName, making sure she is well kept and happy.
-				<<set $slaves[$i].trust++>>
+			<<else>>
+				<<switch areSisters($slaves[$i], $Milkmaid)>>
+				<<case 1>>
+					She pays special attention to her twin sister, $slaves[$i].slaveName, making sure she is well kept and happy.
+					<<set $slaves[$i].trust++>>
+				<<case 2>>
+					She pays special attention to her sister, $slaves[$i].slaveName, making sure she is well kept and happy.
+					<<set $slaves[$i].trust++>>
+				<<case 3>>
+					She pays special attention to her half-sister, $slaves[$i].slaveName, making sure she is well kept and happy.
+					<<set $slaves[$i].trust++>>
+				<</switch>>
 			<</if>>
 		<<elseif $Milkmaid.relationTarget == $slaves[$i].ID && $familyTesting == 0>>
 			She pays special attention to her $slaves[$i].relation, $slaves[$i].slaveName, making sure she is well kept and happy.
@@ -241,6 +261,7 @@
 		''__@@.pink;<<SlaveFullName $slaves[_FLs]>>@@__'' is serving as your Milkmaid.
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -250,6 +271,7 @@
 	<<else>>
 		<<silently>>
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -273,14 +295,54 @@
 	<</if>>
 
 	/* Perform facility based rule changes */
-	<<if ($dairySlimMaintain == 0) && ($slaves[$i].weight <= 30)>>
-		<<set $slaves[$i].diet = "fattening">>
-	<<elseif ($slaves[$i].diet == "fattening") || ($dairyRestraintsSetting > 1)>>
+	<<if ($dairySlimMaintain == 0)>>
+		<<if $dairyWeightSetting == 0>>
+			<<if $slaves[$i].weight <= 30>>
+				<<set $slaves[$i].diet = "fattening">>
+			<<else>>
+				<<set $slaves[$i].diet = "healthy">>
+			<</if>>
+		<<elseif $dairyWeightSetting == 1>>
+			<<if $slaves[$i].weight <= 95>>
+				<<set $slaves[$i].diet = "fattening">>
+			<<else>>
+				<<set $slaves[$i].diet = "healthy">>
+			<</if>>
+		<<elseif $dairyWeightSetting == 2>>
+			<<if $slaves[$i].weight <= 130>>
+				<<set $slaves[$i].diet = "fattening">>
+			<<else>>
+				<<set $slaves[$i].diet = "healthy">>
+			<</if>>
+		<<elseif $dairyWeightSetting == 3>>
+			<<if $slaves[$i].weight <= 160>>
+				<<set $slaves[$i].diet = "fattening">>
+			<<else>>
+				<<set $slaves[$i].diet = "healthy">>
+			<</if>>
+		<<elseif $dairyWeightSetting == 4>>
+			<<if $slaves[$i].weight <= 200>>
+				<<set $slaves[$i].diet = "fattening">>
+			<<else>>
+				<<set $slaves[$i].diet = "healthy">>
+			<</if>>
+		<<elseif $dairyRestraintsSetting > 1>>
+			<<set $slaves[$i].diet = "healthy">>
+		<</if>>
+	<<elseif $slaves[$i].weight > 10>>
+		<<set $slaves[$i].diet = "restricted">>
+	<<elseif ($slaves[$i].diet == "fattening") || $slaves[$i].diet == "healthy" || ($dairyRestraintsSetting > 1)>>
 		<<set $slaves[$i].diet = "healthy">>
 	<</if>>
 	<<if $dairyRestraintsSetting > 1>>
 		<<set $slaves[$i].collar = "none", $slaves[$i].choosesOwnClothes = 0, $slaves[$i].clothes = "no clothing", $slaves[$i].buttplug = "none", $slaves[$i].vaginalAccessory = "none", $slaves[$i].dickAccessory = "none">>
 	<</if>>
+	<<switch $dairyDecoration>>
+	<<case "Roman Revivalist" "Aztec Revivalist" "Chinese Revivalist" "Chattel Religionist" "Edo Revivalist" "Arabian Revivalist" "Egyptian Revivalist" "Supremacist" "Subjugationist" "Degradationist">>
+		<<set $slaves[$i].livingRules = "spare">>
+	<<default>>
+		<<set $slaves[$i].livingRules = "normal">>
+	<</switch>>
 	<<if $dairyPregSetting > 0>>
 		<<set $reservedChildren -= $slaves[$i].reservedChildren>>
 		<<set $slaves[$i].reservedChildren = 0>>
@@ -304,6 +366,7 @@
 		<</if>>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA get milked">>
 		<br>&nbsp;&nbsp;&nbsp;
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -314,6 +377,7 @@
 		<<silently>>
 		<<include "SA chooses own job">>
 		<<include "SA get milked">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -339,6 +403,7 @@
 	<</if>>
 	<<if ($slaves[$i].inflation > 0)>>
 		<<set $slaves[$i].inflation = 0, $slaves[$i].inflationType = "none", $slaves[$i].inflationMethod = 0, $slaves[$i].milkSource = 0>>
+		<<SetBellySize $slaves[$i]>>
 	<</if>>
 	<<if ($slaves[$i].lactation > 0) && (($dairySlimMaintain == 0) || ($slaves[$i].boobs > 700))>>
 		<<if ($slaves[$i].boobs < 2000)>>
@@ -349,25 +414,29 @@
 			<<set $slaves[$i].boobs += 25>>
 		<</if>>
 	<</if>>
+	<<if $slaves[$i].prostate == 1>>
+		<<set $slaves[$i].prostate = 2, $slaves[$i].health -= 10, $cash -= $surgeryCost>>
+	<</if>>
+	<<if $slaves[$i].vasectomy == 1>>
+		<<set $slaves[$i].vasectomy = 0, $slaves[$i].health -= 10, $cash -= $surgeryCost>>
+	<</if>>
+	<<if ($dairySlimMaintain == 0)>>
+		<<if ($slaves[$i].lactation < 2) && ($slaves[$i].boobs > 300 || $slaves[$i].dick == 0 || $slaves[$i].lactation == 1 || $dairyImplantsSetting == 1) && $dairyImplantsSetting != 2>>
+			<<set $slaves[$i].lactation = 2, $slaves[$i].health -= 10, $cash -= $surgeryCost>>
+		<</if>>
+	<</if>>
 	<<if ($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0)>>
 		<<if ($dairySlimMaintain == 0)>>
 			<<if ($slaves[$i].balls == 0)>>
 				<<set $slaves[$i].hormones = 2>>
 			<</if>>
-			<<if ($slaves[$i].lactation < 2)>>
-				<<set $slaves[$i].lactation = 2, $slaves[$i].health -= 10, $cash -= $surgeryCost>>
-			<</if>>
-		<</if>>
-		<<if $slaves[$i].prostate == 1>>
-			<<set $slaves[$i].prostate = 2, $slaves[$i].health -= 10, $cash -= $surgeryCost>>
-		<</if>>
-		<<if $slaves[$i].vasectomy == 1>>
-			<<set $slaves[$i].vasectomy = 0, $slaves[$i].health -= 10, $cash -= $surgeryCost>>
+		<<elseif $slaves[$i].diet == "fattening">>
+			<<set $slaves[$i].weight += 2>>
 		<</if>>
 		<<if ($slaves[$i].health < 75)>>
 			<<set $slaves[$i].health += 25>>
 		<<else>>
-			<<if ($dairySlimMaintain == 0)>>
+			<<if ($dairySlimMaintain == 0) && $slaves[$i].lactation > 0>>
 				<<if $dairyFeedersSetting > 1 && $dairyStimulatorsSetting > 0>>
 					<<if $slaves[$i].boobs < 50000>>
 						<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
@@ -453,7 +522,7 @@
 						<<set _balltacular++>>
 					<</if>>
 				<<elseif ($slaves[$i].balls < 10)>>
-					<<if (random(1,100) > (40+(10*$slaves[$i].dick)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
+					<<if (random(1,100) > (40+(10*$slaves[$i].balls)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
 						<<set $slaves[$i].balls++>>
 					<</if>>
 					<<if ($slaves[$i].balls == 10)>>
@@ -481,7 +550,7 @@
 		<</if>>
 		<<if ($slaves[$i].health < 60)>>
 			<<set $slaves[$i].health += 20>>
-		<<elseif $dairySlimMaintain == 0>>
+		<<elseif $dairySlimMaintain == 0 && $slaves[$i].lactation > 0>>
 			<<if $dairyFeedersSetting > 1>>
 				<<if $slaves[$i].boobs < 50000>>
 					<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
@@ -540,9 +609,14 @@
 				<</if>>
 			<</if>>
 		<</if>>
+		<<if $slaves[$i].balls > 0>>
+			<<set _cumWeek = _cumWeek*1.2>>
+		<</if>>
 	<</if>>
 	<<if ($dairyRestraintsSetting > 1)>>
-		<<set $slaves[$i].lactationAdaptation += 1>>
+		<<if $slaves[$i].lactation > 0>>
+			<<set $slaves[$i].lactationAdaptation += 1>>
+		<</if>>
 		<<if ($slaves[$i].muscles > -100)>>
 			<<set $slaves[$i].muscles-->>
 		<</if>>
@@ -619,7 +693,7 @@
 				<</if>>
 			<</if>>
 		<</if>>
-		<<if ($slaves[$i].milk > 1000) && ($slaves[$i].boobs > 12000) && ($slaves[$i].career != "a bioreactor")>>
+		<<if (($slaves[$i].milk > 1000) && ($slaves[$i].boobs > 12000) || ($slaves[$i].cum > 1000) && ($slaves[$i].balls >= 10)) && ($slaves[$i].career != "a bioreactor")>>
 			<<set $slaves[$i].career = "a bioreactor", _careerForgotten++>>
 		<</if>>
 		<<if ($arcologies[0].FSBodyPuristLaw == 0) && ($healthyDrugsUpgrade == 0)>>
@@ -662,7 +736,7 @@
 			<<elseif ($slaves[$i].fetish != "mindbroken")>>
 				<<set $slaves[$i].fetish = "mindbroken", _mindbroken++>>
 			<</if>>
-		<<elseif ($slaves[$i].milk > 1000) && ($slaves[$i].boobs > 12000) && ($slaves[$i].career != "a bioreactor")>>
+		<<elseif (($slaves[$i].milk > 1000) && ($slaves[$i].boobs > 12000) || ($slaves[$i].cum > 1000) && ($slaves[$i].balls >= 10)) && ($slaves[$i].career != "a bioreactor")>>
 			<<set $slaves[$i].career = "a bioreactor", _careerForgotten++>>
 		<</if>>
 		<<if ($arcologies[0].FSBodyPuristLaw == 0) && ($healthyDrugsUpgrade == 0)>>
@@ -749,7 +823,7 @@
 	<<else>>
 		<<set $cash += _seed*9>>
 	<</if>>
-	<br><br>_Tadd permanently converted biological "machine<<if _Tadd > 1>>s<</if>>" produce<<if _Tadd == 1>>s<</if>> @@.yellowgreen;¤<<print $cash-_tempCash>>@@ income.
+	<br><br>_Tadd permanently converted biological "machine<<if _Tadd > 1>>s<</if>>" produce<<if _Tadd == 1>>s<</if>> @@.yellowgreen;<<print cashFormat($cash-_tempCash)>>@@ income.
 <</if>>
 
 <<if $inflatedSlavesMilk > 0>>
@@ -873,15 +947,37 @@ $dairyNameCaps produced <<print _milkWeek+_outputMilk>> liters of milk<<if _cumW
 	<<set $failedElite += 5>>
 <</if>>
 <<if _milkmaidImpregnates == 1>>
-	The Societal Elite know you've ordered $Milkmaid.slaveName to impregnate your cows. @@.red;They are not amused by your disenterest in eugenics@@.
+	The Societal Elite know you've ordered $Milkmaid.slaveName to impregnate your cows. @@.red;They are not amused by your disinterest in eugenics@@.
 	<<set $failedElite += 10>>
 <</if>>
 <</if>>
 
+<!-- Record statistics gathering -->
+<<script>>
+	var b = State.variables.facility.dairy;
+	b.whoreIncome = 0;
+	b.whoreCosts = 0;
+	b.rep = 0;
+	for(var si of b.income.values()) {
+		b.whoreIncome += si.income;
+		b.whoreCosts += si.cost;
+		b.rep += si.rep;
+	}
+	b.maintenance = (State.variables.bioreactorsXY + State.variables.bioreactorsXX + State.variables.bioreactorsHerm + State.variables.bioreactorsBarren);
+	if (b.maintenance > 0) {
+		b.maintenance *= 100;
+	} else {
+		b.maintenance = 0;
+	}
+	b.maintenance += State.variables.dairy * State.variables.facilityCost * (1.0 + 0.2 * State.variables.dairyFeedersUpgrade + 0.1 * State.variables.dairyPregUpgrade);
+	b.totalIncome = b.whoreIncome;
+	b.totalExpenses = b.whoreCosts + b.maintenance;
+	b.profit = b.totalIncome - b.totalExpenses;
+<</script>>
 <<if (_profits > 0)>>
-These sale of these products makes a profit of @@.yellowgreen;¤_profits@@.
+These sale of these products makes a profit of @@.yellowgreen;<<print cashFormat(_profits)>>@@.
 <<elseif (_profits < 0)>>
-Due to one-off costs of hormonal implants to encourage fluid production, your dairy made a loss of @@.red;¤_profits@@.
+Due to one-off costs of hormonal implants to encourage fluid production, your dairy made a loss of @@.red;<<print cashFormat(_profits)>>@@.
 <</if>>
 
 <<if ($arcologies[0].FSPastoralistLaw == 1)>>
@@ -930,6 +1026,16 @@ Due to one-off costs of hormonal implants to encourage fluid production, your da
 
 <<if $dairyDecoration != "standard">>
 	$dairyNameCaps's @@.green;$dairyDecoration style is well known.@@
+<</if>>
+
+<<if _DL > 0>>
+	<!-- Statistics output -->
+	<<DairyStatistics 0>>
+	<<timed 50ms>>
+		<<replace #dairystats>>
+			<<DairyStatistics 1>>
+		<</replace>>
+	<</timed>>
 <</if>>
 <<if (_DL + _Tadd) > 0 || $Milkmaid != 0>>
 	<br><br>

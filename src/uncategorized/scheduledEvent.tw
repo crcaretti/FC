@@ -3,7 +3,7 @@
 <<set $showEncyclopedia = 0>>
 
 <<if $expired == 1>>
-	<<set $expiree = 0>>
+	<<set $activeSlave = $slaves.find(function(s) { return s.ID == $expiree.ID; }), $expiree = 0>>
 	<<include "Remove activeSlave">>
 	<<for $i = 0; $i < $slaves.length; $i++>>
 	<<if $slaves[$i].indenture == 0>>
@@ -90,8 +90,18 @@
 	<<set $fcnn = ["FCNN service has been temporarily suspended. Please stand by."]>>
 <</if>>
 
+<<if $secExp == 1>>
+	<<include "attackGenerator">>
+<</if>>
+
 <<if $rivalOwner == -1>>
 	<<goto "P rival initiation">>
+<<elseif $slaveRebellion == 1 && $secExp == 1>>
+	<<goto "rebellionOptions">>
+<<elseif $citizenRebellion == 1 && $secExp == 1>>
+	<<goto "rebellionOptions">>
+<<elseif $attackThisWeek == 1 && $secExp == 1>>
+	<<goto "attackOptions">>
 <<elseif $PC.labor == 1>>
 	<<goto "SE Player Birth">>
 <<elseif ($independenceDay == 1) && (Math.trunc(($week-23)/52) == ($week-23)/52)>>
@@ -133,6 +143,8 @@
 	<<goto "SE recruiter success">>
 <<elseif ($customSlaveOrdered == 1)>>
 	<<goto "SE custom slave delivery">>
+<<elseif ($JFCOrder == 1)>>
+	<<goto "JobFulfillmentCenterDelivery">>
 <<elseif ($huskSlaveOrdered == 1)>>
 	<<goto "SE husk slave delivery">>
 <<elseif ($Lurcher != 0) && ($CoursingAssociation != 0) && (Math.trunc($week/4) == ($week/4)) && ($coursed != 1)>>
@@ -152,6 +164,8 @@
 <<elseif ($LDE.schoolPresent == 1) && ($LDE.schoolProsperity <= -10)>>
 	<<goto "RES Failure">>
 <<elseif ($TGA.schoolPresent == 1) && ($TGA.schoolProsperity <= -10)>>
+	<<goto "RES Failure">>
+<<elseif ($HA.schoolPresent == 1) && ($HA.schoolProsperity <= -10)>>
 	<<goto "RES Failure">>
 <<elseif ($TCR.schoolPresent == 1) && ($TCR.schoolProsperity <= -10)>>
 	<<goto "RES Failure">>
@@ -182,6 +196,8 @@
 	<<else>>
 		<<if $plot == 1>><<goto "Nonrandom Event">><<else>><<goto "Random Nonindividual Event">><</if>>
 	<</if>>
+<<elseif (Math.trunc($week/24) == ($week/24)) && ($securityForceCreate == 1) && ($SFMODToggle == 1) && $OverallTradeShowAttendance >= 1>>
+	<<goto "securityForceTradeShow">>
 <<elseif $plot == 1>>
 	<<goto "Nonrandom Event">>
 <<else>>

@@ -7,6 +7,17 @@
 	<<else>>
 		<<set _details = $args[0]>>
 		<<set _b = $facility.brothel>>
+		<<run
+			_b.whoreIncome = (def _b.whoreIncome) ? _b.whoreIncome : 0;
+			_b.rep = (def _b.rep) ? _b.rep : 0;
+			_b.whoreCosts = (def _b.whoreCosts) ? _b.whoreCosts : 0;
+			_b.adsIncome = (def _b.adsIncome) ? _b.adsIncome : 0;
+			_b.maintenance = (def _b.maintenance) ? _b.maintenance : 0;
+			_b.adsCosts = (def _b.adsCosts) ? _b.adsCosts : 0;
+			_b.totalIncome = (def _b.totalIncome) ? _b.totalIncome : 0;
+			_b.totalExpenses = (def _b.totalExpenses) ? _b.totalExpenses : 0;
+			_b.profit = (def _b.profit) ? _b.profit : 0;
+		>>
 		<table border="1" style="width: 100%; padding-left: 20px; padding-right: 20px;">
 		<tr style="border-bottom: 2px solid white;">
 			<th>Items</th>
@@ -95,28 +106,305 @@
 	<</if>>
 <</widget>>
 
+<<widget "ClubStatistics">>
+	<<if ($showEconomicDetails)>>
+	<<if (!$facility || !$facility.club)>>
+		<h4>- No statistics for $clubName gathered this week -</h4>
+	<<else>>
+		<<set _details = $args[0]>>
+		<<set _b = $facility.club>>
+		<<run
+			_b.whoreIncome = (def _b.whoreIncome) ? _b.whoreIncome : 0;
+			_b.rep = (def _b.rep) ? _b.rep : 0;
+			_b.whoreCosts = (def _b.whoreCosts) ? _b.whoreCosts : 0;
+			_b.adsIncome = (def _b.adsIncome) ? _b.adsIncome : 0;
+			_b.maintenance = (def _b.maintenance) ? _b.maintenance : 0;
+			_b.adsCosts = (def _b.adsCosts) ? _b.adsCosts : 0;
+			_b.totalIncome = (def _b.totalIncome) ? _b.totalIncome : 0;
+			_b.totalExpenses = (def _b.totalExpenses) ? _b.totalExpenses : 0;
+			_b.profit = (def _b.profit) ? _b.profit : 0;
+		>>
+		<table border="1" style="width: 100%; padding-left: 20px; padding-right: 20px;">
+		<tr style="border-bottom: 2px solid white;">
+			<th>Items</th>
+			<th style="width: 20em; text-align: right">Rep. Gain</th>
+			<th style="width: 10em; text-align: right">Expenses</th>
+			<th style="width: 10em; text-align: right">Rep/Expenses</th>
+			<th style="width: 10em; text-align: right">Extra Income</th>
+		</tr>
+		<tr>
+			<td>Total whoring income</td>
+			<td style="padding-right: 3px; text-align: right">@@.green;+<<= _b.whoreIncome.toFixedHTML(2)>>@@</td>
+			<td></td>
+			<td></td>
+			<td style="padding-right: 3px; text-align: right;"><<if (_b.rep > 0)>>@@.green;¤<<= _b.rep.toFixedHTML(1)>>@@<<elseif (_b.rep < 0)>>@@.red;¤<<= -_b.rep.toFixedHTML(1)>>@@<</if>></td>
+		</tr>
+		<tr>
+			<td>Total whore living costs</td>
+			<td></td>
+			<td style="padding-right: 3px; text-align: right">@@.red;¤<<= _b.whoreCosts.toFixedHTML(2)>>@@</td>
+			<td></td>
+			<td></td>
+		</tr>
+		<<if _details>>
+		<tr>
+			<td colspan="5"><b>Whore details</b>
+			<table style="width: 100%; font-size: 90%; line-height: 110%;">
+			<tr>
+				<th>Whore</th>
+				<th style="width: 10em; text-align: right">Customers</th>
+				<th style="width: 22em; text-align: right">Rep. Gain</th>
+				<th style="width: 11em; text-align: right">Expenses</th>
+				<th style="width: 11.5em; text-align: right">Rep/Expenses</th>
+				<th style="width: 11em; text-align: right">Extra Income</th>
+			</tr>
+			<<set _slaveDetails = _b.income.values()>>
+			<<set _slaveInfo = _slaveDetails.next()>>
+			<<for !_slaveInfo.done>>
+				<<set _netIncome = _slaveInfo.value.income / _slaveInfo.value.cost>>
+				<tr style="border-bottom: 1px solid #aaa; border-left: none; border-right: none; border-top: none">
+					<td><<if (_slaveInfo.value.customLabel)>>(@@.yellow;''_slaveInfo.value.customLabel''@@) <</if>>_slaveInfo.value.slaveName</td>
+					<td style="padding-right: 3px; text-align: right"><<if (_slaveInfo.value.customers <= 0)>>@@.red;none@@<<else>>_slaveInfo.value.customers<</if>></td>
+					<td style="padding-right: 3px; text-align: right">@@.green;+<<= _slaveInfo.value.income.toFixedHTML(2)>>@@</td>
+					<td style="padding-right: 3px; text-align: right">@@.red;¤<<= _slaveInfo.value.cost.toFixedHTML(2)>>@@</td>
+					<td style="padding-right: 3px; text-align: right">@@.green;<<= _netIncome.toFixedHTML(2)>>@@ rep/¤</td>
+					<td style="padding-right: 3px; text-align: right;">@@.yellowgreen;¤<<= _slaveInfo.value.rep.toFixedHTML(1)>>@@</td>
+				</tr>
+				<<set _slaveInfo = _slaveDetails.next()>>
+			<</for>>
+			</table>
+			</td>
+		</tr>
+		<</if>>
+		<<if (_b.adsIncome > 0)>>
+		<tr>
+			<td>Additional rep gain</td>
+			<td style="padding-right: 2px; text-align: right">@@.yellowgreen;¤<<= _b.adsIncome.toFixedHTML(2)>>@@</td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		<</if>>
+		<tr>
+			<td>Club maintenance</td>
+			<td></td>
+			<td style="padding-right: 2px; text-align: right">@@.red;¤<<= _b.maintenance.toFixedHTML(2)>>@@</td>
+			<td></td>
+			<td></td>
+		</tr>
+		<<if (_b.adsCosts > 0)>>
+		<tr>
+			<td>Advertising program</td>
+			<td></td>
+			<td style="padding-right: 2px; text-align: right">@@.red;¤<<= _b.adsCosts.toFixedHTML(2)>>@@</td>
+			<td></td>
+			<td></td>
+		</tr>
+		<</if>>
+		<tr style="border-top: 1px solid white;">
+			<td><b>Total</b></td>
+			<td style="padding-right: 2px; text-align: right">@@.green;+<<= _b.totalIncome.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 2px; text-align: right">@@.red;¤<<= _b.totalExpenses.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 2px; text-align: right"><b>@@.green;<<= _b.profit.toFixedHTML(2)>>@@ rep/¤</b></td>
+			<td style="padding-right: 2px; text-align: right;"><b>@@.green;+<<= _b.rep.toFixedHTML(1)>>@@</b></td></tr>
+		</table>
+	<</if>>
+	<</if>>
+<</widget>>
+
+<<widget "DairyStatistics">>
+	<<if ($showEconomicDetails)>>
+	<<if (!$facility || !$facility.dairy)>>
+		<h4>- No statistics for $dairyName gathered this week -</h4>
+	<<else>>
+		<<set _details = $args[0]>>
+		<<set _b = $facility.dairy>>
+		<<run
+			_b.whoreIncome = (def _b.whoreIncome) ? _b.whoreIncome : 0;
+			_b.whoreCosts = (def _b.whoreCosts) ? _b.whoreCosts : 0;
+			_b.maintenance = (def _b.maintenance) ? _b.maintenance : 0;
+			_b.totalIncome = (def _b.totalIncome) ? _b.totalIncome : 0;
+			_b.totalExpenses = (def _b.totalExpenses) ? _b.totalExpenses : 0;
+			_b.profit = (def _b.profit) ? _b.profit : 0;
+		>>
+		<table border="1" style="width: 100%; padding-left: 20px; padding-right: 20px;">
+		<tr style="border-bottom: 2px solid white;">
+			<th>Items</th>
+			<th style="width: 20em; text-align: right">Revenue</th>
+			<th style="width: 10em; text-align: right">Expenses</th>
+			<th style="width: 10em; text-align: right">Net Income</th>
+			<th style="width: 10em; text-align: right">Rep. Change</th>
+		</tr>
+		<tr>
+			<td>Total cow income</td>
+			<td style="padding-right: 3px; text-align: right">@@.yellowgreen;¤<<= _b.whoreIncome.toFixedHTML(2)>>@@</td>
+			<td></td>
+			<td style="padding-right: 3px; text-align: right">@@.yellowgreen;¤<<= _b.whoreIncome.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 3px; text-align: right;"></td>
+		</tr>
+		<tr>
+			<td>Total cow living costs</td>
+			<td></td>
+			<td style="padding-right: 3px; text-align: right">@@.red;¤<<= _b.whoreCosts.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 3px; text-align: right">@@.red;¤-<<= _b.whoreCosts.toFixedHTML(2)>>@@</td>
+			<td></td>
+		</tr>
+		<<if _details>>
+		<tr>
+			<td colspan="5"><b>Cow details</b>
+			<table style="width: 100%; font-size: 90%; line-height: 110%;">
+			<tr>
+				<th>Cow</th>
+				<th style="width: 10em; text-align: right">Milk/Cum/Fluids</th>
+				<th style="width: 22em; text-align: right">Revenue</th>
+				<th style="width: 11em; text-align: right">Expenses</th>
+				<th style="width: 11.5em; text-align: right">Net Income</th>
+				<th style="width: 11em; text-align: right">Rep. Change</th>
+			</tr>
+			<<set _slaveDetails = _b.income.values()>>
+			<<set _slaveInfo = _slaveDetails.next()>>
+			<<for !_slaveInfo.done>>
+				<<set _revenue = _slaveInfo.value.income, _netIncome = _revenue - _slaveInfo.value.cost>>
+				<tr style="border-bottom: 1px solid #aaa; border-left: none; border-right: none; border-top: none">
+					<td><<if (_slaveInfo.value.customLabel)>>(@@.yellow;''_slaveInfo.value.customLabel''@@) <</if>>_slaveInfo.value.slaveName</td>
+					<td style="padding-right: 3px; text-align: right"><<= _slaveInfo.value.milk>>/<<= _slaveInfo.value.cum>>/<<= _slaveInfo.value.fluid>></td>
+					<td style="padding-right: 3px; text-align: right">@@.yellowgreen;¤<<= _revenue.toFixedHTML(2)>>@@<<if (_slaveInfo.value.adsIncome > 0)>> (@@.yellowgreen;¤<<= _slaveInfo.value.adsIncome.toFixedHTML(2)>>@@ due to advertising)<</if>></td>
+					<td style="padding-right: 3px; text-align: right">@@.red;¤<<= _slaveInfo.value.cost.toFixedHTML(2)>>@@</td>
+					<td style="padding-right: 3px; text-align: right"><<if (_netIncome > 0)>>@@.yellowgreen;¤<<= _netIncome.toFixedHTML(2)>>@@<<elseif (_netIncome < 0)>>@@.red;¤<<= _netIncome.toFixedHTML(2)>>@@<<else>>¤<<= _netIncome.toFixedHTML(2)>><</if>></td>
+					<td style="padding-right: 3px; text-align: right;"></td>
+				</tr>
+				<<set _slaveInfo = _slaveDetails.next()>>
+			<</for>>
+			</table>
+			</td>
+		</tr>
+		<</if>>
+		<tr>
+			<td>Dairy maintenance</td>
+			<td></td>
+			<td style="padding-right: 2px; text-align: right">@@.red;¤<<= _b.maintenance.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 2px; text-align: right">@@.red;¤-<<= _b.maintenance.toFixedHTML(2)>>@@</td>
+			<td></td>
+		</tr>
+		<tr style="border-top: 1px solid white;">
+			<td><b>Total</b></td>
+			<td style="padding-right: 2px; text-align: right">@@.yellowgreen;¤<<= _b.totalIncome.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 2px; text-align: right">@@.red;¤<<= _b.totalExpenses.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 2px; text-align: right"><b><<if (_b.profit > 0)>>@@.yellowgreen;¤<<= _b.profit.toFixedHTML(2)>>@@<<elseif (_b.profit < 0)>>@@.red;¤<<= _b.profit.toFixedHTML(2)>>@@<<else>>¤<<= _b.profit.toFixedHTML(2)>><</if>></b></td>
+			<td style="padding-right: 2px; text-align: right;"><b></b></td></tr>
+		</table>
+	<</if>>
+	<</if>>
+<</widget>>
+
+<<widget "ArcadeStatistics">>
+	<<if ($showEconomicDetails)>>
+	<<if (!$facility || !$facility.arcade)>>
+		<h4>- No statistics for $arcadeName gathered this week -</h4>
+	<<else>>
+		<<set _details = $args[0]>>
+		<<set _b = $facility.arcade>>
+		<<run
+			_b.whoreIncome = (def _b.whoreIncome) ? _b.whoreIncome : 0;
+			_b.rep = (def _b.rep) ? _b.rep : 0;
+			_b.whoreCosts = (def _b.whoreCosts) ? _b.whoreCosts : 0;
+			_b.maintenance = (def _b.maintenance) ? _b.maintenance : 0;
+			_b.totalIncome = (def _b.totalIncome) ? _b.totalIncome : 0;
+			_b.totalExpenses = (def _b.totalExpenses) ? _b.totalExpenses : 0;
+			_b.profit = (def _b.profit) ? _b.profit : 0;
+		>>
+		<table border="1" style="width: 100%; padding-left: 20px; padding-right: 20px;">
+		<tr style="border-bottom: 2px solid white;">
+			<th>Items</th>
+			<th style="width: 20em; text-align: right">Revenue</th>
+			<th style="width: 10em; text-align: right">Expenses</th>
+			<th style="width: 10em; text-align: right">Net Income</th>
+			<th style="width: 10em; text-align: right">Rep. Change</th>
+		</tr>
+		<tr>
+			<td>Total income</td>
+			<td style="padding-right: 3px; text-align: right">@@.yellowgreen;¤<<= _b.whoreIncome.toFixedHTML(2)>>@@</td>
+			<td></td>
+			<td style="padding-right: 3px; text-align: right">@@.yellowgreen;¤<<= _b.whoreIncome.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 3px; text-align: right;"><<if (_b.rep > 0)>>@@.green;+<<= _b.rep.toFixedHTML(1)>>@@<<elseif (_b.rep < 0)>>@@.red;<<= _b.rep.toFixedHTML(1)>>@@<<else>>±<<= Number(0).toFixedHTML(1)>><</if>></td>
+		</tr>
+		<tr>
+			<td>Total fuckmeat living costs</td>
+			<td></td>
+			<td style="padding-right: 3px; text-align: right">@@.red;¤<<= _b.whoreCosts.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 3px; text-align: right">@@.red;¤-<<= _b.whoreCosts.toFixedHTML(2)>>@@</td>
+			<td></td>
+		</tr>
+		<<if _details>>
+		<tr>
+			<td colspan="5"><b>Fuckmeat details</b>
+			<table style="width: 100%; font-size: 90%; line-height: 110%;">
+			<tr>
+				<th>Fuckmeat</th>
+				<th style="width: 10em; text-align: right">Customers</th>
+				<th style="width: 22em; text-align: right">Revenue</th>
+				<th style="width: 11em; text-align: right">Expenses</th>
+				<th style="width: 11.5em; text-align: right">Net Income</th>
+				<th style="width: 11em; text-align: right">Rep. Change</th>
+			</tr>
+			<<set _slaveDetails = _b.income.values()>>
+			<<set _slaveInfo = _slaveDetails.next()>>
+			<<for !_slaveInfo.done>>
+				<<set _revenue = _slaveInfo.value.income + _slaveInfo.value.adsIncome, _netIncome = _revenue - _slaveInfo.value.cost>>
+				<tr style="border-bottom: 1px solid #aaa; border-left: none; border-right: none; border-top: none">
+					<td><<if (_slaveInfo.value.customLabel)>>(@@.yellow;''_slaveInfo.value.customLabel''@@) <</if>>_slaveInfo.value.slaveName</td>
+					<td style="padding-right: 3px; text-align: right"><<if (_slaveInfo.value.customers <= 0)>>@@.red;none@@<<else>>_slaveInfo.value.customers<</if>></td>
+					<td style="padding-right: 3px; text-align: right">@@.yellowgreen;¤<<= _revenue.toFixedHTML(2)>>@@<<if (_slaveInfo.value.adsIncome > 0)>> (@@.yellowgreen;¤<<= _slaveInfo.value.adsIncome.toFixedHTML(2)>>@@ due to advertising)<</if>></td>
+					<td style="padding-right: 3px; text-align: right">@@.red;¤<<= _slaveInfo.value.cost.toFixedHTML(2)>>@@</td>
+					<td style="padding-right: 3px; text-align: right"><<if (_netIncome > 0)>>@@.yellowgreen;¤<<= _netIncome.toFixedHTML(2)>>@@<<elseif (_netIncome < 0)>>@@.red;¤<<= _netIncome.toFixedHTML(2)>>@@<<else>>¤<<= _netIncome.toFixedHTML(2)>><</if>></td>
+					<td style="padding-right: 3px; text-align: right;"><<if (_slaveInfo.value.rep > 0)>>@@.green;+<<= _slaveInfo.value.rep.toFixedHTML(1)>>@@<<elseif (_slaveInfo.value.rep < 0)>>@@.red;<<= _slaveInfo.value.rep.toFixedHTML(1)>>@@<<else>><</if>></td>
+				</tr>
+				<<set _slaveInfo = _slaveDetails.next()>>
+			<</for>>
+			</table>
+			</td>
+		</tr>
+		<</if>>
+		<tr>
+			<td>Arcade maintenance</td>
+			<td></td>
+			<td style="padding-right: 2px; text-align: right">@@.red;¤<<= _b.maintenance.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 2px; text-align: right">@@.red;¤-<<= _b.maintenance.toFixedHTML(2)>>@@</td>
+			<td></td>
+		</tr>
+		<tr style="border-top: 1px solid white;">
+			<td><b>Total</b></td>
+			<td style="padding-right: 2px; text-align: right">@@.yellowgreen;¤<<= _b.totalIncome.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 2px; text-align: right">@@.red;¤<<= _b.totalExpenses.toFixedHTML(2)>>@@</td>
+			<td style="padding-right: 2px; text-align: right"><b><<if (_b.profit > 0)>>@@.yellowgreen;¤<<= _b.profit.toFixedHTML(2)>>@@<<elseif (_b.profit < 0)>>@@.red;¤<<= _b.profit.toFixedHTML(2)>>@@<<else>>¤<<= _b.profit.toFixedHTML(2)>><</if>></b></td>
+			<td style="padding-right: 2px; text-align: right;"><b><<if (_b.rep > 0)>>@@.green;+<<= _b.rep.toFixedHTML(1)>>@@<<elseif (_b.rep < 0)>>@@.red;<<= _b.rep.toFixedHTML(1)>>@@<<else>>±<<= Number(0).toFixedHTML(1)>><</if>></b></td></tr>
+		</table>
+	<</if>>
+	<</if>>
+<</widget>>
+
 /* Call with <<CorpDevBuySell "asset" "Numasset">>  TODO: replace eval parse with appropriate functions */
 <<widget "CorpDevBuySell">>
 <<set _textboxMLArg = '_'+$args[1]>>
 | Trade Qty 
-<<textbox `'_Num' + $args[0]` `eval(parse('_Num' + $args[0]))`>><<script>>setTextboxMaxLength(State.temporary["textboxMLArg"], 5);<</script>>: 
+<<textbox `'_Num' + $args[0]` `eval(parse('_Num' + $args[0]))`>><<script>>setTextboxMaxLength(State.temporary["textboxMLArg"], 10);<</script>>: 
 <<link "Buy">>
 	<<if Number.isInteger(Number.parseFloat(eval(parse('_Num' + $args[0])))) == false>> /* Checks if _Numasset is string */
 /* Buy all */
 		<<if State.temporary[$args[1]].toLowerCase() == "all" || "max">> 
 			<<set State.temporary[$args[1]] = Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500))>>
 			<<replace `'#'+$args[0]+'AssetsPurchasing'`>> 
-				Bought <<print Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500))>> units for ¤<<print Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500))*500*State.variables[$args[0]+"AssetPrice"]>>
+				Bought <<print commaNum(Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500)))>> units for <<print cashFormat(Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500))*500*State.variables[$args[0]+"AssetPrice"])>>
 			<</replace>>
 			<<set State.variables[$args[0]+"Assets"] += (eval(parse('_Num' + $args[0]))) * 500>>
 			<<set $corpCash -= (eval(parse('_Num' + $args[0]))) * 500 * State.variables[$args[0]+"AssetPrice"]>>
 			<<replace '#cashOnHand'>>
-				¤<<print $corpCash>>
+				<<print cashFormat($corpCash)>>
 			<</replace>>
 			<<replace `'#'+$args[0]+'AssetsDisp'`>>
-				¤<<print State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"]>> (<<print Math.floor(State.variables[$args[0]+"Assets"]/500)>> unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
+				<<print cashFormat(State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"])>> (<<print commaNum(Math.floor(State.variables[$args[0]+"Assets"]/500))>> unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
 			<</replace>>
-			<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 5);<</script>>
+			<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 10);<</script>>
 		<<else>>
 /* Error if decimal or not "all" or "max" string */
 			<<replace `'#'+$args[0]+'AssetsPurchasing'`>> Please input a round number. <</replace>>
@@ -126,35 +414,35 @@
 		<<set _DesPerc = State.temporary[$args[1]]>>
 		<<set State.temporary[$args[1]] = Math.floor((Math.clamp((Number.parseFloat(State.temporary[$args[1]])/100),0,1)*$corpCash)/(State.variables[$args[0]+"AssetPrice"] * 500))>>
 		<<replace `'#'+$args[0]+'AssetsPurchasing'`>>
-			Purchased <<print State.temporary[$args[1]]>> units (<<print (State.temporary[$args[1]]*(State.variables[$args[0]+"AssetPrice"] * 50000)/$corpCash).toFixed(2)>>% of cash, desired was _DesPerc)
+			Purchased <<print commaNum(State.temporary[$args[1]])>> units (<<print commaNum((State.temporary[$args[1]]*(State.variables[$args[0]+"AssetPrice"] * 50000)/$corpCash).toFixed(2))>>% of cash, desired was _DesPerc)
 		<</replace>>
 		<<set State.variables[$args[0]+"Assets"] += (eval(parse('_Num' + $args[0]))) * 500>>
 		<<set $corpCash -= (eval(parse('_Num' + $args[0]))) * 500 * State.variables[$args[0]+"AssetPrice"]>>
 		<<replace '#cashOnHand'>>
-			¤<<print $corpCash>>
+			<<print cashFormat($corpCash)>>
 		<</replace>>
 		<<replace `'#'+$args[0]+'AssetsDisp'`>>
-			¤<<print State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"]>> (<<print Math.floor(State.variables[$args[0]+"Assets"]/500)>> unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
+			<<print cashFormat(State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"])>> (<<print commaNum(Math.floor(State.variables[$args[0]+"Assets"]/500))>> unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
 		<</replace>>
-		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 5);<</script>>
+		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 10);<</script>>
 /* Successful buy */
 	<<elseif (eval(parse('_Num' + $args[0]))) * 500 * State.variables[$args[0]+"AssetPrice"] < $corpCash>>
 		<<set State.variables[$args[0]+"Assets"] += (eval(parse('_Num' + $args[0]))) * 500>>
 		<<set $corpCash -= (eval(parse('_Num' + $args[0]))) * 500 * State.variables[$args[0]+"AssetPrice"]>>
 		<<replace '#cashOnHand'>>
-			¤<<print $corpCash>>
+			<<print cashFormat($corpCash)>>
 		<</replace>>
 		<<replace `'#'+$args[0]+'AssetsDisp'`>>
-			¤<<print State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"]>> (<<print Math.floor(State.variables[$args[0]+"Assets"]/500)>> unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
+			<<print cashFormat(State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"])>> (<<print commaNum(Math.floor(State.variables[$args[0]+"Assets"]/500))>> unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
 		<</replace>>
 		<<replace `'#'+$args[0]+'AssetsPurchasing'`>><</replace>>
 /* Unsuccessful buy but have enough cash for more than 1 unit */
 	<<elseif $corpCash > 500 * State.variables[$args[0]+"AssetPrice"]>> 
 		<<replace `'#'+$args[0]+'AssetsPurchasing'`>>
-			The corp can only buy <<print Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500))>> more unit<<if Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500)) > 1 >>s<</if>> of $args[0] assets. 
+			The corp can only buy <<print commaNum(Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500)))>> more unit<<if Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500)) > 1 >>s<</if>> of $args[0] assets. 
 		<</replace>>
 		<<set State.temporary[$args[1]] = Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500))>>
-		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 5);<</script>>
+		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 10);<</script>>
 /* Unsuccessful buy */
 	<<else>> 
 	<<replace `'#'+$args[0]+'AssetsPurchasing'`>>There are insufficient funds for additional purchases.<</replace>> 
@@ -165,18 +453,18 @@
 /* Sell all */
 		<<if State.temporary[$args[1]].toLowerCase() == "all" || "max">>
 			<<replace `'#'+$args[0]+'AssetsPurchasing'`>>
-				Sold <<print Math.ceil((State.variables[$args[0]+"Assets"]-500)/500)>> units for ¤<<print Math.ceil((State.variables[$args[0]+"Assets"]-500)/500)*500*State.variables[$args[0]+"AssetPrice"]>>
+				Sold <<print commaNum(Math.ceil((State.variables[$args[0]+"Assets"]-500)/500))>> units for <<print cashFormat(Math.ceil((State.variables[$args[0]+"Assets"]-500)/500)*500*State.variables[$args[0]+"AssetPrice"])>>
 			<</replace>>
 			<<set State.temporary[$args[1]] = Math.ceil((State.variables[$args[0]+"Assets"]-500)/500)>>
 			<<set State.variables[$args[0]+"Assets"] -= eval(parse('_Num' + $args[0])) * 500>>
 			<<set $corpCash += eval(parse('_Num' + $args[0])) * 500 * State.variables[$args[0]+"AssetPrice"]>>
 			<<replace '#cashOnHand'>>
-				¤<<print $corpCash>>
+				<<print cashFormat($corpCash)>>
 			<</replace>>
 			<<replace `'#'+$args[0]+'AssetsDisp'`>>
-				¤<<print State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"]>> (<<if Math.ceil(State.variables[$args[0]+"Assets"]/500) <1>> <1 <<else>><<print Math.ceil(State.variables[$args[0]+"Assets"]/500)>> <</if>>unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
+				<<print cashFormat(State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"])>> (<<if Math.ceil(State.variables[$args[0]+"Assets"]/500) <1>> <1 <<else>><<print commaNum(Math.ceil(State.variables[$args[0]+"Assets"]/500))>> <</if>>unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
 			<</replace>>
-			<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 5);<</script>>
+			<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 10);<</script>>
 /* Error if decimal or not "all" or "max" string */
 		<<else>>
 			<<replace `'#'+$args[0]+'AssetsPurchasing'`>> Please input a round number. <</replace>>
@@ -186,35 +474,35 @@
 		<<set _DesPerc = State.temporary[$args[1]]>>
 		<<set State.temporary[$args[1]] = Math.ceil((State.variables[$args[0]+"Assets"]-500)/500*(Math.clamp((Number.parseFloat(State.temporary[$args[1]])/100),0,1)))>>
 		<<replace `'#'+$args[0]+'AssetsPurchasing'`>>
-			Sold <<print State.temporary[$args[1]]>> units (<<print (State.temporary[$args[1]]*100/((State.variables[$args[0]+"Assets"]-500)/500)).toFixed(2)>>% of $args[0] assets, desired was _DesPerc)
+			Sold <<print commaNum(State.temporary[$args[1]])>> units (<<print commaNum((State.temporary[$args[1]]*100/((State.variables[$args[0]+"Assets"]-500)/500)).toFixed(2))>>% of $args[0] assets, desired was _DesPerc)
 		<</replace>>
 		<<set State.variables[$args[0]+"Assets"] -= eval(parse('_Num' + $args[0])) * 500>>
 		<<set $corpCash += eval(parse('_Num' + $args[0])) * 500 * State.variables[$args[0]+"AssetPrice"]>>
 		<<replace '#cashOnHand'>>
-			¤<<print $corpCash>>
+			<<print cashFormat($corpCash)>>
 		<</replace>>
 		<<replace `'#'+$args[0]+'AssetsDisp'`>>
-			¤<<print State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"]>> (<<if Math.ceil(State.variables[$args[0]+"Assets"]/500) <1>> <1 <<else>><<print Math.ceil(State.variables[$args[0]+"Assets"]/500)>> <</if>>unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
+			<<print cashFormat(State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"])>> (<<if Math.ceil(State.variables[$args[0]+"Assets"]/500) <1>> <1 <<else>><<print commaNum(Math.ceil(State.variables[$args[0]+"Assets"]/500))>> <</if>>unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
 		<</replace>>
-		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 5);<</script>>
+		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 10);<</script>>
 /* Successful sell */
 	<<elseif State.variables[$args[0]+"Assets"] > 500 && eval(parse('_Num' + $args[0])) * 500 < State.variables[$args[0]+"Assets"]>>
 		<<set State.variables[$args[0]+"Assets"] -= eval(parse('_Num' + $args[0])) * 500>>
 		<<set $corpCash += eval(parse('_Num' + $args[0])) * 500 * State.variables[$args[0]+"AssetPrice"]>>
 		<<replace '#cashOnHand'>>
-			¤<<print $corpCash>>
+			<<print cashFormat($corpCash)>>
 		<</replace>>
 		<<replace `'#'+$args[0]+'AssetsDisp'`>>
-			¤<<print State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"]>> (<<if (State.variables[$args[0]+"Assets"]/500) <1>> <1 <<else>><<print Math.ceil(State.variables[$args[0]+"Assets"]/500)>> <</if>>unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
+			<<print cashFormat(State.variables[$args[0]+"AssetPrice"] * State.variables[$args[0]+"Assets"])>> (<<if (State.variables[$args[0]+"Assets"]/500) <1>> <1 <<else>><<print commaNum(Math.ceil(State.variables[$args[0]+"Assets"]/500))>> <</if>>unit<<if State.variables[$args[0]+"Assets"]/500 > 1>>s<</if>>)
 		<</replace>>
 		<<replace `'#'+$args[0]+'AssetsPurchasing'`>><</replace>>
 /* Unsuccessful sell but have enough assets for more than 1 unit */
 	<<elseif State.variables[$args[0]+"Assets"] > 500>>
 		<<replace `'#'+$args[0]+'AssetsPurchasing'`>>
-			The corp can only sell <<print Math.ceil((State.variables[$args[0]+"Assets"]-500)/500)>> more unit<<if Math.ceil((State.variables[$args[0]+"Assets"]-500)/500) > 1 >>s<</if>> of $args[0] assets. 
+			The corp can only sell <<print commaNum(Math.ceil((State.variables[$args[0]+"Assets"]-500)/500))>> more unit<<if Math.ceil((State.variables[$args[0]+"Assets"]-500)/500) > 1 >>s<</if>> of $args[0] assets. 
 		<</replace>>
 		<<set State.temporary[$args[1]] = Math.ceil((State.variables[$args[0]+"Assets"]-500)/500)>>
-		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 5);<</script>>
+		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 10);<</script>>
 /* Unsuccessful sell */
 	<<else>>
 	<<replace `'#'+$args[0]+'AssetsPurchasing'`>>The corp cannot sell any more $args[0] assets.<</replace>>

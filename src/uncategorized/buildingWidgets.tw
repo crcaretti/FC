@@ -32,25 +32,27 @@ Yes, I am aware this is horrible. If anyone can figure out how to get widgets to
 		border: 5px solid transparent;
 	}
 	
-    td#Empty            { border-color: lightgray; }
-    td#Private          { border-color: red; }
-    td#Shops            { border-color: thistle; }
-    td#FSShops          { border-color: mediumpurple; }
-    td#Brothel          { border-color: violet; }
-    td#Club             { border-color: orchid; }
-    td#Apartments       { border-color: limegreen; }
-    td#DenseApartments  { border-color: seagreen; }
-    td#LuxuryApartments { border-color: palegreen; }
-    td#Markets          { border-color: mediumorchid; }
-    td#CorporateMarket  { border-color: purple; }
-    td#Arcade           { border-color: deeppink; }
-    td#Pens             { border-color: goldenrod; }
-    td#Pit              { border-color: orangered; }
-    td#Manufacturing    { border-color: slategray; }
-    td#Sweatshops       { border-color: gray; }
-    td#Barracks         { border-color: olivedrab; }
-    td#Penthouse        { border-color: teal; }
-    td#Dairy            { border-color: white; }
+	td#Empty            { border-color: lightgray; }
+	td#Private          { border-color: red; }
+	td#Shops            { border-color: thistle; }
+	td#FSShops          { border-color: mediumpurple; }
+	td#Brothel          { border-color: violet; }
+	td#Club             { border-color: orchid; }
+	td#Apartments       { border-color: limegreen; }
+	td#DenseApartments  { border-color: seagreen; }
+	td#LuxuryApartments { border-color: palegreen; }
+	td#Markets          { border-color: mediumorchid; }
+	td#CorporateMarket  { border-color: purple; }
+	td#Arcade           { border-color: deeppink; }
+	td#Pens             { border-color: goldenrod; }
+	td#Pit              { border-color: orangered; }
+	td#Manufacturing    { border-color: slategray; }
+	td#transportHub    	{ border-color: magenta; }
+	td#weapManu		    { border-color: springgreen; }
+	td#Sweatshops       { border-color: gray; }
+	td#Barracks         { border-color: olivedrab; }
+	td#Penthouse        { border-color: teal; }
+	td#Dairy            { border-color: white; }
 </style>
 
 <<script>>
@@ -76,7 +78,9 @@ if(!Macro.has('sectorblock')) {
 			Arcade: { extra: ' ($arcadeSlaves/<<print $arcade>>)'},
 			Dairy: { extra: '<<set _SCapT9 = $bioreactorsXY+$bioreactorsXX+$bioreactorsHerm+$bioreactorsBarren>> ($dairySlaves<<if _SCapT9>>+_SCapT9<</if>>/<<print $dairy>><<if $Milkmaid>>,L<</if>>)' },
 			Sweatshops: { base: 'Manufacturing' },
-			Barracks: { base: 'Barracks' },
+			weapManu: { base: 'weaponsManufacturing', name: 'Weapons manufacturing', cls: 'weapManu' },
+			transportHub: { base: 'transportHub', name: 'Transport Hub', cls: 'transportHub' },
+			Barracks: { base: 'Barracks', name: 'Armory' },
 			/* speciality shop types */
 			'Subjugationist': { base: 'Shops', name: 'Subjugationist Shops', cls: 'FSShops' },
 			'Supremacist': { base: 'Shops', name: 'Supremacist Shops', cls: 'FSShops' },
@@ -129,16 +133,17 @@ if(!Macro.has('sectorblock')) {
 		<td colspan="3"></td>
 		<td id="Penthouse" colspan="4">
 			<<link "Penthouse">><<set $nextButton = "Back", $nextLink = _Pass>><<goto "Manage Penthouse">><</link>> @@.cyan;[P]@@
-			<<if $masterSuite||$servantsQuarters||$spa||$clinic||$schoolroom||$cellblock||$incubator||$HGSuite||$researchLab.built=="true">>
+			<<if $masterSuite||$HGSuite||$dojo||$servantsQuarters||$spa||$clinic||$schoolroom||$cellblock||$incubator||$researchLab.built=="true">>
 				<br>
 				<<if $masterSuite>>[[Suite|Master Suite]] ($masterSuiteSlaves/$masterSuite<<if $Concubine>>, C<</if>>)<</if>>
+				<<if $HGSuite>>[[HG Suite|Head Girl Suite]] <<if $HeadGirl == 1>>(HG) <<elseif $HGSuiteSlaves == 2>> (HG and roommate)<</if>> <</if>>
+				<<if $dojo > 1>>[[Armory|BG Select]] <<if $Bodyguard != 0>>(BG)<</if>> <</if>>
 				<<if $servantsQuarters>>[[Quarters|Servants' Quarters]] ($servantsQuartersSlaves/$servantsQuarters<<if $Stewardess>>, L<</if>>)<</if>>
 				<<if $spa>>[[Spa]] ($spaSlaves/$spa<<if $Attendant>>, L<</if>>)<</if>>
 				<<if $clinic>>[[Clinic]] ($clinicSlaves/$clinic<<if $Nurse>>, L<</if>>)<</if>>
 				<<if $schoolroom>>[[Schoolroom]] ($schoolroomSlaves/$schoolroom<<if $Schoolteacher>>, L<</if>>)<</if>>
 				<<if $cellblock>>[[Cellblock]] ($cellblockSlaves/$cellblock<<if $Wardeness>>, L<</if>>)<</if>>
 				<<if $incubator>>[[Incubator]] (<<if $incubator-$incubatorSlaves == 0>>No empty tanks<<elseif $incubator-$incubatorSlaves == 1>>1 empty tank<<else>><<print $incubator-$incubatorSlaves>> empty tanks<</if>>)<</if>>
-				<<if $HGSuite>>[[HG Suite|Head Girl Suite]] ($HGSuiteSlaves)<</if>>
 				<<if $researchLab.built == "true">>[[Research Lab][$temp = 0]]<</if>>
 			<</if>>
 		</td>
@@ -190,9 +195,9 @@ if(!Macro.has('sectorblock')) {
 <<widget "SectorSell">>
 
 <<set $price = 1000*Math.trunc($arcologies[0].prosperity*(1+($arcologies[0].demandFactor/100)))>>
-Selling this sector would relenquish a 4% interest in $arcologies[0].name. Such an interest is worth ¤$price.
+Selling this sector would relinquish a 4% interest in $arcologies[0].name. Such an interest is worth <<print cashFormat($price)>>.
 <<if $arcologies[0].ownership >= 4>>
-	[[Sell|Main][$cash += $price, $arcologies[0].ownership -= 4, $arcologies[0].demandFactor -= 20, $sectors[$AS].ownership = 0]]
+	[[Sell|Main][$cash += $price, $arcologies[0].ownership -= 4, $arcologies[0].demandFactor += 40, $sectors[$AS].ownership = 0]]
 <</if>>
 
 <</widget>>

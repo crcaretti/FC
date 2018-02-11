@@ -1,0 +1,274 @@
+:: eliteTakeOverFight [nobr]
+
+<<set _shoot = 0>>
+<<switch $finalChoice>>
+<<case "bodyguard">>
+	<<set _roll = random(0,100)>>
+	<<if $career == "mercenary">>
+		As a result of your prior experience as a mercenary you were able to successfully signal $Bodyguard.slaveName without the elite's noticing.
+		<<set $BodyguardHasSucessfullyRecivedSignal = 1>>
+	<<elseif $PC.warfare >= 100 && _roll > 20>>
+		As a result of your mastery of warfare you were able to successfully signal $Bodyguard.slaveName without the elite's noticing.
+		<<set $BodyguardHasSucessfullyRecivedSignal = 1>>
+	<<elseif $PC.warfare >= 60 && _roll > 30>>
+		As a result of your expertness of warfare you were able to successfully signal $Bodyguard.slaveName without the elite's noticing.
+		<<set $BodyguardHasSucessfullyRecivedSignal = 1>>
+	<<elseif $PC.warfare >= 30 && _roll > 40>>
+		As a result of having some skill in warfare you were able to successfully signal $Bodyguard.slaveName without the elite's noticing.
+		<<set $BodyguardHasSucessfullyRecivedSignal = 1>>
+	<<elseif $PC.warfare >= 10 && _roll > 50>>
+		As a result of having a small amount of skill in warfare you were able to successfully signal $Bodyguard.slaveName without the elite's noticing.
+		<<set $BodyguardHasSucessfullyRecivedSignal = 1>>
+	<<elseif $PC.warfare < 10 && _roll > 60>>
+		By blind luck and what little you remember of your lessons in warfare are were able to successfully signal $Bodyguard.slaveName without the elite's noticing.
+		<<set $BodyguardHasSucessfullyRecivedSignal = 1>>
+	<<else>>
+		One of the elite's shouts "What the fuck were you trying to do?". Well there goes that option.
+		<<set $BodyguardHasSucessfullyRecivedSignal = 0>>
+	<</if>>
+	<br>You then pick up the revolver and quickly take aim.
+<<case "mercenaries">>
+	<br>You send a quick message to the leader of your $mercenariesTitle, about your situation, then you pick up the revolver and quickly take aim.
+	<<set $MercenariesMessageSent = 1>>
+<<case "colonel">>
+	<br>You send a quick message to The Colonel, about your situation, then you pick up the revolver and quickly take aim.
+	<<set $SpecialForcesMessageSent = 1>>
+<<case "enrage">>
+	<<if $PC.career != "wealth" && $PC.career != "engineer" && $PC.career != "medicine">>
+		You know exactly what to say in order to enrage them.
+		<<set _EliteEnraged = 1>>
+	<<elseif random(0,100) > 50>>
+		You manage to select the right words to enrage them.
+		<<set _EliteEnraged = 1>>
+	<<else>>
+		You try to enrage them, but your words have had no effect.
+		<<set _EliteEnraged = 0>>
+	<</if>>
+	<br>You then pick up the revolver and quickly take aim.
+<<case "final stand">>
+	You pick up the revolver and quickly take aim.
+<<case "give in">>
+	You pick up the revolver and hold the barrel to your temple.
+<</switch>>
+
+<<if $finalChoice == "give in">> 
+	With a bang! you drop dead.
+	<<set $ui = "start">>
+	<br><br>
+	''GAME OVER''
+<<else>>
+	/* PC shooting */
+	/* higher skill means a higher chance to hit due to lower requirements and if the elites are enraged they very slightly become easier targets. */
+	/* 5/6 = 83% rounded down is the chance that it was loaded chamber (simplified version based off the wikipedia article) */
+	
+	/* variables: */
+	/* Revolver */
+	<<set _revolverChambers = 6>>
+	<<set _revolverBullets = 5>>
+	/*Elites */
+	<<set $eliteTotal = 12>>
+	<<set $eliteDead = 0>>
+	<<set $eliteVegetable = 0>>
+	
+	/* To Hit chance */
+	<<if $PC.career == "mercenary" || $PC.warfare == 100>>
+		<<set _toHit = 83>>
+	<<elseif $PC.warfare >= 60>>
+		<<set _toHit = 76>>
+	<<elseif $PC.warfare >= 30>>
+		<<set _toHit = 67>>
+	<<elseif $PC.warfare >= 10>>
+		<<set _toHit = 60>>
+	<<else>>
+		<<set _toHit = 56>>
+	<</if>>
+	<<if _EliteEnraged == 1>>
+		<<set _toHit += 5>>
+	<</if>>
+	
+	/* shooting */
+	/* in the end I removed the messages from the cycle. I don't think having 6 lines of "you shot" is pretty looking. Feel free to re add them in however */
+	<<for _i = _revolverChambers; _i > 0; _i-->>
+		<<if random(0,100) <= _toHit && _revolverBullets > 0>>
+			<<set $eliteDead += 1, _revolverBullets -= 1>>
+		<<elseif _revolverBullets > 0>>
+			<<set _revolverBullets -= 1>>
+		<</if>>
+	<</for>>
+	
+	<<if $eliteDead >= 1>>
+		<br>You managed to kill several elite in rapid succession, leaving the rest in shock and fear.
+	<<elseif $eliteDead == 1>>
+		<br>You managed to kill one elite, leaving the rest in shock and fear.
+	<<else>>
+		<br>Unfortunately you fail to kill a single elite.
+	<</if>>
+	<br>
+	
+	/* syringe shot */
+	<<set $eliteVegetable = 0>>
+	<<if $eliteDead > 0>>
+		With $eliteDead elite's dead, you pick up the syringe from the desk and aim for the forehead of another.
+	<<else>>
+		Having failed to kill them with the revolver, in a desperate move you pick up the syringe from the desk and aim for the forehead of one of the elite.
+	<</if>>
+	<<if $career == "mercenary">>
+		With your prior history as a mercenary, making the throw is child's play.
+		<<set _SyringeHeadShot = 1>>
+	<<elseif $PC.warfare >= 100 && random(0,100) > 50>>
+		As a result of your mastery of warfare you successfully made the throw.
+		<<set _SyringeHeadShot = 1>>
+	<<elseif $PC.warfare >= 60 && random(0,100) > 60>>
+		As a result of your expertness of warfare you successfully made the throw.
+		<<set _SyringeHeadShot = 1>>
+	<<elseif $PC.warfare >= 30 && random(0,100) > 70>>
+		As you have some skill you successfully made the throw.
+		<<set _SyringeHeadShot = 1>>
+	<<elseif $PC.warfare >= 10 && random(0,100) > 80>>
+		Your small amount of skill assisted you in making the throw.
+		<<set _SyringeHeadShot = 1>>
+	<<elseif $PC.warfare < 10 && random(0,100) > 90>>
+			By blind luck you successfully made the throw. 
+		<<set _SyringeHeadShot = 1>>
+	<<else>>
+		Unfortunately you miss the shot.
+		<<set _SyringeHeadShot = 0>>
+	<</if>>
+	<<if _SyringeHeadShot == 1>>
+		<br>
+		Picking up the spent revolver, you aim for the syringe's plunger.
+		<<if $career == "mercenary">>
+			With your prior history as a mercenary, making the throw is child's play.
+			<<set _SpentRevolverHitSyringePlunger = 1>>
+		<<elseif $PC.warfare >= 100 && random(0,100) > 50>>
+			As a result of your mastery of warfare you successfully made the throw.
+			<<set _SpentRevolverHitSyringePlunger = 1>>
+		<<elseif $PC.warfare >= 60 && random(0,100) > 60>>
+			As a result of your expertness of warfare you successfully made the throw.
+			<<set _SpentRevolverHitSyringePlunger = 1>>
+		<<elseif $PC.warfare >= 30 && random(0,100) > 70>>
+			As you have some skill you successfully made the throw.
+		<<set _SpentRevolverHitSyringePlunger = 1>>
+		<<elseif $PC.warfare >= 10 && random(0,100) > 80>>
+			Your small amount of skill assisted you in making the throw.
+			<<set _SpentRevolverHitSyringePlunger = 1>>
+		<<elseif $PC.warfare < 10 && random(0,100) > 90>>
+			By blind luck you successfully made the throw 
+			<<set _SpentRevolverHitSyringePlunger = 1>>
+		<<else>>
+			Unfortunately you miss the shot.
+			<<set _SpentRevolverHitSyringePlunger = 0>>
+		<</if>>
+	<</if>>
+	<<if _SpentRevolverHitSyringePlunger == 1>>
+		<br>
+		<<if random(0,100) > 50>>
+			The target dies of nervous system overload brought about by the drug.
+			<<set $eliteDead +=1>>
+		<<else>>
+			The target is still alive but is nothing more than a vegetable.
+			<<set $eliteVegetable = 1>>
+		<</if>> 
+	<</if>>
+<</if>>
+
+<<set $eliteLeft = $eliteTotal - $eliteDead - $eliteVegetable>>
+
+/* if the player has managed to make enough damage to the elite and the rep is high enough the citizens will come to save the PC */
+/* this is to give reaso to exist for the "enrage" and "last stand" option */
+/* result 							*/
+/* $eliteFate:						*/
+/* 		killed = 0 					*/
+/*		enslaved = 1 				*/
+/* 		had fun (and enslaved) = 2 	*/
+<<if $BodyguardHasSucessfullyRecivedSignal == 1>>
+	$Bodyguard.slaveName asks <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>sir<<else>>ma'am<</if>>, what should I do with the <<if $eliteLeft < $eliteTotal>>remaining<</if>> "elite"? 
+	<br>
+	<<link "Open fire">>
+		<<set $eliteFate = 0>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br>
+	<<link "Enslave them">>
+		<<set $eliteFate = 1>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br><<link "Have fun with them them">>
+		<<set $eliteFate = 2>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+<<elseif $MercenariesMessageSent == 1>>
+	It is now that a squad of $mercenariesTitle makes their entrance, pointing their guns at the <<if $eliteLeft < $eliteTotal>>remaining<</if>> elite.
+	The officer asks "your orders <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>sir<<else>>ma'am<</if>>?"
+	<br>
+	<<link "Open fire">>
+		<<set $eliteFate = 0>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br>
+	<<link "Enslave them">>
+		<<set $eliteFate = 1>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br><<link "Have fun with them them">>
+		<<set $eliteFate = 2>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+<<elseif $SpecialForcesMessageSent == 1>>
+	It is now that a squad of $securityForceName makes their entrance, pointing their guns at the <<if $eliteLeft < $eliteTotal>>remaining<</if>> elite.
+	The officer asks "your orders <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>sir<<else>>ma'am<</if>>?"
+	<br>
+	<<link "Open fire">>
+		<<set $eliteFate = 0>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br>
+	<<link "Enslave them">>
+		<<set $eliteFate = 1>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br><<link "Have fun with them them">>
+		<<set $eliteFate = 2>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+<<elseif $Bodyguard != 0>>
+	It is now that $Bodyguard.slaveName makes her entrance, pointing her guns at the <<if $eliteLeft < $eliteTotal>>remaining<</if>> elite.
+	She then asks<<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>sir<<else>>ma'am<</if>>, what should I do with the <<if $eliteLeft < $eliteTotal>>remaining<</if>> "elite" left? 
+	<br>
+	<<link "Open fire">>
+		<<set $eliteFate = 0>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br>
+	<<link "Enslave them">>
+		<<set $eliteFate = 1>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br><<link "Have fun with them them">>
+		<<set $eliteFate = 2>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+<<elseif $eliteLeft <= 9 && $rep >= 10000>>
+	Some of the citizens waiting outside your penthouse to see you hears the ruckus and rush inside, worried. Time freezes for a few seconds, while the remaining elite recover from their terror and the citizens digest the gory scene in front of them.
+	The newcomers are quick to take your side. In little time the elites, outgunned and outnumbered, are neutralized.
+	<br>One of the more courageous citizens approaches you and asks "<<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>sir<<else>>ma'am<</if>>, what should we do with them?" 
+	<br>
+	<<link "Open fire">>
+		<<set $eliteFate = 0>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br>
+	<<link "Enslave them">>
+		<<set $eliteFate = 1>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+	<br><<link "Have fun with them them">>
+		<<set $eliteFate = 2>>
+		<<goto "eliteTakeOverResult">>
+	<</link>>
+<<else>>
+	With nothing else left, you remain powerless to stop the <<if $eliteLeft < $eliteTotal>>remaining<</if>> elite, who quickly capture and enslave you. Your personal story may continue, but the part of it worthy of retelling has now ended.
+	<<set $ui = "start">>
+	<br><br>
+	''GAME OVER''
+<</if>>

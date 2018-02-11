@@ -1,5 +1,8 @@
 :: SA serve the public [nobr]
 
+<!-- Statistics gathering -->
+<<set _incomeStats = getSlaveStatisticData($slaves[$i], $slaves[$i].assignment === Job.CLUB ? $facility.club : undefined)>>
+
 <<set $bellyAccessory = $slaves[$i].bellyAccessory>>
 <<if ($slaves[$i].assignment == "serve in the club") || ($slaves[$i].assignment == "serve the public")>>
 	<<set $publicServants += 1>>
@@ -86,12 +89,12 @@ the public.
 		<</if>>
 		<</if>>
 		<<if $clubAdsPreg == 1>>
-		<<if ($slaves[$i].bellyPreg >= 5000) || ($slaves[$i].bellyImplant >= 4000)>>
+		<<if ($slaves[$i].bellyPreg >= 5000) || ($slaves[$i].bellyImplant >= 5000)>>
 			<<set $beautyMultiplier += 0.05>>
 			Her gravid body fits $clubName's ad campaign, getting her more attention.
 		<</if>>
 		<<elseif $clubAdsPreg == -1>>
-		<<if ($slaves[$i].belly < 100) && ($slaves[$i].weight < 30) && (!setup.fakeBellies.includes($bellyAccessory)) && ($slaves[$i].bellyImplant <= 0) && ($slaves[$i].inflation == 0)>>
+		<<if ($slaves[$i].belly < 100) && ($slaves[$i].weight < 30) && (!setup.fakeBellies.includes($bellyAccessory)) && ($slaves[$i].bellyImplant <= 0)>>
 			<<set $beautyMultiplier += 0.05>>
 			Her flat belly fits $clubName's ad campaign, getting her more attention.
 		<</if>>
@@ -110,7 +113,7 @@ the public.
 		<<if $clubAdsImplanted == 1>>
 		<<if ($slaves[$i].boobsImplant > 0)>>
 		<<if ($slaves[$i].buttImplant > 0)>>
-		<<if ($slaves[$i].bellyImplant >= 2000)>>
+		<<if ($slaves[$i].bellyImplant >= 1500)>>
 		<<if ($slaves[$i].waist < -10)>>
 		<<if ($slaves[$i].lipsImplant > 0)>>
 			<<set $beautyMultiplier += 0.05>>
@@ -216,13 +219,14 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 <<else>>
 	liked using her.
 <</if>>
+<<set _incomeStats.customers = $beauty>>
 
 <<if $seeAge == 1>>
 <<if $slaves[$i].physicalAge == $minimumSlaveAge && $slaves[$i].physicalAge == $fertilityAge && canGetPregnant($slaves[$i]) && ($arcologies[0].FSRepopulationFocus != "unset" || $arcologies[0].FSGenderFundamentalist != "unset") && $arcologies[0].FSRestart == "unset">>
 	<<if $slaves[$i].birthWeek == 0>>
 		She just turned $minimumSlaveAge this week, giving her an immense boost to both popularity and appeal. She is also expected to become fertile soon, giving her an additional boost as citizens clamor to claim her fresh womb.
 	<<elseif $slaves[$i].birthWeek < 4>>
-		This is still the first month in which it's legal to pay to fuck her, giving her a boost to both popularity and appeal. She was also aniticipated to become fertile this month, and her womb is still unoccupied, giving her an additional boost.
+		This is still the first month in which it's legal to pay to fuck her, giving her a boost to both popularity and appeal. She was also anticipated to become fertile this month, and her womb is still unoccupied, giving her an additional boost.
 	<</if>>
 <<elseif $slaves[$i].physicalAge == $minimumSlaveAge>>
 	<<if $slaves[$i].birthWeek == 0>>
@@ -234,7 +238,7 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 	<<if $slaves[$i].birthWeek == 0>>
 		She is expected to become fertile soon, giving her an immense boost to both popularity and appeal as citizens clamor to claim her fresh womb.
 	<<elseif $slaves[$i].birthWeek < 4>>
-		This is still the first month in which she was aniticipated to become fertile, and her womb is still unoccupied, giving her a boost to both popularity and appeal.
+		This is still the first month in which she was anticipated to become fertile, and her womb is still unoccupied, giving her a boost to both popularity and appeal.
 	<</if>>
 <</if>>
 <</if>>
@@ -629,7 +633,7 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 		<</if>>
 	<</if>>
 <<elseif $arcologies[0].FSSlimnessEnthusiastLaw == 1>>
-	<<if $slimPass == 1>>
+	<<if slimPass($slaves[$i]) == 1>>
 		The public enjoys her fashionably sleek little body.
 		<<if canTalk($slaves[$i]) && $slaves[$i].voice > 2>>
 			Her high voice contributes to her girlish image, so she does even better.
@@ -743,7 +747,7 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 	She appeals to citizens who like lactation play, or just like sluts they can drink milk from.
 <</if>>
 
-<<if $slaves[$i].bellyPreg >= 1500 || setup.fakeBellies.includes($bellyAccessory) || $slaves[$i].bellyImplant >= 2000>>
+<<if $slaves[$i].bellyPreg >= 1500 || setup.fakeBellies.includes($bellyAccessory) || $slaves[$i].bellyImplant >= 1500>>
 <<if $arcologies[0].FSRepopulationFocus != "unset">>
 	In the new culture of $arcologies[0].name, her pregnancy gets her lots of attention.
 <<elseif $arcologies[0].FSRestart != "unset">>
@@ -837,12 +841,16 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 	<<set $slaves[$i].need -= $beauty>>
 <<elseif ($slaves[$i].energy > 80)>>
 	With her powerful sex drive she rarely has to fake an orgasm.
+	<<set $slaves[$i].need -= $beauty*.9>>
 <<elseif ($slaves[$i].energy > 60)>>
 	With her good sex drive she often orgasms with citizens.
+	<<set $slaves[$i].need -= $beauty*.8>>
 <<elseif ($slaves[$i].energy > 40)>>
 	With her average sex drive she occasionally orgasms with citizens.
+	<<set $slaves[$i].need -= $beauty*.5>>
 <<elseif ($slaves[$i].energy > 20)>>
 	With her poor sex drive she almost never orgasms with citizens.
+	<<set $slaves[$i].need -= $beauty*.1>>
 <<else>>
 	Since she's frigid, she rarely experiences authentic arousal with citizens.
 <</if>>
@@ -990,10 +998,10 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 <<if ($slaves[$i].sexualFlaw == "none")>>
 <<if $slaves[$i].devotion < 10>>
 <<if random(1,100) > 70>>
-<<if ($slaves[$i].vaginalSkill <= 30) && ($slaves[$i].vagina != -1) && ($slaves[$i].vaginalAccessory != "chastity belt")>>
+<<if ($slaves[$i].vaginalSkill <= 30) && canDoVaginal($slaves[$i])>>
 	After being fucked too hard too often, she now @@.red;dislikes being penetrated.@@
 	<<set $slaves[$i].sexualFlaw = "hates penetration">>
-<<elseif ($slaves[$i].analSkill <= 30)>>
+<<elseif ($slaves[$i].analSkill <= 30) && canDoAnal($slaves[$i])>>
 	After so much anal pain, she now @@.red;dislikes being buttfucked.@@
 	<<set $slaves[$i].sexualFlaw = "hates anal">>
 <<elseif ($slaves[$i].oralSkill <= 30)>>
@@ -1005,6 +1013,7 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 <</if>>
 
 <<set $repGain += Math.trunc(($beauty*$FResult)*(1+(0.003*$slaves[$i].entertainSkill))*0.1)>>
+<<set _incomeStats.income += Math.trunc(($beauty*$FResult)*(1+(0.003*$slaves[$i].entertainSkill))*0.1)>>
 
 /* FACILITY DECORATION IMPACTS */
 
@@ -1066,24 +1075,27 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 
 /* SEX ACT COUNTS AND SEXUAL SATISFACTION */
 
-<<set _oralUse = $oralUseWeight+($slaves[$i].oralSkill/30)+$slaves[$i].lips>>
+<<set _oralUse = $oralUseWeight+($slaves[$i].oralSkill/30)+($slaves[$i].lips/20)>>
 <<set _analUse = 0>>
-<<if canDoAnal($slaves[$i])>><<set _analUse =  $analUseWeight+($slaves[$i].analSkill/30)-$slaves[$i].anus>><</if>>
+<<if canDoAnal($slaves[$i])>><<set _analUse = $analUseWeight+($slaves[$i].analSkill/30)-$slaves[$i].anus>><</if>>
 <<set _vaginalUse = 0>>
-<<if canDoVaginal($slaves[$i])>><<set _vaginalUse =  $vaginalUseWeight+($slaves[$i].vaginalSkill/30)-$slaves[$i].vagina>><</if>>
-<<set _mammaryUse = $mammaryUseWeight>>
-<<if $slaves[$i].boobs > 10000>><<set $mammaryUseWeight += 5>><<elseif $slaves[$i].boobs > 2000>><<set $mammaryUseWeight += $slaves[$i].boobs/2000>><</if>>
-<<set _penetrativeUse = $penetrativeUseWeight>>
-<<if $slaves[$i].clit > 1>><<set $penetrativeUseWeight += ($slaves[$i].vaginalSkill/30)+$slaves[$i].clit>><</if>>
+<<if canDoVaginal($slaves[$i])>><<set _vaginalUse = $vaginalUseWeight+($slaves[$i].vaginalSkill/30)-$slaves[$i].vagina>><</if>>
+<<set _mammaryUse = 0>>
+<<if $slaves[$i].boobs > 10000>><<set _mammaryUse += 5+$mammaryUseWeight>><<elseif $slaves[$i].boobs > 2000>><<set _mammaryUse += $mammaryUseWeight+($slaves[$i].boobs/2000)>><</if>>
+<<set _penetrativeUse = 0>>
+<<if canDoVaginal($slaves[$i]) && $slaves[$i].clit > 1>><<set _penetrativeUse += $penetrativeUseWeight+($slaves[$i].vaginalSkill/30)+$slaves[$i].clit>><</if>>
 <<if $slaves[$i].dick>>
-<<if canAchieveErection($slaves[$i])>>
-<<if ($slaves[$i].dickAccessory != "chastity belt")>>
-	<<set $penetrativeUseWeight += ($slaves[$i].dick+$slaves[$i].balls)/4>>
-<<if ($slaves[$i].drugs == "hyper testicle enhancement")>>
-	<<set $penetrativeUseWeight += ($slaves[$i].balls)*4>>
-<</if>>
-<</if>>
-<</if>>
+	<<if canPenetrate($slaves[$i])>>
+		<<set _penetrativeUse += $penetrativeUseWeight+$slaves[$i].dick+Math.min($slaves[$i].balls,10)/4>>
+		<<if ($slaves[$i].drugs == "hyper testicle enhancement")>>
+			<<set _penetrativeUse += Math.min($slaves[$i].balls,5)>>
+		<</if>>
+	<<elseif !["chastity", "combined chastity"].includes($slaves[$i].dickAccessory)>>
+		<<set _penetrativeUse += $penetrativeUseWeight+$slaves[$i].dick+Math.min($slaves[$i].balls,10)/8>>
+		<<if ($slaves[$i].drugs == "hyper testicle enhancement")>>
+			<<set _penetrativeUse += Math.min($slaves[$i].balls,5)>>
+		<</if>>
+	<</if>>
 <</if>>
 
 <<set _demand = _oralUse+_analUse+_vaginalUse+_mammaryUse+_penetrativeUse>>
@@ -1145,498 +1157,499 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 /* VIGNETTES */
 
 <<if ($showVignettes == 1)>>
-<<set $vignettes = []>>
+<<set _vignettes = []>>
 
 <<set $seed = random(1,10)>>
 <<switch $seed>>
 <<case 1>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was that she witnessed a domestic dispute over another slut,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was that she witnessed a domestic dispute over another slut,", type: "rep", effect: 0})>>
 <<case 2>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was that she saw an aphrodisiac addict she knew sell herself into slavery,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was that she saw an aphrodisiac addict she knew sell herself into slavery,", type: "rep", effect: 0})>>
 <<case 3>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was that she had to move to follow the @@.green;most prominent citizens@@ to a newly fashionable hall,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was that she had to move to follow the @@.green;most prominent citizens@@ to a newly fashionable hall,", type: "rep", effect: 0})>>
 <<case 4>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was that a citizen used a new and improved sex toy on her,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was that a citizen used a new and improved sex toy on her,", type: "rep", effect: 0})>>
 <<case 5>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was being used in public by an incestuous pair of citizens,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was being used in public by an incestuous pair of citizens,", type: "rep", effect: 0})>>
 <<case 6>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was that she saw a notorious slut come of age and start swapping anal for aphrodisiacs,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was that she saw a notorious slut come of age and start swapping anal for aphrodisiacs,", type: "rep", effect: 0})>>
 <<case 7>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was that she saw a citizen experiment with lesbian sex for the first time, in public,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was that she saw a citizen experiment with lesbian sex for the first time, in public,", type: "rep", effect: 0})>>
 <<case 8>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was that she watched a citizen descend into aphrodisiac addiction,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was that she watched a citizen descend into aphrodisiac addiction,", type: "rep", effect: 0})>>
 <<case 9>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was that she watched a citizen develop the beginnings of sex addiction,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was that she watched a citizen develop the beginnings of sex addiction,", type: "rep", effect: 0})>>
 <<default>>
-	<<set $vignettes.push({text: "the most interesting thing that happened to her at work was that she witnessed a citizen using a public slut so brutally that he had to pay compensation afterward,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "the most interesting thing that happened to her at work was that she witnessed a citizen using a public slut so brutally that he had to pay compensation afterward,", type: "rep", effect: 0})>>
 <</switch>>
 <<set $seed = random(1,5)>>
 <<switch $seed>>
 <<case 1>>
-	<<set $vignettes.push({text: "a citizen punished one of his slaves by tying her up in public near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "a citizen punished one of his slaves by tying her up in public near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
 <<case 2>>
-	<<set $vignettes.push({text: "a citizen shared one of his slaves with the public near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "a citizen shared one of his slaves with the public near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
 <<case 3>>
-	<<set $vignettes.push({text: "a private brothel offered a promotion near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "a private brothel offered a promotion near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
 <<case 4>>
-	<<set $vignettes.push({text: "some free sluts threw an aphrodisiac street party near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "some free sluts threw an aphrodisiac street party near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
 <<default>>
-	<<set $vignettes.push({text: "a contract breaker was punished with the pillory near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "a contract breaker was punished with the pillory near where $slaves[$i].slaveName was serving as a public slut. This made her less popular that day,", type: "rep", effect: -1})>>
 <</switch>>
 <<set $seed = random(1,5)>>
 <<switch $seed>>
 <<case 1>>
-	<<set $vignettes.push({text: "one of her regular patrons got a divorce and came to her for repeated consolation,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "one of her regular patrons got a divorce and came to her for repeated consolation,", type: "rep", effect: 1})>>
 <<case 2>>
-	<<set $vignettes.push({text: "a club near where $slaves[$i].slaveName usually works had business trouble,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a club near where $slaves[$i].slaveName usually works had business trouble,", type: "rep", effect: 1})>>
 <<case 3>>
-	<<set $vignettes.push({text: "a competing slut that looks like her fell ill, driving a patron to look for an alternative,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a competing slut that looks like her fell ill, driving a patron to look for an alternative,", type: "rep", effect: 1})>>
 <<case 4>>
-	<<set $vignettes.push({text: "a street slut that works near her was badly beaten by an abusive citizen and had to take time off. The reduced competition got her more attention,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a street slut that works near her was badly beaten by an abusive citizen and had to take time off. The reduced competition got her more attention,", type: "rep", effect: 1})>>
 <<default>>
-	<<set $vignettes.push({text: "an influx of tourists came into her part of the arcology, earning her more business for a day,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "an influx of tourists came into her part of the arcology, earning her more business for a day,", type: "rep", effect: 1})>>
 <</switch>>
 
 <<if ($slaves[$i].fetishKnown == 1)>>
 <<switch $slaves[$i].fetish>>
 <<case "submissive">>
-	<<set $vignettes.push({text: "she deeply impressed a citizen with her sincere submission to him,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she lost a patron who secretly wanted her to show a little initiative,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she deeply impressed a citizen with her sincere submission to him,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she lost a patron who secretly wanted her to show a little initiative,", type: "rep", effect: -1})>>
 <<case "cumslut">>
-	<<set $vignettes.push({text: "she deeply impressed a citizen with her hunger for his cum,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she disgusted a citizen who didn't know how much cum fetishes revolted him until she displayed hers,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she deeply impressed a citizen with her hunger for his cum,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she disgusted a citizen who didn't know how much cum fetishes revolted him until she displayed hers,", type: "rep", effect: -1})>>
 <<case "humiliation">>
-	<<set $vignettes.push({text: "she earned extra gratitude from a citizen who didn't know how much he liked public sex until she got him to try it,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she disgusted a citizen who didn't know how much exhibitionism turned him off until he tried public sex with her,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a citizen who didn't know how much he liked public sex until she got him to try it,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she disgusted a citizen who didn't know how much exhibitionism turned him off until he tried public sex with her,", type: "rep", effect: -1})>>
 <<case "buttslut">>
-	<<set $vignettes.push({text: "she earned extra gratitude from a citizen who didn't know how much he liked fucking buttholes until she got him to try fucking hers,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she disgusted a citizen who didn't know how much buttsex turned him off until she got him to try fucking her ass,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a citizen who didn't know how much he liked fucking buttholes until she got him to try fucking hers,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she disgusted a citizen who didn't know how much buttsex turned him off until she got him to try fucking her ass,", type: "rep", effect: -1})>>
 <<case "boobs">>
-	<<set $vignettes.push({text: "she deeply impressed a citizen by orgasming to nothing but the feeling of her sucking her nipples,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she disappointed a female citizen who didn't know how uninterested she was in nipple play before trying it,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she deeply impressed a citizen by orgasming to nothing but the feeling of her sucking her nipples,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she disappointed a female citizen who didn't know how uninterested she was in nipple play before trying it,", type: "rep", effect: -1})>>
 <<case "sadist">>
-	<<set $vignettes.push({text: "she deeply impressed a citizen who brought his own slave to her for abuse with her sadism,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "a citizen brought her his own slave to abuse, but the sight proved to be a turn off for him,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she deeply impressed a citizen who brought his own slave to her for abuse with her sadism,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a citizen brought her his own slave to abuse, but the sight proved to be a turn off for him,", type: "rep", effect: -1})>>
 <<case "masochist">>
-	<<set $vignettes.push({text: "she helped a citizen discover a new fetish by orgasming when he accidentally hurt her,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she disturbed a citizen who accidentally hurt her by orgasming,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she helped a citizen discover a new fetish by orgasming when he accidentally hurt her,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she disturbed a citizen who accidentally hurt her by orgasming,", type: "rep", effect: -1})>>
 <<case "dom">>
-	<<set $vignettes.push({text: "she made a female citizen her bitch: fortunately, the citizen wanted to be her bitch and came back for more", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she accidentally overwhelmed a citizen with her sexual dominance,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she made a female citizen her bitch: fortunately, the citizen wanted to be her bitch and came back for more", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she accidentally overwhelmed a citizen with her sexual dominance,", type: "rep", effect: -1})>>
 <<case "pregnancy">>
-	<<set $vignettes.push({text: "she earned extra gratitude from a citizen who didn't know how much he liked pregnancy play until she begged him to knock her up,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she disgusted a citizen who didn't know how much pregnancy play turned him off until she begged him to knock her up,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a citizen who didn't know how much he liked pregnancy play until she begged him to knock her up,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she disgusted a citizen who didn't know how much pregnancy play turned him off until she begged him to knock her up,", type: "rep", effect: -1})>>
 <</switch>>
 <</if>>
 <<switch $slaves[$i].behavioralFlaw>>
 <<case "arrogant">>
-	<<set $vignettes.push({text: "she manages to give a citizen the impression she thinks herself better than him,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she manages to give a citizen the impression she thinks herself better than him,", type: "rep", effect: -1})>>
 <<case "bitchy">>
-	<<set $vignettes.push({text: "she makes an emasculating remark to a citizen right after he fucks her,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she makes an emasculating remark to a citizen right after he fucks her,", type: "rep", effect: -1})>>
 <<case "odd">>
-	<<set $vignettes.push({text: "she infuriates a potential citizen with her nervous tics,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she infuriates a potential citizen with her nervous tics,", type: "rep", effect: -1})>>
 <<case "hates men">>
-	<<set $vignettes.push({text: "her disgust towards men surfaces at a bad time, angering a male citizen,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "her disgust towards men surfaces at a bad time, angering a male citizen,", type: "rep", effect: -1})>>
 <<case "hates women">>
-	<<set $vignettes.push({text: "her disgust towards women surfaces at a bad time, angering a female citizen,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "her disgust towards women surfaces at a bad time, angering a female citizen,", type: "rep", effect: -1})>>
 <<case "gluttonous">>
-	<<set $vignettes.push({text: "she accidentally lingers at a meal, missing an appointment with a citizen,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she accidentally lingers at a meal, missing an appointment with a citizen,", type: "rep", effect: -1})>>
 <<case "anorexic">>
-	<<set $vignettes.push({text: "her bulimia surfaces at an extremely inopportune moment, turning a citizen off,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "her bulimia surfaces at an extremely inopportune moment, turning a citizen off,", type: "rep", effect: -1})>>
 <<case "devout">>
-	<<set $vignettes.push({text: "a citizen catches her praying to herself as he inserts himself into her, turning him off,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "a citizen catches her praying to herself as he inserts himself into her, turning him off,", type: "rep", effect: -1})>>
 <<case "liberated">>
-	<<set $vignettes.push({text: "she treats a rude citizen impolitely, because she thinks that's fair,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she treats a rude citizen impolitely, because she thinks that's fair,", type: "rep", effect: -1})>>
 <</switch>>
 <<switch $slaves[$i].sexualFlaw>>
 <<case "hates oral">>
-	<<set $vignettes.push({text: "she vomits while trying to deepthroat a citizen,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she vomits while trying to deepthroat a citizen,", type: "rep", effect: -1})>>
 <<case "hates anal">>
-	<<set $vignettes.push({text: "she cries while taking anal from a citizen who isn't into painal,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she cries while taking anal from a citizen who isn't into painal,", type: "rep", effect: -1})>>
 <<case "hates penetration">>
-	<<set $vignettes.push({text: "she cries while taking a pounding from a citizen who likes his sex consensual,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she cries while taking a pounding from a citizen who likes his sex consensual,", type: "rep", effect: -1})>>
 <<case "shamefast">>
-	<<set $vignettes.push({text: "she cries while a citizen looks her over,", type: "rep", effect: -1})>>
-	<<set $vignettes.push({text: "she disrobed so slowly that a horny citizen gave up on her,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she cries while a citizen looks her over,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she disrobed so slowly that a horny citizen gave up on her,", type: "rep", effect: -1})>>
 <<case "idealistic">>
-	<<set $vignettes.push({text: "she cries when explaining to a citizen that sex with her is free,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she cries when explaining to a citizen that sex with her is free,", type: "rep", effect: -1})>>
 <<case "repressed">>
-	<<set $vignettes.push({text: "she misunderstands a citizen's lewd requests, turning her off,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she misunderstands a citizen's lewd requests, turning her off,", type: "rep", effect: -1})>>
 <<case "apathetic">>
-	<<set $vignettes.push({text: "she fails to notice when a citizen achieves orgasm,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she fails to notice when a citizen achieves orgasm,", type: "rep", effect: -1})>>
 <<case "neglectful">>
-	<<set $vignettes.push({text: "she brings a denial fetishest to orgasm three times without cumming herself, impressing them completely,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "she brings a denial fetishest to orgasm three times without cumming herself, impressing them completely,", type: "rep", effect: 3})>>
 <<case "cum addict">>
-	<<set $vignettes.push({text: "she's so focused on sucking down a client's cum that she managed to drive him to repeated orgasm, earning his admiration once the feeling returns to his legs,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "she's so focused on sucking down a client's cum that she managed to drive him to repeated orgasm, earning his admiration once the feeling returns to his legs,", type: "rep", effect: 3})>>
 <<case "anal addict">>
-	<<set $vignettes.push({text: "she takes an awe inspiring train of dicks in her ass, well past the point where most would have passed out from pain,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "she takes an awe inspiring train of dicks in her ass, well past the point where most would have passed out from pain,", type: "rep", effect: 3})>>
 <<case "attention whore">>
-	<<set $vignettes.push({text: "she earned extra gratitude by drawing attention to savy businessman from his superiors,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "she earned extra gratitude by drawing attention to savy businessman from his superiors,", type: "rep", effect: 3})>>
 <<case "breast growth">>
-	<<set $vignettes.push({text: "she earns extra gratitude from a citizen who never realized breast growth turned him on so much,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "she earns extra gratitude from a citizen who never realized breast growth turned him on so much,", type: "rep", effect: 3})>>
 <<case "abusive">>
-	<<set $vignettes.push({text: "she abuses a rival public servant so viciously that an catfight lover takes her right there,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "she abuses a rival public servant so viciously that an catfight lover takes her right there,", type: "rep", effect: 3})>>
 <<case "malicious">>
-	<<set $vignettes.push({text: "she earned extra gratitude from a masochist who loved the way she traced her scars, and added some new ones,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a masochist who loved the way she traced her scars, and added some new ones,", type: "rep", effect: 3})>>
 <<case "self hating">>
-	<<set $vignettes.push({text: "the way she takes everything thrown at her like nothing disturbs group of citizens, though one of them enjoys it more than they let on and comes to her for sex later,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "the way she takes everything thrown at her like nothing disturbs group of citizens, though one of them enjoys it more than they let on and comes to her for sex later,", type: "rep", effect: 3})>>
 <<case "breeder">>
-	<<set $vignettes.push({text: "her pregnancy obsession earns her extra gratitude from a man with an intense pregnancy fetish,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "her pregnancy obsession earns her extra gratitude from a man with an intense pregnancy fetish,", type: "rep", effect: 3})>>
 <</switch>>
 <<switch $slaves[$i].behavioralQuirk>>
 <<case "confident">>
-	<<set $vignettes.push({text: "she confidently presses forward with a wavering citizen, and gets him to fuck her,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she confidently presses forward with a wavering citizen, and gets him to fuck her,", type: "rep", effect: 1})>>
 <<case "cutting">>
-	<<set $vignettes.push({text: "she makes such a gloriously cutting remark to a male citizen that a female bystander takes her right there,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she makes such a gloriously cutting remark to a male citizen that a female bystander takes her right there,", type: "rep", effect: 1})>>
 <<case "funny">>
-	<<set $vignettes.push({text: "she makes a group of citizens laugh so hard, one of them comes to her for sex later,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she makes a group of citizens laugh so hard, one of them comes to her for sex later,", type: "rep", effect: 1})>>
 <<case "fitness">>
-	<<set $vignettes.push({text: "she continues a marathon gangbang past the point where most would have passed out,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she continues a marathon gangbang past the point where most would have passed out,", type: "rep", effect: 1})>>
 <<case "adores women">>
-	<<set $vignettes.push({text: "she strikes up a personal friendship with a regular female patron,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she strikes up a personal friendship with a regular female patron,", type: "rep", effect: 1})>>
 <<case "adores men">>
-	<<set $vignettes.push({text: "she strikes up a personal friendship with a regular male patron,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she strikes up a personal friendship with a regular male patron,", type: "rep", effect: 1})>>
 <<case "insecure">>
-	<<set $vignettes.push({text: "she successfully convinces a regular patron that she's reliant on him emotionally,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she successfully convinces a regular patron that she's reliant on him emotionally,", type: "rep", effect: 1})>>
 <<case "sinful">>
-	<<set $vignettes.push({text: "she helps a citizen get past her religious hangups through sex with her friendly neighborhood slut,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she helps a citizen get past her religious hangups through sex with her friendly neighborhood slut,", type: "rep", effect: 1})>>
 <<case "advocate">>
-	<<set $vignettes.push({text: "she successfully convinces a wavering potential citizen that there's nothing wrong with banging a public slut,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she successfully convinces a wavering potential citizen that there's nothing wrong with banging a public slut,", type: "rep", effect: 1})>>
 <</switch>>
 <<switch $slaves[$i].sexualQuirk>>
 <<case "gagfuck queen")>>
-	<<set $vignettes.push({text: "she earns extra gratitude from a citizen who's obsessed with gagfucks,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she earns extra gratitude from a citizen who's obsessed with gagfucks,", type: "rep", effect: 1})>>
 <<case "painal queen")>>
-	<<set $vignettes.push({text: "she earns extra gratitude from a citizen who's obsessed with painal,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she earns extra gratitude from a citizen who's obsessed with painal,", type: "rep", effect: 1})>>
 <<case "strugglefuck queen")>>
-	<<set $vignettes.push({text: "she earns extra gratitude from a citizen who's obsessed with strugglefucking,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she earns extra gratitude from a citizen who's obsessed with strugglefucking,", type: "rep", effect: 1})>>
 <<case "tease")>>
-	<<set $vignettes.push({text: "she convinces a citizen who's never had sex with a street slut to patronize her with some truly inspired flirting,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "a few partygoers were so impressed with her provocative teasing that they left her sizeable tip,", type: "cash", effect: 1})>>
+	<<set _vignettes.push({text: "she convinces a citizen who's never had sex with a street slut to patronize her with some truly inspired flirting,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a few partygoers were so impressed with her provocative teasing that they left her sizeable tip,", type: "cash", effect: 1})>>
 <<case "romantic")>>
-	<<set $vignettes.push({text: "a citizen becomes infatuated with her, since he's convinced she's infatuated with him,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a citizen becomes infatuated with her, since he's convinced she's infatuated with him,", type: "rep", effect: 1})>>
 <<case "perverted")>>
-	<<set $vignettes.push({text: "she earns some momentary notoriety by engaging in a previously unheard-of sex act,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she earns some momentary notoriety by engaging in a previously unheard-of sex act,", type: "rep", effect: 1})>>
 <<case "caring")>>
-	<<set $vignettes.push({text: "she serves as an impromptu sounding board for a citizen having marital trouble,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "a citizen was so enamored with her kind and caring manner than he proposed to her and offered to take her away, and when she refused, he urged a sizable tip on her,", type: "cash", effect: 1})>>
+	<<set _vignettes.push({text: "she serves as an impromptu sounding board for a citizen having marital trouble,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a citizen was so enamored with her kind and caring manner than he proposed to her and offered to take her away, and when she refused, he urged a sizable tip on her,", type: "cash", effect: 1})>>
 <</switch>>
 <<if ($slaves[$i].pitKills > 0)>>
-	<<set $vignettes.push({text: "she earns extra gratitude from a citizen obsessed with the fact that she's a killer,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she earns extra gratitude from a citizen obsessed with the fact that she's a killer,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].oralCount > 500)>>
-	<<set $vignettes.push({text: "a citizen into degradation becomes obsessed with driving her oral mileage as high as possible,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a citizen into degradation becomes obsessed with driving her oral mileage as high as possible,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].analCount > 500) && ($slaves[$i].anus > 0)>>
-	<<set $vignettes.push({text: "a citizen into degradation becomes obsessed with driving her anal mileage as high as possible,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a citizen into degradation becomes obsessed with driving her anal mileage as high as possible,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].vaginalCount > 500) && ($slaves[$i].vagina > 0)>>
-	<<set $vignettes.push({text: "a citizen into degradation becomes obsessed with driving her pussy mileage as high as possible,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a citizen into degradation becomes obsessed with driving her pussy mileage as high as possible,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].devotion > 95)>>
-	<<set $vignettes.push({text: "she really pushed herself to please a citizen with tastes that disgusted her,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she really pushed herself to please a citizen with tastes that disgusted her,", type: "rep", effect: 1})>>
 <<elseif ($slaves[$i].devotion < -50)>>
-	<<set $vignettes.push({text: "her fury at being sold for sex turned a citizen off before he could fuck her,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "her fury at being sold for sex turned a citizen off before he could fuck her,", type: "rep", effect: -1})>>
 <<elseif ($slaves[$i].devotion <= 20)>>
-	<<set $vignettes.push({text: "she treasured a love token given to her by a citizen she fooled into thinking her affection was real,", type: "devotion", effect: -1})>>
+	<<set _vignettes.push({text: "she treasured a love token given to her by a citizen she fooled into thinking her affection was real,", type: "devotion", effect: -1})>>
 <</if>>
 <<if ($slaves[$i].trust > 95)>>
-	<<set $vignettes.push({text: "she really pushed herself to accept a citizen with tastes that frightened her,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she really pushed herself to accept a citizen with tastes that frightened her,", type: "rep", effect: 1})>>
 <<elseif ($slaves[$i].trust < -50)>>
-	<<set $vignettes.push({text: "her tearful terror at being forced to offer herself for sex turned a citizen off before he could fuck her,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "her tearful terror at being forced to offer herself for sex turned a citizen off before he could fuck her,", type: "rep", effect: -1})>>
 <</if>>
 <<if $slaves[$i].livingRules == "luxurious">>
-	<<set $vignettes.push({text: "she got a truly perfect night's sleep, which put her in the right frame of mind for the whole day,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she got a truly perfect night's sleep, which put her in the right frame of mind for the whole day,", type: "rep", effect: 1})>>
 <<elseif $slaves[$i].livingRules == "spare">>
-	<<set $vignettes.push({text: "she got a poor night's sleep in the noisy dormitory, which took the shine off her efforts for the whole day", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she got a poor night's sleep in the noisy dormitory, which took the shine off her efforts for the whole day", type: "rep", effect: -1})>>
 <</if>>
-<<if $slaves[$i].releaseRules == "permissive">>
-	<<set $vignettes.push({text: "a citizen asked if she masturbates, and then spent an hour jerking off as she described how,", type: "rep", effect: 1})>>
+<<if $slaves[$i].releaseRules == "permissive" || $slaves[$i].releaseRules == "masturbation">>
+	<<set _vignettes.push({text: "a citizen asked if she masturbates, and then spent an hour jerking off as she described how,", type: "rep", effect: 1})>>
 <<elseif $slaves[$i].releaseRules == "restrictive">>
-	<<set $vignettes.push({text: "a citizen asked if she masturbates, and seemed disappointed when she answered honestly,", type: "rep", effect: 0})>>
+	<<set _vignettes.push({text: "a citizen asked if she masturbates, and seemed disappointed when she answered honestly,", type: "rep", effect: 0})>>
 <<else>>
-	<<set $vignettes.push({text: "a closeted female citizen asked about her sex life with other slaves, and was enthralled by her answer,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a closeted female citizen asked about her sex life with other slaves, and was enthralled by her answer,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].health > 80)>>
-	<<set $vignettes.push({text: "a potential citizen in the medical field was fascinated by her health, and spent almost as much time examining her as he did having sex with her,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a potential citizen in the medical field was fascinated by her health, and spent almost as much time examining her as he did having sex with her,", type: "rep", effect: 1})>>
 <</if>>
 <<if $arcologies[0].FSHedonisticDecadence != "unset">>
 	<<if ($slaves[$i].weight < 10)>>
-		<<set $vignettes.push({text: "she earned extra gratitude from a citizen who misses girls without a spare tire around their middle,", type: "rep", effect: 0})>>
+		<<set _vignettes.push({text: "she earned extra gratitude from a citizen who misses girls without a spare tire around their middle,", type: "rep", effect: 0})>>
 	<<elseif ($slaves[$i].weight < 95)>>
-		<<set $vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she gains a lot more weight,", type: "rep", effect: 0})>>
+		<<set _vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she gains a lot more weight,", type: "rep", effect: 0})>>
 	<<else>>
-		<<set $vignettes.push({text: "she earned extra gratitude from a citizen who loves them big and soft", type: "rep", effect: 0})>>
+		<<set _vignettes.push({text: "she earned extra gratitude from a citizen who loves them big and soft", type: "rep", effect: 0})>>
 	<</if>>
 	<<if ($slaves[$i].weight > 30)>>
-		<<set $vignettes.push({text: "she earned extra gratitude from a citizen who enjoyed the way her middle jiggled as he fucked her,", type: "rep", effect: 0})>>
+		<<set _vignettes.push({text: "she earned extra gratitude from a citizen who enjoyed the way her middle jiggled as he fucked her,", type: "rep", effect: 0})>>
 	<</if>>
 <<else>>
 	<<if ($slaves[$i].weight > 95)>>
-		<<set $vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she loses a lot of weight,", type: "rep", effect: 0})>>
+		<<set _vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she loses a lot of weight,", type: "rep", effect: 0})>>
 	<<elseif ($slaves[$i].weight > 30)>>
-		<<set $vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she loses some weight,", type: "rep", effect: 0})>>
+		<<set _vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she loses some weight,", type: "rep", effect: 0})>>
 	<<elseif ($slaves[$i].weight <= -30)>>
-		<<set $vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she gains some weight,", type: "rep", effect: 0})>>
+		<<set _vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she gains some weight,", type: "rep", effect: 0})>>
 	<<elseif ($slaves[$i].weight < -95)>>
-		<<set $vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she gains a lot of weight,", type: "rep", effect: 0})>>
+		<<set _vignettes.push({text: "a potential citizen told her that he's looking forward to patronizing her once she gains a lot of weight,", type: "rep", effect: 0})>>
 	<</if>>
 <</if>>
 <<if ($slaves[$i].drugs == "testicle enhancement")>>
-	<<set $vignettes.push({text: "she took it in public, with her copious ejaculation attracting more citizens,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she took it in public, with her copious ejaculation attracting more citizens,", type: "rep", effect: 1})>>
 <<elseif ($slaves[$i].drugs == "hyper testicle enhancement")>>
-	<<set $vignettes.push({text: "she bloated a female citizen's belly with her copious ejaculate, leading her to recommend your slaves for girls that want to look pregnant without actually getting pregnant,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she bloated a female citizen's belly with her copious ejaculate, leading her to recommend your slaves for girls that want to look pregnant without actually getting pregnant,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].aphrodisiacs > 1) || ($slaves[$i].inflationType == "aphrodisiac")>>
-	<<set $vignettes.push({text: "her piteous begging for sex due to her extreme aphrodisiac dosage turned a citizen off,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "her piteous begging for sex due to her extreme aphrodisiac dosage turned a citizen off,", type: "rep", effect: -1})>>
 <</if>>
 <<if ($slaves[$i].inflationType == "aphrodisiac")>>
-	<<set $vignettes.push({text: "her piteous begging for sex coupled with her bloated belly pleased a citizen who loves desperate sluts,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "her piteous begging for sex coupled with her bloated belly horrified a citizen who didn't realize how low a girl could stoop,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "her piteous begging for sex coupled with her bloated belly pleased a citizen who loves desperate sluts,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "her piteous begging for sex coupled with her bloated belly horrified a citizen who didn't realize how low a girl could stoop,", type: "rep", effect: -1})>>
 <</if>>
 <<if ($slaves[$i].addict > 50)>>
-	<<set $vignettes.push({text: "she zoned out badly due to a low point between aphrodisiac doses, disappointing a citizen,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she zoned out badly due to a low point between aphrodisiac doses, disappointing a citizen,", type: "rep", effect: -1})>>
 <</if>>
 <<if ($slaves[$i].bellyPreg >= 10000) || ($slaves[$i].bellyImplant >= 10000)>>
-	<<set $vignettes.push({text: "she earned extra gratitude from a citizen who likes to do nothing more than cuddle with her swollen belly,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "a night with guy who likes rough, hard sex with heavily pregnant girls took its toll on her", type: "health", effect: -1})>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a citizen who likes to do nothing more than cuddle with her swollen belly,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a night with guy who likes rough, hard sex with heavily pregnant girls took its toll on her", type: "health", effect: -1})>>
 <</if>>
-<<if ($slaves[$i].inflation > 1)>>
-	<<set $vignettes.push({text: "she earned extra gratitude from a citizen who loved the way her belly sloshed and moved to his teasing,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she disgusted a citizen when his forceful fucking caused her to release her contained $slaves[$i].inflationType all over him,", type: "rep", effect: -2})>>
+<<if ($slaves[$i].bellyFluid >= 5000)>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a citizen who loved the way her belly sloshed and moved to his teasing,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she disgusted a citizen when his forceful fucking caused her to release her contained $slaves[$i].inflationType all over him,", type: "rep", effect: -2})>>
 <</if>>
-<<if ($slaves[$i].hormones > 0) && !canAchieveErection($slaves[$i])>>
+<<if ($slaves[$i].hormoneBalance >= 100) && !canAchieveErection($slaves[$i])>>
 	<<if ($slaves[$i].dick > 0)>>
-		<<set $vignettes.push({text: "she disappointed a citizen who was sure she could get $slaves[$i].slaveName's cock erect,", type: "rep", effect: -1})>>
-		<<set $vignettes.push({text: "she earned extra gratitude from a citizen who seems unthreatened by her soft dick,", type: "rep", effect: 1})>>
+		<<set _vignettes.push({text: "she disappointed a citizen who was sure she could get $slaves[$i].slaveName's cock erect,", type: "rep", effect: -1})>>
+		<<set _vignettes.push({text: "she earned extra gratitude from a citizen who seems unthreatened by her soft dick,", type: "rep", effect: 1})>>
 	<</if>>
-<<elseif ($slaves[$i].hormones < 0)>>
+<<elseif ($slaves[$i].hormoneBalance <= -100)>>
 	<<if ($slaves[$i].dick == 0)>>
-		<<set $vignettes.push({text: "she earned extra gratitude from a female citizen who adores the masculinity produced by $slaves[$i].slaveName's hormone regime,", type: "rep", effect: 1})>>
+		<<set _vignettes.push({text: "she earned extra gratitude from a female citizen who adores the masculinity produced by $slaves[$i].slaveName's hormone regime,", type: "rep", effect: 1})>>
 	<</if>>
 <</if>>
-<<if ($slaves[$i].hormones <= 0)>>
-	<<if ($slaves[$i].dick > 0)>>
-	<<if ($slaves[$i].balls > 0) || canAchieveErection($slaves[$i])>>
-		<<set $vignettes.push({text: "she earned extra gratitude from a citizen who likes to see his wife get fucked by a dickgirl whore,", type: "rep", effect: 1})>>
-		<<if ($slaves[$i].dick > 3)>>
-			<<set $vignettes.push({text: "she earned extra gratitude from a female citizen who likes big stiff cocks, and cannot lie,", type: "rep", effect: 1})>>
-			<<set $vignettes.push({text: "she irritated a male citizen who brought his girlfriend with him by accidentally showing him up,", type: "rep", effect: -1})>>
-		<</if>>
-	<</if>>
+<<if ($slaves[$i].dick > 0) && canAchieveErection($slaves[$i])>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a citizen who likes to see his wife get fucked by a dickgirl whore,", type: "rep", effect: 1})>>
+	<<if ($slaves[$i].dick > 3)>>
+		<<set _vignettes.push({text: "she earned extra gratitude from a female citizen who likes big stiff cocks, and cannot lie,", type: "rep", effect: 1})>>
+		<<set _vignettes.push({text: "she irritated a male citizen who brought his girlfriend with him by accidentally showing him up,", type: "rep", effect: -1})>>
 	<</if>>
 <</if>>
 <<if ($slaves[$i].balls > 3)>>
-	<<set $vignettes.push({text: "she disappoints a citizen who wants her to look like a natural girl, since her balls are too big to be hidden,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she disappoints a citizen who wants her to look like a natural girl, since her balls are too big to be hidden,", type: "rep", effect: -1})>>
 <</if>>
 <<if ($slaves[$i].vagina == 1)>>
-	<<set $vignettes.push({text: "she got extra attention from a citizen who really likes her, and wants to fuck her pussy as much as possible while it's still tight,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she got extra attention from a citizen who really likes her, and wants to fuck her pussy as much as possible while it's still tight,", type: "rep", effect: 1})>>
 <<elseif ($slaves[$i].vagina > 2)>>
-	<<set $vignettes.push({text: "she disappointed a citizen whose cock is just too small for her big cunt,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she disappointed a citizen whose cock is just too small for her big cunt,", type: "rep", effect: -1})>>
+	<<if ($slaves[$i].behavioralQuirk == "cutting") && ($slaves[$i].intelligence >= 2)>>
+		<<set _vignettes.push({text: "she helped a citizen discover a new fetish by making cutting remarks when his cock was too small for her big cunt,", type: "rep", effect: 1})>>
+	<<elseif ($slaves[$i].behavioralFlaw == "bitchy")>>
+		<<set _vignettes.push({text: "she irritated a male citizen with her compliants that he was too small to please her,", type: "rep", effect: -3})>>
+	<</if>>
 <</if>>
 <<if ($slaves[$i].anus == 1)>>
-	<<set $vignettes.push({text: "she got extra attention from a citizen who really likes her butthole, and wants to fuck it as much as possible while it's still tight,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she got extra attention from a citizen who really likes her butthole, and wants to fuck it as much as possible while it's still tight,", type: "rep", effect: 1})>>
 <<elseif ($slaves[$i].anus > 2)>>
-	<<set $vignettes.push({text: "she disappointed a citizen whose cock is just too small for her loose butthole,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she disappointed a citizen whose cock is just too small for her loose butthole,", type: "rep", effect: -1})>>
 <</if>>
 <<if ($slaves[$i].face > 40)>>
-	<<set $vignettes.push({text: "she lost a potential citizen who was so intimidated by her great beauty that he decided to find a homelier whore,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she lost a potential citizen who was so intimidated by her great beauty that he decided to find a homelier whore,", type: "rep", effect: -1})>>
 <<elseif ($slaves[$i].face < -10)>>
-	<<set $vignettes.push({text: "she earned extra gratitude from a citizen who lacks self-confidence, and is more comfortable with homely whores,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a citizen who lacks self-confidence, and is more comfortable with homely whores,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].physicalAge > 40)>>
-	<<set $vignettes.push({text: "she earned extra gratitude from a citizen with serious mommy issues,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a citizen with serious mommy issues,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].lips > 70)>>
-	<<set $vignettes.push({text: "she earned extra gratitude from a citizen who likes to play with her lips nonsexually (don't ask),", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she earned extra gratitude from a citizen who likes to play with her lips nonsexually (don't ask),", type: "rep", effect: 1})>>
 <</if>>
 <<if (canTalk($slaves[$i]) == false)>>
-	<<set $vignettes.push({text: "she impressed a citizen who didn't know how relaxing a girl who can't talk could be,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she impressed a citizen who didn't know how relaxing a girl who can't talk could be,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].muscles > 95)>>
-	<<set $vignettes.push({text: "she impressed a citizen who was so eager to share workout plans with her that he almost forgot to have sex with her,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she gained extra gratitude from a female citizen who likes a girl who can bench-press her before and after they fuck,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she disappointed a citizen by accidentally revealing that she's considerably stronger than him,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she impressed a citizen who was so eager to share workout plans with her that he almost forgot to have sex with her,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gained extra gratitude from a female citizen who likes a girl who can bench-press her before and after they fuck,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she disappointed a citizen by accidentally revealing that she's considerably stronger than him,", type: "rep", effect: -1})>>
 <</if>>
 <<if ($slaves[$i].lactation > 0)>>
-	<<set $vignettes.push({text: "she provided fresh milk for the coffee served at a citizen's business meeting,", type: "rep", effect: 1})>>
-	<<set $vignettes.push({text: "she provided fresh milk at a trendy arcology coffeehouse,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she provided fresh milk for the coffee served at a citizen's business meeting,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she provided fresh milk at a trendy arcology coffeehouse,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].amp == 1)>>
-	<<set $vignettes.push({text: "she disappointed a citizen who thought he'd enjoy fucking an amputee, but found it revolting,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she disappointed a citizen who thought he'd enjoy fucking an amputee, but found it revolting,", type: "rep", effect: -1})>>
 <<else>>
 	<<if ($slaves[$i].heels == 1)>>
 	<<if ($slaves[$i].shoes != "heels") && ($slaves[$i].shoes != "extreme heels") && ($slaves[$i].shoes != "boots")>>
-		<<set $vignettes.push({text: "she enticed a new patron who had never really considered buttsex before he saw her crawling along with her asshole vulnerable,", type: "rep", effect: 1})>>
+		<<set _vignettes.push({text: "she enticed a new patron who had never really considered buttsex before he saw her crawling along with her asshole vulnerable,", type: "rep", effect: 1})>>
 	<</if>>
 	<</if>>
 	<<if ($slaves[$i].boobs > 1500)>>
 	<<if ($slaves[$i].boobsImplant == 0)>>
-	<<set $vignettes.push({text: "a young citizen convinced her to jump rope so he could watch her massive natural breasts flop around,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a young citizen convinced her to jump rope so he could watch her massive natural breasts flop around,", type: "rep", effect: 1})>>
 	<</if>>
 	<</if>>
 <</if>>
 <<if ($slaves[$i].vaginalAccessory == "chastity belt")>>
-	<<set $vignettes.push({text: "a wavering citizen who was disappointed that her pussy is unavailable decided to try her ass instead,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a wavering citizen who was disappointed that her pussy is unavailable decided to try her ass instead,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].fetish == "mindbroken")>>
-	<<set $vignettes.push({text: "a citizen really enjoyed being able to treat her however he liked without eliciting a reaction,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "a citizen really enjoyed being able to treat her however he liked without eliciting a reaction,", type: "rep", effect: 1})>>
 <</if>>
 <<if ($slaves[$i].intelligence <= -2)>>
-	<<set $vignettes.push({text: "a low-class citizen who had no business fucking her managed to trick her into fucking him anyway,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "a low-class citizen who had no business fucking her managed to trick her into fucking him anyway,", type: "rep", effect: -1})>>
 <</if>>
 <<if ($slaves[$i].face > 10)>>
 	<<if ($slaves[$i].dick > 0)>>
 	<<if ($slaves[$i].fetish == "buttslut")>>
-		<<set $vignettes.push({text: "a citizen was surprised by her penis, so she hid it and enjoyed the buttsex without touching it,", type: "rep", effect: 1})>>
+		<<set _vignettes.push({text: "a citizen was surprised by her penis, so she hid it and enjoyed the buttsex without touching it,", type: "rep", effect: 1})>>
 	<<elseif ($slaves[$i].analSkill >= 100)>>
-		<<set $vignettes.push({text: "a citizen was surprised by her penis, so she hid it and skillfully pretended to be a real girl,", type: "rep", effect: 1})>>
+		<<set _vignettes.push({text: "a citizen was surprised by her penis, so she hid it and skillfully pretended to be a real girl,", type: "rep", effect: 1})>>
 	<<elseif ($slaves[$i].fetish == "buttslut")>>
-		<<set $vignettes.push({text: "a citizen was surprised by her penis, so she hid it, but could barely tolerate anal without touching it", type: "rep", effect: -1})>>
+		<<set _vignettes.push({text: "a citizen was surprised by her penis, so she hid it, but could barely tolerate anal without touching it", type: "rep", effect: -1})>>
 	<</if>>
 	<</if>>
 	<<if ($slaves[$i].analSkill < 100)>>
 	<<if ($slaves[$i].anus > 2)>>
-		<<set $vignettes.push({text: "a pair of customers enticed by her beauty but disappointed by her loose butthole doubled up on her poor anus without mercy,", type: "health", effect: -1})>>
+		<<set _vignettes.push({text: "a pair of customers enticed by her beauty but disappointed by her loose butthole doubled up on her poor anus without mercy,", type: "health", effect: -1})>>
 	<</if>>
 	<</if>>
 <</if>>
 <<if ($slaves[$i].fetishKnown == 1)>>
 <<if ($slaves[$i].fetishStrength > 95)>>
 	<<if ($slaves[$i].fetish == "buttslut") || ($slaves[$i].fetish == "dom")>>
-	<<set $vignettes.push({text: "she showed off by forcing a slave in the stocks to eat her ass", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she showed off by forcing a slave in the stocks to eat her ass", type: "rep", effect: 1})>>
 	<<elseif ($slaves[$i].fetish == "masochist")>>
-	<<set $vignettes.push({text: "she cooperated with a customer who wanted to whip her tits black and blue", type: "health", effect: -1})>>
+	<<set _vignettes.push({text: "she cooperated with a customer who wanted to whip her tits black and blue", type: "health", effect: -1})>>
 	<</if>>
 <</if>>
 <</if>>
 <<if ($slaves[$i].health < 20)>>
-	<<set $vignettes.push({text: "she attracted the attention of a slaveowner alarmed by her poor health, and thought he seemed kind,", type: "devotion", effect: -1})>>
+	<<set _vignettes.push({text: "she attracted the attention of a slaveowner alarmed by her poor health, and thought he seemed kind,", type: "devotion", effect: -1})>>
 <</if>>
 <<if ($slaves[$i].vaginalSkill >= 100)>>
-	<<set $vignettes.push({text: "she was brought in to apply her skills to a prominent citizen's virgin son,", type: "devotion", effect: 0})>>
+	<<set _vignettes.push({text: "she was brought in to apply her skills to a prominent citizen's virgin son,", type: "devotion", effect: 0})>>
 <</if>>
 <<if ($slaves[$i].analSkill < 100)>>
 <<if ($slaves[$i].anus < 2)>>
-	<<set $vignettes.push({text: "a guy with a huge cock insisted on fucking her in her tight ass all night,", type: "health", effect: -1})>>
+	<<set _vignettes.push({text: "a guy with a huge cock insisted on fucking her in her tight ass all night,", type: "health", effect: -1})>>
 <</if>>
 <</if>>
 <<if ($slaves[$i].relationship <= -2)>>
 <<if ($slaves[$i].intelligence < 1)>>
-	<<set $vignettes.push({text: "she accidentally mentions how much she loves you during intercourse with a citizen who doesn't like to share,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she accidentally mentions how much she loves you during intercourse with a citizen who doesn't like to share,", type: "rep", effect: -1})>>
 <</if>>
 <</if>>
 <<if ($slaves[$i].prestige > 0)>>
-	<<set $vignettes.push({text: "a college fraternity visiting the arcology for rush week invited her to a gangbang,", type: "rep", effect: 3})>>
+	<<set _vignettes.push({text: "a college fraternity visiting the arcology for rush week invited her to a gangbang,", type: "rep", effect: 3})>>
 <</if>>
 
 <<if $arcologies[0].FSSupremacist != "unset">>
 	<<if ($slaves[$i].race == $arcologies[0].FSSupremacistRace)>>
-	<<set $vignettes.push({text: "she disappointed a citizen who couldn't bear to see a beautiful $arcologies[0].FSSupremacistRace be a public slut,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she disappointed a citizen who couldn't bear to see a beautiful $arcologies[0].FSSupremacistRace be a public slut,", type: "rep", effect: -1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSSubjugationist != "unset">>
 	<<if ($slaves[$i].race == $arcologies[0].FSSubjugationistRace)>>
-	<<set $vignettes.push({text: "she had a bad time in general, since most of the citizens who used her didn't care about a $arcologies[0].FSSubjugationistRace prostitute's health or well-being,", type: "health", effect: -1})>>
+	<<set _vignettes.push({text: "she had a bad time in general, since most of the citizens who used her didn't care about a $arcologies[0].FSSubjugationistRace prostitute's health or well-being,", type: "health", effect: -1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSYouthPreferentialist != "unset">>
 	<<if ($slaves[$i].visualAge > 35)>>
-	<<set $vignettes.push({text: "she gratified a citizen who wants to keep his MILF fetish in the closet,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who wants to keep his MILF fetish in the closet,", type: "rep", effect: 1})>>
 	<</if>>
 <<elseif $arcologies[0].FSMaturityPreferentialist != "unset">>
 	<<if ($slaves[$i].visualAge <= 20)>>
-	<<set $vignettes.push({text: "she gratified a citizen who wants to keep his fetish for young girls in the closet,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who wants to keep his fetish for young girls in the closet,", type: "rep", effect: 1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSGenderRadicalist != "unset">>
 	<<if ($slaves[$i].dick > 0)>>
 	<<if ($slaves[$i].dick < 3)>>
-	<<set $vignettes.push({text: "she gratified a citizen who is coming to terms with Gender Radicalism, and is unthreatened by her little penis,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who is coming to terms with Gender Radicalism, and is unthreatened by her little penis,", type: "rep", effect: 1})>>
 	<</if>>
 	<</if>>
 <<elseif $arcologies[0].FSGenderFundamentalist != "unset">>
 	<<if ($slaves[$i].visualAge > 25)>>
-	<<set $vignettes.push({text: "she gratified a citizen who thinks she resembles his ex-wife, who would never let him fuck her butt,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who thinks she resembles his ex-wife, who would never let him fuck her butt,", type: "rep", effect: 1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSRepopulationFocus != "unset">>
 	<<if ($slaves[$i].pregType > 1) && ($slaves[$i].pregKnown > 1) && ($slaves[$i].belly >= 10000)>>
-	<<set $vignettes.push({text: "she gratified a citizen who enjoys the feeling of a womb filled with more than a single child,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who enjoys the feeling of a womb filled with more than a single child,", type: "rep", effect: 1})>>
 	<</if>>
 <<elseif $arcologies[0].Restart != "unset">>
 	<<if canGetPregnant($slaves[$i])>>
-	<<set $vignettes.push({text: "she gratified a citizen who misses the risk of getting a girl pregnant,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who misses the risk of getting a girl pregnant,", type: "rep", effect: 1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSPaternalist != "unset">>
 	<<if ($slaves[$i].intelligence > 1)>>
-	<<set $vignettes.push({text: "she gratified a citizen who likes to chat with intelligent prostitutes as they fuck her,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who likes to chat with intelligent prostitutes as they fuck her,", type: "rep", effect: 1})>>
 	<</if>>
 <<elseif $arcologies[0].FSDegradationist != "unset">>
 	<<if canTalk($slaves[$i])>>
 	<<if ($slaves[$i].voice > 2)>>
-	<<set $vignettes.push({text: "she gratified a citizen who prefers girls with high-pitched screams,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who prefers girls with high-pitched screams,", type: "rep", effect: 1})>>
 	<</if>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSBodyPurist != "unset">>
 	<<if ($slaves[$i].boobsImplant > 0)>>
-	<<set $vignettes.push({text: "she gratified a citizen who wants to keep his fetish for breast implants in the closet,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who wants to keep his fetish for breast implants in the closet,", type: "rep", effect: 1})>>
 	<</if>>
 <<elseif $arcologies[0].FSTransformationFetishist != "unset">>
 	<<if ($slaves[$i].boobsImplant == 0)>>
-	<<set $vignettes.push({text: "she gratified a citizen who wants to keep his fetish for natural breasts in the closet,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who wants to keep his fetish for natural breasts in the closet,", type: "rep", effect: 1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSSlimnessEnthusiast != "unset">>
 	<<if ($slaves[$i].voice > 2)>>
-	<<set $vignettes.push({text: "she gratified a citizen who loves her high-pitched squeals of pleasure,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who loves her high-pitched squeals of pleasure,", type: "rep", effect: 1})>>
 	<</if>>
 	<<if ($slaves[$i].boobs > 800)>>
-	<<set $vignettes.push({text: "she was publicly mocked as an ugly fat cow with dangling udders,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she was publicly mocked as an ugly fat cow with dangling udders,", type: "rep", effect: -1})>>
 	<</if>>
 <<elseif $arcologies[0].FSAssetExpansionist != "unset">>
 	<<if ($slaves[$i].boobs < 300)>>
-	<<set $vignettes.push({text: "she gratified a citizen who wants to keep his fetish for flat chested girls in the closet,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who wants to keep his fetish for flat chested girls in the closet,", type: "rep", effect: 1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSPastoralist != "unset">>
 	<<if ($slaves[$i].lactation == 0)>>
-	<<set $vignettes.push({text: "she disappointed a citizen who could not understand why nothing was coming out of her nipples when he sucked on them,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she disappointed a citizen who could not understand why nothing was coming out of her nipples when he sucked on them,", type: "rep", effect: -1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSPhysicalIdealist != "unset">>
 	<<if ($slaves[$i].muscles <= 95)>>
-	<<set $vignettes.push({text: "she disappointed a citizen who could barely believe that she wasn't capable of holding herself in a handstand,", type: "rep", effect: -1})>>
+	<<set _vignettes.push({text: "she disappointed a citizen who could barely believe that she wasn't capable of holding herself in a handstand,", type: "rep", effect: -1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSChattelReligionist != "unset">>
 	<<if ($slaves[$i].behavioralFlaw == "devout")>>
-	<<set $vignettes.push({text: "she gratified a citizen who desperately wants his cock to be the one that converts her,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who desperately wants his cock to be the one that converts her,", type: "rep", effect: 1})>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSRomanRevivalist != "unset">>
 	<<if ($slaves[$i].race == "white")>>
 	<<if ($slaves[$i].height >= 185)>>
-	<<set $vignettes.push({text: "she gratified a citizen who thought her appearance worthy of a lusty northern barbarian,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who thought her appearance worthy of a lusty northern barbarian,", type: "rep", effect: 1})>>
 	<</if>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSAztecRevivalist != "unset">>
 	<<if ($slaves[$i].devotion > 75)>>
 	<<if ($slaves[$i].intelligence >= 2)>>
-	<<set $vignettes.push({text: "she indulged a citizen by following a fertility ritual completely,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she indulged a citizen by following a fertility ritual completely,", type: "rep", effect: 1})>>
 	<</if>>
 	<</if>>
 <</if>>
 <<if $arcologies[0].FSEgyptianRevivalist != "unset">>
-	<<set $vignettes.push({text: "she got extra attention from a group of citizens competing to get off with whores of each of the arcology's ethnic groups in the least time,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she got extra attention from a group of citizens competing to get off with whores of each of the arcology's ethnic groups in the least time,", type: "rep", effect: 1})>>
 <</if>>
 <<if $arcologies[0].FSEdoRevivalist != "unset">>
 	<<if ($slaves[$i].face > 40)>>
 	<<if ($slaves[$i].intelligence > 1)>>
-	<<set $vignettes.push({text: "she gratified a citizen who wished to do nothing more than converse with a beautiful and intelligent girl,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who wished to do nothing more than converse with a beautiful and intelligent girl,", type: "rep", effect: 1})>>
 	<</if>>
 	<</if>>
 <</if>>
@@ -1645,34 +1658,35 @@ Her appearance attracted $beauty members of the public (<<print Math.trunc($beau
 	<<if canTalk($slaves[$i])>>
 	<<if ($slaves[$i].voice > 0)>>
 	<<if ($slaves[$i].accent < 2)>>
-	<<set $vignettes.push({text: "she gratified a citizen who prefers prostitutes who can tell lovely stories,", type: "rep", effect: 1})>>
+	<<set _vignettes.push({text: "she gratified a citizen who prefers prostitutes who can tell lovely stories,", type: "rep", effect: 1})>>
 	<</if>>
 	<</if>>
 	<</if>>
 	<</if>>
 <</if>>
 
-<<set $vignettes.push({text: "one of the companies with an office in your arcology brought her in for a team-building bukkake party for its employees,", type: "rep", effect: 1})>>
-<<set $vignettes.push({text: "a man dragged his crying wife along so she could watch him fuck a public slut,", type: "rep", effect: 0})>>
-<<set $vignettes.push({text: "a woman dragged her angry husband along so he could watch her get eaten out by a public slut,", type: "rep", effect: 0})>>
-<<set $vignettes.push({text: "she went to sleep after having sex with strangers  all day, and had a dream about you loving her,", type: "devotion", effect: 1})>>
-<<set $vignettes.push({text: "she went to sleep after having sex with strangers  all day, and had a dream about you letting a citizen hurt her,", type: "devotion", effect: -1})>>
-<<set $vignettes.push({text: "she went to sleep after having sex with strangers  all day, and had a dream about you protecting her from a mean citizen,", type: "trust", effect: 1})>>
-<<set $vignettes.push({text: "she went to sleep after having sex with strangers  all day, and had a dream about you selling her for good,", type: "trust", effect: -1})>>
+<<set _vignettes.push({text: "one of the companies with an office in your arcology brought her in for a team-building bukkake party for its employees,", type: "rep", effect: 1})>>
+<<set _vignettes.push({text: "a man dragged his crying wife along so she could watch him fuck a public slut,", type: "rep", effect: 0})>>
+<<set _vignettes.push({text: "a woman dragged her angry husband along so he could watch her get eaten out by a public slut,", type: "rep", effect: 0})>>
+<<set _vignettes.push({text: "she went to sleep after having sex with strangers  all day, and had a dream about you loving her,", type: "devotion", effect: 1})>>
+<<set _vignettes.push({text: "she went to sleep after having sex with strangers  all day, and had a dream about you letting a citizen hurt her,", type: "devotion", effect: -1})>>
+<<set _vignettes.push({text: "she went to sleep after having sex with strangers  all day, and had a dream about you protecting her from a mean citizen,", type: "trust", effect: 1})>>
+<<set _vignettes.push({text: "she went to sleep after having sex with strangers  all day, and had a dream about you selling her for good,", type: "trust", effect: -1})>>
 
-<<set $vignette = $vignettes.random()>>
-__This week__ $vignette.text
-<<if ($vignette.type == "cash")>>
-	<<if ($vignette.effect > 0)>>
-		@@.yellowgreen;making you an extra ¤<<print Math.trunc($FResult*$vignette.effect)>>.@@
-	<<elseif ($vignette.effect < 0)>>
-		@@.red;losing you ¤<<print Math.abs(Math.trunc($FResult*$vignette.effect))>>.@@
+<<set _vignette = _vignettes.random()>>
+__This week__ _vignette.text
+<<if (_vignette.type == "cash")>>
+	<<if (_vignette.effect > 0)>>
+		@@.yellowgreen;making you an extra <<print cashFormat(Math.trunc($FResult*_vignette.effect))>>.@@
+	<<elseif (_vignette.effect < 0)>>
+		@@.red;losing you <<print cashFormat(Math.abs(Math.trunc($FResult*_vignette.effect)))>>.@@
 	<<else>>
 		an incident without lasting effect.
 	<</if>>
-	<<set $cash += Math.trunc($FResult*$vignette.effect)>>
-<<elseif ($vignette.type == "devotion")>>
-	<<if ($vignette.effect > 0)>>
+	<<set $cash += Math.trunc($FResult*_vignette.effect)>>
+	<<set _incomeStats.rep += Math.trunc($FResult*_vignette.effect)>>
+<<elseif (_vignette.type == "devotion")>>
+	<<if (_vignette.effect > 0)>>
 		<<if $slaves[$i].devotion > 50>>
 		@@.hotpink;increasing her devotion to you.@@
 		<<elseif $slaves[$i].devotion >= -20>>
@@ -1682,7 +1696,7 @@ __This week__ $vignette.text
 		<<else>>
 		@@.hotpink;reducing her hatred of you.@@
 		<</if>>
-	<<elseif ($vignette.effect < 0)>>
+	<<elseif (_vignette.effect < 0)>>
 		<<if $slaves[$i].devotion > 50>>
 		@@.mediumorchid;reducing her devotion to you.@@
 		<<elseif $slaves[$i].devotion >= -20>>
@@ -1695,9 +1709,9 @@ __This week__ $vignette.text
 	<<else>>
 		an incident without lasting effect.
 	<</if>>
-	<<set $slaves[$i].devotion += 1*$vignette.effect>>
-<<elseif ($vignette.type == "trust")>>
-	<<if ($vignette.effect > 0)>>
+	<<set $slaves[$i].devotion += 1*_vignette.effect>>
+<<elseif (_vignette.type == "trust")>>
+	<<if (_vignette.effect > 0)>>
 		<<if $slaves[$i].trust > 20>>
 		@@.mediumaquamarine;increasing her trust in you.@@
 		<<elseif $slaves[$i].trust >= -50>>
@@ -1705,7 +1719,7 @@ __This week__ $vignette.text
 		<<else>>
 		@@.mediumaquamarine;reducing her terror of you.@@
 		<</if>>
-	<<elseif ($vignette.effect < 0)>>
+	<<elseif (_vignette.effect < 0)>>
 		<<if $slaves[$i].trust > 20>>
 		@@.gold;reducing her trust in you.@@
 		<<elseif $slaves[$i].trust > -20>>
@@ -1716,25 +1730,26 @@ __This week__ $vignette.text
 	<<else>>
 		an incident without lasting effect.
 	<</if>>
-	<<set $slaves[$i].trust += 1*$vignette.effect>>
-<<elseif ($vignette.type == "health")>>
-	<<if ($vignette.effect > 0)>>
+	<<set $slaves[$i].trust += 1*_vignette.effect>>
+<<elseif (_vignette.type == "health")>>
+	<<if (_vignette.effect > 0)>>
 		@@.green;improving her health.@@
-	<<elseif ($vignette.effect < 0)>>
+	<<elseif (_vignette.effect < 0)>>
 		@@.red;affecting her health.@@
 	<<else>>
 		an incident without lasting effect.
 	<</if>>
-	<<set $slaves[$i].health += 2*$vignette.effect>>
+	<<set $slaves[$i].health += 2*_vignette.effect>>
 <<else>>
-	<<if ($vignette.effect > 0)>>
+	<<if (_vignette.effect > 0)>>
 		@@.green;gaining you a bit of reputation.@@
-	<<elseif ($vignette.effect < 0)>>
+	<<elseif (_vignette.effect < 0)>>
 		@@.red;losing you a bit of reputation.@@
 	<<else>>
 		an incident without lasting effect.
 	<</if>>
-	<<set $rep += Math.trunc($FResult*$vignette.effect*0.1)>>
+	<<set $rep += Math.trunc($FResult*_vignette.effect*0.1)>>
+	<<set _incomeStats.income += Math.trunc($FResult*_vignette.effect*0.1)>>
 <</if>>
 
 <</if>> /* CLOSES VIGNETTES */
@@ -1745,7 +1760,7 @@ __This week__ $vignette.text
 <</if>>
 
 <<if $slaves[$i].cervixImplant == 1 && _cervixPump > 0 && canDoVaginal($slaves[$i])>>
-	She notices her @@.orange;belly has swollen@@ from all the vaginal sex she had throughout the week.
+	She notices her @@.lime;belly has swollen@@ from all the vaginal sex she had throughout the week.
 	<<set $slaves[$i].bellyImplant += _cervixPump*20>>
 <</if>>
 

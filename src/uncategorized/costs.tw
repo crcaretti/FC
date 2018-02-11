@@ -32,6 +32,45 @@
 	<<set $costs -= 500>>
 <</if>>
 
+/* security expansion */
+<<if $secExp == 1>>
+	<<set $costs += ($edictsUpkeep + $SFSupportUpkeep)>>
+
+	<<if $propHub != 0>>
+		<<set $costs += $propHubUpkeep>>
+	<</if>>
+	<<if $secHQ != 0>>
+		<<set $costs += ($secHQUpkeep)+(20*$secHelots)>>
+	<</if>>
+	<<if $secBarracks != 0>>
+		<<set $costs += $secBarracksUpkeep>>
+	<</if>>
+	<<if $riotCenter != 0>>
+		<<set $costs += $riotUpkeep>>
+	<</if>>
+	
+	<<if $soldierWages == 0>>
+		<<set _soldierMod = 1>>
+	<<elseif $soldierWages == 1>>
+		<<set _soldierMod = 1.5>>
+	<<else>>
+		<<set _soldierMod = 2>>
+	<</if>>
+
+	<<set _mL = $militiaUnits.length>>
+	<<for _i = 0; _i < _mL; _i++>>
+		<<set $costs += $militiaUnits[_i].troops*$soldierUpkeep * _soldierMod>>
+	<</for>>
+	<<set _sL = $slaveUnits.length>>
+	<<for _i = 0; _i < _sL; _i++>>
+		<<set $costs += $militiaUnits[_i].troops*$soldierUpkeep * 0.5 * _soldierMod>>
+	<</for>>	
+	<<set _meL = $mercUnits.length>>
+	<<for _i = 0; _i < _meL; _i++>>
+		<<set $costs += $militiaUnits[_i].troops*$soldierUpkeep * 1.5 * _soldierMod>>
+	<</for>>
+<</if>>
+	
 <<set $costs += $citizenOrphanageTotal*100>>
 <<set $costs += $privateOrphanageTotal*500>>
 <<if $breederOrphanageTotal > 0>>
@@ -55,21 +94,74 @@
 
 <<for $i = 0; $i < $slaves.length; $i++>>
 
-<<if ($slaves[$i].assignment != "work in the dairy" || $dairyRestraintsSetting < 2) && ($slaves[$i].assignment != "be confined in the arcade")>>
-<<if $slaves[$i].livingRules == "luxurious">>
-	<<if $slaves[$i].relationship >= 4>>
-	<<set $costs += ($rulesCost*3)>>
-	<<else>>
-	<<set $costs += ($rulesCost*4)>>
-	<</if>>
-<<elseif $slaves[$i].livingRules == "normal">>
-	<<set $costs += ($rulesCost*2)>>
-<<else>>
-	<<set $costs += $rulesCost>>
-<</if>>
-<<else>>
+<<switch $slaves[$i].assignment>>
+<<case "be confined in the arcade">>
 	<<set $costs += ($rulesCost*.75)>>
-<</if>>
+<<case "work in the dairy">>
+	<<if $dairyRestraintsSetting >= 2>>
+		<<set $costs += ($rulesCost*.75)>>
+	<<elseif $slaves[$i].livingRules == "normal">>
+		<<set $costs += ($rulesCost*1.5)>>
+	<<elseif $dairyDecoration == "Degradationist">>
+		<<set $costs += ($rulesCost*.9)>>
+	<<else>>
+		<<set $costs += $rulesCost>>
+	<</if>>
+<<case "work in the brothel">>
+	<<if $slaves[$i].livingRules == "normal">>
+		<<set $costs += ($rulesCost*1.5)>>
+	<<else>>
+		<<set $costs += $rulesCost>>
+	<</if>>
+<<case "serve in the club" "learn in the schoolroom">>
+	<<set $costs += ($rulesCost*1.5)>>
+<<case "get treatment in the clinic">>
+	<<if $slaves[$i].livingRules == "luxurious">>
+		<<set $costs += ($rulesCost*2)>>
+	<<elseif $slaves[$i].livingRules == "normal">>
+		<<set $costs += ($rulesCost*1.5)>>
+	<<else>>
+		<<set $costs += $rulesCost>>
+	<</if>>
+<<case "rest in the spa">>
+	<<if $slaves[$i].livingRules == "luxurious">>
+		<<set $costs += ($rulesCost*1.75)>>
+	<<elseif $slaves[$i].livingRules == "normal">>
+		<<set $costs += ($rulesCost*1.5)>>
+	<<else>>
+		<<set $costs += $rulesCost>>
+	<</if>>
+<<case "be a servant">>
+	<<if $slaves[$i].livingRules == "normal">>
+		<<set $costs += ($rulesCost*1.5)>>
+	<<else>>
+		<<if $servantsQuartersDecoration == "Degradationist">>
+			<<set $costs += ($rulesCost*.9)>>
+		<<else>>
+			<<set $costs += $rulesCost>>
+		<</if>>
+	<</if>>
+<<case "be confined in the cellblock">>
+	<<if $slaves[$i].livingRules == "normal">>
+		<<set $costs += ($rulesCost*1.25)>>
+	<<else>>
+		<<set $costs += ($rulesCost*.9)>>
+	<</if>>
+<<case "be the Madam" "be the DJ" "be the Nurse" "be the Wardeness" "be the Attendant" "be the Schoolteacher" "be the Stewardess" "be the Milkmaid">>
+	<<set $costs += ($rulesCost*2)>>
+<<default>>
+	<<if $slaves[$i].livingRules == "luxurious">>
+		<<if $slaves[$i].relationship >= 4>>
+			<<set $costs += ($rulesCost*3)>>
+		<<else>>
+			<<set $costs += ($rulesCost*4)>>
+		<</if>>
+	<<elseif $slaves[$i].livingRules == "normal">>
+		<<set $costs += ($rulesCost*2)>>
+	<<else>>
+		<<set $costs += $rulesCost>>
+	<</if>>
+<</switch>>
 
 <<set $costs += $foodCost*4>>
 <<switch $slaves[$i].diet>>
@@ -121,7 +213,7 @@
 <</if>>
 
 <<if $pregAccessibility != 1>>
-	<<if ($slaves[$i].belly >= 60000) || ($slaves[$i].preg > 20 && $slaves[$i].pregType >= 10) || ($slaves[$i].preg > 10 && $slaves[$i].pregType >= 20) || $slaves[$i].bellyImplant >= 10000>>
+	<<if ($slaves[$i].belly >= 60000)>>
 	<<if ($slaves[$i].assignment != "labor in the production line") && ($slaves[$i].assignment != "work in the dairy" || $dairyRestraintsSetting < 2) && ($slaves[$i].assignment != "be confined in the arcade")>>
 	<<set $costs += 100>>
 	<</if>>
@@ -202,6 +294,9 @@
 	<</if>>
 	<<if ($slaves[$i].lactation > 0)>>
 		<<set $costs -= 25>>
+	<</if>>
+	<<if ($slaves[$i].assignment == "be a servant")>>
+		<<set $costs -= ($rulesCost)>>
 	<</if>>
 <</if>>
 
@@ -340,6 +435,9 @@
 <<if $TGA.subsidize != 0>>
 	<<set $costs += 1000>>
 <</if>>
+<<if $HA.subsidize != 0>>
+	<<set $costs += 1000>>
+<</if>>
 <<if $TCR.subsidize != 0>>
 	<<set $costs += 1000>>
 <</if>>
@@ -368,16 +466,11 @@
 	<<set $costs += 1000>>
 <</if>>
 
-<<if ($personalAttention == "trading")>>
-	<<set $costs += 10000>>
-<<elseif ($personalAttention == "warfare")>>
-	<<set $costs += 10000>>
-<<elseif ($personalAttention == "slaving")>>
-	<<set $costs += 10000>>
-<<elseif ($personalAttention == "engineering")>>
-	<<set $costs += 10000>>
-<<elseif ($personalAttention == "medicine")>>
-	<<set $costs += 10000>>
+<<if $PC.actualAge >= $IsInPrimePC && $PC.actualAge < $IsPastPrimePC>>
+<<set _cost = 10000*$AgeEffectOnTrainerPricingPC>>	
+<<if ($personalAttention == "trading") || ($personalAttention == "warfare") || ($personalAttention == "slaving") || ($personalAttention == "engineering") || ($personalAttention == "medicine")>>
+	<<set $costs += _cost>>
+<</if>>
 <</if>>
 
 <<if $cyberMod != 0 && $researchLab.built == "true">>
@@ -391,6 +484,9 @@
 <<elseif $PC.preg >= 16>>
 	<<set $costs += 100>>
 <</if>>
+<<if $PC.staminaPills == 1>>
+	<<set $costs += 50>>
+<</if>>
 
 <<if $PC.career == "servant">>
 	<<if $personalAttention == "upkeep">>
@@ -401,6 +497,18 @@
 		<</if>>
 	<<else>>
 	<<set $costs = ($costs*0.90)>>
+	<</if>>
+<</if>>
+
+<<if $secExp == 1>>
+	<<if $terrain == "oceanic" || $terrain == "marine">>
+		<<if $docks > 0>>
+			<<set $costs *= 1 - $docks * 0.05>>
+		<</if>>
+	<<else>>
+		<<if $railway > 0>>
+			<<set $costs *= 1 - $railway * 0.05>>
+		<</if>>
 	<</if>>
 <</if>>
 

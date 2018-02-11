@@ -3,35 +3,7 @@
 //
 <<set $target = "">>
 <<if $familyTesting == 1 && totalRelatives($activeSlave) > 0 && random(1,100) > 80>>
-	<<set $relations = 0>>
-	<<set $relations = []>>
-	<<if $activeSlave.sisters > 0>>
-		<<for _j = 0; _j < $slaves.length; _j++>>
-			<<if areSisters($activeSlave, $slaves[_j]) > 0>>
-				<<set $relations.push($slaves[_j])>>
-			<</if>>
-		<</for>>
-	<</if>>
-	<<if $activeSlave.daughters > 0>>
-		<<for _j = 0; _j < $slaves.length; _j++>>
-			<<if $slaves[_j].mother == $activeSlave.ID || $slaves[_j].father == $activeSlave.ID>>
-				<<set $relations.push($slaves[_j])>>
-			<</if>>
-		<</for>>
-	<</if>>
-	<<if $activeSlave.mother > 0>>
-		<<set _j = $slaves.find(function(s) { return s.ID == $activeSlave.mother; })>>
-		<<if _j != -1>>
-			<<set $relations.push($slaves[_j])>>
-		<</if>>
-	<</if>>
-	<<if $activeSlave.father > 0>>
-		<<set _j = $slaves.find(function(s) { return s.ID == $activeSlave.father; })>>
-		<<if _j != -1>>
-				<<set $relations.push($slaves[_j])>>
-		<</if>>
-	<</if>>
-	<<set $relation = $relations.random()>>
+    <<set $relation = randomRelatedSlave($activeSlave)>>
 	<<if $relation.mother == $activeSlave.ID || $relation.father == $activeSlave.ID>>
 		<<set $relationType = "daughter">>
 	<<elseif $activeSlave.mother == $relation.ID>>
@@ -204,7 +176,7 @@
 					<<case "boobs">>
 						She has a slave sucking on each of her nipples while she gives each a handjob.
 					<<case "pregnancy">>
-						<<if bigBelly($activeSlave)>>
+						<<if $activeSlave.belly >= 5000>>
 							She's sighing contentedly as her rounded belly is sensually rubbed.
 						<<else>>
 							She's happily roleplaying conceiving a child as she gets fucked.
@@ -357,7 +329,7 @@
 			her Master to use her<<if $seeRace == 1>> $activeSlave.race body<</if>>;
 			<</if>>
 %/
-		<<case "be your Recruiter">>
+		<<case "recruit girls">>
 			use her connections to recruit slaves;
 		<<default>>
 			$activeSlave.assignment;
@@ -387,8 +359,8 @@
 	<<set _partnerSlave = null>>
 	<<for _i = 0; _i < $slaves.length; _i++>>
 		<<if $slaves[_i].ID == $activeSlave.rivalryTarget>>
-		<<set _partnerSlave = $slaves[_i]>>
-		<<break>>
+			<<set _partnerSlave = $slaves[_i]>>
+			<<break>>
 		<</if>>
 	<</for>>
 	<<if _partnerSlave == null>>
@@ -405,6 +377,10 @@
 	<</if>>
 
 	<<switch _partnerSlave.assignment>>
+	<<case "be your agent">>
+		is shaping society in her assigned arcology.
+	<<case "live with your agent">>
+		is helping her lover shape society in her assigned arcology.
 	<<case "stay confined">>
 		is confined, but you have a fine view of her <<if $seeRace == 1>>_partnerSlave.race body <</if>>on the feed from her cell.
 	<<case "work in the brothel">>
@@ -526,7 +502,7 @@
 		clean up after your other slaves;
 	<<case "be your Head Girl">>
 		oversee your other slaves;
-	<<case "be your Recruiter">>
+	<<case "recruit girls">>
 		use her connections to recruit slaves;
 	<<default>>
 		_partnerSlave.assignment;
@@ -550,7 +526,7 @@
 
 	<</switch>>
 	<<set $target = "FRival", _partnerSlave = null>>
-<<elseif ($partner == "relationship") && ($activeSlave.relationship >= 3) && ($activeSlave.releaseRules !== "restrictive")>>
+<<elseif ($partner == "relationship") && ($activeSlave.relationship >= 3) && ($activeSlave.releaseRules !== "restrictive") && ($activeSlave.releaseRules !== "masturbation")>>
 	<<set _partnerSlave = null>>
 	<<for _i = 0; _i < $slaves.length; _i++>>
 		<<if $slaves[_i].ID == $activeSlave.relationshipTarget>>
@@ -571,7 +547,15 @@
 
 	$activeSlave.slaveName and _partnerSlave.slaveName are
 	<<set _seed = random(1,3)>>
-	<<if _seed == 1>> /* SEXY TIMES */
+	<<if ["be your agent", "be confined in the arcade"].includes(_partnerSlave.assignment) || (_partnerSlave.assignment == "work in the dairy" && $DairyRestraintsSetting >= 2)>>
+		<<if _partnerSlave.assignment == "work in the dairy" && $DairyRestraintsSetting >= 2>>
+			trying their best to maintain their relationship with _partnerSlave.slaveName being part of $dairyName.
+		<<elseif _partnerSlave.assignment == "be your agent">>
+			catching up with each other over a video call. Running an arcology in your stead comes with its perks.
+		<<elseif _partnerSlave.assignment == "be confined in the arcade">>
+			trying their best to maintain their relationship with _partnerSlave.slaveName being nothing more than holes in $arcadeName.
+		<</if>>
+	<<elseif _seed == 1>> /* SEXY TIMES */
 
 	<<if (($activeSlave.fetish == "dom") || ($activeSlave.fetish == "sadist")) && ($activeSlave.dick > 0) && canPenetrate($activeSlave) && ((_partnerSlave.fetish == "dom") || (_partnerSlave.fetish == "sadist")) && (_partnerSlave.dick > 0) && canPenetrate(_partnerSlave)>>
 		performing double anal on another slave. They're face to face over their sub's shoulders, looking into each other's eyes with every appearance of enjoyment and love, since for them rubbing dicks inside another slave's butt is what constitutes healthy sexual activity. _partnerSlave.slaveName is on the bottom, and holds their victim atop her with _partnerSlave.slaveName's cock already hilted in her ass so $activeSlave.slaveName can force herself inside as well. They enjoy the overstimulated girl's struggles.
@@ -718,10 +702,10 @@
 			<<set $activeSlave.oralCount++, _partnerSlave.oralCount++, $oralTotal += 2>>
 		<</if>>
 	<<case "pregnancy">>
-		having intimate sex <<if $activeSlave.livingRules == "luxurious">>in the nice little room they share.<<elseif ($activeSlave.ID == $HeadGirl.ID) && ($HGSuite == 1)>>in $activeSlave.ID's suite.<<else>>out in the open in the slave dormitory.<</if>> $activeSlave.slaveName's <<if visibleBelly($activeSlave)>>middle is heavily rounded<<else>>desire to be bred is raging<</if>>, and _partnerSlave.slaveName does her best to keep her _activeSlaveRel satisfied.
+		having intimate sex <<if $activeSlave.livingRules == "luxurious">>in the nice little room they share.<<elseif ($activeSlave.ID == $HeadGirl.ID) && ($HGSuite == 1)>>in $activeSlave.ID's suite.<<else>>out in the open in the slave dormitory.<</if>> $activeSlave.slaveName's <<if $activeSlave.belly >= 1500>>middle is heavily rounded<<else>>desire to be bred is raging<</if>>, and _partnerSlave.slaveName does her best to keep her _activeSlaveRel satisfied.
 		_partnerSlave.slaveName
-		<<if ($activeSlave.vagina > 0) || ($activeSlave.anus > 0)>>
-			<<if _partnerSlave.bellyPreg >= 10000 || _partnerSlave.bellyImplant >= 4000>> is heavily pregnant herself, so she has $activeSlave.slaveName on her back so that she can penetrate her as best she can with her<<elseif _partnerSlave.bellyPreg > 5000>> is pregnant herself, so she has $activeSlave.slaveName on her back so that she can penetrate her easier with her<<else>>has $activeSlave.slaveName on her back so that tease her belly as she fucks her with her<</if>>
+		<<if (canDoVaginal($activeSlave) && $activeSlave.vagina > 0) || (canDoAnal($activeSlave) && $activeSlave.anus > 0)>>
+			<<if _partnerSlave.bellyPreg >= 10000 || _partnerSlave.bellyImplant >= 10000>> is <<if _partnerSlave.bellyPreg >= 1500>>heavily pregnant<<else>>hugely gravid<</if>> herself, so she has $activeSlave.slaveName on her back so that she can penetrate her as best she can with her<<elseif _partnerSlave.bellyPreg > 5000 || _partnerSlave.bellyImplant >= 10000>> is <<if _partnerSlave.bellyPreg >= 1500>>pregnant<<else>>gravid<</if>>herself, so she has $activeSlave.slaveName on her back so that she can penetrate her easier with her<<else>>has $activeSlave.slaveName on her back so that tease her belly as she fucks her with her<</if>>
 			<<if (_partnerSlave.dick > 1) && canPenetrate(_partnerSlave)>>
 				cock
 			<<else>>
@@ -795,11 +779,11 @@
 			sleeping in bed together. $activeSlave.slaveName is spooning her _activeSlaveRel possessively<<if $activeSlave.amp !== 1>>, and even in her sleep, has a proprietary hand on _partnerSlave.slaveName's <<if _partnerSlave.balls > 0>>balls<<elseif _partnerSlave.balls > 0>>soft cock<<else>>pussy<</if>><</if>>.
 		<<case "pregnancy">>
 			sleeping in bed together.
-			<<if bigBelly($activeSlave) && bigBelly(_activeSlaveRel)>>
+			<<if $activeSlave.belly >= 5000 && _activeSlaveRel.belly >= 50000>>
 				They are pressed as close as they can be with their rounded middles in the way.
-			<<elseif bigBelly($activeSlave)>>
+			<<elseif $activeSlave.belly >= 5000>>
 				$activeSlave.slaveName is spooning her _activeSlaveRel possessively, her rounded belly pushing into her back.
-			<<elseif bigBelly(_activeSlaveRel)>>
+			<<elseif _activeSlaveRel.belly >= 50000>>
 				$activeSlave.slaveName is spooning her _activeSlaveRel possessively<<if $activeSlave.amp != 1>>, and even in her sleep, has a proprietary hand on _partnerSlave.slaveName's belly<</if>>.
 			<<else>>
 				$activeSlave.slaveName is being spooned by her _activeSlaveRel, smiling peacefully at being held.
@@ -871,11 +855,11 @@
 	<<set _partnerSlave = null>>
 	<<if ($partner == "relation")>>
 		<<if $familyTesting == 1>>
-			<<set _partnerSlave = $relation>>
+				<<set _partnerSlave = $relation>>
 		<<else>>
 			<<for _i = 0; _i < $slaves.length; _i++>>
 				<<if $slaves[_i].ID == $activeSlave.relationTarget>>
-					<<set _partnerSlave = $slaves[_i]>>
+						<<set _partnerSlave = $slaves[_i]>>
 					<<break>>
 				<</if>>
 			<</for>>
@@ -905,6 +889,10 @@
 
 	Her <<if ($partner == "relation")>><<if $familyTesting == 1>>$relationType<<else>>_partnerSlave.relation<</if>><<else>>_activeSlaveRel<</if>> _partnerSlave.slaveName
 	<<switch _partnerSlave.assignment>>
+	<<case "be your agent">>
+		is off managing an arcology in your stead, but you call her back for a visit if you were inclined.
+	<<case "be confined in the arcade">>
+		is nothing more than holes in $arcadeName, but you have a fine view of her <<if $seeRace == 1>>_partnerSlave.race rear <</if>>on the feed from the facility.
 	<<case "stay confined">>
 		is confined, but you have a fine view of her <<if $seeRace == 1>>_partnerSlave.race body <</if>>on the feed from her cell.
 	<<case "work in the brothel">>
@@ -1029,7 +1017,7 @@
 		clean up after your other slaves;
 	<<case "be your Head Girl">>
 		oversee your other slaves;
-	<<case "be your Recruiter">>
+	<<case "recruit girls">>
 		use her connections to recruit slaves;
 	<</switch>>
 
@@ -1056,7 +1044,7 @@
 	<<switch $activeSlave.clothes>>
 	<<case "uncomfortable straps">>
 		<<if $activeSlave.boobs < 300>>
-			The rings constantaly rub against her chest and force her nipples to stick out.
+			The rings constantly rub against her chest and force her nipples to stick out.
 		<<else>>
 			The strap over her tits presses the soft flesh, and the ring around each nipple forces them to stick out.
 		<</if>>
@@ -1112,6 +1100,8 @@
 		<</if>>
 	<<case "a string bikini">>
 		Her string bikini covers only her nipples, leaving the remainder of her <<if $activeSlave.boobs < 300>>flat chest<<else>>breasts<</if>> naked.
+	<<case "a scalemail bikini">>
+		Her scalemail bikini covers <<if $activeSlave.boobs < 300>>all of her flat chest.<<elseif $activeSlave.boobs < 700>>her breasts entirely.<<elseif $activeSlave.boobs <1500>>much of her breasts, while still emphasizing them.<<else>>the front of her breasts.<</if>> .
 	<<case "clubslut netting">>
 		As she moves, the weave of the netting over her chest slips back and forth across her nipples.
 	<<case "a cheerleader outfit">>
@@ -1251,6 +1241,8 @@
 		Her maid's skirt is cut conservatively, but it will lift easily enough.
 	<<case "a string bikini">>
 		As she moves, her string lingerie leaves the entire line of her hips naked and enticing.
+	<<case "a scalemail bikini">>
+		As she moves, her scaly lingerie leaves almost the entire line of her hips naked and enticing.
 	<<case "clubslut netting">>
 		As she moves, her clubslut netting moves with her, leaving nothing to the imagination.
 	<<case "a cheerleader outfit">>
@@ -1339,7 +1331,7 @@
 <<elseif (_seed > 40)>>
 	<<if $activeSlave.inflation == 0>>
 	<<if $activeSlave.bellyImplant < 2000>>
-	<<if hyperPregBellyTwo($activeSlave)>>
+	<<if $activeSlave.belly >= 600000>>
 		<<BellyDescription>>
 		<<switch $activeSlave.clothes>>
 		<<case "a very tight corset">>
@@ -1379,7 +1371,7 @@
 		<<default>>
 			Her bare enormous squirming pregnant belly catches your eye.
 		<</switch>>
-	<<elseif hyperPregBellyOne($activeSlave)>>
+	<<elseif $activeSlave.belly >= 300000>>
 		<<BellyDescription>>
 		<<switch $activeSlave.clothes>>
 		<<case "a very tight corset">>
@@ -1479,7 +1471,7 @@
 		<<default>>
 			Her massive bare jiggling gut catches your eye.
 		<</switch>>
-	<<elseif hugeBellyPreg($activeSlave) || ($activeSlave.bellyAccessory == "a huge empathy belly") || ($activeSlave.bellyAccessory == "a large empathy belly")>>
+	<<elseif $activeSlave.belly >= 10000 || ($activeSlave.bellyAccessory == "a huge empathy belly") || ($activeSlave.bellyAccessory == "a large empathy belly")>>
 		<<BellyDescription>>
 		<<switch $activeSlave.clothes>>
 		<<case "conservative clothing">>
@@ -1671,7 +1663,7 @@
 		<<default>>
 			Her big bare jiggling gut catches your eye.
 		<</switch>>
-	<<elseif bigBellyPreg($activeSlave) || ($activeSlave.bellyAccessory == "a medium empathy belly")>>
+	<<elseif $activeSlave.bellyPreg >= 5000 || ($activeSlave.bellyAccessory == "a medium empathy belly")>>
 		<<BellyDescription>>
 		<<switch $activeSlave.clothes>>
 		<<case "conservative clothing">>
@@ -1805,7 +1797,7 @@
 		<<default>>
 			Her bare, jiggling, fat gut catches your eye.
 		<</switch>>
-	<<elseif visibleBellyPreg($activeSlave) || ($activeSlave.bellyAccessory == "a small empathy belly")>>
+	<<elseif $activeSlave.bellyPreg >= 1500 || ($activeSlave.bellyAccessory == "a small empathy belly")>>
 		<<BellyDescription>>
 		<<switch $activeSlave.clothes>>
 		<<case "a Fuckdoll suit">>
@@ -1969,6 +1961,16 @@
 				As she moves, her pretty white g-string struggles to restrain her penis, which adds to her sluttiness as it escapes.
 			<<else>>
 				As she moves, her g-string rides up between her pussylips.
+			<</if>>
+		<<case "a scalemail bikini">>
+			<<if ($activeSlave.dick > 4) && ($activeSlave.vagina != -1)>>
+				As she moves, her scalemail bottom fails to conceal her hermaphroditic genitalia.
+			<<elseif ($activeSlave.dick > 4)>>
+				As she moves, her scalemail bottom fails to conceal her huge penis.
+			<<elseif ($activeSlave.dick != 0)>>
+				As she moves, her scalemail bottom covers her penis.
+			<<else>>
+				As she moves, her scalemail bottom conceals all.
 			<</if>>
 		<<case "clubslut netting">>
 			<<if ($activeSlave.dick != 0)>>
@@ -3190,6 +3192,8 @@
 		<<else>>
 		As she moves, her tiny g-string draws your attention to her ass.
 		<</if>>
+	<<case "a scalemail bikini">>
+	    Her scalemail bottom draws attention to her ass cheeks, while concealing her rear hole.
 	<<case "clubslut netting">>
 		As she moves, the hole in her netting right over her butthole looks inviting.
 	<<case "a cheerleader outfit">>

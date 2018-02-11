@@ -26,6 +26,8 @@ You should have received a copy of the GNU General Public License along with thi
 		<<set $slaves[_i].assignment = "rest">>
 		<<set $slaves[_i].assignmentVisible = 1>>
 		<<set $slaves[_i].weekAcquired = 1>>
+		<<set $slaves[_i].newGamePlus = 1>>
+		<<set $slaves[$i].HasBeenAssignedToFacilitySupport = 0>>
 		<<PMODinit $slaves[_i]>>
 		<<if $slaves[_i].mother > 0>>
 			<<set $slaves[_i].mother += 1200000>>
@@ -78,6 +80,13 @@ You should have received a copy of the GNU General Public License along with thi
 				<<set $slaves[_i].sisters += 1>>
 			<</if>>
 		<</for>>
+		<<if $slaves[_k].pregSource > 0>>
+			<<set $slaves[_k].pregSource += 1200000>>
+			<<set _getFather = $slaves.findIndex(function(s) { return s.ID == $slaves[_k].pregSource; })>>
+			<<if _getFather == -1>>
+				<<set $slaves[_k].pregSource = 0>>
+			<</if>>
+		<</if>>
 	<</for>>
 	<<set $genePool = ngUpdateGenePool($genePool)>>
 	/*
@@ -212,6 +221,9 @@ You should have received a copy of the GNU General Public License along with thi
 			<<set $PC.belly = 0>>
 		<</if>>
 	<</if>>
+	<<if ndef $PC.degeneracy>>
+		<<set $PC.degeneracy = 0>>
+	<</if>>
 	<<set $PC.reservedChildren = 0>>
 <<else>>
 	<<set $slaves = []>>
@@ -220,7 +232,7 @@ You should have received a copy of the GNU General Public License along with thi
 <</if>>
 
 <<set $organs = []>>
-<<set $ArcadeiIDs = [], $BrothiIDs = [], $CellBiIDs = [], $CliniciIDs = [], $ClubiIDs = [], $DairyiIDs = [], $HGSuiteiIDs = [], $MastSiIDs = [], $SchlRiIDs = [], $ServQiIDs = [], $SpaiIDs = []>>
+<<set $ArcadeiIDs = [], $BrothiIDs = [], $CellBiIDs = [], $CliniciIDs = [], $ClubiIDs = [], $DairyiIDs = [], $HGSuiteiIDs = [], $MastSiIDs = [], $SchlRiIDs = [], $ServQiIDs = [], $SpaiIDs = [], $FacSupIDs = []>>
 
 <<if ndef $saveImported>>
 	<<set $saveImported = 0>>
@@ -229,7 +241,7 @@ You should have received a copy of the GNU General Public License along with thi
 <<if $saveImported == 0>>
 
 <<set $cheater = 0>>
-<<set $PC = {name: "Anonymous", surname: 0, title: 1, ID: -1, dick: 1, vagina: 0, preg: 0, pregType: 0, pregKnown: 0, belly: 0, bellyPreg: 0, mpreg: 0, pregSource: 0, pregMood: 0, labor: 0, births: 0, boobsBonus: 0, degeneracy: 0, voiceImplant: 0, accent: 0, shoulders: 0, shouldersImplant: 0, boobs: 0, career: "capitalist", rumor: "wealth", indenture: -1, indentureRestrictions: 0, birthWeek: random(0,51), age: 2, sexualEnergy: 4, refreshment: "cigar", refreshmentType: 0, trading: 0, warfare: 0, slaving: 0, engineering: 0, medicine: 0, cumTap: 0, race: "white", origRace: "white", skin: "white", origSkin: "white", markings: "none", eyeColor: "blue", origEye: "blue", hColor: "blonde", origHColor: "blonde", nationality: "Stateless", father: 0, mother: 0, sisters: 0, daughters: 0, birthElite: 0, birthMaster: 0, birthDegenerate: 0, birthClient: 0, birthOther: 0, birthArcOwner: 0, birthCitizen: 0, birthSelf: 0, slavesFathered: 0, slavesKnockedUp: 0, intelligence: 3, face: 100, actualAge: 35, physicalAge: 35, visualAge: 35, birthWeek: 0, boobsImplant: 0, butt: 0, buttImplant: 0, balls: 0, ballsImplant: 0, ageImplant: 0, newVag: 0, reservedChildren: 0, fertDrugs: 0, forcedFertDrugs: 0, ovaryAge: 35}>>
+<<set $PC = {name: "Anonymous", surname: 0, title: 1, ID: -1, dick: 1, vagina: 0, preg: 0, pregType: 0, pregKnown: 0, belly: 0, bellyPreg: 0, mpreg: 0, pregSource: 0, pregMood: 0, labor: 0, births: 0, boobsBonus: 0, degeneracy: 0, voiceImplant: 0, accent: 0, shoulders: 0, shouldersImplant: 0, boobs: 0, career: "capitalist", rumor: "wealth", indenture: -1, indentureRestrictions: 0, birthWeek: random(0,51), age: 2, sexualEnergy: 4, refreshment: "cigar", refreshmentType: 0, trading: 0, warfare: 0, slaving: 0, engineering: 0, medicine: 0, cumTap: 0, race: "white", origRace: "white", skin: "white", origSkin: "white", markings: "none", eyeColor: "blue", origEye: "blue", hColor: "blonde", origHColor: "blonde", nationality: "Stateless", father: 0, mother: 0, sisters: 0, daughters: 0, birthElite: 0, birthMaster: 0, birthDegenerate: 0, birthClient: 0, birthOther: 0, birthArcOwner: 0, birthCitizen: 0, birthSelf: 0, slavesFathered: 0, slavesKnockedUp: 0, intelligence: 3, face: 100, actualAge: 35, physicalAge: 35, visualAge: 35, birthWeek: 0, boobsImplant: 0, butt: 0, buttImplant: 0, balls: 0, ballsImplant: 0, ageImplant: 0, newVag: 0, reservedChildren: 0, fertDrugs: 0, forcedFertDrugs: 0, staminaPills: 0, ovaryAge: 35}>>
 <<set $cash = 10000>>
 <<set $normalizedEvents = 0>>
 <<set $autosave = 1>>
@@ -242,6 +254,7 @@ You should have received a copy of the GNU General Public License along with thi
 <<set $useSummaryCache = true>>
 <<set $seeExtreme = 0>>
 <<set $seeHyperPreg = 0>>
+<<set $seePreg = 1>>
 <<set $seeCircumcision = 1>>
 <<set $seeAge = 1>>
 <<set $seeDicks = 25>>
@@ -344,7 +357,7 @@ You should have received a copy of the GNU General Public License along with thi
 	<<else>>
 		<<set $cheater = 0>>
 		<<set $cash = 10000>>
-		<<set $PC = {name: "Anonymous", surname: 0, title: 1, ID: -1, dick: 1, vagina: 0, preg: 0, pregType: 0, pregKnown: 0, belly: 0, bellyPreg: 0, mpreg: 0, pregSource: 0, pregMood: 0, labor: 0, births: 0, boobsBonus: 0, degeneracy: 0, voiceImplant: 0, accent: 0, shoulders: 0, shouldersImplant: 0, boobs: 0, career: "capitalist", rumor: "wealth", indenture: -1, indentureRestrictions: 0, birthWeek: random(0,51), age: 2, sexualEnergy: 4, refreshment: "cigar", refreshmentType: 0, trading: 0, warfare: 0, slaving: 0, engineering: 0, medicine: 0, cumTap: 0, race: "white", origRace: "white", skin: "white", origSkin: "white", markings: "none", eyeColor: "blue", origEye: "blue", hColor: "blonde", origHColor: "blonde", nationality: "Stateless", father: 0, mother: 0, sisters: 0, daughters: 0, birthElite: 0, birthMaster: 0, birthDegenerate: 0, birthClient: 0, birthOther: 0, birthArcOwner: 0, birthCitizen: 0, birthSelf: 0, slavesFathered: 0, slavesKnockedUp: 0, intelligence: 3, face: 100, actualAge: 35, physicalAge: 35, visualAge: 35, birthWeek: 0, boobsImplant: 0, butt: 0, buttImplant: 0, balls: 0, ballsImplant: 0, ageImplant: 0, newVag: 0, reservedChildren: 0, fertDrugs: 0, forcedFertDrugs: 0, ovaryAge: 35}>>
+		<<set $PC = {name: "Anonymous", surname: 0, title: 1, ID: -1, dick: 1, vagina: 0, preg: 0, pregType: 0, pregKnown: 0, belly: 0, bellyPreg: 0, mpreg: 0, pregSource: 0, pregMood: 0, labor: 0, births: 0, boobsBonus: 0, degeneracy: 0, voiceImplant: 0, accent: 0, shoulders: 0, shouldersImplant: 0, boobs: 0, career: "capitalist", rumor: "wealth", indenture: -1, indentureRestrictions: 0, birthWeek: random(0,51), age: 2, sexualEnergy: 4, refreshment: "cigar", refreshmentType: 0, trading: 0, warfare: 0, slaving: 0, engineering: 0, medicine: 0, cumTap: 0, race: "white", origRace: "white", skin: "white", origSkin: "white", markings: "none", eyeColor: "blue", origEye: "blue", hColor: "blonde", origHColor: "blonde", nationality: "Stateless", father: 0, mother: 0, sisters: 0, daughters: 0, birthElite: 0, birthMaster: 0, birthDegenerate: 0, birthClient: 0, birthOther: 0, birthArcOwner: 0, birthCitizen: 0, birthSelf: 0, slavesFathered: 0, slavesKnockedUp: 0, intelligence: 3, face: 100, actualAge: 35, physicalAge: 35, visualAge: 35, birthWeek: 0, boobsImplant: 0, butt: 0, buttImplant: 0, balls: 0, ballsImplant: 0, ageImplant: 0, newVag: 0, reservedChildren: 0, fertDrugs: 0, forcedFertDrugs: 0, staminaPills: 0, ovaryAge: 35}>>
 	<</if>>
 <</if>>
 
@@ -408,6 +421,8 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $dairySlimMaintainUpgrade = 0>>
 <<set $dairySlimMaintain = 0>>
 <<set $dairyHyperPregRemodel = 0>>
+<<set $dairyWeightSetting = 0>>
+<<set $dairyImplantsSetting = 1>>
 <<set $dairyUpgradeMenials = 0>>
 <<set $createBioreactors = 0>>
 <<set $bioreactorsAnnounced = 0>>
@@ -455,11 +470,14 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $spaNameCaps = "The Spa">>
 <<set $incubator = 0>>
 <<set $incubatorSlaves = 0>>
+<<set $incubatorOrgans = []>>
+<<set $incubatorOldID = 0>>
 <<set $incubatorUpgradeSpeed = 5>>
 <<set $incubatorUpgradeWeight = 0>>
 <<set $incubatorUpgradeMuscles = 0>>
 <<set $incubatorUpgradeGrowthStims = 0>>
 <<set $incubatorUpgradeReproduction = 0>>
+<<set $incubatorUpgradeOrgans = 0>>
 <<set $incubatorImprintSetting = 0>>
 <<set $incubatorWeightSetting = 0>>
 <<set $incubatorMusclesSetting = 0>>
@@ -493,6 +511,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $cellblock = 0>>
 <<set $cellblockName = "the Cellblock">>
 <<set $cellblockNameCaps = "The Cellblock">>
+<<set $cellblockWardenCumsInside = 1>>
 <<set $masterSuiteSlaves = 0>>
 <<set $masterSuiteDecoration = "standard">>
 <<set $masterSuiteUpgradeLuxury = 0>>
@@ -547,12 +566,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $FSCredits = 0>>
 <<set $FSCreditCount = 5>>
 <<set $FSCreditCountString = "five">>
-<<set $FSGotRepCreditOne = 0>>
-<<set $FSGotRepCreditTwo = 0>>
-<<set $FSGotRepCreditThree = 0>>
-<<set $FSGotRepCreditFour = 0>>
-<<set $FSGotRepCreditFive = 0>>
-<<set $FSGotRepCreditSix = 0>>
+<<set $FSGotRepCredits = 0>>
 <<set $FSSingleSlaveRep = 10>>
 <<set $FSSpending = 0>>
 <<set $FSLockinLevel = 100>>
@@ -698,6 +712,17 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $FCTVshow = 0>>
 <<set $lastShow = 0>>
 <<set $randShow = 0>>
+<<set $MercenariesMessageSent = 0>>
+<<set $SpecialForcesMessageSent = 0>>
+<<set $BodyguardHasSucessfullyRecivedSignal = 0>>
+<<set $finalChoice = "none">>
+<<set $eliteTotal = 12>>
+<<set $eliteDead = 0>>
+<<set $eliteVegetable = 0>>
+<<set $eliteFate = 0>>
+<<set $swanSong = 0>>
+<<set $failedElite = 0>>
+<<set $eugenicsFullControl = 0>>
 
 <<set $schoolSuggestion = 0>>
 <<set $TSS = {schoolUpgrade: 0, schoolPresent: 0, schoolProsperity: 0, subsidize: 0, schoolAnnexed: 0, studentsBought: 0, schoolSale: 0}>>
@@ -708,6 +733,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $TCR = {schoolUpgrade: 0, schoolPresent: 0, schoolProsperity: 0, subsidize: 0, schoolAnnexed: 0, studentsBought: 0, schoolSale: 0}>>
 <<set $TFS = {farmUpgrade: 0, schoolUpgrade: 0, schoolPresent: 0, schoolProsperity: 0, subsidize: 0, schoolAnnexed: 0, studentsBought: 0, schoolSale: 0}>>
 <<set $futaAddiction = 0>>
+<<set $HA = {schoolUpgrade: 0, schoolPresent: 0, schoolProsperity: 0, subsidize: 0, schoolAnnexed: 0, studentsBought: 0, schoolSale: 0}>>
 
 <<set $IDNumber = 1>>
 
@@ -719,7 +745,6 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $weddingPlanned = 0>>
 <<set $weddingSlaveID = 0>>
 <<set $personalAttention = "sex">>
-<<set $trainingRegimen = "break her will">>
 <<set $HeadGirl = 0>>
 <<set $HGTimeInGrade = 0>>
 <<set $HGEnergy = 0>>
@@ -795,6 +820,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $rivalryPower = 0>>
 <<set $rivalryDuration = 0>>
 <<set $nationHate = 0>>
+<<set $slaveMedic = 0>>
 <<set $PShoot = 0>>
 <<set $PSnatch = 0>>
 <<set $PRaid = 0>>
@@ -804,7 +830,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $dispensary = 0>>
 <<set $dispensaryUpgrade = 0>>
 <<set $organFarmUpgrade = 0>>
-<<set $organsCompleted = 0>>
+<<set $completedOrgans = []>>
 <<set $limbsCompleted = 0>>
 <<set $limbs = []>>
 <<set $ImplantProductionUpgrade = 0>>
@@ -968,6 +994,8 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 	<<set $raided = 0>>
 <<set $MixedMarriage = 0>>
 <<set $CulturalOpenness = 0>>
+<<set $goodImageCampaign = 0>>
+<<set $sexualOpeness = 0>>
 
 <<set $policyCost = 5000>>
 <<set $expiree = 0>>
@@ -1050,9 +1078,10 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $nextLink = "EW Slaves">>
 
 <<set $customSlaveOrdered = 0>>
+<<set $customSlave = {age: 19, health: 0, muscles: 0, lips: 15, voice: -1, heightMod: "normal", weight: 0, face: 0, race: "white", skin: 0, boobs: 500, butt: 3, sex: 1, virgin: 0, dick: 2, balls: 2, clit: 0, labia: 0, vaginaLube: 1, analVirgin: 0, skills: 15, whoreSkills: 15, combatSkills: 0, intelligence: 0, intelligenceImplant: 1, nationality: "Stateless", amp: 0, eyes: 1}>>
 
 <<set $huskSlaveOrdered = 0>>
-<<set $huskSlave = {age: 18, nationality: "slave", race: "white", sex: 1, virgin: 0}>>
+<<set $huskSlave = {age: 18, nationality: "Stateless", race: "white", sex: 1, virgin: 0}>>
 
 /*non-vanilla shit*/
 <<set $pedo_mode = 0>>
@@ -1068,9 +1097,11 @@ FertilityAge($fertilityAge)
 <<set $AgePenalty = 1>>
 <<set $precociousPuberty = 0>>
 <<set $targetAge = $minimumSlaveAge>>
-
 <<set $pubertyLength = 5>>
 <<set $maxGrowthAge = 24>>
+
+/* Job Fulfillment Center */
+<<set $JFCOrder = 0, $Role = "">>
 
 /% Begin mod section: toggle whether slaves lisp. %/
 <<set $disableLisping = 0>>
@@ -1131,46 +1162,74 @@ FertilityAge($fertilityAge)
 
 /* INCORPORATED MODS */
 
-/* Security Force Variables [SFVAR] */
+/* Special Force Variables [SFVAR] */
 
-/* Variable for extra content enabling */
-<<set $SFMODToggle = 0>>					/* Does the player want to see the SF module at all? */
+/* Extra content enabling */
+<<set $SFMODToggle = 0>>						/* Does the player want to see the SF module at all? */
 
-/* Variables for the initial events and presentation logic */
+/* Initial events and presentation logic */
 <<set $securityForceCreate = 0>> 					/* Has the player chosen to create the SF? Used for initial events */
-<<set $securityForceEventSeen = 0>>				/* Has the player seen the SF event? Used to avoid re-event */
-<<set $securityForceName = "Security Force">>		/* What is the SF's name? */
+<<set $securityForceEventSeen = 0>>					/* Has the player seen the SF event? Used to avoid re-event */
+<<set $securityForceName = "Special Force">>		/* What is the SF called? */
 <<set $securityForceActive = 0>>					/* SF is active - activates end of turn screen logic */
 
-/* Variables for the SF control panel and logic */
-<<set $securityForceSubsidyActive = 0>>			/* Is the player having to subsidize the SF? */
+/* SF control panel and logic */
+<<set $securityForceSubsidyActive = 0>>				/* Is the player having to subsidize the SF? */
 <<set $securityForceRecruit = 0>>					/* How many recruits has the SF attracted this week? Used in recruitment calcs */
-<<set $securityForceTrade = 0>>					/* How much trade has the SF encouraged this week? Used for rep calcs */
-<<set $securityForceBooty = 0>>					/* How much money has the SF made this week? Used in money calcs */
+<<set $securityForceTrade = 0>>						/* How much trade has the SF encouraged this week? Used for rep calcs */
+<<set $securityForceBooty = 0>>						/* How much money has the SF made this week? Used in money calcs */
 <<set $securityForceIncome = 0>>					/* What was the final, adjusted take for the SF this week? Used for EOW text */
 <<set $securityForceProfitable = 0>>				/* Is the SF profitable? Used for EOW text */
-<<set $securityForceFocus = "recruit">>			/* What is the SF's assigned job? */
+<<set $securityForceFocus = "recruit">>				/* What is the SF's assigned job? */
 <<set $securityForceRulesOfEngagement = "hold">>	/* What are the SF's ROE outside the arcology? */
-<<set $securityForceAccountability = "strict">>	/* Is the SF being held accountable for its actions outside the arcology? */
-<<set $securityForceDepravity = 0>>				/* How depraved has the SF become? Used for flavor text injections. */
+<<set $securityForceAccountability = "strict">>		/* Is the SF being held accountable for its actions outside the arcology? */
+<<set $securityForceDepravity = 0>>					/* How depraved has the SF become? Used for flavor text injections. */
 <<set $securityForceUpgradeToken = 0>>				/* Flag to keep track of single upgrade/week. */
-<<set $securityForceGiftToken = 0>>				/* Flag to keep track of single gift/week. */
-<<set $securityForceColonelToken = 0>>			/* Flag to keep track of fucking the colonel? */
+<<set $securityForceGiftToken = 0>>					/* Flag to keep track of single gift/week. */
 
-/* Variables for the SF Personnel/Gear */
-<<set $securityForcePersonnel = 40>> 				/* How big is the SF? Maxes out at battalion/regimental (~1000) strength */
-<<set $securityForceInfantryPower = 0>>			/* How many infantry upgrades has the player bought? */
-<<set $securityForceVehiclePower = 0>>				/* How many vehicle upgrades has the player bought? */
-<<set $securityForceAircraftPower = 0>>			/* How many aircraft upgrades has the player bought? */
-<<set $securityForceDronePower = 0>>				/* How many drone upgrades has the player bought? */
-<<set $securityForceStimulantPower = 0>>			/* How many stimulant upgrades has the player bought? */
+/* Personnel/Gear */
 <<set $securityForceArcologyUpgrades = 0>>			/* How many militarized arcology upgrades has the player bought? */
-<<set $securityForceDronePower = 0>>				/* How many frone upgrades has the player bought? */
+<<set $securityForcePersonnel = 40>> 				/* How big is the SF? Maxes out at battalion/regimental (~1500) strength */
+<<set $securityForceInfantryPower = 0>>				/* How many infantry upgrades has the player bought? */
+<<set $securityForceStimulantPower = 0>>			/* How many stimulant upgrades has the player bought? */
+<<set $securityForceVehiclePower = 0>>				/* How many vehicle upgrades has the player bought? */
+<<set $securityForceHeavyBattleTank = 0>>			/* Has the SF found a busted down heavy battle tank begging for work? */
+<<set $securityForceAircraftPower = 0>>				/* How many aircraft upgrades has the player bought? */
 <<set $securityForceSpacePlanePower = 0>>			/* Has the SF found a busted down spaceplane begging for work? */
-<<set $securityForceSatalitePower = 0>>				/* Has the SF commendeered a satelite relay? */
+<<set $securityForceFortressZeppelin = 0>>			/* Has the SF found a busted down fortress zeppelin begging for work? */
+<<set $securityForceAC130 = 0>>						/* Has the SF found a busted down AC-130 begging for work? */
+<<set $securityForceHeavyTransport = 0>>				/* Has the SF found a busted down heavy yransport begging for work? */
+<<set $securityForceDronePower = 0>>				/* How many drone upgrades has the player bought? */
+<<set $securityForceSatellitePower = 0>>				/* Has the SF commendeered a Satellite relay? */
 <<set $securityForceGiantRobot = 0>>				/* Has the player assembled a makeshift giant robot */
-<<set $SSLevel = 0>>								/* Has the player sent any slaves to 'help out' */
-<<set $securityForceMissionEfficiency = 1>>		/* How efficient is the SF at completing its assigned task? (Upgrades*Drug Multiplier) */
+<<set $securityForceMissileSilo = 0>>				/* Has the SF found a disused missile silo in need of reassignement?*/
+<<set $securityForceAircraftCarrier = 0>> 			/* Has the SF found a busted down aircraft carrier begging for work? */
+<<set $securityForceSubmarine = 0>>					/* Has the SF found a busted down submarine begging for work? */
+<<set $securityForceHeavyAmphibiousTransport = 0>>	/* Has the SF found a busted down heavy amphibious transport begging for work? */
+<<set $securityForceMissionEfficiency = 1>>			/* How efficient is the SF at completing its assigned task? (Upgrades*Drug Multiplier) */
+
+/* FacilitySupport */
+<<set $Lieutenantcolonel = 0>>						/* Has a slave been selected to be a Lieutenant colonel? */
+<<set $FacilitySupportSlaves = 0>>					/* How many slaves are assiting in the facility support? */
+<<set $FacilitySupportfficiency = 0>>				/* How efficent is the support facility? */
+<<set $FacilitySupportUpgrade = 0>>					/* How many support facility upgrades has the play brought? */
+<<set $FacilitySupportCapacity = 5>>					/* How many slaves can the support facility house? */
+
+/* Colonel */
+<<set $securityForceSexedColonelToken = 0>>			/* Has the player sexed The colonel this week? */
+<<set $ColonelCore = "">>							/* What is the core of The Colonel? */
+<<set $securityForceColonelToken = 0>>				/* Flag to keep track of talking to the colonel. */
+<<set $securityForceColonelSexed = 0>>				/* Has the player sexed The colonel this week? */
+
+/* TradeShow */
+<<set $TradeShowAttendanceGranted = 0>>				/* Has The Colonel been allowed to go the TradeShow? */
+<<set $OverallTradeShowAttendance = 0>>				/* how many times has The Colonel gone to the TradeShow */
+<<set $CurrentTradeShowAttendance = 0>>				/* Has the Colonel attended the current TradeShow? */
+<<set $TradeShowIncome = 0>>						/* How much was The Colonel able to make at the TradeShow selling generic scematics? */
+<<set $TotalTradeShowIncome = 0>>					/* Total TradeShowIncome */
+<<set $TradeShowHelots = 0>>						/* How many menail slaves were sent as a bonus from generic scematic sales during the current TradeShow?
+<<set $TotalTradeShowHelots = 0>>					/* Total number of menail slaves acquired via the Trade Show */
+
 
 /* Misc mod variables */
 <<set $recruiterEugenics = 0>>
@@ -1186,6 +1245,26 @@ cyberneticPLimb: 0,
 ocularImplant: 0,
 erectileImplant: 0
 } >>
+
+<<if ndef $AgeEffectOnTrainerPricingPC>>
+	<<set $AgeEffectOnTrainerPricingPC = 1>>
+<</if>>
+<<if ndef $AgeEffectOnTrainerEffectivenessPC>>
+	<<set $AgeEffectOnTrainerEffectivenessPC = 1>>
+<</if>>
+<<if ndef $AgeTrainingUpperBoundPC>>
+	<<set $AgeTrainingUpperBoundPC = 14>>
+<</if>>
+<<if ndef $AgeTrainingLowerBoundPC>>
+	<<set $AgeTrainingLowerBoundPC = 12>>
+<</if>>
+<<if ndef $IsInPrimePC>>
+	<<set $IsInPrimePC = 3>>
+<</if>>
+<<if ndef $IsPastPrimePC>>
+	<<set $IsPastPrimePC = 5000>>
+<</if>>
+
 <<set $researchLab = {
 built: "false",
 aiModule: 1,
@@ -1205,5 +1284,15 @@ cyberneticPLimb: 0,
 ocularImplant: 0,
 erectileImplant: 0
 } >>
+
+/* Security Expansion */
+<<set $secExp = 0>>
+<<set $showSecExp = 0>>
+<<set $wasToggledBefore = 0>>
+
+/* Career-skill gain */
+<<set $masteredXP = 200>>
+
+<<include "secInit">>
 
 <<goto "Alpha disclaimer">>

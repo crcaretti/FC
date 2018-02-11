@@ -1,44 +1,27 @@
 :: End Week [nobr]
 
-<<set $gingering = 0>>
-
-<<set $oralUseWeight = 5>>
-<<set $vaginalUseWeight = 5>>
-<<set $analUseWeight = 5>>
-<<set $mammaryUseWeight = 1>>
-<<set $penetrativeUseWeight = 1>>
+<<set $gingering = 0, $oralUseWeight = 5, $vaginalUseWeight = 5, $analUseWeight = 5, $mammaryUseWeight = 1, $penetrativeUseWeight = 1, $inflatedSlavesMilk = 0, $inflatedSlavesCum = 0, $subSlaves = 0>>
 
 <<if $OralEncouragement == 1>>
-	<<set $oralUseWeight += 2>>
-	<<set $vaginalUseWeight -= 1>>
-	<<set $analUseWeight -= 1>>
+	<<set $oralUseWeight += 2, $vaginalUseWeight -= 1, $analUseWeight -= 1>>
 <<elseif $VaginalEncouragement == 1>>
-	<<set $oralUseWeight -= 1>>
-	<<set $vaginalUseWeight += 2>>
-	<<set $analUseWeight -= 1>>
+	<<set $oralUseWeight -= 1, $vaginalUseWeight += 2, $analUseWeight -= 1>>
 <<elseif $AnalEncouragement == 1>>
-	<<set $oralUseWeight -= 1>>
-	<<set $vaginalUseWeight -= 1>>
-	<<set $analUseWeight += 2>>
+	<<set $oralUseWeight -= 1, $vaginalUseWeight -= 1, $analUseWeight += 2>>
 <</if>>
 <<if $OralDiscouragement == 1>>
-	<<set $oralUseWeight -= 2>>
-	<<set $vaginalUseWeight += 1>>
-	<<set $analUseWeight += 1>>
+	<<set $oralUseWeight -= 2, $vaginalUseWeight += 1 , $analUseWeight += 1>>
 <</if>>
 <<if $VaginalDiscouragement == 1>>
-	<<set $oralUseWeight += 1>>
-	<<set $vaginalUseWeight -= 2>>
-	<<set $analUseWeight += 1>>
+	<<set $oralUseWeight += 1, $vaginalUseWeight -= 2, $analUseWeight += 1>>
 <</if>>
 <<if $AnalDiscouragement == 1>>
-	<<set $oralUseWeight += 1>>
-	<<set $vaginalUseWeight += 1>>
-	<<set $analUseWeight -= 2>>
+	<<set $oralUseWeight += 1, $vaginalUseWeight += 1, $analUseWeight -= 2>>
+<</if>>
+<<if $sexualOpeness == 1>>
+	<<set $penetrativeUseWeight++>>
 <</if>>
 
-<<set $inflatedSlavesMilk = 0>>
-<<set $inflatedSlavesCum = 0>>
 <<for _i = 0; _i < $slaves.length; _i++>>
 	<<if $slaves[_i].inflationMethod == 1 || $slaves[_i].inflationMethod == 2>>
 		<<if $slaves[_i].inflationType == "milk">>
@@ -47,9 +30,11 @@
 			<<set $inflatedSlavesCum++>>
 		<</if>>
 	<</if>>
+	<<if $slaves[_i].assignment == "be a subordinate slave" && $slaves[_i].subTarget == 0>>
+		<<set $subSlaves++>>
+	<</if>>
 <</for>>
 
-<<set $organsCompleted = 0>>
 <<if $organs.length > 0>>
 <<for _i = 0; _i < $organs.length; _i++>>
 	<<if $organs[_i].weeksToCompletion > 0>>
@@ -62,7 +47,21 @@
 		<</if>>
 	<</if>>
 	<<if $organs[_i].weeksToCompletion <= 0>>
-		<<set $organsCompleted++>>
+		<<set $completedOrgans.push($organs[_i])>>
+		<<set $organs.deleteAt(_i)>>
+	<</if>>
+<</for>>
+<</if>>
+<<if $incubatorOrgans.length > 0>>
+<<for _i = 0; _i < $incubatorOrgans.length; _i++>>
+	<<if $incubatorOrgans[_i].weeksToCompletion > 0>>
+		<<if $organFarmUpgrade == 3>>
+			<<set $incubatorOrgans[_i].weeksToCompletion -= 4>>
+		<<elseif $organFarmUpgrade == 2>>
+			<<set $incubatorOrgans[_i].weeksToCompletion -= 2>>
+		<<else>>
+			<<set $incubatorOrgans[_i].weeksToCompletion-->>
+		<</if>>
 	<</if>>
 <</for>>
 <</if>>
@@ -94,7 +93,7 @@
 <</if>>
 /% End section: ensure minimum age is set. %/
 
-<<set $TSS.schoolSale = 0, $GRI.schoolSale = 0, $SCP.schoolSale = 0, $LDE.schoolSale = 0, $TGA.schoolSale = 0, $TFS.schoolSale = 0, $TCR.schoolSale = 0, $independenceDay = 0, $showEncyclopedia = 0, $racialVarieties = [], $shelterGirlsIDs = [], $oldWeek = $week, $cashLastWeek = $cash>>
+<<set $TSS.schoolSale = 0, $GRI.schoolSale = 0, $SCP.schoolSale = 0, $LDE.schoolSale = 0, $TGA.schoolSale = 0, $HA.schoolSale = 0, $TFS.schoolSale = 0, $TCR.schoolSale = 0, $independenceDay = 0, $showEncyclopedia = 0, $racialVarieties = [], $shelterGirlsIDs = [], $oldWeek = $week, $cashLastWeek = $cash>>
 
 <<if $manuallyRetired == 0>><<set $retiree = 0>><</if>>
 <<set $expiree = 0>>
@@ -107,6 +106,8 @@
 	<<set $PC.sexualEnergy -= 4>>
 <<elseif $PC.physicalAge >= 50>>
 	<<set $PC.sexualEnergy -= 2>>
+<<elseif $PC.physicalAge < 21>>
+	<<set $PC.sexualEnergy += 4>>
 <<elseif $PC.physicalAge < 35>>
 	<<set $PC.sexualEnergy += 2>>
 <</if>>
@@ -122,7 +123,17 @@
 		<<set $PC.sexualEnergy -= 3>>
 	<</if>>
 <<elseif $PC.preg > 0>>
-	<<set $PC.sexualEnergy -= 1>>	
+	<<set $PC.sexualEnergy -= 1>>
+<<else>>
+	<<if $PC.fertDrugs == 1>>
+		<<set $PC.sexualEnergy++>>
+	<</if>>
+	<<if $PC.forcedFertDrugs > 0>>
+		<<set $PC.sexualEnergy += 2>>
+	<</if>>
+<</if>>
+<<if $PC.staminaPills > 0>>
+	<<set $PC.sexualEnergy += 2>>
 <</if>>
 <<if $PC.preg > 0>>
 	<<set $PC.preg++>>

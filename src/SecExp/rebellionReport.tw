@@ -1,0 +1,834 @@
+:: rebellionReport [nobr]
+
+<<set $nextButton = "Continue", $nextLink = "Scheduled Event", $showEncyclopedia = 1, $encyclopedia = "Battles">>
+
+<<set _oldRep = $rep>>
+<<set _oldAuth = $authority>>
+<<set $enemyLosses = Math.trunc($enemyLosses)>>
+<<if $enemyLosses > $attackTroops>>
+	<<set $enemyLosses = $attackTroops>>
+<</if>>
+<<set $totalKills += $enemyLosses>>
+<<set $losses = Math.trunc($losses)>>
+<<set $rebellionsCount++>>
+<<if $battleResult == 3>>
+	<strong>Victory!</strong>
+	<<set $PCrebWon++>>
+<<elseif $battleResult == -3>>
+	<strong>Defeat!</strong>
+	<<set $PCrebLoss++>>
+<<elseif $battleResult == 2>>
+	<strong>Partial victory!</strong>
+	<<set $PCrebWon++>>
+	<<elseif $battleResult == -2>>
+	<strong>Partial defeat!</strong>
+	<<set $PCrebLoss++>>
+<<elseif $battleResult == -1>>
+	<strong>We surrendered</strong>
+	<<set $PCrebLoss++>>
+<</if>>
+<<set _day = $day + random(0,7)>>
+<<set _month = $month>>
+<<set _year = $year>>
+<<switch _month>>
+<<case "January">>
+<<if _day > 31>>
+	<<set _day -= 31, _month = "February">>
+<</if>>
+<<case "February">>
+<<if _day > 28>>
+	<<set _day -= 28, _month = "March">>
+<</if>>
+<<case "March">>
+<<if _day > 31>>
+	<<set _day -= 31, _month = "April">>
+<</if>>
+<<case "April">>
+<<if _day > 30>>
+	<<set _day -= 30, _month = "May">>
+<</if>>
+<<case "May">>
+<<if _day > 31>>
+	<<set _day -= 31, _month = "June">>
+<</if>>
+<<case "June">>
+<<if _day > 30>>
+	<<set _day -= 30, _month = "July">>
+<</if>>
+<<case "July">>
+<<if _day > 31>>
+	<<set _day -= 31, _month = "August">>
+<</if>>
+<<case "August">>
+<<if _day > 31>>
+	<<set _day -= 31, _month = "September">>
+<</if>>
+<<case "September">>
+<<if _day > 30>>
+	<<set _day -= 30, _month = "October">>
+<</if>>
+<<case "October">>
+<<if _day > 31>>
+	<<set _day -= 31, _month = "November">>
+<</if>>
+<<case "November">>
+<<if _day > 30>>
+	<<set _day -= 30, _month = "December">>
+<</if>>
+<<default>>
+<<if _day > 31>>
+	<<set _day -= 31, _month = "January", _year += 1>>
+<</if>>
+<</switch>>
+<hr>
+
+<<if $slaveRebellion == 1>>
+	Today, the _day of _month _year, our arcology was inflamed by the fires of rebellion. <<print commaNum(Math.trunc($attackTroops))>> rebels from all over the structure dared rise up against their owners and conquer their freedom through blood. Our defense force, <<print commaNum($troopCount)>> strong, fought with them street by street
+	<<if $enemyLosses != $attackTroops>>
+		inflicting <<print commaNum(Math.trunc($enemyLosses))>> casualties, while sustaining <<if $losses > 1>> <<print commaNum(Math.trunc($losses))>> casualties <<else>> a casualty<</if>> themselves.
+	<<else>>
+		completely annihilating their troops, while sustaining <<if $losses > 1>> <<print commaNum(Math.trunc($losses))>> casualties <<else>> a casualty.<</if>>
+	<</if>>
+	<<set $ASlaves -= $enemyLosses>>
+	<<if $battleResult == 3>>
+		<<if $battleTurns <= 5>>
+			The fight was quick and one sided, our men easily stopped the disorganized revolt in a few well aimed assaults.
+		<<elseif $battleTurns <= 7>>
+			The fight was hard, but in the end our men stopped the disorganized revolt with several well aimed assaults.
+		<<else>>
+			The fight was long and hard, but in the end our men stopped the revolt before it could accumulate momentum.
+		<</if>>
+	<<elseif $battleResult == -3>>
+		<<if $battleTurns <= 5>>
+			The fight was quick and one sided, our men were easily crushed by the furious charge of the rebels.
+		<<elseif $battleTurns <= 7>>
+			The fight was hard and in the end the rebels proved too much to handle for our men.
+		<<else>>
+			The fight was long and hard, but despite their bravery the rebels proved too much for our men.
+		<</if>>
+	<<elseif $battleResult == 2>>
+		The fight was long and hard, but in the end our men managed to stop the revolt, though not without difficulty.
+	<<elseif $battleResult == -2>>
+		The fight was long and hard. Our men in the end had to yield to the rebelling slaves, which were fortunately unable to capitalized on their victory.
+	<<elseif $battleResult == -1>>
+		You gave your troops the order to surrender, obediently they stand down.
+	<</if>>
+
+	/* effects */
+	<<if $battleResult == 3>>
+		Thanks to your victory, your @@.green;reputation@@ and @@.darkviolet;authority@@ increased.
+		<<set $rep += random(800,1000)>>
+		<<set $authority += random(800,1000)>>
+		<br>Many of the rebelling slaves were recaptured and punished. The instigators were executed one after another in a public trial that lasted for almost three days.
+		<<set $ASlaves -= random(10,30)>>
+	<<elseif $battleResult == -3>>
+		Due to your defeat, your @@.red;reputation@@ and @@.red;authority@@ decreased.
+		<<set $rep -= random(800,1000)>>
+		<<set $authority -= random(800,1000)>>
+		<br>After the battle most of the rebelling slaves managed to escape, while others remained in the arcology for days looting and hunting their former masters. The arcology will bear the scars of this day for a long time.
+		<<set $ACitizens -= random(50,100)>>
+		<<set $ASlaves -= Math.trunc(($attackTroops - $enemyLosses) * 0.8)>>
+		<<set $rebelDefeatAftermath = 5>>
+	<<elseif $battleResult == -2>>
+		Due to your defeat, your @@.red;reputation@@ and @@.red;authority@@ decreased.
+		<<set $rep -= random(600,800)>>
+		<<set $authority -= random(600,800)>>
+		<br>After the battle most of the rebelling slaves managed to escape, while others remained in the arcology for days looting and hunting their former masters. The arcology will bear the scars of this day for a long time.
+		<<set $ACitizens -= random(40,80)>>
+		<<set $ASlaves -= Math.trunc(($attackTroops - $enemyLosses) * 0.6)>>
+		<<set $rebelDefeatAftermath = 3>>
+	<<elseif $battleResult == 2>>
+		Thanks to your victory, your @@.green;reputation@@ and @@.darkviolet;authority@@ increased.
+		<<set $rep += random(600,180)>>
+		<<set $authority += random(600,800)>>
+		<br>Many of the rebelling slaves were recaptured and punished. The instigators were executed one after another in a public trial that lasted for almost three days.
+		<<set $ASlaves -= random(10,30)>>
+	<<elseif $battleResult == -1>>
+		Rather than waste the lives of your men you decided to surrender, hoping the rebels will cause less damage if you indulge them, this is however a big hit to your status. Your @@.red;reputation@@ and @@.red;authority@@ are significantly impacted.
+		<<set $rep -= random(1000,1200)>>
+		<<set $authority -= random(1000,1200)>>
+		<br>
+		The surrender allows the arcology to survive @@.yellow;mostly intact@@, however reports of @@.red;mass looting and killing of citizens@@ flood your office for a few days.
+		<<set $cash -= 1000>>
+		<<if $week <= 30>>
+			<<set $ACitizens -= random(100)>>
+			<<set $ASlaves -= random(150)>>
+			<<set $arcologies[0].prosperity -= random(5)>>
+		<<elseif $week <= 60>>
+			<<set $ACitizens -= random(120)>>
+			<<set $ASlaves -= random(170)>>
+			<<set $arcologies[0].prosperity -= random(10)>>
+		<<elseif $week <= 90>>
+			<<set $ACitizens -= random(140)>>
+			<<set $ASlaves -= random(190)>>
+			<<set $arcologies[0].prosperity -= random(15)>>
+		<<elseif $week <= 120>>
+			<<set $ACitizens -= random(160)>>
+			<<set $ASlaves -= random(210)>>
+			<<set $arcologies[0].prosperity -= random(20)>>
+		<<else>>
+			<<set $ACitizens -= random(180)>>
+			<<set $ASlaves -= random(230)>>
+			<<set $arcologies[0].prosperity -= random(25)>>
+		<</if>>
+		<br>After the battle most of the rebelling slaves managed to escape, while others remained in the arcology for days looting and hunting their former masters. The arcology will bear the scars of this day for a long time.
+		<<set $ACitizens -= random(50,100)>>
+		<<set $ASlaves -= Math.trunc(($attackTroops - $enemyLosses) * 0.8)>>
+		<<set $rebelDefeatAftermath = 5>>
+	<</if>>
+<<else>>
+	Today, the _day of _month _year, our arcology was inflamed by the fires of rebellion. <<print commaNum(Math.trunc($attackTroops))>> rebels from all over the structure dared rise up to dethrone their arcology owner. Our defense force, <<print commaNum($troopCount)>> strong, fought with them street by street
+	<<if $enemyLosses != $attackTroops>>
+		inflicting <<print commaNum(Math.trunc($enemyLosses))>> casualties, while sustaining <<if $losses > 1>> <<print commaNum(Math.trunc($losses))>> casualties <<else>> a casualty<</if>> themselves.
+	<<else>>
+		completely annihilating their troops, while sustaining <<if $losses > 1>> <<print commaNum(Math.trunc($losses))>> casualties <<else>> a casualty.<</if>>
+	<</if>>
+	<<set $ASlaves -= $enemyLosses>>
+	<<if $battleResult == 3>>
+		<<if $battleTurns <= 5>>
+			The fight was quick and one sided, our men easily stopped the disorganized revolt in a few well aimed assaults.
+		<<elseif $battleTurns <= 7>>
+			The fight was hard, but in the end our men stopped the disorganized revolt with several well aimed assaults.
+		<<else>>
+			The fight was long and hard, but in the end our men stopped the revolt before it could accumulate momentum.
+		<</if>>
+	<<elseif $battleResult == -3>>
+		<<if $battleTurns <= 5>>
+			The fight was quick and one sided, our men were easily crushed by the furious charge of the rebels.
+		<<elseif $battleTurns <= 7>>
+			The fight was hard and in the end the rebels proved too much to handle for our men.
+		<<else>>
+			The fight was long and hard, but despite their bravery the rebels proved too much for our men.
+		<</if>>
+	<<elseif $battleResult == 2>>
+		The fight was long and hard, but in the end our men managed to stop the revolt, though not without difficulty.
+	<<elseif $battleResult == -2>>
+		The fight was long and hard. Our men in the end had to yield to the rebelling slaves, which were fortunately unable to fully capitalized on their victory.
+	<<elseif $battleResult == -1>>
+		You gave your troops the order to surrender, obediently they stand down.
+	<</if>>
+
+	/* effects */
+	<<if $battleResult == 3>>
+		Thanks to your victory, your @@.green;reputation@@ and @@.darkviolet;authority@@ increased.
+		<<set $rep += random(800,1000)>>
+		<<set $authority += random(800,1000)>>
+		<br>Many of the rebelling citizens were captured and punished, many others enslaved. The instigators were executed one after another in a public trial that lasted for almost three days.
+		<<set $ACitizens -= random(10,30)>>
+	<<elseif $battleResult == -3>>
+		Due to your defeat, your @@.red;reputation@@ and @@.red;authority@@ decreased.
+		<<set $rep -= random(800,1000)>>
+		<<set $authority -= random(800,1000)>>
+		<br>After the battle most of the rebelling citizens remained in the arcology for days looting and hunting their former arcology. We will bear the scars of this day for a long time.
+		<<set $ACitizens -= Math.trunc(($attackTroops - $enemyLosses) * 0.8)>>
+		<<set $rebelDefeatAftermath = 5>>
+	<<elseif $battleResult == -2>>
+		Due to your defeat, your @@.red;reputation@@ and @@.red;authority@@ decreased.
+		<<set $rep -= random(600,800)>>
+		<<set $authority -= random(600,800)>>
+		<br>After the battle most of the rebelling citizens remained in the arcology for days looting and hunting their former arcology. We will bear the scars of this day for a long time.
+		<<set $ACitizens -= random(40,80)>>
+		<<set $ASlaves -= Math.trunc(($attackTroops - $enemyLosses) * 0.6)>>
+		<<set $rebelDefeatAftermath = 3>>
+	<<elseif $battleResult == 2>>
+		Thanks to your victory, your @@.green;reputation@@ and @@.darkviolet;authority@@ increased.
+		<<set $rep += random(600,180)>>
+		<<set $authority += random(600,800)>>
+		<br>Many of the rebelling citizens were captured and punished, many others enslaved. The instigators were executed one after another in a public trial that lasted for almost three days.
+		<<set $ASlaves -= random(10,30)>>
+	<<elseif $battleResult == -1>>
+		Rather than waste the lives of your men you decided to surrender, hoping the rebels will cause less damage if you indulge them, this is however a big hit to your status. Your @@.red;reputation@@ and @@.red;authority@@ are significantly impacted.
+		<<set $rep -= random(1000,1200)>>
+		<<set $authority -= random(1000,1200)>>
+		<br>
+		The surrender allows the arcology to survive @@.yellow;mostly intact@@, however reports of @@.red;mass looting and killing of citizens@@ flood your office for a few days.
+		<<set $cash -= 1000>>
+		<<if $week <= 30>>
+			<<set $ACitizens -= random(100)>>
+			<<set $ASlaves -= random(150)>>
+			<<set $arcologies[0].prosperity -= random(5)>>
+		<<elseif $week <= 60>>
+			<<set $ACitizens -= random(120)>>
+			<<set $ASlaves -= random(170)>>
+			<<set $arcologies[0].prosperity -= random(10)>>
+		<<elseif $week <= 90>>
+			<<set $ACitizens -= random(140)>>
+			<<set $ASlaves -= random(190)>>
+			<<set $arcologies[0].prosperity -= random(15)>>
+		<<elseif $week <= 120>>
+			<<set $ACitizens -= random(160)>>
+			<<set $ASlaves -= random(210)>>
+			<<set $arcologies[0].prosperity -= random(20)>>
+		<<else>>
+			<<set $ACitizens -= random(180)>>
+			<<set $ASlaves -= random(230)>>
+			<<set $arcologies[0].prosperity -= random(25)>>
+		<</if>>
+		<br>After the battle most of the rebelling citizens remained in the arcology for days looting and hunting their former arcology. We will bear the scars of this day for a long time.
+		<<set $ACitizens -= random(50,100)>>
+		<<set $ASlaves -= Math.trunc(($attackTroops - $enemyLosses) * 0.8)>>
+		<<set $rebelDefeatAftermath = 5>>
+	<</if>>
+<</if>>
+
+/* engage rules */
+<<if $battleResult != -1>>
+	<<if $engageRule == 0>>
+		Since you ordered your troops to limit their weaponry to low caliber or non lethal, the arcology reported only @@.red;minor damage@@. Most citizens and non involved slaves remained unharmed, though some casualties between the civilians were inevitable.
+		A few businesses were looted and burned, but the damage was pretty limited.
+		<<set $arcRepairTime += 3, $PC.engineering += .1>>
+		<<if $week <= 30>>
+			<<set $ACitizens -= random(40)>>
+			<<set $ASlaves -= random(65)>>
+			<<set $arcologies[0].prosperity -= random(2)>>
+		<<elseif $week <= 60>>
+			<<set $ACitizens -= random(50)>>
+			<<set $ASlaves -= random(55)>>
+			<<set $arcologies[0].prosperity -= random(5)>>
+		<<elseif $week <= 90>>
+			<<set $ACitizens -= random(60)>>
+			<<set $ASlaves -= random(85)>>
+			<<set $arcologies[0].prosperity -= random(7)>>
+		<<elseif $week <= 120>>
+			<<set $ACitizens -= random(70)>>
+			<<set $ASlaves -= random(95)>>
+			<<set $arcologies[0].prosperity -= random(10)>>
+		<<else>>
+			<<set $ACitizens -= random(80)>>
+			<<set $ASlaves -= random(105)>>
+			<<set $arcologies[0].prosperity -= random(12)>>
+		<</if>>
+	<<elseif $engageRule == 1>>
+		You ordered your troops to limit their weaponry to non-heavy, non-explosive, because of this the arcology reported @@.red;moderate damage@@. Most citizens and non involved slaves remained unharmed or only lightly wounded, but many others did not make it. Unfortunately casualties between the civilians were inevitable.
+		A few businesses were looted and burned, but the damage was pretty limited.
+		<<set $arcRepairTime += 5, $PC.engineering += .1>>
+		<<if $week <= 30>>
+			<<set $ACitizens -= random(60)>>
+			<<set $ASlaves -= random(85)>>
+			<<set $arcologies[0].prosperity -= random(4)>>
+		<<elseif $week <= 60>>
+			<<set $ACitizens -= random(70)>>
+			<<set $ASlaves -= random(75)>>
+			<<set $arcologies[0].prosperity -= random(7)>>
+		<<elseif $week <= 90>>
+			<<set $ACitizens -= random(80)>>
+			<<set $ASlaves -= random(105)>>
+			<<set $arcologies[0].prosperity -= random(9)>>
+		<<elseif $week <= 120>>
+			<<set $ACitizens -= random(90)>>
+			<<set $ASlaves -= random(115)>>
+			<<set $arcologies[0].prosperity -= random(12)>>
+		<<else>>
+			<<set $ACitizens -= random(100)>>
+			<<set $ASlaves -= random(125)>>
+			<<set $arcologies[0].prosperity -= random(14)>>
+		<</if>>
+	<<elseif $engageRule == 2>>
+		Since you did not apply any restriction on the weapons your forces should use, the arcology reported @@.red;heavy damage@@. Many citizens and uninvolved slaves are reported killed or missing. Casualties between the civilians were inevitable.
+		Many businesses were damaged during the battle either by the fight itself, by fires which spread unchecked for hours or by looters.
+		<<set $arcRepairTime += 7, $PC.engineering += .1>>
+		<<if $week <= 30>>
+			<<set $ACitizens -= random(100)>>
+			<<set $ASlaves -= random(150)>>
+			<<set $arcologies[0].prosperity -= random(5)>>
+		<<elseif $week <= 60>>
+			<<set $ACitizens -= random(120)>>
+			<<set $ASlaves -= random(170)>>
+			<<set $arcologies[0].prosperity -= random(10)>>
+		<<elseif $week <= 90>>
+			<<set $ACitizens -= random(140)>>
+			<<set $ASlaves -= random(190)>>
+			<<set $arcologies[0].prosperity -= random(15)>>
+		<<elseif $week <= 120>>
+			<<set $ACitizens -= random(160)>>
+			<<set $ASlaves -= random(210)>>
+			<<set $arcologies[0].prosperity -= random(20)>>
+		<<else>>
+			<<set $ACitizens -= random(180)>>
+			<<set $ASlaves -= random(230)>>
+			<<set $arcologies[0].prosperity -= random(25)>>
+		<</if>>
+	<<else>>
+		Thanks to the advance riot control weaponry developed by your experts, the rebels were mostly subdued or killed with @@.yellow;little to no collateral damage to the arcology@@ and its inhabitants.
+		A few businesses were looted, but the damage was very limited.
+		<<set $arcRepairTime += 2, $PC.engineering += .1>>
+		<<set $cash -= 1000>>
+		<<if $week <= 30>>
+			<<set $ACitizens -= random(20)>>
+			<<set $ASlaves -= random(45)>>
+			<<set $arcologies[0].prosperity -= random(2)>>
+		<<elseif $week <= 60>>
+			<<set $ACitizens -= random(30)>>
+			<<set $ASlaves -= random(35)>>
+			<<set $arcologies[0].prosperity -= random(4)>>
+		<<elseif $week <= 90>>
+			<<set $ACitizens -= random(40)>>
+			<<set $ASlaves -= random(65)>>
+			<<set $arcologies[0].prosperity -= random(6)>>
+		<<elseif $week <= 120>>
+			<<set $ACitizens -= random(50)>>
+			<<set $ASlaves -= random(75)>>
+			<<set $arcologies[0].prosperity -= random(8)>>
+		<<else>>
+			<<set $ACitizens -= random(60)>>
+			<<set $ASlaves -= random(85)>>
+			<<set $arcologies[0].prosperity -= random(10)>>
+		<</if>>
+	<</if>>
+<</if>>
+<<if $ACitizens < 100>>
+	<<set $ACitizens = 100>>
+<</if>>
+<<if $ASlaves < 200>>
+	<<set $ASlaves = 200>>
+<</if>>
+
+/* garrisons */
+<<if $garrison.reactor == 0>>
+	<<if random(1,100) <= (75 - ($fort.reactor * 25))>>
+		Unfortunately during the fighting a group of slaves infiltrated the reactor complex and sabotaged it, causing massive power fluctuations and blackouts.
+		It will take @@.red;time and money to repair the damage@@.
+		<<set $garrison.reactorTime = $repairTime + random(1) - $fort.reactor, $PC.engineering += .1>>
+		<<set $cash -= 2000>>
+	<<else>>
+		While the reactor was left defenseless without a garrison, there was no attempt at sabotage. Let's hope we'll always be this lucky.
+	<</if>>
+<<else>>
+	The garrison assigned to the reactor protected it from the multiple sabotage attempts carried out by the rebels.
+<</if>>
+<<if $garrison.waterway == 0>>
+	<<if random(1,100) <= (75 - ($fort.waterway * 25))>>
+		Unfortunately during the fighting a group of slaves infiltrated the water management complex and sabotaged it, causing huge water leaks throughout the arcology and severely limiting the water supply.
+		It will take @@.red;time and money to repair the damage@@.
+		<<set $garrison.waterwayTime = $repairTime + random(1) - $fort.waterway, $PC.engineering += .1>>
+		<<set $cash -= 2000>>
+	<<else>>
+		While the water management complex was left defenseless without a garrison, there was no attempt at sabotage. Let's hope we'll always be this lucky.
+	<</if>>
+<<else>>
+	The garrison assigned to the water management complex protected it from the sabotage attempt of the rebels.
+<</if>>
+<<if $garrison.assistant == 0>>
+	<<if random(1,100) <= (75 - ($fort.assistant * 25))>>
+		Unfortunately during the fighting a group of slaves infiltrated the facility housing $assistantName's mainframe and sabotaged it. Without its AI the arcology will be next to impossible to manage.
+		It will take @@.red;time and money to repair the damage@@.
+		<<set $garrison.assistantTime = $repairTime + random(1) - $fort.assistant, $PC.engineering += .1>>
+		<<set $cash -= 2000>>
+	<<else>>
+		While the $assistantName's mainframe was left defenseless without a garrison, there was no attempt at sabotage. Let's hope we'll always be this lucky.
+	<</if>>
+<<else>>
+	The garrison assigned to the facility housing $assistantName's mainframe prevented any sabotage attempt.
+<</if>>
+<<if $garrison.penthouse == 1 && $Bodyguard != 0>>
+	The garrison assigned to the penthouse together with your loyal bodyguard stopped all assaults against your penthouse with ease.
+<<elseif $Bodyguard != 0>>
+	<<if random(1,100) <= 75>>
+		During the fighting a group of slaves assaulted the penthouse. Your bodyguard, $Bodyguard.slaveName, stood strong against the furious attack.
+		<<set _woundChance = 0>>
+		<<if $PC.career == "mercenary" || $PC.career == "gang">>
+			<<set _woundChance -= 5>>
+		<</if>>
+		<<if $personalArms >= 1>>
+			<<set _woundChance -= 5>>
+		<</if>>
+		<<if $PC.physicalAge >= 60>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.belly > 5000>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.boobsBonus >= 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.butt >= 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.preg >= 30>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.balls == 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.ballsImplant >= 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if random(1,100) <= _woundChance>>
+			A lucky shot managed to find your way to you, leaving a painful, but thankfully not lethal, wound.
+			<<set $PCWounded = 1>>
+			<<set $PCWoundCooldown = 3>>
+		<<else>>
+			Fortunately you managed to avoid injury.
+		<</if>>
+		<<if $Concubine != 0>>
+			<<set _woundChance = 0>>
+			<<if $Concubine.combatSkill == 1>>
+				<<set _woundChance -= 2>>
+			<</if>>
+			<<if $Concubine.amp >= -4>>
+				<<set _woundChance -= 1>>
+			<</if>>
+			<<if $Concubine.health >= 50>>
+				<<set _woundChance -= 1>>
+			<</if>>
+			<<if $Concubine.weight > 130>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.muscles < -30>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.eyes <= -2>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.heels == 1>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.boobs >= 1400>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.butt >= 6>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.preg >= 30>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.dick >= 8>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.balls >= 8>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.intelligence <= -3>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<set _woundChance *= random(2,4)>>
+			<<if random(1,100) <= _woundChance>>
+				Your concubine was unfortunately caught in the crossfire and
+				<<set $woundType = random(1,10)>>
+				<<if $woundType == 1>>
+					a splinter pierced her throat, severing her vocal cords.
+					<<set $Concubine.voice = 0>>
+				<<elseif $woundType == 2>>
+					a splinter hit her face, severely damaging her eyes.
+					<<set $Concubine.eyes = -2>>
+				<<elseif $woundType == 3>>
+					an explosion near her caused the loss of all her limbs.
+					<<set $Concubine.amp = 1>>
+				<<elseif $woundType >= 4>>
+					a stray shot severely wounded her.
+					<<if $Concubine.health >= -60>>
+						<<set $Concubine.health -= 30>>
+					<<else>>
+						<<set $Concubine.health -= Math.abs(90 - $Concubine.health)>>
+					<</if>>
+				<</if>>
+			<</if>>
+		<</if>>
+		<<set _woundChance = 0>>
+		<<if $Bodyguard.combatSkill == 1>>
+			<<set _woundChance -= 2>>
+		<</if>>
+		<<if $Bodyguard.amp >= -4>>
+			<<set _woundChance -= 1>>
+		<</if>>
+			<<if $Bodyguard.health >= 50>>
+			<<set _woundChance -= 1>>
+		<</if>>
+		<<if $Bodyguard.weight > 130>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<if $Bodyguard.muscles < -30>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<if $Bodyguard.eyes <= -2>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<if $Bodyguard.heels == 1>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<if $Bodyguard.boobs >= 1400>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<if $Bodyguard.butt >= 6>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<if $Bodyguard.preg >= 30>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<if $Bodyguard.dick >= 8>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<if $Bodyguard.balls >= 8>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<if $Bodyguard.intelligence <= -3>>
+			<<set _woundChance += 1>>
+		<</if>>
+		<<set _woundChance *= random(2,4)>>
+		<<if random(1,100) <= _woundChance>>
+			During one of the assaults your bodyguard was hit.
+			<<set $woundType = random(1,10)>>
+			<<if $woundType == 1>>
+				A splinter pierced her throat, severing her vocal cords.
+				<<set $Bodyguard.voice = 0>>
+			<<elseif $woundType == 2>>
+				A splinter hit her face, severely damaging her eyes.
+				<<set $Bodyguard.eyes = -2>>
+			<<elseif $woundType == 3>>
+				An explosion near her caused the loss of all her limbs.
+				<<set $Bodyguard.amp = 1>>
+			<<elseif $woundType >= 4>>
+				A stray shot severely wounded her.
+				<<if $Bodyguard.health >= -60>>
+					<<set $Bodyguard.health -= 30>>
+				<<else>>
+					<<set $Bodyguard.health -= Math.abs(90 - $Bodyguard.health)>>
+				<</if>>
+			<</if>>
+		<</if>>
+		The damage to the structure will be @@.red;costly to repair@@.
+		<<set $cash -= 2000, $PC.engineering += .1>>
+	<<else>>
+		While the penthouse was left without a sizeable garrison, there was no dangerous assault against it. Let's hope we'll always be this lucky.
+	<</if>>
+<<elseif $garrison.penthouse == 1>>
+	<<if random(1,100) <= 75>>
+		During the fighting a group of slaves assaulted the penthouse. The garrison stood strong against the furious attack.
+		<<set _woundChance = 0>>
+		<<if $PC.career == "mercenary" || $PC.career == "gang">>
+			<<set _woundChance -= 5>>
+		<</if>>
+		<<if $personalArms >= 1>>
+			<<set _woundChance -= 5>>
+		<</if>>
+		<<if $PC.physicalAge >= 60>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.belly > 5000>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.boobsBonus >= 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.butt >= 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.preg >= 30>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.balls == 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.ballsImplant >= 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<set _woundChance *= random(1,2)>>
+		<<if random(1,100) <= _woundChance>>
+			A lucky shot managed to find your way to you, leaving a painful, but thankfully not lethal, wound.
+			<<set $PCWounded = 1>>
+			<<set $PCWoundCooldown = 3>>
+		<<else>>
+			Fortunately you managed to avoid injury.
+		<</if>>
+		<<if $Concubine != 0>>
+			<<set _woundChance = 0>>
+			<<if $Concubine.combatSkill == 1>>
+				<<set _woundChance -= 2>>
+			<</if>>
+			<<if $Concubine.amp >= -4>>
+				<<set _woundChance -= 1>>
+			<</if>>
+			<<if $Concubine.health >= 50>>
+				<<set _woundChance -= 1>>
+			<</if>>
+			<<if $Concubine.weight > 130>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.muscles < -30>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.eyes <= -2>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.heels == 1>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.boobs >= 1400>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.butt >= 6>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.preg >= 30>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.dick >= 8>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.balls >= 8>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.intelligence <= -3>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<set _woundChance *= random(2,4)>>
+			<<if random(1,100) <= _woundChance>>
+				Your concubine was unfortunately caught in the crossfire and
+				<<set $woundType = random(1,10)>>
+				<<if $woundType == 1>>
+					a splinter pierced her throat, severing her vocal cords.
+					<<set $Concubine.voice = 0>>
+				<<elseif $woundType == 2>>
+					a splinter hit her face, severely damaging her eyes.
+					<<set $Concubine.eyes = -2>>
+				<<elseif $woundType == 3>>
+					an explosion near her caused the loss of all her limbs.
+					<<set $Concubine.amp = 1>>
+				<<elseif $woundType >= 4>>
+					a stray shot severely wounded her.
+					<<if $Concubine.health >= -60>>
+						<<set $Concubine.health -= 30>>
+					<<else>>
+						<<set $Concubine.health -= Math.abs(90 - $Concubine.health)>>
+					<</if>>
+				<</if>>
+			<</if>>
+		<</if>>
+		The damage to the structure will be @@.red;costly to repair@@.
+		<<set $cash -= 2000, $PC.engineering += .1>>
+	<<else>>
+		There was no sizeable assault against the penthouse. Let's hope we'll always be this lucky.
+	<</if>>
+<<else>>
+	<<if random(1,100) <= 75>>
+		During the fighting a group of slaves assaulted the penthouse. Isolated and alone, you stood strong against the furious attack.
+		<<set _woundChance = 0>>
+		<<if $PC.career == "mercenary" || $PC.career == "gang">>
+			<<set _woundChance -= 5>>
+		<</if>>
+		<<if $personalArms >= 1>>
+			<<set _woundChance -= 5>>
+		<</if>>
+		<<if $PC.physicalAge >= 60>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.belly > 5000>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.boobsBonus >= 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.butt >= 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.preg >= 30>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.balls == 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<if $PC.ballsImplant >= 2>>
+			<<set _woundChance += random(1,5)>>
+		<</if>>
+		<<set _woundChance *= random(1,2)>>
+		<<if random(1,100) <= _woundChance>>
+			A lucky shot managed to find your way to you, leaving a painful, but thankfully not lethal, wound.
+			<<set $PCWounded = 1>>
+			<<set $PCWoundCooldown = 3>>
+		<<else>>
+			Fortunately you managed to avoid injury.
+		<</if>>
+		<<if $Concubine != 0>>
+			<<set _woundChance = 0>>
+			<<if $Concubine.combatSkill == 1>>
+				<<set _woundChance -= 2>>
+			<</if>>
+			<<if $Concubine.amp >= -4>>
+				<<set _woundChance -= 1>>
+			<</if>>
+			<<if $Concubine.health >= 50>>
+				<<set _woundChance -= 1>>
+			<</if>>
+			<<if $Concubine.weight > 130>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.muscles < -30>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.eyes <= -2>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.heels == 1>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.boobs >= 1400>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.butt >= 6>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.preg >= 30>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.dick >= 8>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.balls >= 8>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<if $Concubine.intelligence <= -3>>
+				<<set _woundChance += 1>>
+			<</if>>
+			<<set _woundChance *= random(2,4)>>
+			<<if random(1,100) <= _woundChance>>
+				Your concubine was unfortunately caught in the crossfire and
+				<<set $woundType = random(1,10)>>
+				<<if $woundType == 1>>
+					a splinter pierced her throat, severing her vocal cords.
+					<<set $Concubine.voice = 0>>
+				<<elseif $woundType == 2>>
+					a splinter hit her face, severely damaging her eyes.
+					<<set $Concubine.eyes = -2>>
+				<<elseif $woundType == 3>>
+					an explosion near her caused the loss of all her limbs.
+					<<set $Concubine.amp = 1>>
+				<<elseif $woundType >= 4>>
+					a stray shot severely wounded her.
+					<<if $Concubine.health >= -60>>
+						<<set $Concubine.health -= 30>>
+					<<else>>
+						<<set $Concubine.health -= Math.abs(90 - $Concubine.health)>>
+					<</if>>
+				<</if>>
+			<</if>>
+		<</if>>
+	<<else>>
+		There was no sizeable assault against the penthouse. Let's hope we'll always be this lucky.
+	<</if>>
+<</if>>
+
+<br>
+<br>
+
+<<include "unitsRebellionReport">>
+
+/* resets variables and flags */
+<<set $attackTroops = 0>>
+<<set $attackEquip = 0>>
+<<set $enemyLosses = 0>>
+<<set $losses = 0>>
+<<set $battleTurns = 0>>
+<<set $slaveRebellion = 0>>
+<<set $citizenRebellion = 0>>
+<<set $irregulars = 0>>
+<<set $deployingMilitia = 0>>
+<<set $deployingSlaves = 0>>
+<<set $deployingMercs = 0>>
+<<if $slaveRebellion == 1>>
+	<<set $slaveProgress = 0>>
+	<<set $citizenProgress = Math.clamp($citizenProgress - random(50,100), 0, 100)>>
+<<else>>
+	<<set $citizenProgress = 0>>
+	<<set $slaveProgress = Math.clamp($slaveProgress - random(50,100), 0, 100)>>
+<</if>>
+<<set $tension =  Math.clamp($tension - random(50,100), 0, 100)>>

@@ -1,10 +1,12 @@
 :: EconomyJS [script]
 
-window.LivingRule = Object.freeze({LUXURIOUS: 'luxurious', NORMAL: 'normal', SPARSE: 'sparse'});
+window.LivingRule = Object.freeze({LUXURIOUS: 'luxurious', NORMAL: 'normal', SPARE: 'spare'});
 window.Job = Object.freeze({
-	DAIRY: 'work in the dairy', MASTER_SUITE: 'serve in the master suite', CONCUBINE: 'be your concubine',
-	BABY_FACTORY: 'labor in the production line', BROTHEL: 'work in the brothel', ARCADE: 'be confined in the arcade',
-	SERVANT: 'work as a servant', SERVER: 'be a servant'});
+	DAIRY: 'work in the dairy', MILKMAID: 'be the Milkmaid', MASTER_SUITE: 'serve in the master suite', CONCUBINE: 'be your Concubine',
+	BABY_FACTORY: 'labor in the production line', BROTHEL: 'work in the brothel', MADAM: 'be the Madam', ARCADE: 'be confined in the arcade',
+	SERVANT: 'work as a servant', SERVER: 'be a servant', STEWARD: 'be the Stewardess', CLUB: 'serve in the club', DJ: 'be the DJ',
+	JAIL: 'be confined in the cellblock', WARDEN: 'be the Wardeness', CLINIC: 'get treatment in the clinic', NURSE: 'be the Nurse',
+	HGTOY: 'live with your Head Girl', SCHOOL: 'learn in the schoolroom', TEACHER: 'be the Schoolteacher', SPA: 'rest in the spa', ATTEND: 'be the Attendant'});
 window.PersonalAttention = Object.freeze({TRADE: 'trading', WAR: 'warfare', SLAVEING: 'slaving', ENGINEERING: 'engineering', MEDICINE: 'medicine', MAID: 'upkeep'});
 
 window.getCost = function(array) {
@@ -26,6 +28,8 @@ window.getCost = function(array) {
 		+ (State.variables.club * facilityCost)
 		+ (State.variables.dairy * facilityCost)
 		+ (State.variables.incubator * facilityCost * 10);
+	var secExpCost = 0;
+	var soldierMod = 0;
 		
 	//facility expenses
 	costs += (0.1 * State.variables.brothelUpgradeDrugs * brothel * facilityCost)
@@ -59,6 +63,59 @@ window.getCost = function(array) {
 	}
 	if(State.variables.masterSuitePregnancyFertilitySupplements === 1) {
 		costs += 1000;
+	}
+	
+	//security expansion
+	if(State.variables.secExp == 1) {
+		if(State.variables.edictsUpkeep > 0) {
+			secExpCost += State.variables.edictsUpkeep;
+		}
+		if(State.variables.SFSupportUpkeep > 0) {
+			secExpCost += State.variables.SFSupportUpkeep;
+		}
+		if(State.variables.propHub > 0) {
+			secExpCost += State.variables.propHubUpkeep;
+		}
+		if(State.variables.secHQ > 0) {
+			secExpCost += State.variables.secHQUpkeep + 20 * state.variables.secHelots;
+		}
+		if(State.variables.secBarracks > 0) {
+			secExpCost += State.variables.secBarracksUpkeep;
+		}
+		if(State.variables.riotCenter > 0) {
+			secExpCost += State.variables.riotUpkeep;
+		}
+		if(State.variables.soldierWages == 0) {
+			soldierMod = 1;
+		}
+		else if(State.variables.soldierWages == 1) {
+			soldierMod = 1.5;
+		}
+		else {
+			soldierMod = 2;
+		}
+		if (State.variables.militiaUnits != null) {
+			for (var i = 0; i < State.variables.militiaUnits.length; i++) {
+				if( !(State.variables.militiaUnits[i] === null) ){
+					secExpCost += State.variables.militiaUnits[i].troops * State.variables.soldierUpkeep * soldierMod;
+				}
+			}
+		}
+		if (State.variables.slaveUnits != null) {
+			for (var i = 0; i < State.variables.slaveUnits.length; i++) {
+				if( !( State.variables.slaveUnits[i] === null) ){
+					secExpCost +=  State.variables.slaveUnits[i].troops * State.variables.soldierUpkeep * 0.5 * soldierMod;
+				}
+			}
+		}
+		if (State.variables.mercUnits != null) {
+			for (var i = 0; i < State.variables.mercUnits.length; i++) {
+				if( !(State.variables.mercUnits[i] === null) ){
+					secExpCost += State.variables.mercUnits[i].troops * State.variables.soldierUpkeep * 1.5 * soldierMod;
+				}
+			}
+		}
+		costs += secExpCost;
 	}
 	
 	//general arcology costs
@@ -121,6 +178,9 @@ window.getCost = function(array) {
 			if(slave.lactation > 0) {
 				costs -= 25;
 			}
+			if(slave.assignment === Job.SERVANT) {
+				costs -= rulesCost;
+			}
 		}
 	}
 	
@@ -143,6 +203,9 @@ window.getCost = function(array) {
 	if(State.variables.TGA.schoolPresent === 1) {
 		costs += 1000;
 	}
+	if(State.variables.HA.schoolPresent === 1) {
+		costs += 1000;
+	}
 	if(State.variables.TCR.schoolPresent === 1) {
 		costs += 1000;
 	}
@@ -162,6 +225,9 @@ window.getCost = function(array) {
 		costs += 1000;
 	}
 	if(State.variables.TGA.subsidize !== 0) {
+		costs += 1000;
+	}
+	if(State.variables.HA.subsidize !== 0) {
 		costs += 1000;
 	}
 	if(State.variables.TCR.subsidize !== 0) {
@@ -192,16 +258,18 @@ window.getCost = function(array) {
 		costs += 1000;
 	}
 
+	if(State.variables.PC.actualAge >= State.variables.PC.IsInPrimePC && State.variables.PC.actualAge < State.variables.PC.IsPastPrimePC) {
 	if(State.variables.personalAttention === PersonalAttention.TRADE) {
-		costs += 10000;
+		costs += 10000*State.variables.AgeEffectOnTrainerPricingPC;
 	} else if(State.variables.personalAttention === PersonalAttention.WAR) {
-		costs += 10000;
+		costs += 10000*State.variables.AgeEffectOnTrainerPricingPC;
 	} else if(State.variables.personalAttention === PersonalAttention.SLAVING) {
-		costs += 10000;
+		costs += 10000*State.variables.AgeEffectOnTrainerPricingPC;
 	} else if(State.variables.personalAttention === PersonalAttention.ENGINEERING) {
-		costs += 10000;
+		costs += 10000*State.variables.AgeEffectOnTrainerPricingPC;
 	} else if(State.variables.personalAttention === PersonalAttention.MEDICINE) {
-		costs += 10000;
+		costs += 10000*State.variables.AgeEffectOnTrainerPricingPC;
+	}
 	}
 
 	if(State.variables.cyberMod !== 0 && State.variables.researchLab.built === 'true') {
@@ -217,6 +285,9 @@ window.getCost = function(array) {
 	} else if(State.variables.PC.preg >= 16) {
 		costs += 100;
 	}
+	if(State.variables.PC.staminaPills === 1) {
+		costs += 50;
+	}
 
 	if(State.variables.PC.career === 'servant') {
 		if(State.variables.personalAttention === PersonalAttention.MAID) {
@@ -230,6 +301,15 @@ window.getCost = function(array) {
 		}
 	}
 
+	if(State.variables.secExp == 1) {
+		if(State.variables.terrain === 'oceanic' || State.variables.terrain === 'marine') {
+			if(State.variables.docks > 0) {
+				costs *= (1 - State.variables.docks * 0.05);
+			}
+		} else if(State.variables.railway > 0) {
+			costs *= (1 - State.variables.railway * 0.05);
+		}
+	}
 	
 	// clean up
 	if(costs < 0) {
@@ -249,8 +329,73 @@ window.getSlaveCost = function(s) {
 	var foodCost = State.variables.foodCost;
 	var drugsCost = State.variables.drugsCost;
 	
-	// Living expenses
-	if((s.assignment !== Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment !== Job.ARCADE)) {
+	// Living expenses	
+	switch(s.assignment) {
+	case Job.ARCADE:
+		cost += rulesCost * .75;
+		break;
+	case Job.DAIRY:
+		if(State.variables.dairyRestraintsSetting >= 2) {
+			cost += rulesCost * .75;
+		} else if(s.livingRules == LivingRule.NORMAL) {
+			cost += rulesCost * 1.5;
+		} else if(State.variables.dairyDecoration === 'Degradationist') {
+			cost += rulesCost * .90;
+		} else {
+			cost += rulesCost;
+		}
+		break;
+	case Job.BROTHEL:
+		if(s.livingRules == LivingRule.NORMAL) {
+			cost += rulesCost * 1.5;
+		} else {
+			cost += rulesCost;
+		}
+		break;
+	case Job.SCHOOL: case Job.CLUB:
+		cost += rulesCost * 1.5;
+		break;
+	case Job.CLINIC:
+		if(s.livingRules === LivingRule.LUXURIOUS) {
+			cost += rulesCost * 2;
+		} else if(s.livingRules == LivingRule.NORMAL) {
+			cost += rulesCost * 1.5;
+		} else {
+			cost += rulesCost;
+		}
+		break;
+	case Job.SPA:
+		if(s.livingRules === LivingRule.LUXURIOUS) {
+			cost += rulesCost * 1.75;
+		} else if(s.livingRules == LivingRule.NORMAL) {
+			cost += rulesCost * 1.5;
+		} else {
+			cost += rulesCost;
+		}
+		break;
+	case Job.SERVANT:
+		if(s.livingRules == LivingRule.NORMAL) {
+			cost += rulesCost * 1.5;
+		} else {
+			if(State.variables.servantsQuartersDecoration === 'Degradationist') {
+				cost += rulesCost * .90;
+			} else {
+				cost += rulesCost;
+			}
+		}
+		break;
+	case Job.JAIL:
+		if(s.livingRules == LivingRule.NORMAL) {
+			cost += rulesCost * 1.25;
+		} else {
+			cost += rulesCost * .90;
+		}
+		break;
+	case Job.MADAM: case Job.DJ: case Job.NURSE: case Job.WARDEN:
+	case Job.ATTEND: case Job.STEWARD: case Job.MILKMAID: case Job.TEACHER:
+		cost += rulesCost * 2;
+		break;
+	default:	
 		if(s.livingRules === LivingRule.LUXURIOUS) {
 			cost += rulesCost * (s.relationship >= 4 ? 3 : 4);
 		} else if(s.livingRules == LivingRule.NORMAL) {
@@ -258,11 +403,9 @@ window.getSlaveCost = function(s) {
 		} else {
 			cost += rulesCost;
 		}
-	} else {
-		cost += rulesCost * .75;
+		break;
 	}
-		
-	
+
 	// Food
 	cost += foodCost * 4;
 	switch(s.diet) {
@@ -312,8 +455,7 @@ window.getSlaveCost = function(s) {
 		cost += 50;
 	}
 	if(State.variables.pregAccessibility !== 1
-		&& ((s.belly >= 60000) || (s.preg > 20 && s.pregType >= 10) || (s.preg > 10 && s.pregType >= 20) || s.bellyImplant >= 10000)
-		&& s.assignment != Job.BABY_FACTORY && (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
+		&& (s.belly >= 60000) && s.assignment != Job.BABY_FACTORY && (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
 		cost += 100;
 	}
 	if(State.variables.dickAccessibility != 1 && s.dick > 45 && (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
@@ -448,6 +590,11 @@ window.getSlaveCost = function(s) {
 	return cost;
 };
 
+window.menialSlaveCost = function() {
+	var df = State.variables.menialDemandFactor;
+	return random(998,1001) + Math.trunc(Math.sign(df) * Math.sqrt(1 - Math.exp(-1*Math.pow(df/500, 2)*(4/Math.PI + 0.140012 * Math.pow(df/500, 2))/(1 + 0.140012 * Math.pow(df/500, 2))))*150); /* https://en.wikipedia.org/wiki/Error_function */
+};
+
 window.getSlaveStatisticData = function(s, facility) {
 	if(!s || !facility) {
 		// Base data, even without facility
@@ -487,5 +634,5 @@ window.initFacilityStatistics = function(facility) {
 }
 
 Number.prototype.toFixedHTML = function() {
-	return Number.prototype.toFixed.apply(this, arguments).replace(/\.0+$/, '<span style="opacity: 0.3">$&</span>');
+	return commaNum(Number.prototype.toFixed.apply(this, arguments)).replace(/\.0+$/, '<span style="opacity: 0.3">$&</span>');
 }

@@ -37,6 +37,21 @@
  *                           paired with a high spread value results in the generator having to
  *                           do lots of work generating and re-generating random heights until
  *                           one "fits".
+ *
+ * Anon's explination:
+ *limitMult: [0, -30]
+ *
+ *This specifies a range going up from 0 to -30. It needs to go [-30, 0] instead. Same thing with [0, -5] two lines down. note: technically, this isn't true, because for some bizarre reason Height.random reverses the numbers for you if you get them wrong. But it's important to establish good habits, so.
+ *
+ *Skew, spread, limitMult: These are statistics things. BTW, a gaussian distribution is a normal distribution. Just a naming thing.
+ *
+ *Skew: See https://brownmath.com/stat/shape.htm#Skewness. Basically a measure of how asymmetrical the curve is. It doesn't change the mean, and can't move the main mass of the distribution far from the mean! The normal distribution can't do that. You can, however, use it to fatten one or the other tail.
+ *
+ *Spread: Changes the average distance from the mean, making the graph wider and shorter. Moves "mass" from the center to the tail. It's basically standard deviation, but named funny because FC codebase.
+ *
+ *limitMult: A clamp, expressed in z-score. (z=1 is one standard dev above mean, for ex.) If it excludes too much of the distribution the other parameters describe, you're going to spend lots of CPU making and throwing away heights. Don't worry about this unless you run into it.
+ *
+ *There's also limitHeight which you're not using. It's basically limitMult in different units.
  */
 window.Height = (function(){
 	'use strict';
@@ -95,7 +110,14 @@ window.Height = (function(){
 		"Bosnian": 171.1, "Kosovan": undefined, "Macedonian": undefined, "Honduran": 152.0, "Maltese": 159.9,
 		"Nauruan": undefined, "Micronesian": undefined, "Costa Rican": undefined, "Salvadoran": 160.3, "Nicaraguan": 153.7,
 		"Panamanian": 152.0, "Nigerien": 157.8, "Andorran": undefined, "Bulgarian": 163.2, "Luxembourgian": 164.8,
-		"Moldovan": 161.2,
+		"Moldovan": 161.2, "Antiguan": 156.8, "Aruban": 158, "Azerbaijani": 162.4, "Bahamian": 157.1, "Bahraini": 165.2,
+		"Barbadian": 158.5, "Bhutanese": 153.4, "Burundian": 157, "a Cook Islander": 162.3, "Cypriot": 163.4,
+		"Dominiquais": 157.2, "East Timorese": 149.1, "Ecuadorian": 153.4, "Fijian": 161.8, "French Guianan": 157,
+		"Georgian": 160.5, "Guyanese": 157.9, "Kuwaiti": 156.1, "Kyrgyz": 158.6, "Latvian": 165.7, "a Liechtensteiner": 164.3, 
+		"Niuean": 160.4, "Palauan": 161.4, "Palestinian": 158.2, "Papua New Guinean": 150.7, "Paraguayan": 158.3, "Qatari": 155,
+		"Kittitian": 156.9, "Saint Lucian": 157.1, "Vincentian": 156.2, "Samoan": 161, "Seychellois": 155.8,
+		"Slovene": 167.4, "a Solomon Islander": 151.8, "Sri Lankan": 151.4, "Surinamese": 155.7, "Tajik": 161.2, "Tongan": 159.5,
+		"Trinidadian": 157.4, "Turkmen": 158.2, "Ni-Vanuatu": 149.8, "Vatican": 162.5,
 		"": 162.5 // default
 	};
 	const xyMeanHeight = {
@@ -123,7 +145,14 @@ window.Height = (function(){
 		"Malagasy": 161.5, "Maldivian": undefined, "Bosnian": 183.9, "Kosovan": undefined, "Macedonian": undefined,
 		"Honduran": undefined, "Maltese": 169.9, "Nauruan": undefined, "Micronesian": undefined, "Costa Rican": undefined,
 		"Salvadoran": undefined, "Nicaraguan": undefined, "Panamanian": 165.0, "Nigerien": 163.8, "Luxembourgian": 179.9,
-		"Moldovan": undefined, ".white": 177.6,
+		"Moldovan": undefined, ".white": 177.6, "Antiguan": 164.8, "Aruban": 165.1, "Azerbaijani": 171.8, "Bahamian": 167.2, "Bahraini": 165.1,
+		"Barbadian": 169.3, "Bhutanese": 167.2, "Burundian": 164.1, "a Cook Islander": 173.4, "Cypriot": 177.2,
+		"Dominiquais": 168.1, "East Timorese": 161.2, "Ecuadorian": 167.5, "Fijian": 170.4, "French Guianan": 168,
+		"Georgian": 172.7, "Guyanese": 168.6, "Kuwaiti": 169.2, "Kyrgyz": 170.4, "Latvian": 174.2, "a Liechtensteiner": 175.4, 
+		"Niuean": 169.7, "Palauan": 174.6, "Palestinian": 169.7, "Papua New Guinean": 163.5, "Paraguayan": 168.8, "Qatari": 166.2,
+		"Kittitian": 164.4, "Saint Lucian": 168.3, "Vincentian": 165.4, "Samoan": 173, "Seychellois": 168.5,
+		"Slovene": 180.3, "a Solomon Islander": 163.1, "Sri Lankan": 163.6, "Surinamese": 165.2, "Tajik": 175.2, "Tongan": 168.2,
+		"Trinidadian": 170.8, "Turkmen": 171.4, "Ni-Vanuatu": 160.5, "Vatican": 176.5,
 		"": 172.5 // defaults
 	};
 	
@@ -348,6 +377,47 @@ window.Categorizer.prototype.cat = function(val, def) {
 	}
 	return result;
 };
+
+window.commaNum = function(s) {
+	if(!s) { return 0; }
+	if(State.variables.formatNumbers != 1) { return s; }
+	return s.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+window.cashFormat = function(s) {
+	if(!s) { s = 0; }
+	return "¤"+commaNum(s);
+}
+
+window.isFloat = function(n){
+    return n === +n && n !== (n|0);
+}
+window.isInt = function(n) {
+    return n === +n && n === (n|0);
+}
+window.numberWithCommas = function(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+
+window.jsRandom = function(min,max) {
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+window.jsRandomMany = function (arr, count) {
+	var result = [];
+	var _tmp = arr.slice();
+	for (var i = 0; i < count; i++) {
+		var index = Math.ceil(Math.random() * 10) % _tmp.length;
+		result.push(_tmp.splice(index, 1)[0]);
+	}
+	return result;
+}
+
+window.jsEither = function(choices) {
+	var index = Math.floor(Math.random() * choices.length);
+	return choices[index];
+}
 
 /*
 Make everything waiting for this execute. Usage:

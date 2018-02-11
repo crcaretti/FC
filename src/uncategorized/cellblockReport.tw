@@ -28,6 +28,9 @@
 	<<if $slaves[_FLs].trust < 60>>
 		<<set $slaves[_FLs].trust += 3>>
 	<</if>>
+	<<if ($slaves[_FLs].livingRules != "luxurious")>>
+		<<set $slaves[_FLs].livingRules = "luxurious">>
+	<</if>>
 	<<if $slaves[_FLs].fetishStrength <= 95>>
 		<<if $slaves[_FLs].fetish != "sadist">>
 			<<fetishChangeChance $slaves[_FLs]>>
@@ -57,6 +60,11 @@
 	<<if setup.wardenessCareers.includes($Wardeness.career)>>
 		<<set _devBonus++, _trustMalus++, _idleBonus++>>
 		She has experience with detecting security issues and grinding down potential miscreants from her life before she was a slave, making her more effective.
+	<<elseif $Wardeness.skillWA >= $masteredXP>>
+		<<set _devBonus++, _trustMalus++, _idleBonus++>>
+		She has experience with detecting security issues and grinding down potential miscreants from working for you, making her more effective.
+	<<else>>
+		<<set $slaves[_FLs].skillWA += random(1,($Wardeness.intelligence+4)*2)>>
 	<</if>>
 	<<if $Wardeness.fetish == "sadist">>
 		She uses the prisoners to gratify her sadism, terrifying them and quickly breaking their resistance.
@@ -119,9 +127,9 @@
 			<<set $slaves[$i].devotion++, $slaves[$i].trust-->>
 		<</if>>
 	<</for>>
-	<<if (_DL < 5)>>
-		<<set _seed = random(1,10)+((5-_DL)*(random(150,170)+(_idleBonus*10))), $cash += _seed>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;Since she doesn't have enough prisoners to manage to keep her busy, she works on citizens' slaves, earning @@.yellowgreen;¤_seed.@@
+	<<if (_DL < $cellblock)>>
+		<<set _seed = random(1,10)+(($cellblock-_DL)*(random(150,170)+(_idleBonus*10))), $cash += _seed>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;Since she doesn't have enough prisoners to manage to keep her busy, she works on citizens' slaves, earning @@.yellowgreen;<<print cashFormat(_seed)>>.@@
 	<</if>>
 	<<if (_DL > 0)>><br><br><</if>>
 <</if>>
@@ -144,6 +152,7 @@
 		''__@@.pink;<<SlaveFullName $slaves[$i]>>@@__'' is serving as the Wardeness in $cellblockName.
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -153,6 +162,7 @@
 	<<else>>
 		<<silently>>
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -173,59 +183,53 @@
 			<<set $slaves[$i].devotion++>>
 		<</if>>
 	<</if>>
-	<<if $cellblockDecoration == "Hedonistic">>
+	<<switch $cellblockDecoration>>
+	<<case "Paternalist">>
+		<<set $slaves[$i].livingRules = "normal">>
+		<<if ($slaves[$i].inflation > 0)>>
+			<<set $slaves[$i].inflation = 0, $slaves[$i].inflationType = "none", $slaves[$i].inflationMethod = 0, $slaves[$i].milkSource = 0>>
+			<<SetBellySize $slaves[$i]>>
+		<</if>>
+	<<case "Pastoralist">>
+		<<set $slaves[$i].livingRules = "spare">>
+		<<if $slaves[$i].inflation == 0>>
+			<<if $slaves[$i].pregKnown == 0 && $slaves[$i].bellyImplant < 1500>>
+				<<set $slaves[$i].inflation = 2, $slaves[$i].inflationType = "milk", $slaves[$i].inflationMethod = 1>>
+			<<else>>
+				<<set $slaves[$i].inflation = 1, $slaves[$i].inflationType = "milk", $slaves[$i].inflationMethod = 1>>
+			<</if>>
+			<<SetBellySize $slaves[$i]>>
+		<</if>>
+	<<case "Hedonistic">>
+		<<set $slaves[$i].livingRules = "spare">>
 		<<if $slaves[$i].weight < 200>>
 			<<set $slaves[$i].weight += 3>>
 		<</if>>
 		<<if $slaves[$i].muscles > -100>>
 			<<set $slaves[$i].muscles -= 2>>
 		<</if>>
-	<</if>>
+		<<if $slaves[$i].inflation == 0>>
+			<<if $slaves[$i].pregKnown == 0 && $slaves[$i].bellyImplant < 1500>>
+				<<set $slaves[$i].inflation = 3, $slaves[$i].inflationType = "food", $slaves[$i].inflationMethod = 1>>
+			<<else>>
+				<<set $slaves[$i].inflation = 1, $slaves[$i].inflationType = "food", $slaves[$i].inflationMethod = 1>>
+			<</if>>
+			<<SetBellySize $slaves[$i]>>
+		<</if>>
+	<<default>>
+		<<set $slaves[$i].livingRules = "spare">>
+		<<if ($slaves[$i].inflation > 0)>>
+			<<set $slaves[$i].inflation = 0, $slaves[$i].inflationType = "none", $slaves[$i].inflationMethod = 0, $slaves[$i].milkSource = 0>>
+			<<SetBellySize $slaves[$i]>>
+		<</if>>
+	<</switch>>
 	<<if $cellblockUpgrade == 1>>
 		<<if ($slaves[$i].behavioralFlaw != "none") && ($slaves[$i].behavioralQuirk == "none")>>
-			<<switch $slaves[$i].behavioralFlaw>>
-			<<case "arrogant">>
-				<<set $slaves[$i].behavioralQuirk = "confident", _softenedQuirks++>>
-			<<case "bitchy">>
-				<<set $slaves[$i].behavioralQuirk = "cutting", _softenedQuirks++>>
-			<<case "odd">>
-				<<set $slaves[$i].behavioralQuirk = "funny", _softenedQuirks++>>
-			<<case "hates men">>
-				<<set $slaves[$i].behavioralQuirk = "adores women", _softenedQuirks++>>
-			<<case "hates women">>
-				<<set $slaves[$i].behavioralQuirk = "adores men", _softenedQuirks++>>
-			<<case "gluttonous">>
-				<<set $slaves[$i].behavioralQuirk = "fitness", _softenedQuirks++>>
-			<<case "anorexic">>
-				<<set $slaves[$i].behavioralQuirk = "insecure", _softenedQuirks++>>
-			<<case "devout">>
-				<<set $slaves[$i].behavioralQuirk = "sinful", _softenedQuirks++>>
-			<<case "liberated">>
-				<<set $slaves[$i].behavioralQuirk = "advocate", _softenedQuirks++>>
-			<</switch>>
-			<<set $slaves[$i].behavioralFlaw = "none", $slaves[$i].devotion -= 10>>
+			<<SoftenBehavioralFlaw $slaves[$i]>>
+			<<set $slaves[$i].devotion -= 10, _softenedQuirks++>>
 		<<elseif ($slaves[$i].sexualFlaw != "none") && ($slaves[$i].sexualQuirk == "none")>>
-			<<switch $slaves[$i].sexualFlaw>>
-			<<case "hates oral">>
-				<<set $slaves[$i].sexualQuirk = "gagfuck queen", _softenedQuirks++>>
-			<<case "hates anal">>
-				<<set $slaves[$i].sexualQuirk = "painal queen", _softenedQuirks++>>
-			<<case "hates penetration">>
-				<<set $slaves[$i].sexualQuirk = "strugglefuck queen", _softenedQuirks++>>
-			<<case "shamefast">>
-				<<set $slaves[$i].sexualQuirk = "tease", _softenedQuirks++>>
-			<<case "idealistic">>
-				<<set $slaves[$i].sexualQuirk = "romantic", _softenedQuirks++>>
-			<<case "repressed">>
-				<<set $slaves[$i].sexualQuirk = "perverted", _softenedQuirks++>>
-			<<case "apathetic">>
-				<<set $slaves[$i].sexualQuirk = "caring", _softenedQuirks++>>
-			<<case "crude">>
-				<<set $slaves[$i].sexualQuirk = "unflinching", _softenedQuirks++>>
-			<<case "judgemental">>
-				<<set $slaves[$i].sexualQuirk = "size queen", _softenedQuirks++>>
-			<</switch>>
-			<<set $slaves[$i].sexualFlaw = "none", $slaves[$i].devotion -= 10>>
+			<<SoftenSexualFlaw $slaves[$i]>>
+			<<set $slaves[$i].devotion -= 10, _softenedQuirks++>>
 		<</if>>
 	<</if>>
 	<<set $slaves[$i].devotion += _devBonus, $slaves[$i].trust -= _trustMalus>>
@@ -260,6 +264,7 @@
 		<</if>>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA stay confined">>
 		<br>&nbsp;&nbsp;&nbsp;
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -270,6 +275,7 @@
 		<<silently>>
 		<<include "SA chooses own job">>
 		<<include "SA stay confined">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>

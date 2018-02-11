@@ -1,26 +1,34 @@
 #!/bin/bash
 
 # Find and insert current commit
-COMMIT=$(git rev-list HEAD --count)
-sed -i "s/COMMIT/$COMMIT/" ./src/init/storyInit.tw
+COMMIT=$(git rev-parse --short HEAD)
+sed -Ei "s/build .releaseID/\0 commit $COMMIT/" src/gui/mainMenu/AlphaDisclaimer.tw
 
 
 # Run sanity check.
 ./sanityCheck
 
-HASH=`git log -n1 |grep commit | sed 's/commit //'`
-
-if [ $(uname -m) = "x86_64" ]
+ARCH="$(uname -m)"
+if [ "$ARCH" = "x86_64" ]
 then
 	echo "x64 arch"
 	./devTools/tweeGo/tweego_nix64 -o bin/FC_pregmod.html src/
-else
+elif echo "$ARCH" | grep -Ee '86$' > /dev/null
+then
 	echo "x86 arch"
 	./devTools/tweeGo/tweego_nix86 -o bin/FC_pregmod.html src/
+elif echo "$ARCH" | grep -Ee '^arm' > /dev/null
+then
+	echo "arm arch"
+	# tweego doesn't provide arm binaries so you have to build it yourself
+	export TWEEGO_PATH=devTools/tweeGo/storyFormats
+	tweego -o bin/FC_pregmod.html src/
+else
+	exit 2
 fi
 
 #Make the output prettier, replacing \t with a tab and \n with a newline
 sed -i -e '/^.*<div id="store-area".*$/s/\\t/\t/g' -e '/^.*<div id="store-area".*$/s/\\n/\n/g'  bin/FC_pregmod.html
 
-# Revert ./src/init/storyInit.tw for next compilation
-git checkout -- ./src/init/storyInit.tw
+# Revert AlphaDisclaimer for next compilation
+git checkout -- src/gui/mainMenu/AlphaDisclaimer.tw

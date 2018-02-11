@@ -27,9 +27,14 @@
 	<<if $PC.pregSource < 1>>
 		<<set $activeSlave.slaveName = "Your daughter">>
 		<<set $activeSlave.mother = -1>>
-		<<set $activeSlave.father = $missingParentID>>
-		<<set $missingParentID-->>
-		<<set $activeSlave.nationality = "Stateless">>
+		<<if $PC.pregSource != -6>>
+			<<set $activeSlave.father = $missingParentID>>
+			<<set $missingParentID-->>
+			<<set $activeSlave.nationality = "Stateless">>
+		<<else>>
+			<<set $activeSlave.father = -1>>
+			<<set $activeSlave.nationality = $PC.nationality>>
+		<</if>>
 		<<if $PC.pregSource == -2 && $arcologies[0].FSSupremacist != "unset">>
 			<<set $activeSlave.race = either($PC.race, $arcologies[0].FSSubjugationistRace, $arcologies[0].FSSubjugationistRace)>>
 			<<if $PC.race != $arcologies[0].FSSubjugationistRace>>
@@ -153,9 +158,14 @@
 	<<if $PC.pregSource < 1>>
 		<<set $activeSlave.slaveName = "Your son">>
 		<<set $activeSlave.mother = -1>>
-		<<set $activeSlave.father = $missingParentID>>
-		<<set $missingParentID-->>
-		<<set $activeSlave.nationality = "Stateless">>
+		<<if $PC.pregSource != -6>>
+			<<set $activeSlave.father = $missingParentID>>
+			<<set $missingParentID-->>
+			<<set $activeSlave.nationality = "Stateless">>
+		<<else>>
+			<<set $activeSlave.father = -1>>
+			<<set $activeSlave.nationality = $PC.nationality>>
+		<</if>>
 		<<if $PC.pregSource == -2 && $arcologies[0].FSSupremacist != "unset">>
 			<<set $activeSlave.race = either($PC.race, $arcologies[0].FSSubjugationistRace, $arcologies[0].FSSubjugationistRace)>>
 			<<if $PC.race != $arcologies[0].FSSubjugationistRace>>
@@ -288,9 +298,10 @@
 	<</if>>
 	<<set $activeSlave.mother = $mergeMom.ID>>
 	<<if $mom.pregSource > 0>>
+		<<set _currentFather = $slaves.find(function(s) { return s.ID == $mom.pregSource; })>>
 		<<set $activeSlave.father = $mergeDad.ID>>
-		<<set $activeSlave.slaveName = String($mom.slaveName + " and " + $mergeDad.slaveName + "'s child")>>
-		<<if def $mom.slaveSurname && $mom.slaveSurname != "">><<set $activeSlave.slaveSurname = $mom.slaveSurname>><<elseif def $mergeDad.slaveSurname && $mergeDad.slaveSurname != "">><<set $activeSlave.slaveSurname = $mergeDad.slaveSurname>><<else>><<set $activeSlave.slaveSurname = 0>><</if>>
+		<<set $activeSlave.slaveName = String($mom.slaveName + " and " + _currentFather.slaveName + "'s child")>>
+		<<if def $mom.slaveSurname && $mom.slaveSurname != "">><<set $activeSlave.slaveSurname = $mom.slaveSurname>><<elseif def _currentFather.slaveSurname && _currentFather.slaveSurname != "">><<set $activeSlave.slaveSurname = _currentFather.slaveSurname>><<else>><<set $activeSlave.slaveSurname = 0>><</if>>
 	<<elseif $mom.pregSource == -1>>
 		<<set $activeSlave.father = -1>>
 		<<set $activeSlave.slaveName = String($mom.slaveName + " and my child")>>
@@ -352,14 +363,6 @@
 	<</if>>
 	<<if $mergeMom.origHColor == $mergeDad.origHColor>>
 		<<set $activeSlave.hColor = $mergeMom.origHColor>>
-	<<elseif $mergeMom.origHColor == "black">>
-		<<set $activeSlave.hColor = $mergeMom.origHColor>>
-	<<elseif $mergeDad.origHColor == "black">>
-		<<set $activeSlave.hColor = $mergeDad.origHColor>>
-	<<elseif $mergeMom.origHColor == "brown">>
-		<<set $activeSlave.hColor = $mergeMom.origHColor>>
-	<<elseif $mergeDad.origHColor == "brown">>
-		<<set $activeSlave.hColor = $mergeDad.origHColor>>
 	<<elseif $mergeMom.origHColor == "white">>
 		<<if random(1,100) == 69>>
 			<<set $activeSlave.hColor = $mergeMom.origHColor>>
@@ -372,6 +375,14 @@
 		<<else>>
 			<<set $activeSlave.hColor = $mergeMom.origHColor>>
 		<</if>>
+	<<elseif $mergeMom.origHColor == "black">>
+		<<set $activeSlave.hColor = either($mergeMom.origHColor, $mergeMom.origHColor, $mergeMom.origHColor, $mergeMom.origHColor, $mergeMom.origHColor, $mergeMom.origHColor, $mergeMom.origHColor, $mergeDad.origHColor)>>
+	<<elseif $mergeDad.origHColor == "black">>
+		<<set $activeSlave.hColor = either($mergeDad.origHColor, $mergeDad.origHColor, $mergeDad.origHColor, $mergeDad.origHColor, $mergeDad.origHColor, $mergeDad.origHColor, $mergeDad.origHColor, $mergeMom.origHColor)>>
+	<<elseif $mergeMom.origHColor == "brown">>
+		<<set $activeSlave.hColor = either($mergeMom.origHColor, $mergeMom.origHColor, $mergeMom.origHColor, $mergeDad.origHColor)>>
+	<<elseif $mergeDad.origHColor == "brown">>
+		<<set $activeSlave.hColor = either($mergeDad.origHColor, $mergeDad.origHColor, $mergeDad.origHColor, $mergeMom.origHColor)>>
 	<<else>>
 		<<set $activeSlave.hColor = either($mergeMom.origHColor, $mergeDad.origHColor)>>
 	<</if>>
@@ -454,7 +465,7 @@
 		<<set $activeSlave.face =random(20,100)>>
 		<<set $activeSlave.intelligence = either(1, 2, 2, 2, 2, 3, 3)>>
 	<</if>>
-<<elseif $activeSlave.father == -1 && $mom > 0>>
+<<elseif $activeSlave.father == -1>>
 	<<if $mom.breedingMark == 1>>
 		<<set $activeSlave.face = random(60,100)>>
 		<<set $activeSlave.intelligence = either(2, 2, 2, 2, 3, 3)>>
@@ -471,11 +482,11 @@
 		<</if>>
 		<<if $inbreeding == 1>>
 			<<if $activeSlave.face > -100 && random(1,100) > 60>>
-				<<set $activeSlave.face -= random(2,40)>>
+				<<set $activeSlave.face -= random(2,20)>>
 			<</if>>
-			<<if $activeSlave.intelligence > -3 && random(1,100) < 60>>
+			<<if $activeSlave.intelligence > -3 && random(1,100) < 40>>
 				<<set $activeSlave.intelligence -= 1>>
-				<<if $activeSlave.intelligence > -3 && random(1,100) < 30>>
+				<<if $activeSlave.intelligence > -3 && random(1,100) < 20>>
 					<<set $activeSlave.intelligence -= 1>>
 				<</if>>
 			<</if>>
@@ -497,12 +508,12 @@
 		<<set $activeSlave.intelligence = $mergeMom.intelligence>>
 	<</if>>
 	<<if $inbreeding == 1>>
-		<<if $activeSlave.face > -100 && random(1,100) < 70>>
-			<<set $activeSlave.face -= random(5,40)>>
+		<<if $activeSlave.face > -100 && random(1,100) < 50>>
+			<<set $activeSlave.face -= random(5,20)>>
 		<</if>>
-		<<if $activeSlave.intelligence > -3 && random(1,100) < 90>>
+		<<if $activeSlave.intelligence > -3 && random(1,100) < 50>>
 			<<set $activeSlave.intelligence -= 1>>
-				<<if $activeSlave.intelligence > -3 && random(1,100) < 60>>
+				<<if $activeSlave.intelligence > -3 && random(1,100) < 30>>
 					<<set $activeSlave.intelligence -= 1>>
 				<</if>>
 		<</if>>
@@ -520,7 +531,7 @@
 <<set $activeSlave.hipsImplant = 0>>
 <<set $activeSlave.buttImplant = 0>>
 <<set $activeSlave.buttImplantType = 0>>
-<<set $activeSlave.lipsImplants = 0>>
+<<set $activeSlave.lipsImplant = 0>>
 <<set $activeSlave.lipsPiercing = 0>>
 <<set $activeSlave.tonguePiercing = 0>>
 <<set $activeSlave.vaginaPiercing = 0>>
@@ -562,10 +573,15 @@
 <<if $activeSlave.underArmHStyle != "hairless">>
 	<<set $activeSlave.underArmHStyle = either("bushy", "bushy", "bushy", "bushy", "bushy", "bushy", "bushy", "bushy", "bushy", "bushy", "bushy", "bushy", "hairless")>>
 <</if>>
+<<if $activeSlave.fetish == "mindbroken">>
+	<<set $activeSlave.fetish = "none">>
+<</if>>
 <<if $incubatorImprintSetting == "terror">>
-	<<set $activeSlave.origin = "Shortly after birth, she was sealed in an aging tank until she was of age. She knows only of the terror that awaits her should she not obey her master.">>
+	<<set $activeSlave.origin = "She was conditioned from birth into mindless terror in an aging tank.">>
+	<<set $activeSlave.tankBaby = 2>>
 <<else>>
-	<<set $activeSlave.origin = "Shortly after birth, she was sealed in an aging tank until she was of age. She knows nothing of the world outside of what the tank imprinted her with.">>
+	<<set $activeSlave.origin = "She was conditioned from birth into trusting obedience in an aging tank.">>
+	<<set $activeSlave.tankBaby = 1>>
 <</if>>
 <<set $activeSlave.career = "a slave since birth">>
 <<set $activeSlave.birthName =  $activeSlave.slaveName>>

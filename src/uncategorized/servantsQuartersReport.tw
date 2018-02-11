@@ -40,6 +40,9 @@
 			<<set _FLsFetish = 2, $slaves[_FLs].fetishStrength += 4>>
 		<</if>>
 	<</if>>
+	<<if $slaves[_FLs].livingRules != "luxurious">>
+		<<set $slaves[_FLs].livingRules = "luxurious">>
+	<</if>>
 	<<set $Stewardess = $slaves[_FLs]>>
 	&nbsp;&nbsp;&nbsp;&nbsp;<<SlaveFullName $Stewardess>> is serving as your Stewardess.<<if $Stewardess.relationship == -3 && $Stewardess.devotion > 50>> She does her best to be your perfect lovely housewife.<</if>>
 	<<if ($stewardessImpregnates == 1) && (_DL > 0) && (canPenetrate($Stewardess)) && $Stewardess.pubertyXY == 1>>
@@ -50,6 +53,7 @@
 				<<KnockMeUp $slaves[$i] 100 2 $Stewardess.ID>>
 				<<set $slaves[$i].preg = 1, $slaves[$i].pregKnown = 1, $slaves[$i].pregWeek = 1, $slaves[$i].pregSource = $Stewardess.ID>><<SetPregType $slaves[$i]>>
 				<<set $slaves[$i].vagina = Math.clamp($slaves[$i].vagina,1,10), _stewardessImpregnated++, $slaves[$i].vaginalCount += 10, $vaginalTotal += 10>>
+				<<set $slaves[$i].need = 0>>
 			<</if>>
 		<</for>>
 		<<if _stewardessImpregnated > 0>>
@@ -64,6 +68,7 @@
 				<<set $slaves[_FLs].devotion++>>
 			<</if>>
 			<<set _Tmult = (_stewardessImpregnated * 10), $slaves[_FLs].penetrativeCount += _Tmult, $Stewardess.penetrativeCount += _Tmult, $penetrativeTotal += _Tmult>>
+			<<set $slaves[_FLs].need = 0>>
 		<</if>>
 	<</if>>
 	<<if _FLsFetish == 1>>
@@ -83,6 +88,11 @@
 	<<if setup.stewardessCareers.includes($Stewardess.career)>>
 		<<set $stewardessBonus += 25>>
 		She has applicable experience with daily sums and organizational trifles from her life before she was a slave.
+	<<elseif $Stewardess.skillST >= $masteredXP>>
+		<<set $stewardessBonus += 25>>
+		She has applicable experience with daily sums and organizational trifles from working for you.
+	<<else>>
+		<<set $slaves[_FLs].skillST += random(1,($Stewardess.intelligence+4)*2)>>
 	<</if>>
 	<<if ($Stewardess.actualAge > 35)>>
 		<<set $stewardessBonus += 25>>
@@ -120,15 +130,18 @@
 			<<elseif $slaves[$i].ID == $Stewardess.father>>
 				She pays special attention to her father, $slaves[$i].slaveName, making sure she doesn't slack off just because they are related.
 				<<set $slaves[$i].trust++>>
-			<<elseif areSisters($slaves[$i], $Stewardess) == 1>>
-				She pays special attention to her twin sister, $slaves[$i].slaveName, making sure she doesn't slack off just because they are related.
-				<<set $slaves[$i].trust++>>
-			<<elseif areSisters($slaves[$i], $Stewardess) == 2>>
-				She pays special attention to her sister, $slaves[$i].slaveName, making sure she doesn't slack off just because they are related.
-				<<set $slaves[$i].trust++>>
-			<<elseif areSisters($slaves[$i], $Stewardess) == 3>>
-				She pays special attention to her half-sister, $slaves[$i].slaveName, making sure she doesn't slack off just because they are related.
-				<<set $slaves[$i].trust++>>
+			<<else>>
+				<<switch areSisters($slaves[$i], $Stewardess)>>
+				<<case 1>>
+					She pays special attention to her twin sister, $slaves[$i].slaveName, making sure she doesn't slack off just because they are related.
+					<<set $slaves[$i].trust++>>
+				<<case 2>>
+					She pays special attention to her sister, $slaves[$i].slaveName, making sure she doesn't slack off just because they are related.
+					<<set $slaves[$i].trust++>>
+				<<case 3>>
+					She pays special attention to her half-sister, $slaves[$i].slaveName, making sure she doesn't slack off just because they are related.
+					<<set $slaves[$i].trust++>>
+				<</switch>>
 			<</if>>
 		<<elseif $Stewardess.relationTarget == $slaves[$i].ID && $familyTesting == 0>>
 			She pays special attention to her $slaves[$i].relation, $slaves[$i].slaveName, making sure she doesn't slack off just because they are related.
@@ -198,6 +211,7 @@
 		''__@@.pink;<<SlaveFullName $slaves[_FLs]>>@@__'' is serving as your Stewardess.
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -207,6 +221,7 @@
 	<<else>>
 		<<silently>>
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -243,6 +258,12 @@
 	<<elseif ($slaves[$i].health < 90)>>
 		<<set $slaves[$i].health += 3>>
 	<</if>>
+	<<switch $servantsQuartersDecoration>>
+	<<case "Roman Revivalist" "Aztec Revivalist" "Chinese Revivalist" "Chattel Religionist" "Edo Revivalist" "Supremacist" "Subjugationist" "Degradationist" "Arabian Revivalist" "Egyptian Revivalist">>
+		<<set $slaves[$i].livingRules = "spare">>
+	<<default>>
+		<<set $slaves[$i].livingRules = "normal">>
+	<</switch>>
 	<<if $showEWD != 0>>
 		<br><br>
 		/* 000-250-006 */
@@ -265,6 +286,7 @@
 		<</if>>
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -280,6 +302,7 @@
 			<<set _SQMilk += $milk, _SQMilkSale += $milkSale>>
 		<</if>>
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -293,7 +316,7 @@
 <<if _SQMilk > 0 || $servantsQuartersDecoration != "standard">>
 	<br><br>&nbsp;&nbsp;&nbsp;&nbsp;
 	<<if _SQMilk > 0>>
-		Since your lactating servants spend most of their time working in the penthouse, they use the milkers there, giving _SQMilk liters of milk over the week, which is sold for @@.yellowgreen;¤_SQMilkSale.@@
+		Since your lactating servants spend most of their time working in the penthouse, they use the milkers there, giving _SQMilk liters of milk over the week, which is sold for @@.yellowgreen;<<print cashFormat(_SQMilkSale)>>.@@
 	<</if>>
 <</if>>
 

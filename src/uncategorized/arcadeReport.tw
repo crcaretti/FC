@@ -1,7 +1,13 @@
 :: Arcade Report [nobr]
 
+<span id="arcadestats">
+</span>
+
 <<SlaveSort $ArcadeiIDs>>
 <<set _DL = $ArcadeiIDs.length, $arcadeSlaves = _DL, _SL = $slaves.length, _cockmilked = 0, _milked = 0, _milkprofits = 0, _profits = 0, _oldCash = 0, $boobsImplanted = 0, $prostatesImplanted = 0, $vasectomiesUndone = 0>>
+
+<!-- Statistics gathering -->
+<<set $facility = $facility || {}, $facility.arcade = initFacilityStatistics($facility.arcade)>>
 
 &nbsp;&nbsp;&nbsp;&nbsp;<<if (_DL > 1)>>''There are _DL inmates confined in $arcadeName.''<<else>>''There is one inmate confined in $arcadeName.''<</if>>
 <<if ($arcologies[0].FSDegradationist > 20)>>
@@ -34,7 +40,7 @@
 		<</if>>
 		<<set $slaves[$i].aphrodisiacs = 2, $slaves[$i].devotion -= 5, $slaves[$i].trust -= 10>>
 	<<elseif ($arcadeUpgradeCollectors > 0)>>
-		<<if ($slaves[$i].health > -20)>>
+		<<if ($slaves[$i].health > 20)>>
 			<<set $slaves[$i].health -= 5>>
 		<<elseif ($slaves[$i].health > -50)>>
 			<<set $slaves[$i].health -= 3>>
@@ -114,10 +120,12 @@
 	<</if>>
 	<<if ($slaves[$i].inflation > 0)>>
 		<<set $slaves[$i].inflation = 0, $slaves[$i].inflationType = "none", $slaves[$i].inflationMethod = 0, $slaves[$i].milkSource = 0>>
+		<<SetBellySize $slaves[$i]>>
 	<</if>>
 	<<if $showEWD != 0>>
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA drugs">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA relationships">>
@@ -126,6 +134,7 @@
 	<<else>>
 		<<silently>>
 		<<include "SA drugs">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA relationships">>
@@ -149,7 +158,7 @@
 		<<else>>
 			$vasectomiesUndone
 		<</if>>
-		of them had severed vas deferens, so they were reattached to allow sperm through, costing @@.red;¤<<print $surgeryCost*$vasectomiesUndone>>.@@
+		of them had severed vas deferens, so they were reattached to allow sperm through, costing @@.red;<<print cashFormat($surgeryCost*$vasectomiesUndone)>>.@@
 	<</if>>
 	<<if $boobsImplanted>>
 		<<if $boobsImplanted == 1>>
@@ -157,22 +166,22 @@
 		<<else>>
 			$boobsImplanted of them were not lactating, so they were 
 		<</if>>
-		implanted with long-acting lactation inducing drugs, costing @@.red;¤<<print $surgeryCost*$boobsImplanted>>.@@
+		implanted with long-acting lactation inducing drugs, costing @@.red;<<print cashFormat($surgeryCost*$boobsImplanted)>>.@@
 	<</if>>
 	<<if $prostatesImplanted>>
 		<<if $prostatesImplanted == 1>>
-			One of them was not producing the maxiumum possible amout of precum, so she was
+			One of them was not producing the maximum possible amount of precum, so she was
 		<<else>>
-			$prostatesImplanted of them were not producing the maxiumum possible amout of precum, so they were 
+			$prostatesImplanted of them were not producing the maximum possible amount of precum, so they were 
 		<</if>>
-		implanted with long-acting prostate stimulation drugs, costing @@.red;¤<<print $surgeryCost*$prostatesImplanted>>.@@
+		implanted with long-acting prostate stimulation drugs, costing @@.red;<<print cashFormat($surgeryCost*$prostatesImplanted)>>.@@
 	<</if>>
 	<<if _cockmilked == 1>>
 		One of them retains testicles and is brutally cockmilked as she is used.
 	<<elseif _cockmilked > 1>>
 		_cockmilked of them retain testicles and are brutally cockmilked as they are used.
 	<</if>>
-	The arcade makes you @@.yellowgreen;¤_profits@@ from selling the inmates' holes<<if ($arcadeUpgradeCollectors > 0)>> and @@.yellowgreen;¤_milkprofits@@ from selling the fluids they produced<</if>> this week.
+	The arcade makes you @@.yellowgreen;<<print cashFormat(_profits)>>@@ from selling the inmates' holes<<if ($arcadeUpgradeCollectors > 0)>> and @@.yellowgreen;<<print cashFormat(_milkprofits)>>@@ from selling the fluids they produced<</if>> this week.
 	<<if ($arcologies[0].FSDegradationist > 20)>>
 	<<elseif ($arcologies[0].FSPaternalist > 20)>>
 		<<set $repGain -= Math.trunc(_profits/20)>>
@@ -185,19 +194,21 @@
 	<<set $activeSlave = 0, _Age = -1, _FD = -1, _MB = -1, _Con = -1>>
 	<<for _dI = 0; _dI < _DL; _dI++>>
 		<<set $i = $slaveIndices[$ArcadeiIDs[_dI]]>>
-		<<if ($slaves[$i].fetish == "mindbroken")>>
-			<<if ($slaves[$i].fuckdoll == 0)>>
-				<<if ($slaves[$i].physicalAge > 35)>>
-					<<set _Age = $i>>
-					<<break>>
-				<<elseif _FD == -1>>
-					<<set _FD = $i>>
+		<<if $slaves[$i].sentence == 0>> /* lets not convert slaves we are punishing into fuckdolls */
+			<<if ($slaves[$i].fetish == "mindbroken")>>
+				<<if ($slaves[$i].fuckdoll == 0)>>
+					<<if ($slaves[$i].physicalAge > 35)>>
+						<<set _Age = $i>>
+						<<break>>
+					<<elseif _FD == -1>>
+						<<set _FD = $i>>
+					<</if>>
+				<<elseif _MB == -1>>
+					<<set _MB = $i>>
 				<</if>>
-			<<elseif _MB == -1>>
-				<<set _MB = $i>>
+			<<elseif _Con == -1>>
+				<<set _Con = $i>>
 			<</if>>
-		<<elseif _Con == -1>>
-			<<set _Con = $i>>
 		<</if>>
 	<</for>>
 	<<if _Age > -1>>
@@ -217,5 +228,31 @@
 <</if>>
 
 <<if _DL > 0>>
+	<!-- Record statistics gathering -->
+	<<script>>
+		var b = State.variables.facility.arcade;
+		b.whoreIncome = 0;
+		b.customers = 0;
+		b.whoreCosts = 0;
+		b.rep = 0;
+		for(var si of b.income.values()) {
+			b.whoreIncome += si.income;
+			b.customers += si.customers;
+			b.whoreCosts += si.cost;
+			b.rep += si.rep;
+		}
+		b.maintenance = State.variables.arcade * State.variables.facilityCost * (0.5 + 0.2 * State.variables.arcadeUpgradeInjectors + 0.2 * State.variables.arcadeUpgradeCollectors);
+		b.totalIncome = b.whoreIncome;
+		b.totalExpenses = b.whoreCosts + b.maintenance;
+		b.profit = b.totalIncome - b.totalExpenses;
+	<</script>>
+
+	<!-- Statistics output -->
+	<<ArcadeStatistics 0>>
+	<<timed 50ms>>
+		<<replace #arcadestats>>
+			<<ArcadeStatistics 1>>
+		<</replace>>
+	<</timed>>
 	<br><br>
 <</if>>

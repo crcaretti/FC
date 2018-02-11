@@ -1,0 +1,214 @@
+:: riotControlCenter [nobr]
+
+<<set $nextButton = "Back to Arcology Management", $nextLink = "Manage Arcology", $returnTo = "Manage Arcology">>
+
+Riot Control Center
+<hr>
+
+The riot control center opens its guarded doors to you. The great chamber inside is dominated by massive screens filled with vital information and propaganda being tested.
+<br>
+<br>
+<<if $tension <= 33>>
+	Tensions in the arcology are low. Political and ideological opposition against the arcology owner is almost unheard of.
+<<elseif $tension <= 66>>
+	Tensions in the arcology are rising, political and ideological opposition against the arcology owner are becoming a part of the daily life of the arcology.
+<<else>>
+	Tensions are high. Opposition to the arcology owner is a sentiment shared by many and armed resistance is on the rise.
+<</if>>
+<br>
+<<if $riotUpgrades.freeMedia == 0>>
+	[[Provide free media access in all the arcology|riotControlCenter][$cash -= Math.trunc(5000*$upgradeMultiplierArcology), $riotUpgrades.freeMedia = 1, $riotUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(5000*$upgradeMultiplierArcology))>>. Will slowly lower tensions in the arcology, but will incur in upkeep costs.//
+<<else>>
+	You are providing free access to many mass media in the arcology.
+	<<if $riotUpgrades.freeMedia < 5>>
+		<<link "Invest more resources in the free media project">>
+			<<set $riotUpgrades.freeMedia += 1>>
+			<<set $cash -= 5000 * $upgradeMultiplierArcology * ($riotUpgrades.freeMedia + 1)>>
+			<<set $riotUpkeep += $upgradeUpkeep>>
+			<<goto "riotControlCenter">>
+		<</link>>
+		<br>Invest more resources into the project to increase its effectiveness.
+		<br>//Costs <<print cashFormat(Math.trunc(5000 * $upgradeMultiplierArcology * ($riotUpgrades.freeMedia + 1)))>>. Will accelerate the tension decay, but will increase upkeep costs.//
+	<<else>>
+		You upgraded your free media scheme to its limits.
+	<</if>>
+<</if>>
+<br>
+<br>
+<<if $slaveProgress <= 25>>
+	There is very low unrest between slaves in the arcology. The chances of a rebellion igniting are extremely low.
+<<elseif $slaveProgress <= 50>>
+	There is some unrest between the slaves. No major movement is forming yet, but it might be time to consider preventive measures.
+<<elseif $slaveProgress <= 75>>
+	Unrest is getting high between the slaves of the arcology. Preventive measures are necessary if we want to prevent a violent rebellion.
+<<else>>
+	Unrest is extremely high between slaves. The chances of a rebellion happening in the near future are extremely high.
+<</if>>
+<br>
+<<if $citizenProgress <= 25>>
+	There is very low unrest between the citizens of the arcology. The chances of a rebellion igniting are extremely low.
+<<elseif $citizenProgress <= 50>>
+	There is some unrest between the citizens. No major movement is forming yet, but it might be time to consider preventive measures.
+<<elseif $citizenProgress <= 75>>
+	Unrest is getting high between the citizens of the arcology. Preventive measures are necessary if we want to prevent a violent rebellion.
+<<else>>
+	Unrest is extremely high between citizens. The chances of a rebellion happening in the near future are extremely high.
+<</if>>
+<br>
+<br>
+<<if $riotUpgrades.rapidUnit == 0>>
+	[[Create rapid deployment riot units|riotControlCenter][$cash -= Math.trunc(7500*$upgradeMultiplierArcology), $riotUpgrades.rapidUnit = 1, $riotUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(7500*$upgradeMultiplierArcology))>>. Will allow spending authority or reputation to lower the progress of rebellions.//
+<<else>>
+	You created a rapid deployment riot unit.
+	<<if $riotUpgrades.rapidUnit < 5>>
+		<<link "Invest more resources in the rapid deployment unit">>
+			<<set $riotUpgrades.rapidUnit += 1>>
+			<<set $cash -= 5000 * $upgradeMultiplierArcology * ($riotUpgrades.rapidUnit + 1)>>
+			<<set $riotUpkeep += $upgradeUpkeep>>
+			<<goto "riotControlCenter">>
+		<</link>>
+		<br>Invest more resources into the project to increase its effectiveness.
+		<br>//Costs <<print cashFormat(Math.trunc(5000 * $upgradeMultiplierArcology * ($riotUpgrades.rapidUnit + 1)))>>. Will lower action costs.//
+	<<else>>
+		<br>You upgraded your rapid deployment unit to its limits.
+	<</if>>
+	<<if $riotUpgrades.rapidUnitSpeed < 2>>
+		<<link "Enhance the internal informants network">>
+			<<set $riotUpgrades.rapidUnitSpeed += 1>>
+			<<set $cash -= 5000 * $upgradeMultiplierArcology * ($riotUpgrades.rapidUnitSpeed + 1)>>
+			<<set $riotUpkeep += $upgradeUpkeep>>
+			<<goto "riotControlCenter">>
+		<</link>>
+		<br>Invest more resources into the effectiveness of the informants network.
+		<br>//Costs <<print cashFormat(Math.trunc(5000 * $upgradeMultiplierArcology * ($riotUpgrades.rapidUnitSpeed + 1)))>>. Will reduce cooldown of the rapid deployment riot unit.//
+	<<else>>
+		<br>You enhanced your informants network to its limits.
+	<</if>>
+	<br>
+	<br>You can send out the squad to slow down the progress of hostile groups within the arcology:
+	 <<link "spend authority">>
+		<<set $riotUpgrades.rapidUnitCost = 0>>
+		<<goto "riotControlCenter">>
+	<</link>> |
+	<<link "spend reputation">>
+		<<set $riotUpgrades.rapidUnitCost = 1>>
+		<<goto "riotControlCenter">>
+	<</link>>
+	<br>
+	<<if $riotUpgrades.rapidUnitCost == 0>>
+		Your authority will be leveraged to suppress the rebels.
+	<<else>>
+		Your reputation will be leveraged to suppress the rebels.
+	<</if>>
+	<br>
+	<span id="result">
+		<<if $sentUnitCooldown == 0>>
+			<br><<link "Deploy the unit against slaves rebel leaders">>
+				<<if $riotUpgrades.rapidUnitCost == 0>>
+					<<set $authority -= 1000 + 50 * $riotUpgrades.rapidUnit>>
+				<<else>>
+					<<set $reputation -= 1000 + 50 * $riotUpgrades.rapidUnit>>
+				<</if>>
+				<<set _change = random(15) + random(1,2) * $riotUpgrades.rapidUnit>>
+				<<set $slaveProgress = Math.clamp($slaveProgress - _change,0,100)>>
+				<<set $sentUnitCooldown = 3 - $riotUpgrades.rapidUnitSpeed>>
+				<<replace "#result">>
+					Slave rebellion progress set back by <<print _change>>%.
+					The unit will be able to deployed again in $sentUnitCooldown weeks.
+				<</replace>>
+			<</link>>
+			<br><<link "Deploy the unit against citizens rebel leaders">>
+				<<if $riotUpgrades.rapidUnitCost == 0>>
+					<<set $authority -= 1000 + 50 * $riotUpgrades.rapidUnit>>
+				<<else>>
+					<<set $reputation -= 1000 + 50 * $riotUpgrades.rapidUnit>>
+				<</if>>
+				<<set _change = random(15) + random(1,2) * $riotUpgrades.rapidUnit>>
+				<<set $citizenProgress = Math.clamp($citizenProgress - _change,0,100)>>
+				<<set $sentUnitCooldown = 3 - $riotUpgrades.rapidUnitSpeed>>
+				<<replace "#result">>
+					Citizen rebellion progress set back by <<print _change>>%.
+					The unit will be able to deployed again in $sentUnitCooldown weeks.
+				<</replace>>
+			<</link>>
+		<<else>>
+			<br>The unit cannot be deployed again for $sentUnitCooldown weeks.
+		<</if>>
+	</span>
+<</if>>
+<br>
+<br>
+<<if $brainImplant < 106>>
+	<<if $brainImplantProject == 0>>
+		<<link "Start secretly installing brain implants in your citizens and resident slaves">>
+			<<set $brainImplantProject = 1>>
+			<<set $brainImplant = 0>>
+			<<set $riotUpkeep += 5000>>
+			<<goto "riotControlCenter">>
+		<</link>>
+		<br>//Will take weeks of work and will cost 10000 each, but once finished rebellions will progress a lot slower.//
+	<<elseif $brainImplantProject < 5>>
+		<<link "Invest more resources in the brain implant project">>
+			<<set $brainImplantProject += 1>>
+			<<set $cash -= 50000 * $upgradeMultiplierArcology * $brainImplantProject>>
+			<<set $riotUpkeep += $upgradeUpkeep * 100>>
+			<<goto "riotControlCenter">>
+		<</link>>
+		<br>Invest more resources into the project to increase its speed.
+		<br>//Costs <<print cashFormat(Math.trunc(50000 * $upgradeMultiplierArcology * $brainImplantProject))>>. Will shorten the time required to complete the project.//
+	<<else>>
+		You sped up the project to its maximum.
+	<</if>>
+	<<if $brainImplant != -1>>
+		<br><br>The great brain implant project is underway. Estimated time to completion: <<print Math.trunc((100 - $brainImplant) / $brainImplantProject)>>
+	<</if>>
+<<else>>
+	The great brain implant project is completed, rebellions against you will be extremely difficult to organize.
+<</if>>
+<br>
+<br>
+<<if $advancedRiotEquip == 0>>
+	<<link "Develop advanced anti-riot equipment">>
+		<<set $advancedRiotEquip = 1>>
+		<<set $cash -= 30000>>
+		<<goto "riotControlCenter">>
+	<</link>>
+	<br>//Costs <<print cashFormat(30000)>>. Will allow the selection of advanced riot equipment in case of a rebellion, which will let your troops fight at full effectiveness while doing reduced collateral damage.//
+<<else>>
+	You developed advanced riot equipment, which allows your troops to fight within the confies of your arcology without the fear of doing major collateral damage.
+<</if>>
+<br>
+<<if $fort.reactor == 0>>
+	<<link "Reinforce the reactor complex">>
+		<<set $fort.reactor = 1>>
+		<<set $cash -= 10000 * $upgradeMultiplierArcology>>
+		<<goto "riotControlCenter">>
+	<</link>>
+	<br>//Costs <<print cashFormat(10000 * $upgradeMultiplierArcology)>>. Will add protection to the reactor building, making it less likely to be damaged and speeding up repairs if our defensive efforts should fail.//
+<<else>>
+	You have installed additional protection layers and redundant systems in the reactor complex.
+<</if>>
+<br>
+<<if $fort.waterway == 0>>
+	<<link "Reinforce the waterways">>
+		<<set $fort.waterway = 1>>
+		<<set $cash -= 10000 * $upgradeMultiplierArcology>>
+		<<goto "riotControlCenter">>
+	<</link>>
+	<br>//Costs <<print cashFormat(10000 * $upgradeMultiplierArcology)>>. Will add protection to the waterways, making it less likely to be damaged and speeding up repairs if our defensive efforts should fail.//
+<<else>>
+	You have installed additional protection layers and redundant systems in the waterways.
+<</if>>
+<br>
+<<if $fort.assistant == 0>>
+	<<link "Reinforce the assistant CPU core">>
+		<<set $fort.assistant = 1>>
+		<<set $cash -= 10000 * $upgradeMultiplierArcology>>
+		<<goto "riotControlCenter">>
+	<</link>>
+	<br>//Costs <<print cashFormat(10000 * $upgradeMultiplierArcology)>>. Will add protection to the assistant CPU core, making it less likely to be damaged and speeding up repairs if our defensive efforts should fail.//
+<<else>>
+	You have installed additional protection layers and redundant systems in the assistant CPU core.
+<</if>>

@@ -1,5 +1,9 @@
 :: SA get milked [nobr]
 
+<!-- Statistics gathering -->
+<<set _incomeStats = getSlaveStatisticData($slaves[$i], $slaves[$i].assignment === Job.DAIRY ? $facility.dairy : undefined)>>
+<<set _incomeStats.milk = 0; _incomeStats.cum = 0; _incomeStats.fluid = 0>>
+
 <<if ndef $slaves[$i].lactationAdaptation>>
 	<<set $slaves[$i].lactationAdaptation = 0>>
 <</if>>
@@ -60,11 +64,11 @@ gets milked this week.
 		However, her breast implants impede milk production.
 	<</if>>
 
-	<<set $hormones = $slaves[$i].hormones>>
-	<<if ($slaves[$i].balls != 0) && ($hormones > -2)>>
+	<<set $hormones = $slaves[$i].hormoneBalance/100>>
+	<<if ($slaves[$i].balls != 0) && ($hormones < -20)>>
 		<<set $hormones -= 1>>
 	<</if>>
-	<<if ($slaves[$i].ovaries != 0) && ($hormones < 2)>>
+	<<if (($slaves[$i].ovaries != 0) || ($slaves[$i].mpreg != 0)) && ($hormones > 20)>>
 		<<set $hormones += 1>>
 	<</if>>
 	<<if ($hormones > 1)>>
@@ -147,18 +151,20 @@ gets milked this week.
 	<<set $milkTotal += $milk>>
 
 	As a result, she produces $milk liters of milk over the week.
+	<<set _incomeStats.milk = $milk>>
 
 	<<if ($arcologies[0].FSPastoralistLaw == 1)>>
-		<<set $milkSale = $milk*(9+Math.trunc($arcologies[0].FSPastoralist/30))>>
-		Since breast milk is $arcologies[0].name's only legal dairy product, she can scarcely be milked fast enough, and she makes @@.yellowgreen;¤$milkSale.@@
+		<<set $milkSale = $milk*(8+Math.trunc($arcologies[0].FSPastoralist/30))>>
+		Since breast milk is $arcologies[0].name's only legal dairy product, she can scarcely be milked fast enough, and she makes @@.yellowgreen;<<print cashFormat($milkSale)>>.@@
 	<<elseif ($arcologies[0].FSPastoralist != "unset")>>
-		<<set $milkSale = $milk*(7+Math.trunc($arcologies[0].FSPastoralist/30))>>
-		Since milk is fast becoming a major part of the $arcologies[0].name's dietary culture, her milk is in demand, and she makes @@.yellowgreen;¤$milkSale.@@
+		<<set $milkSale = $milk*(6+Math.trunc($arcologies[0].FSPastoralist/30))>>
+		Since milk is fast becoming a major part of the $arcologies[0].name's dietary culture, her milk is in demand, and she makes @@.yellowgreen;<<print cashFormat($milkSale)>>.@@
 	<<else>>
-		<<set $milkSale = $milk*8>>
-		Her milk is sold for @@.yellowgreen;¤$milkSale.@@
+		<<set $milkSale = $milk*6>>
+		Her milk is sold for @@.yellowgreen;<<print cashFormat($milkSale)>>.@@
 	<</if>>
 	<<set $cash += $milkSale>>
+	<<set _incomeStats.income += $milkSale>>
 
 	<<if $slaves[$i].fetishKnown>>
 	<<if ($slaves[$i].fetish == "boobs") || ($slaves[$i].energy > 95)>>
@@ -169,7 +175,7 @@ gets milked this week.
 	<</if>>
 
 	<<if $slaves[$i].career == "a dairy cow" && $slaves[$i].fetish != "mindbroken" && $slaves[$i].fuckdoll == 0>>
-		She feels like @@.hotpink;she was made to be milked,@@ @@.aquamarine;not that she'd complain about such a good feeling.@@
+		She feels like @@.hotpink;she was made to be milked,@@ @@.mediumaquamarine;not that she'd complain about such a good feeling.@@
 		<<set $slaves[$i].devotion++, $slaves[$i].trust++>>
 		<<if $slaves[$i].need>><<set $slaves[$i].need = 0>><</if>>
 	<</if>>
@@ -338,7 +344,7 @@ gets milked this week.
 		Her diet is designed for cum production.
 	<</if>>
 
-	<<set $hormones = $slaves[$i].hormones>>
+	<<set $hormones = $slaves[$i].hormoneBalance/50>>
 	<<if $hormones < -1>>
 		Her internal chemistry is perfectly suited to cum production.
 	<<elseif $hormones < 0>>
@@ -405,21 +411,23 @@ gets milked this week.
 	<</if>>
 	<<set $slaves[$i].cum += $cum>>
 	<<set $cumTotal += $cum>>
+	<<set _incomeStats.cum = $cum>>
 
 	<<if ($arcologies[0].FSPastoralist == "unset")>>
-		<<set $seed = ($cum*random(25,35))>>
-		<<if  $slaves[$i].vasectomy == 1>><<set $seed *= 0.2>><<elseif $slaves[$i].prostate == 3>><<set $seed *= 0.5>><</if>>
-		She produces <<print $cum>> deciliters of cum over the week; the fresh ejaculate is sold for @@.yellowgreen;¤<<print $seed>>.@@
+		<<set _cumSale = ($cum*random(15,25))>>
+		<<if  $slaves[$i].vasectomy == 1>><<set _cumSale *= 0.2>><<elseif $slaves[$i].prostate == 3>><<set _cumSale *= 0.5>><</if>>
+		She produces <<print $cum>> deciliters of cum over the week; the fresh ejaculate is sold for @@.yellowgreen;<<print cashFormat(_cumSale)>>.@@
 	<<elseif $arcologies[0].FSPastoralistLaw == 1>>
-		<<set $seed = ($cum*(random(40,50)))>>
-		<<if  $slaves[$i].vasectomy == 1>><<set $seed *= 0.2>><<elseif $slaves[$i].prostate == 3>><<set $seed *= 0.5>><</if>>
-		She produces <<print $cum>> deciliters of cum over the week; the fresh ejaculate, which is in extremely high demand as one of $arcologies[0].name's few legal sources of animal protein, is sold for @@.yellowgreen;¤<<print $seed>>.@@
+		<<set _cumSale = ($cum*(random(20,40)))>>
+		<<if  $slaves[$i].vasectomy == 1>><<set _cumSale *= 0.2>><<elseif $slaves[$i].prostate == 3>><<set _cumSale *= 0.5>><</if>>
+		She produces <<print $cum>> deciliters of cum over the week; the fresh ejaculate, which is in extremely high demand as one of $arcologies[0].name's few legal sources of animal protein, is sold for @@.yellowgreen;<<print cashFormat(_cumSale)>>.@@
 	<<else>>
-		<<set $seed = ($cum*(random(25,35)+Math.trunc($arcologies[0].FSPastoralist/10)))>>
-		<<if  $slaves[$i].vasectomy == 1>><<set $seed *= 0.2>><<elseif $slaves[$i].prostate == 3>><<set $seed *= 0.5>><</if>>
-		She produces <<print $cum>> deciliters of cum over the week; the fresh ejaculate, which is in high demand given the new cultural preference for slave products, is sold for @@.yellowgreen;¤<<print $seed>>.@@
+		<<set _cumSale = ($cum*(random(10,20)+Math.trunc($arcologies[0].FSPastoralist/10)))>>
+		<<if  $slaves[$i].vasectomy == 1>><<set _cumSale *= 0.2>><<elseif $slaves[$i].prostate == 3>><<set _cumSale *= 0.5>><</if>>
+		She produces <<print $cum>> deciliters of cum over the week; the fresh ejaculate, which is in high demand given the new cultural preference for slave products, is sold for @@.yellowgreen;<<print cashFormat(_cumSale)>>.@@
 	<</if>>
-	<<set $cash += $seed>>
+	<<set $cash += _cumSale>>
+	<<set _incomeStats.income += _cumSale>>
 
 	<<if ($slaves[$i].energy > 95)>>
 		Getting her dick constantly milked is almost as good as getting constant blowjobs as far as she's concerned. @@.hotpink;She is happy@@ to have her member receive so much attention.
@@ -431,7 +439,7 @@ gets milked this week.
 		<<set $slaves[$i].need = 0>>
 	<</if>>
 
-	<<if ($slaves[$i].hormones > 0)>>
+	<<if !canAchieveErection($slaves[$i])>>
 		Since she cannot maintain an erection, she requires @@.gold;painful@@ and @@.mediumorchid;degrading@@ anal electrostimulation to produce.
 		<<set $slaves[$i].devotion -= 2>>
 		<<set $slaves[$i].trust -= 2>>
@@ -482,14 +490,16 @@ gets milked this week.
 		Unfortunately, she is frigid and rarely reaches orgasm in spite of the intense automatic stimulation.
 	<</if>>
 	<<set $fluid = Math.clamp(Math.trunc($fluid),1,1000) >>
+	<<set _incomeStats.fluid = $fluid>>
 	<<print $fluid >> deciliters of uncommon ejaculate is gathered during her milkings.
 	<<set $fluidSale = $fluid*random(40,50) >>
 	<<if $arcologies[0].FSPastoralist != "unset" && $arcologies[0].FSPastoralist > 30 >>
 		<<set $fluidSale = Math.trunc($fluidSale*(1 + ($arcologies[0].FSPastoralist-30)/140)) >> /* fully accepted parsoralism gives +50% on the price*/
 		Because of your arcology's cultural preferences, it comes with extra value.
 	<</if>>
-	It is sold for @@.yellowgreen;¤<<print $fluidSale>>.@@
+	It is sold for @@.yellowgreen;<<print cashFormat($fluidSale)>>.@@
 	<<set $cash += $fluidSale>>
+	<<set _incomeStats.income += $fluidSale>>
 <</if>> /* CLOSES FEMALE PROSTATE FLUID GATHERING */
 
 <<if ($slaves[$i].behavioralQuirk == "fitness")>>

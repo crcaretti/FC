@@ -1,4 +1,5 @@
 :: Main [nobr]
+
 <<unset $Flag>>
 <<resetAssignmentFilter>>
 <<if $releaseID >= 1000 || $ver.includes("0.9") || $ver.includes("0.8") || $ver.includes("0.7") || $ver.includes("0.6")>>
@@ -10,6 +11,10 @@
 <<else>>
 	''@@.red;INCOMPATIBLE SAVE WARNING:@@'' your saved game was created using version $ver and you are using later version which New Game Plus cannot reconcile. Please start a new game.
 	<br><br>
+<</if>>
+
+<<if def $organsCompleted>>
+	<<unset $organsCompleted>>
 <</if>>
 
 <<set $currentRule = $defaultRules[0]>>
@@ -31,11 +36,11 @@
 		.map((s, idx) => ({ID: s.ID, idx: idx, name: s.slaveName, assignment: s.assignment}))
 		.filter(s => s.ID === _i).map(s => s.idx + ' - ' + s.name + ' (' + s.assignment + ')').join(', ')>>@@
 <</foreach>>
-<<set _visibleSlaves = $slaves.filter(s => s.assignmentVisible == 1),
+<<set _visibleSlaves = $slaves.filter(s => s.assignmentVisible == 1 && (s.assignment != "be your Head Girl" || $HGSuite != 1) && (s.assignment != "guard you" || $dojo <= 1)),
 	$slavesVisible = _visibleSlaves.length,
 	$dormitoryPopulation = _visibleSlaves.filter(s => s.livingRules != "luxurious").length,
 	$roomsPopulation = $slavesVisible - $dormitoryPopulation - _visibleSlaves.filter(s => s.livingRules == "luxurious" && s.relationship >= 4).length * 0.5,
-	_PA = $slaves.findIndex(s => s.ID == $personalAttention),
+	_PA = (Array.isArray($personalAttention) ? $personalAttention.map(function(x) { return $slaves.find(function(s) { return s.ID == x.ID; }); }) : []),
 	_HG = $slaves.findIndex(s => s.ID == $HeadGirl.ID),
 	_RC = $slaves.findIndex(s => s.ID == $Recruiter.ID),
 	_BG = $slaves.findIndex(s => s.ID == $Bodyguard.ID)>>
@@ -77,7 +82,7 @@
 <</if>>
 
 /* Saves use the first eight printed words to make the "file name", the below line cheats and makes saves here nicer named. */
-@@font-size: 0; $arcologies[0].name, Week $week, $slaves.length Slaves, ¤$cash … … …  @@
+@@font-size: 0; $arcologies[0].name, Week $week, $slaves.length Slaves, <<print cashFormat($cash)>> … … …  @@
 
 <<if $newModelUI == 1>><<DisplayBuilding>><</if>>
 <<if $seeArcology == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<<include "Arcology Description">> | [[Hide|Main][$seeArcology = 0]]<br><</if>>
@@ -107,6 +112,9 @@
 	| //<<link "Re-apply Rules Assistant now (this will only check slaves in the Penthouse)">><<for _i = 0;_i < _SL;_i++>><<if $slaves[_i].assignmentVisible == 1 && $slaves[_i].useRulesAssistant == 1>><<CheckAutoRulesActivate $slaves[_i]>><<DefaultRules $slaves[_i]>><</if>><</for>><<goto "Main">><</link>>//
 <</if>>
 
+/* variables used in "use someone" links*/
+<<set _j = "Back", _k = "AS Dump", _l = "Main">>
+
 
 <<if $useTabs == 0>>
 //<<OptionsSortAsAppearsOnMain>>//
@@ -130,7 +138,7 @@
 			<</if>>
 		<</if>>
 		/*check*/
-		<<if canAchieveErection($slaves[_BG])>>
+		<<if canPenetrate($slaves[_BG])>>
 			| <<print "[[Ride her|FDick][$activeSlave = $slaves["+_BG+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
 		<</if>>
 		<<if canDoAnal($slaves[_BG])>>
@@ -220,7 +228,7 @@
 						<</if>>
 					<</if>>
 						/*check*/
-						<<if canAchieveErection($slaves[_BG])>>
+						<<if canPenetrate($slaves[_BG])>>
 						| <<print "[[Ride her|FDick][$activeSlave = $slaves["+_BG+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
 					<</if>>
 					<<if canDoAnal($slaves[_BG])>>
@@ -280,7 +288,6 @@
 			<</if>>
 			<br>
 			/* Start Italic event text */
-			<<set _j = "Back", _k = "AS Dump", _l = "Main">>
 			<<for $i = 0; $i < _SL; $i++>>
 				<<if ($slaves[$i].assignment == "please you")>>
 					<br><<include "Toychest">> //In the coming week you plan to concentrate on
@@ -298,7 +305,7 @@
 							| <<print "[[Fuck her ass|FAnus][$activeSlave = $slaves["+$i+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
 							<</if>>
 							/*check*/
-							<<if canAchieveErection($slaves[$i])>>
+							<<if canPenetrate($slaves[$i])>>
 							| <<print "[[Ride her|FDick][$activeSlave = $slaves["+$i+"],$nextButton = _j,$nextLink = _k,$returnTo = _l]]">>
 							<</if>>
 							| <<print "[[Abuse her|FAbuse][$activeSlave = $slaves["+$i+"],$nextButton = _j,$nextLink = _k,$returnTo = _l]]">>
@@ -315,7 +322,7 @@
 							| <<print "[[Fuck her ass|FAnus][$activeSlave = $slaves["+$i+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
 							<</if>>
 							/*check*/
-							<<if canAchieveErection($slaves[$i])>>
+							<<if canPenetrate($slaves[$i])>>
 							| <<print "[[Ride her|FDick][$activeSlave = $slaves["+$i+"],$nextButton = _j,$nextLink = _k,$returnTo = _l]]">>
 							<</if>>
 							| <<print "[[Abuse her|FAbuse][$activeSlave = $slaves["+$i+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
@@ -434,6 +441,9 @@
 	</script>
 
 	</body>
+	<<if $positionMainLinks <= 0>>
+		<br><<MainLinks>>
+	<</if>>
 <</if>>
 
 <<else>>
@@ -470,7 +480,7 @@ __''MAIN MENU''__&nbsp;&nbsp;&nbsp;&nbsp;//[[Summary Options]]//
 <<if $assignFilter == 1>>
 <<set $jobTypes = [{title: "Rest", asgn: "rest"}, {title: "Subordinate", asgn: "be a subordinate slave"}, {title: "Whore", asgn: "whore"}, {title: "Public Servant", asgn: "serve the public"}, {title: "Hole", asgn: "work a glory hole"}, {title: "Milking", asgn: "get milked"}, {title: "House Servant", asgn: "be a servant"}, {title: "Fucktoy", asgn: "please you"}, {title: "Confinement", asgn: "stay confined"}, {title: "Classes", asgn: "take classes"}, {title: "Choose own", asgn: "choose her own job"}]>>
 <br>
-<<link Reset>><<set $slaves.map(function(y){y.assignmentVisible = 1})>><<set $slaves.filter(function(x){return x.assignment == "live with your Head Girl" || x.assignment.includes("in the") || x.assignment == "work as a servant" || x.assignment.includes("be the") || x.assignment == "be your agent" || x.assignment == "be your Concubine"}).map(function(y){y.assignmentVisible = 0})>><<replace '#summarylist'>><<include "Slave Summary">><</replace>><</link>>
+<<link Reset>><<resetAssignmentFilter>><<replace '#summarylist'>><<include "Slave Summary">><</replace>><</link>>
 Filter by assignment: | 
 <<for _i = 0; _i < $jobTypes.length; _i++>>	
 	<<set _title = $jobTypes[_i].title>>
@@ -510,7 +520,7 @@ Filter by assignment: |
 			| <<print "[[Fuck her ass|FAnus][$activeSlave = $slaves["+$i+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
 			<</if>>
 			/*check*/
-			<<if canAchieveErection($slaves[$i])>>
+			<<if canPenetrate($slaves[$i])>>
 			| <<print "[[Ride her|FDick][$activeSlave = $slaves["+$i+"],$nextButton = _j,$nextLink = _k,$returnTo = _l]]">>
 			<</if>>
 			| <<print "[[Abuse her|FAbuse][$activeSlave = $slaves["+$i+"],$nextButton = _j,$nextLink = _k,$returnTo = _l]]">>
@@ -527,7 +537,7 @@ Filter by assignment: |
 			| <<print "[[Fuck her ass|FAnus][$activeSlave = $slaves["+$i+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
 			<</if>>
 			/*check*/
-			<<if canAchieveErection($slaves[$i])>>
+			<<if canPenetrate($slaves[$i])>>
 			| <<print "[[Ride her|FDick][$activeSlave = $slaves["+$i+"],$nextButton = _j,$nextLink = _k,$returnTo = _l]]">>
 			<</if>>
 			| <<print "[[Abuse her|FAbuse][$activeSlave = $slaves["+$i+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
@@ -555,7 +565,7 @@ Filter by assignment: |
 		<</if>>
 	<</if>>
 		/*check*/
-		<<if canAchieveErection($slaves[_BG])>>
+		<<if canPenetrate($slaves[_BG])>>
 		| <<print "[[Ride her|FDick][$activeSlave = $slaves["+_BG+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
 	<</if>>
 	<<if canDoAnal($slaves[_BG])>>
@@ -566,7 +576,7 @@ Filter by assignment: |
 
 <</if>> /* closes lowercase_donkey's fuckery */
 
-<<set $activeSlave = Array.random($slaves)>>
-<<if $activeSlave &&  ($activeSlave.assignment != "please you") && ($activeSlave.assignment != "guard you")>>
+<<set $activeSlave = $slaves.random()>>
+<<if $activeSlave && ($activeSlave.assignment != "please you") && ($activeSlave.assignment != "guard you")>>
 	<br><<include "Walk Past">>
 <</if>>

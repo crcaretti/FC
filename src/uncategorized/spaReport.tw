@@ -21,6 +21,9 @@
 	<<if $slaves[_FLs].trust < 60>>
 		<<set $slaves[_FLs].trust++>>
 	<</if>>
+	<<if $slaves[_FLs].livingRules != "luxurious">>
+		<<set $slaves[_FLs].livingRules = "luxurious">>
+	<</if>>
 	<<set _FLsFetish = 0>>
 	<<if $slaves[_FLs].fetishStrength <= 95>>
 		<<if $slaves[_FLs].fetish != "submissive">>
@@ -47,6 +50,11 @@
 	<<if setup.attendantCareers.includes($Attendant.career)>>
 		She has experience with counseling from her life before she was a slave, making her better at building a rapport with troubled slaves, and giving her a better chance of softening flaws into beneficial quirks.
 		<<set _bonusToggle = 1, _idleBonus++>>
+	<<elseif $Attendant.skillAT >= $masteredXP>>
+		She has experience with counseling from working for you, making her better at building a rapport with troubled slaves, and giving her a better chance of softening flaws into beneficial quirks.
+		<<set _bonusToggle = 1, _idleBonus++>>
+	<<else>>
+		<<set $slaves[_FLs].skillAT += random(1,($Attendant.intelligence+4)*2)>>
 	<</if>>
 	<<if ($Attendant.eyes == -2)>>
 		Her blindness allows her to deeply connect with her girls.
@@ -69,7 +77,7 @@
 		She's so intelligent she can suss out the cause of slaves' emotional issues and counsel them effectively.
 		<<set _idleBonus++>>
 	<</if>>
-	<<if isFertile($Attendant) || ($Attendant.bellyPreg >= 1500) || ($Attendant.birthsTotal > 0) || ($Attendant.bellyImplant >= 2000)>>
+	<<if isFertile($Attendant) || ($Attendant.bellyPreg >= 1500) || ($Attendant.birthsTotal > 0) || ($Attendant.bellyImplant >= 1500)>>
 		She has a natural mothering instinct and really makes her girls feel at home.
 		<<set _idleBonus++, _healthBonus++>>
 	<</if>>
@@ -187,50 +195,12 @@
 		<</switch>>
 		<<if ($Attendant.intelligence > 0) && (_attendantUsedCure == 0) && random(1,100) > (100-($Attendant.intelligence*10)-_seed) && ($spaFix == 0)>>
 			<<if $slaves[$i].behavioralFlaw != "none">>
-				<<switch $slaves[$i].behavioralFlaw>>
-				<<case "arrogant">>
-				<<set $slaves[$i].behavioralQuirk = "confident">>
-				<<case "bitchy">>
-				<<set $slaves[$i].behavioralQuirk = "cutting">>
-				<<case "odd">>
-				<<set $slaves[$i].behavioralQuirk = "funny">>
-				<<case "hates men">>
-				<<set $slaves[$i].behavioralQuirk = "adores women">>
-				<<case "hates women">>
-				<<set $slaves[$i].behavioralQuirk = "adores men">>
-				<<case "gluttonous">>
-				<<set $slaves[$i].behavioralQuirk = "fitness">>
-				<<case "anorexic">>
-				<<set $slaves[$i].behavioralQuirk = "insecure">>
-				<<case "devout">>
-				<<set $slaves[$i].behavioralQuirk = "sinful">>
-				<<case "liberated">>
-				<<set $slaves[$i].behavioralQuirk = "advocate">>
-				<</switch>>
-				<<set $slaves[$i].behavioralFlaw = "none", _attendantUsedCure += 1>>
+				<<SoftenBehavioralFlaw $slaves[$i]>>
+				<<set _attendantUsedCure += 1>>
 				&nbsp;&nbsp;&nbsp;&nbsp;$Attendant.slaveName works carefully with $slaves[$i].slaveName, and successfully @@.green;softens her behavioral flaw@@ into an appealing quirk.
 			<<elseif $slaves[$i].sexualFlaw != "none">>
-				<<switch $slaves[$i].sexualFlaw>>
-				<<case "hates oral">>
-				<<set $slaves[$i].sexualQuirk = "gagfuck queen">>
-				<<case "hates anal">>
-				<<set $slaves[$i].sexualQuirk = "painal queen">>
-				<<case "hates penetration">>
-				<<set $slaves[$i].sexualQuirk = "strugglefuck queen">>
-				<<case "shamefast">>
-				<<set $slaves[$i].sexualQuirk = "tease">>
-				<<case "idealistic">>
-				<<set $slaves[$i].sexualQuirk = "romantic">>
-				<<case "repressed">>
-				<<set $slaves[$i].sexualQuirk = "perverted">>
-				<<case "apathetic">>
-				<<set $slaves[$i].sexualQuirk = "caring">>
-				<<case "crude">>
-				<<set $slaves[$i].sexualQuirk = "unflinching">>
-				<<case "judgemental">>
-				<<set $slaves[$i].sexualQuirk = "size queen">>
-				<</switch>>
-				<<set $slaves[$i].sexualFlaw = "none", _attendantUsedCure += 1>>
+				<<SoftenSexualFlaw $slaves[$i]>>
+				<<set _attendantUsedCure += 1>>
 				&nbsp;&nbsp;&nbsp;&nbsp;$Attendant.slaveName works carefully with $slaves[$i].slaveName, and successfully @@.green;softens her sexual flaw@@ into an appealing quirk.
 			<</if>>
 		<</if>>
@@ -238,7 +208,7 @@
 	<<if (_DL < $spa)>>
 		<<set _seed = random(1,10)+(($spa-_DL)*(random(150,170)+(_idleBonus*10)))>>
 		<<set $cash += _seed>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;Since she doesn't have enough girls to occupy all her time, the spa takes in citizens' slaves on a contract basis and she helps them too, earning @@.yellowgreen;¤_seed.@@
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;Since she doesn't have enough girls to occupy all her time, the spa takes in citizens' slaves on a contract basis and she helps them too, earning @@.yellowgreen;<<print cashFormat(_seed)>>.@@
 		<<if ($arcologies[0].FSHedonisticDecadence > 0) && (_DL == 0)>>
 			Society @@.green;loves@@ being allowed to lounge in your spa, greatly advancing your laid back culture.
 			<<FSChange "Hedonism" 2>>
@@ -269,6 +239,7 @@
 		''__@@.pink;<<SlaveFullName $slaves[$i]>>@@__'' is serving as the Attendant in $spaName.
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -278,6 +249,7 @@
 	<<else>>
 		<<silently>>
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -302,6 +274,14 @@
 	<<if ($spaUpgrade == 1) && ($slaves[$i].health < 20)>>
 		<<set $slaves[$i].health += 3>>
 	<</if>>
+	<<switch $spaDecoration>>
+	<<case "Chattel Religionist" "Chinese Revivalist">>
+		<<set $slaves[$i].livingRules = "normal">>
+	<<case "Degradationist">>
+		<<set $slaves[$i].livingRules = "spare">>
+	<<default>>
+		<<set $slaves[$i].livingRules = "luxurious">>
+	<</switch>>
 	<<if ($slaves[$i].health >= 20) && ($slaves[$i].trust > 60) && ($slaves[$i].devotion > 60) && ($slaves[$i].fetish != "mindbroken") && ($slaves[$i].sexualFlaw == "none") && ($slaves[$i].behavioralFlaw == "none")>>
 		<br><br>''__@@.pink;$slaves[$i].slaveName@@__'' is feeling well enough to leave $spaName, so @@.yellow;her assignment has defaulted to rest@@.
 		<<removeJob $slaves[$i] "rest in the spa">>
@@ -326,6 +306,7 @@
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA rest">>
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -337,6 +318,7 @@
 		<<include "SA chooses own job">>
 		<<include "SA chooses own clothes">>
 		<<include "SA rest">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>

@@ -3,14 +3,14 @@
 <<set setup.passagePreFilters = setup.passagePreFilters || {
 	"Main":                      s => (s.assignmentVisible == 1),
 	"Personal Attention Select": s => (s.assignmentVisible == 1 && s.fuckdoll <= 0),
-	"Agent Select":              s => (s.fuckdoll == 0 && s.devotion >= 20 && s.intelligence > 0 && s.intelligenceImplant > 0 && canWalk(s) && canSee(s) && canTalk(s) && s.pregType < 50 && s.breedingMark != 1),
+	"Agent Select":              s => (s.fuckdoll == 0 && s.devotion >= 20 && s.intelligence > 0 && s.intelligenceImplant > 0 && canWalk(s) && canSee(s) && canTalk(s) && s.broodmother < 2 && s.breedingMark != 1),
 	"BG Select":                 s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "guard you" && canWalk(s) && canSee(s) && s.breedingMark != 1),
 	"Recruiter Select":          s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "recruit girls" && canWalk(s) && canSee(s) && canTalk(s)),
 	"HG Select":                 s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "be your Head Girl" && canWalk(s) && canSee(s) && canTalk(s)),
 	"Head Girl Suite":           s => (s.assignmentVisible == 1 && s.fuckdoll <= 0 && (
 		   ($Flag == 0 && s.assignment != "be your Head Girl" && s.indentureRestrictions <= 0 && s.breedingMark != 1)
 		|| ($Flag != 0 && s.assignment == "live with your Head Girl"))),
-	"Subordinate Targeting":     s => (s.devotion >= -20 && s.fuckdoll == 0 && $activeSlave.ID != s.ID),
+	"Subordinate Targeting":     s => (s.devotion >= -20 && s.fuckdoll == 0 && $activeSlave.ID != s.ID && ($activeSlave.amp != 1 || s.amp != 1)),
 	"Spa":                       s => (s.assignmentVisible == 1 && s.fuckdoll <= 0 && (
 		   ($Flag == 0 && s.assignment != "rest in the spa")
 		|| ($Flag == 1 && s.assignment == "rest in the spa")
@@ -60,7 +60,7 @@
 		   ($Flag == 0 && s.assignment != "be confined in the arcade")
 		|| ($Flag != 0 && s.assignment == "be confined in the arcade"))),
 	"Pit":                       s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && (
-		   ($Flag == 0 && !$fighterIDs.includes(s.ID) && (s.assignment != "guard you") && (s.assignment != "work in the dairy" || $dairyRestraintsSetting < 2 || canWalk(s)))
+		   ($Flag == 0 && !$fighterIDs.includes(s.ID) && canWalk(s) && (s.assignment != "guard you") && (s.assignment != "work in the dairy" || $dairyRestraintsSetting < 2))
 		|| ($Flag != 0 && $fighterIDs.includes(s.ID)))),
 	"Coursing Association":      s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && (
 		   ($Flag == 0 && canWalk(s) && $Lurcher.ID != s.ID)
@@ -75,7 +75,7 @@
 	_filteredSlaveIdxs = $slaves.map(function(slave, idx) { return _passagePreFilter(slave) ? idx : null; }).filter(function(idx) { return idx !== null; })>>
 <<for !_.isUndefined(_ssi = _filteredSlaveIdxs.shift())>>
 <<set _Slave = $slaves[_ssi]>>
-<<if ["Chinese", "Japanese", "Korean", "Cambodian", "Vietnamese", "Hungarian"].includes(_Slave.nationality)>>
+<<if ["Chinese", "Japanese", "Korean", "Cambodian", "Vietnamese", "Hungarian", "Mongolian"].includes(_Slave.nationality)>>
 	<<set _slaveName = [_Slave.slaveSurname || "", _Slave.slaveName].join(" ").trim()>>
 <<else>>
 	<<set _slaveName = [_Slave.slaveName, _Slave.slaveSurname || ""].join(" ").trim()>>
@@ -132,12 +132,27 @@
 	<<elseif "recruit girls" == _Slave.assignment>>''@@.lightcoral;RC@@''
 	<<elseif "guard you" == _Slave.assignment>>''@@.lightcoral;BG@@''
 	<</if>>
-	<<if $personalAttention == _Slave.ID>>''@@.lightcoral;PA@@''<</if>>
+	<<if Array.isArray($personalAttention) && $personalAttention.findIndex(function(s) { return s.ID == _Slave.ID; }) != -1>>''@@.lightcoral;PA@@''<</if>>
 	[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]] /* lists their names */
 	
 <<case "Personal Attention Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-	[[_slaveName|Personal Attention Select][$activeSlave = $slaves[_ssi], $personalAttention = $slaves[_ssi].ID, $personalAttentionChanged = 1]]
+	<<link _slaveName>>
+		<<if !Array.isArray($personalAttention)>> /* first PA target */
+			<<set $personalAttention = [{ID: $slaves[_ssi].ID, trainingRegimen: "undecided"}]>>
+		<<else>>
+			<<set _pai = $personalAttention.findIndex(function(s) { return s.ID == $slaves[_ssi].ID; })>>
+			<<if _pai == -1>> /* not already a PA target; add */
+				<<set $activeSlave = $slaves[_ssi], $personalAttention.push({ID: $slaves[_ssi].ID, trainingRegimen: "undecided"})>>
+			<<else>> /* already a PA target; remove */
+				<<set $personalAttention.deleteAt(_pai)>>
+				<<if $personalAttention.length == 0>>
+					<<set $personalAttention = "sex">>
+				<</if>>
+			<</if>>
+		<</if>>
+		<<goto "Personal Attention Select">>
+	<</link>>
 <<case "Agent Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 	[[_slaveName|Agent Workaround][$i = _ssi]]
@@ -153,7 +168,7 @@
 <<case "Head Girl Suite">>
 <<if $Flag == 0>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		[[_slaveName|Slave Interact][$activeSlave = $slaves[ssi]]]
+		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
@@ -293,11 +308,11 @@
 	<<elseif _Slave.breedingMark == 1 && $dairyRestriantsSettings > 0>>
 		<br>//_Slave.slaveName may only be a free range cow//
 		<<continue>>
-	<<elseif ($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.pregType >= 50))>>
+	<<elseif ($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother != 0))>>
 		<br>//_Slave.slaveName's womb cannot accommodate current machine settings//
 		<<continue>>
 	<<else>>
-		<<if ((_Slave.lactation > 0) || (_Slave.balls > 0)) || (($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0) && ($dairySlimMaintainUpgrade == 0))>>
+		<<if (_Slave.lactation > 0 || (($dairySlimMaintainUpgrade == 0 || $dairySlimMaintain == 0) && (_Slave.boobs > 300 || _Slave.dick == 0 || $dairyImplantsSetting == 1) && $dairyImplantsSetting != 2)) || (_Slave.balls > 0)>>
 			<<if (_Slave.devotion > 20) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) ||  (_Slave.trust < -50) || (_Slave.amp == 1) || ($dairyRestraintsUpgrade == 1)>>
 				<<if ($dairyStimulatorsSetting < 2) || (_Slave.anus > 2) || ($dairyPrepUpgrade == 1)>>
 					<<if ($dairyPregSetting < 2) || (_Slave.vagina > 2) || (_Slave.ovaries == 0) || ($dairyPrepUpgrade == 1)>>
@@ -315,7 +330,7 @@
 				<br>//_Slave.slaveName must be obedient in order to be milked here//
 				<<continue>>
 			<</if>>
-		<<elseif (($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0) && ($dairySlimMaintainUpgrade == 1) && ($dairySlimMaintain == 1))>>
+		<<elseif (($dairySlimMaintainUpgrade == 1 && $dairySlimMaintain == 1) || ($dairyImplantsSetting == 2) || (_Slave.boobs <= 300 && _Slave.dick > 0 && $dairyImplantsSetting == 0))>>
 			<br>//_Slave.slaveName is not lactating<<if $seeDicks > 0>> or producing semen<</if>>, and <<print $dairyName>>'s current settings forbid the automatic implantation of lactation inducing drugs, so she can not be a cow//
 			<<continue>>
 		<<else>>
@@ -468,34 +483,7 @@
 	[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <</switch>>
 
-<<set _Slave.energy = Math.clamp(_Slave.energy, 0, 100)>>
-
-<<if _Slave.devotion > 100>>
-	<<if _Slave.trust < -95>>
-		<<set _Slave.trust = -100>>
-	<<elseif (_Slave.trust < 100) && (_Slave.trust >= -20)>>
-		<<set _Slave.trust += Math.trunc(_Slave.devotion-100)>>
-	<<else>>
-		<<set $rep += 10*(_Slave.devotion-100)>>
-	<</if>>
-	<<set _Slave.devotion = 100>>
-<<elseif _Slave.devotion < -95>>
-	<<set _Slave.devotion = -100>>
-<</if>>
-<<if _Slave.trust > 100>>
-	<<if _Slave.devotion < -95>>
-		<<set _Slave.devotion = -100>>
-	<<elseif _Slave.devotion < 100>>
-		<<set _Slave.devotion += Math.trunc(_Slave.trust-100)>>
-	<<else>>
-		<<set $rep += 10*(_Slave.trust-100)>>
-	<</if>>
-	<<set _Slave.trust = 100>>
-<<elseif _Slave.trust < -95>>
-	<<set _Slave.trust = -100>>
-<</if>>
-<<if _Slave.trust < -100>><<set _Slave.trust = -100>><</if>>
-<<if _Slave.devotion < -100>><<set _Slave.devotion = -100>><</if>>
+<<SlaveStatClamp _Slave>>
 
 <<set _Slave.trust = Math.trunc(_Slave.trust), _Slave.devotion = Math.trunc(_Slave.devotion), _Slave.health = Math.trunc(_Slave.health)>>
 
@@ -568,6 +556,103 @@ will
 	<</if>> /* CLOSES FUCKDOLL CHECK */
 <</if>>
 
+<<set _numFacilities = $brothel+$club+$dairy+$servantsQuarters+$masterSuite+$spa+$clinic+$schoolroom+$cellblock+$arcade+$HGSuite>>
+	
+<<if _numFacilities > 0>>
+
+	<<if _Pass == "Main" || _Pass == "Head Girl Suite" || _Pass == "Spa" || _Pass == "Brothel" || _Pass == "Club" || _Pass == "Arcade" || _Pass == "Clinic" || _Pass == "Schoolroom" || _Pass == "Dairy" || _Pass == "Servants' Quarters" || _Pass == "Master Suite" || _Pass == "Cellblock" >>
+	<<set $returnTo=_Pass >>
+
+	<br>Transfer to:
+
+	<<if _Slave.assignment != "rest" && _Slave.assignment != "please you" && _Slave.assignment != "take classes" && _Slave.assignment != "be a servant" && _Slave.assignment != "whore" && _Slave.assignment != "serve the public" && _Slave.assignment != "get milked" && _Slave.assignment != "stay confined">>
+		[[Penthouse|Rest Workaround][$i = _ssi]] |
+	<<else>>
+		Penthouse |
+	<</if>>
+			
+	<<if $arcade != 0>>
+		<<if $arcade > $arcadeSlaves && (_Slave.indentureRestrictions <= 0) && _Slave.breedingMark != 1>>
+			[[Arcade|Assign][$assignTo = "Arcade", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Arcade<</if>>
+		<<if _numFacilities-- > 1>>|<</if>>
+	<</if>>
+
+	<<if _Slave.fuckdoll == 0>> /* NON-FUCKDOLL FACILITIES */
+
+	<<if $clinic != 0>>
+		<<if $clinic > $clinicSlaves && (_Slave.health < 20 || ($Nurse != 0 && (_Slave.chem > 15 && $clinicUpgradeFilters == 1) || ($bellyImplants == 1 && _Slave.bellyImplant > -1) || (_Slave.pregKnown == 1 && ($clinicSpeedGestation >= 0 || _Slave.pregControl == "speed up"))))>>
+			[[Clinic|Assign][$assignTo = "Clinic", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Clinic<</if>>
+		<<if _numFacilities-- > 1>>|<</if>>
+	<</if>>
+
+	<<if $masterSuite != 0>>
+		<<if $masterSuite > $masterSuiteSlaves && ((_Slave.devotion > 20) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50))>>
+			[[Master Suite|Assign][$assignTo = "Master Suite", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Master Suite<</if>>
+		<<if _numFacilities-- > 1>>|<</if>>
+	<</if>>
+
+	<<if $cellblock != 0>>
+		<<if $cellblock > $cellblockSlaves && ((_Slave.devotion < -20 && _Slave.trust >= -20) || (_Slave.devotion < -50 && _Slave.trust >= -50))>>
+			[[Cellblock|Assign][$assignTo = "Cellblock", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Cellblock<</if>>
+		<<if _numFacilities-- > 1>>|<</if>>
+	<</if>>
+
+	<<if $schoolroom != 0>>
+		<<if $schoolroom > $schoolroomSlaves && (_Slave.fetish != "mindbroken" && (_Slave.devotion >= -20 || (_Slave.devotion >= -50 && _Slave.trust < -20) || _Slave.trust < -50) && ((_Slave.intelligenceImplant < 1) || (_Slave.voice != 0 && _Slave.accent+$schoolroomUpgradeLanguage > 2) || (_Slave.oralSkill <= 10+$schoolroomUpgradeSkills*20) || (_Slave.whoreSkill <= 10+$schoolroomUpgradeSkills*20) || (_Slave.entertainSkill <= 10+$schoolroomUpgradeSkills*20) || (_Slave.analSkill < 10+$schoolroomUpgradeSkills*20) || (_Slave.vagina >= 0 && _Slave.vaginalSkill < 10+$schoolroomUpgradeSkills*20)))>>
+			[[Schoolroom|Assign][$assignTo = "Schoolroom", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Schoolroom<</if>>
+		<<if _numFacilities-- > 1>>|<</if>>
+	<</if>>
+
+	<<if $servantsQuarters != 0>>
+		<<if $servantsQuarters > $servantsQuartersSlaves && (canWalk(_Slave) && canSee(_Slave) && (_Slave.devotion >= -20 || (_Slave.devotion >= -50 && _Slave.trust <= 20) || _Slave.trust < -20))>>
+			[[Servants' Quarters|Assign][$assignTo = "Servants' Quarters", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Servants' Quarters<</if>>
+		<<if _numFacilities-- > 1>>|<</if>>
+	<</if>>
+
+	<<if $brothel != 0>>
+		<<if $brothel > $brothelSlaves && (((_Slave.devotion > 50) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50) || (_Slave.trust > 50)) && _Slave.breedingMark != 1)>>
+			[[Brothel|Assign][$assignTo = "Brothel", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Brothel<</if>>
+		<<if _numFacilities-- > 1>>|<</if>>
+	<</if>>
+
+	<<if $club != 0>>
+		<<if $club > $clubSlaves && (((_Slave.devotion > 50) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50) || (_Slave.trust > 50)) && _Slave.breedingMark != 1)>>
+			[[Club|Assign][$assignTo = "Club", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Club<</if>>
+		<<if _numFacilities-- > 1>>|<</if>>
+	<</if>>
+
+	<<if $dairy != 0>>
+		<<set _dairySeed = $bioreactorsXY+$bioreactorsXX+$bioreactorsHerm+$bioreactorsBarren>>
+		<<if $dairy <= $dairySlaves+_dairySeed>>
+			Dairy
+		<<elseif (((_Slave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) || ((_Slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || (_Slave.breedingMark == 1 && $dairyRestriantsSettings > 0) || (($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother > 0))))>>
+			Dairy
+		<<elseif ((_Slave.lactation > 0) || (_Slave.balls > 0)) || (($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0) && ($dairySlimMaintainUpgrade == 0))>>
+			 [[Dairy|Assign][$assignTo = "Dairy", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Dairy<</if>>
+		<<if _numFacilities-- > 1>>|<</if>>
+	<</if>>
+
+	<<if $spa != 0>>
+		<<if $spa > $spaSlaves && ((_Slave.devotion >= -20 || _Slave.fetish == "mindbroken") && (_Slave.health < 20 || _Slave.trust < 60 || _Slave.devotion <= 60 || _Slave.fetish == "mindbroken" || _Slave.sexualFlaw !== "none" || _Slave.behavioralFlaw !== "none"))>>
+			[[Spa|Assign][$assignTo = "Spa", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
+		<<else>>Spa<</if>>
+	<</if>>
+
+	<</if>> /* Closes transfer options check */
+
+	<</if>> /* CLOSES FUCKDOLL CHECK */
+
+<</if>> /* closes _numFacilities */
+
 <br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
 
 <<SlaveSummary _Slave>>
@@ -579,7 +664,7 @@ will
 <<case "Main">>
 	<<continue>>
 <<case "HG Select">>
-	<<if setup.HGCareers.includes(_Slave.career)>>
+	<<if setup.HGCareers.includes(_Slave.career) || (_Slave.skillHG >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "Head Girl Suite">>
@@ -591,11 +676,11 @@ will
 		<<break>>
 	<</if>>
 <<case "Recruiter Select">>
-	<<if setup.recruiterCareers.includes(_Slave.career)>>
+	<<if setup.recruiterCareers.includes(_Slave.career) || (_Slave.skillRC >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "BG Select">>
-	<<if setup.bodyguardCareers.includes(_Slave.career)>>
+	<<if setup.bodyguardCareers.includes(_Slave.career) || (_Slave.skillBG >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "Spa">>
@@ -609,7 +694,7 @@ will
 		<<break>>
 	<</if>>
 <<case "Attendant Select">>
-	<<if setup.attendantCareers.includes(_Slave.career)>>
+	<<if setup.attendantCareers.includes(_Slave.career) || (_Slave.skillAT >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "Brothel">>
@@ -623,7 +708,7 @@ will
 		<<break>>
 	<</if>>
 <<case "Madam Select">>
-	<<if setup.madamCareers.includes(_Slave.career)>>
+	<<if setup.madamCareers.includes(_Slave.career) || (_Slave.skillMD >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "Club">>
@@ -644,7 +729,7 @@ will
 		[[Release her from the Arcade|Retrieve][$i = _ssi]]
 	<</if>>
 <<case "DJ Select">>
-	<<if setup.DJCareers.includes(_Slave.career)>>
+	<<if setup.DJCareers.includes(_Slave.career) || (_Slave.skillDJ >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "Clinic">>
@@ -661,7 +746,7 @@ will
 		<<break>>
 	<</if>>
 <<case "Nurse Select">>
-	<<if setup.nurseCareers.includes(_Slave.career)>>
+	<<if setup.nurseCareers.includes(_Slave.career) || (_Slave.skillNU >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "Schoolroom">>
@@ -675,7 +760,7 @@ will
 		<<break>>
 	<</if>>
 <<case "Schoolteacher Select">>
-	<<if setup.schoolteacherCareers.includes(_Slave.career)>>
+	<<if setup.schoolteacherCareers.includes(_Slave.career) || (_Slave.skillTE >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "Dairy">>
@@ -689,7 +774,7 @@ will
 		<<break>>
 	<</if>>
 <<case "Milkmaid Select">>
-	<<if setup.milkmaidCareers.includes(_Slave.career)>>
+	<<if setup.milkmaidCareers.includes(_Slave.career) || (_Slave.skillMM >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "Servants' Quarters">>
@@ -703,7 +788,7 @@ will
 		<<break>>
 	<</if>>
 <<case "Stewardess Select">>
-	<<if setup.stewardessCareers.includes(_Slave.career)>>
+	<<if setup.stewardessCareers.includes(_Slave.career) || (_Slave.skillST >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "Master Suite">>
@@ -727,7 +812,7 @@ will
 		<<break>>
 	<</if>>
 <<case "Wardeness Select">>
-	<<if setup.wardenessCareers.includes(_Slave.career)>>
+	<<if setup.wardenessCareers.includes(_Slave.career) || (_Slave.skillWA >= $masteredXP)>>
 		<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>@@.lime;Has applicable career experience.@@
 	<</if>>
 <<case "New Game Plus">>

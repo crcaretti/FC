@@ -1,0 +1,537 @@
+:: seeUnit [nobr]
+
+<<if $attackThisWeek == 1>>
+	<<set $nextButton = "Back", $nextLink = "attackOption", $returnTo = "secBarracks">>
+<<else>>
+	<<set $nextButton = "Back", $nextLink = "secBarracks", $returnTo = "secBarracks">>
+<</if>>
+
+<<if $targetUnit == "secBots">>
+	<<secBotsDescription>>
+	<<if $secBots.maxTroops > $secBots.troops>>
+		<br>
+		<<link "Replenish the unit">>
+			<<set $cash -= ($secBots.maxTroops - $secBots.troops) * $secBotsCost>>
+			<<set $secBots.troops = $secBots.maxTroops>>
+			<<goto "seeUnit">>
+		<</link>>
+	<</if>>
+	<br>
+	<<if $secBots.maxTroops < 80>>
+		<br>
+		<<link "Improve the digital control matrix">>
+			<<set $secBots.maxTroops += 10>>
+			<<set $cash -= 5000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Invest in the development of more refined controls for your drones to increase the maximum number of drones in the unit.
+		<br>//Costs 5000 per upgrade and each will increase the max by 10//
+	<<elseif $secBots.maxTroops < 100 && $SFSupportLevel >= 1>>
+		<br>
+		<<link "Refine the drone network with $securityForceName assistance">>
+		<<set $secBots.maxTroops += 10>>
+			<<set $cash -= 5000 + 10 * $secBotsUpgradeCost * $secBots.equip>>
+			<<goto "seeUnit">>
+		<</link>>
+		Utilize the technological developments made by $securityForceName to further improve the control matrix of the security drones.
+		<br>//Costs <<print 5000 + 10 * $secBotsUpgradeCost * $secBots.equip>> and will increase the max by 10//
+	<<elseif $SFSupportLevel < 1 && $securityForceCreate == 1>>
+		There's little left to improve in the matrix. However support from $securityForceName might give some more room from improvement.
+	<<else>>
+		There's little left to improve in the matrix. Your control systems are at top capacity and won't be able to handle bigger a drone unit.
+	<</if>>
+	<<if $secBots.equip < 3>>
+		<br>
+		<<link "Improve drone weaponry and armor">>
+			<<set $secBots.equip += 1>>
+			<<set $cash -= (($secBotsUpgradeCost * $secBots.maxTroops) + 1000)>>
+			<<goto "seeUnit">>
+		<</link>>
+		Invest in better equipment for your drones to increase their battle effectiveness.
+		<br>//Costs <<print (($secBotsUpgradeCost * $secBots.maxTroops) + 1000)>> and will increase attack and defense value of the unit by 15% for every upgrade.//
+	<<else>>
+		<br>
+		Your drones are equipped with top tier weaponry and armor.
+	<</if>>
+	<<if $showBattleStatistics == 1>>
+		<br>
+		<br>Security drones base attack: $secBotsBaseAttack <<if $droneUpgrades.attack > 0>> + 1 <</if>>(<<print Math.round($secBotsBaseAttack + $secBotsBaseAttack * $secBots.equip * 0.15)>>)
+		<br>Security drones base defense: $secBotsBaseDefense <<if $droneUpgrades.defense > 0>> + 1 <</if>>(<<print Math.round($secBotsBaseDefense + $secBotsBaseDefense * $secBots.equip * 0.15)>>)
+		<br>Equipment bonus: + <<print $secBots.equip * 15>>%
+		<br>Security drones base hp: $secBotsBaseHp <<if $droneUpgrades.hp > 0>> + 1 <</if>>
+		<br>Security drones base morale: $secBotsMorale
+	<</if>>	
+<<elseif $targetUnit == "militiaUnits">>
+	<<militiaUnitsDescription $militiaUnits[$targetIndex]>>
+	<br>
+	Rename unit <<textbox "$militiaUnits[$targetIndex].platoonName" $militiaUnits[$targetIndex].platoonName "seeUnit">>
+	<<if $militiaUnits[$targetIndex].maxTroops > $militiaUnits[$targetIndex].troops && $militiaFreeManpower > 0>>
+		<br>
+		<<link "Replenish unit">>
+			<<if $militiaFreeManpower >= $militiaUnits[$targetIndex].maxTroops - $militiaUnits[$targetIndex].troops>>
+				<<set $militiaFreeManpower -= $militiaUnits[$targetIndex].maxTroops - $militiaUnits[$targetIndex].troops>>
+				<<set $militiaEmployedManpower += $militiaUnits[$targetIndex].maxTroops - $militiaUnits[$targetIndex].troops>>
+				<<set _expLoss = ($militiaUnits[$targetIndex].maxTroops - $militiaUnits[$targetIndex].troops) / $militiaUnits[$targetIndex].troops>>
+				<<set $militiaUnits[$targetIndex].training -= $militiaUnits[$targetIndex].training * _expLoss>>
+				<<set $militiaUnits[$targetIndex].troops = $militiaUnits[$targetIndex].maxTroops>>
+			<<else>>
+				<<set $militiaEmployedManpower += $militiaFreeManpower>>
+				<<set _expLoss = $militiaFreeManpower / $militiaUnits[$targetIndex].troops>>
+				<<set $militiaUnits[$targetIndex].training -= $militiaUnits[$targetIndex].training * _expLoss>>
+				<<set $militiaUnits[$targetIndex].troops += $militiaFreeManpower>>
+				<<set $militiaFreeManpower = 0>>
+			<</if>>
+			<<goto "seeUnit">>
+		<</link>>
+	<</if>>	
+	<br>
+	<<if $militiaUnits[$targetIndex].maxTroops < 50>>
+		<br>
+		<<link "Intensive officers training">>
+			<<set $militiaUnits[$targetIndex].maxTroops += 10>>
+			<<set $cash -= 5000 + 10 * $equipUpgradeCost * ($militiaUnits[$targetIndex].equip + $militiaUnits[$targetIndex].commissars + $militiaUnits[$targetIndex].cyber + $militiaUnits[$targetIndex].SF)>>
+			<<goto "seeUnit">>
+		<</link>>
+		Invest in the training of your officers to increase the maximum number of soldiers in the unit.
+		<br>//Costs <<print 5000 + 10 * $equipUpgradeCost * ($militiaUnits[$targetIndex].equip + $militiaUnits[$targetIndex].commissars + $militiaUnits[$targetIndex].cyber + $militiaUnits[$targetIndex].SF)>> and will increase the max by 10//
+	<<else>>
+		<br>
+		Your officers reached their peak. Further training will have little impact on the number of troops they can effectively lead.
+	<</if>>
+	<<if $militiaUnits[$targetIndex].equip < 3>>
+		<br>
+		<<link "Improve weaponry and equipment">>
+			<<set $militiaUnits[$targetIndex].equip += 1>>
+			<<set $cash -= ($equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops) + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Invest in better equipment for your soldiers to increase their battle effectiveness.
+		<br>//Costs <<print ($equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops) + 1000>> and will increase attack and defense value of the unit by 15% for every upgrade.//
+	<<else>>
+		<br>
+		The unit is equipped with state of the art weaponry and equipment.
+	<</if>>
+	<<if $militiaUnits[$targetIndex].commissars == 0>>
+		<br>
+		<<link "Attach commissars to the unit">>
+			<<set $militiaUnits[$targetIndex].commissars = 1>>
+			<<set $cash -= $equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Attach a small squad of commissars to the unit.
+		<br>//Costs <<print ($equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops) + 1000>> and will slowly increase the loyalty of the unit.//
+	<<elseif $militiaUnits[$targetIndex].commissars < 2>>	
+		<br>
+		<<link "Intensive loyalty training">>
+			<<set $militiaUnits[$targetIndex].commissars += 1>>
+			<<set $cash -= $equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Provide special training for the officers and the commissars of the unit.
+		<br>//Costs <<print ($equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops) + 1000>> and will increase the loyalty of the unit faster.//
+	<<elseif $militiaUnits[$targetIndex].commissars == 1>>
+		<br>The unit has a commissar detachment, keeping under control the ambitions of the unit's officers.
+	<<else>>
+		<br>The unit has a perfectly trained and loyal commissar detachment, keeping under control the ambitions of the unit's officers.
+	<</if>>
+	<<if $prostheticsUpgrade >= 2 || $researchLab.advCombatPLimb == 1>>
+		<<if $militiaUnits[$targetIndex].cyber == 0>>
+			<br>
+			<<link "Provide enhanced cybernetic enhancements">>
+				<<set $militiaUnits[$targetIndex].cyber += 1>>
+				<<set $cash -= $equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops + 2000>>
+				<<goto "seeUnit">>
+			<</link>>
+			Will augment all soldiers of the unit with high tech cyber enhancements.
+			<br>//Costs <<print ($equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops) + 2000>> and will increase attack, defense and base hp values of the unit.//
+		<<else>>
+			<br>The unit is equipped with advanced cybernetic enhancements.
+		<</if>>	
+	<</if>>
+	<<if $militiaUnits[$targetIndex].medics == 0>>
+		<br>
+		<<link "Attach trained medics to the unit">>
+			<<set $militiaUnits[$targetIndex].medics = 1>>
+			<<set $cash -= $equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Attach a small squad of trained medics to the unit.
+		<br>//Costs <<print ($equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops) + 1000>> and will decrease the number of casualties suffered during battle.//
+	<<else>>
+		<br>The unit has a medic detachment following it into battle, decreasing the number of casualties the unit suffers.
+	<</if>>
+	<<if $securityForceActive == 1>>
+		<<if $militiaUnits[$targetIndex].SF == 0>>
+			<br>
+			<<link "Attach Special Force advisors">>
+				<<set $militiaUnits[$targetIndex].SF = 1>>
+				<<set $cash -= ($equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops) + 5000>>
+				<<goto "seeUnit">>
+			<</link>>
+			Attach $securityForceName advisors to the unit.
+			<br>//Costs <<print ($equipUpgradeCost * $militiaUnits[$targetIndex].maxTroops) + 5000>> and will slightly increase the base stats of the unit.//
+		<<else>>
+			<br>The unit has attached advisors from $securityForceName that will help the squad remain tactically aware and active. 
+		<</if>>
+	<</if>>
+	
+	<<if $showBattleStatistics == 1>>
+		<<if $militiaUnits[$targetIndex].training <= 10>>
+			<<set _expBonus = 0>>
+		<<elseif $militiaUnits[$targetIndex].training <= 33>>
+			<<set _expBonus = 10>>
+		<<elseif $militiaUnits[$targetIndex].training <= 66>>
+			<<set _expBonus = 25>>
+		<<else>>
+			<<set _expBonus = 50>>
+		<</if>>
+		<<if $militiaUnits[$targetIndex].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $militiaUnits[$targetIndex].loyalty <= 33>>
+			<<set _loyaltyBonus = 10>>
+		<<elseif $militiaUnits[$targetIndex].loyalty <= 66>>
+			<<set _loyaltyBonus = 20>>
+		<<else>>
+			<<set _loyaltyBonus = 30>>
+		<</if>>
+		<br>
+		<br>Militia base attack: $militiaBaseAttack <<if $humanUpgrade.attack > 0>> + $humanUpgrade.attack <</if>>(<<print Math.round($militiaBaseAttack + $militiaUnits[$targetIndex].cyber + $militiaBaseAttack * $militiaUnits[$targetIndex].equip * $equipMod + $militiaBaseAttack * _expBonus * 0.01 + $militiaBaseAttack * _loyaltyBonus * 0.01 + $militiaBaseAttack * $militiaUnits[$targetIndex].SF * 0.20)>>)
+		<br>Militia base defense: $militiaBaseDefense <<if $humanUpgrade.defense > 0>> + $humanUpgrade.defense <</if>>(<<print Math.round($militiaBaseDefense + $militiaUnits[$targetIndex].cyber + $militiaBaseDefense * $militiaUnits[$targetIndex].equip * $equipMod + $militiaBaseDefense * _expBonus * 0.01 + $militiaBaseDefense * _loyaltyBonus * 0.01 + $militiaBaseDefense * $militiaUnits[$targetIndex].SF * 0.20)>>)
+		<<if $militiaUnits[$targetIndex].equip > 0>>
+			<br>Equipment bonus: + <<print $militiaUnits[$targetIndex].equip * 15>>%
+		<</if>>
+		<<if $militiaUnits[$targetIndex].cyber > 0>>
+			<br>Cyber enhancements bonus: + 1
+		<</if>>
+		<<if _expBonus > 0>>
+			<br>Experience bonus: +<<print _expBonus>>%
+		<</if>>
+		<<if _loyaltyBonus > 0>>
+			<br>Loyalty bonus: +<<print _loyaltyBonus>>%
+		<</if>>
+		<<if $militiaUnits[$targetIndex].SF > 0>>
+			<br>Special Force advisors bonus: +20%
+		<</if>>
+		<br>Militia base morale: $militiaBaseMorale <<if $humanUpgrade.morale > 0>> + $humanUpgrade.morale <</if>>(<<print Math.round($militiaBaseMorale + $militiaBaseMorale * $secBarracksUpgrades.luxury * 0.05)>>)
+		<<if $secBarracksUpgrades.luxury > 0>>
+			<br>Barracks bonus: + <<print $secBarracksUpgrades.luxury * 5>>%
+		<</if>>
+		<br>Militia base hp: $militiaBaseHp <<if $humanUpgrade.hp > 0>> + $humanUpgrade.hp <</if>>(<<print Math.round($militiaBaseHp + $militiaUnits[$targetIndex].cyber + $militiaBaseHp * $militiaUnits[$targetIndex].medics * 0.25)>>)
+		<<if $militiaUnits[$targetIndex].medics > 0>>
+			<br>Medics detachment bonus: +25%
+		<</if>>
+	<</if>>
+<<elseif $targetUnit == "slaveUnits">>
+	<<slaveUnitsDescription $slaveUnits[$targetIndex]>>
+	<br>
+	Rename unit <<textbox "$slaveUnits[$targetIndex].platoonName" $slaveUnits[$targetIndex].platoonName "seeUnit">>
+	<<if $slaveUnits[$targetIndex].maxTroops > $slaveUnits[$targetIndex].troops && $helots > 0>>
+		<br>
+		<<link "Replenish unit">>
+			<<if $helots >= $slaveUnits[$targetIndex].maxTroops - $slaveUnits[$targetIndex].troops>>
+				<<set $helots -= $slaveUnits[$targetIndex].maxTroops - $slaveUnits[$targetIndex].troops>>
+				<<set $slavesEmployedManpower += $slaveUnits[$targetIndex].maxTroops - $slaveUnits[$targetIndex].troops>>
+				<<set _expLoss = ($slaveUnits[$targetIndex].maxTroops - $slaveUnits[$targetIndex].troops) / $slaveUnits[$targetIndex].troops>>
+				<<set $slaveUnits[$targetIndex].training -= $slaveUnits[$targetIndex].training * _expLoss>>
+				<<set $slaveUnits[$targetIndex].troops = $slaveUnits[$targetIndex].maxTroops>>
+			<<else>>
+				<<set $slavesEmployedManpower += $helots>>
+				<<set _expLoss = $helots / $slaveUnits[$targetIndex].troops>>
+				<<set $slaveUnits[$targetIndex].training -= $slaveUnits[$targetIndex].training * _expLoss>>
+				<<set $slaveUnits[$targetIndex].troops += $helots>>
+				<<set $helots = 0>>
+			<</if>>
+			<<goto "seeUnit">>
+		<</link>>
+	<</if>>
+	<br>
+	<<if $slaveUnits[$targetIndex].maxTroops < 50>>
+		<br>
+		<<link "Intensive officers training">>
+			<<set $slaveUnits[$targetIndex].maxTroops += 10>>
+			<<set $cash -= 5000 + 10 * $equipUpgradeCost * ($slaveUnits[$targetIndex].equip + $slaveUnits[$targetIndex].commissars + $slaveUnits[$targetIndex].cyber + $slaveUnits[$targetIndex].SF)>>
+			<<goto "seeUnit">>
+		<</link>>
+		Invest in the training of your officers to increase the maximum number of soldiers in the unit.
+		<br>//Costs <<print 5000 + 10 * $equipUpgradeCost * ($slaveUnits[$targetIndex].equip + $slaveUnits[$targetIndex].commissars + $slaveUnits[$targetIndex].cyber + $slaveUnits[$targetIndex].SF)>> and will increase the max by 10//
+	<<else>>
+		<br>Your officers reached their peak. Further training will have little impact on the number of troops they can effectively lead.
+	<</if>>
+	<<if $slaveUnits[$targetIndex].equip < 3>>
+		<br>
+		<<link "Improve weaponry and equipment">>
+			<<set $slaveUnits[$targetIndex].equip += 1>>
+			<<set $cash -= ($equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops) + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Invest in better equipment for your soldiers to increase their battle effectiveness.
+		<br>//Costs <<print ($equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops) + 1000>> and will increase attack and defense value of the unit by 15% for every upgrade.//
+	<<else>>
+		<br>The unit is equipped with state of the art weaponry and equipment.
+	<</if>>
+	<<if $slaveUnits[$targetIndex].commissars == 0>>
+		<br>
+		<<link "Attach commissars to the unit">>
+			<<set $slaveUnits[$targetIndex].commissars = 1>>
+			<<set $cash -= $equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Attach a small squad of commissars to the unit.
+		<br>//Costs <<print ($equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops) + 1000>> and will slowly increase the loyalty of the unit.//
+	<<elseif $slaveUnits[$targetIndex].commissars < 2>>
+		<br>
+		<<link "Intensive loyalty training">>
+			<<set $slaveUnits[$targetIndex].commissars += 1>>
+			<<set $cash -= $equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Provide special training for the officers and the commissars of the unit.
+		<br>//Costs <<print ($equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops) + 1000>> and will	increase the loyalty of the unit faster.//
+	<<elseif $slaveUnits[$targetIndex].commissars == 1>>
+		<br>The unit has a commissar detachment, keeping under control the ambitions of the unit's officers.
+	<<else>>
+		<br>The unit has a perfectly trained and loyal commissar detachment, keeping under control the ambitions of the unit's officers.
+	<</if>>
+	<<if $prostheticsUpgrade >= 2 || $researchLab.advCombatPLimb == 1>>
+		<<if $slaveUnits[$targetIndex].cyber == 0>>
+			<br>
+			<<link "Provide enhanced cybernetic enhancements">>
+				<<set $slaveUnits[$targetIndex].cyber += 1>>
+				<<set $cash -= $equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops + 2000>>
+				<<goto "seeUnit">>
+			<</link>>
+			Will augment all soldiers of the unit with high tech cyber enhancements.
+			<br>//Costs <<print ($equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops) + 2000>> and will increase attack, defense and base hp values of the unit.//
+		<<else>>
+			<br>The unit is equipped with advanced cybernetic enhancements.
+		<</if>>	
+	<</if>>
+	<<if $slaveUnits[$targetIndex].medics == 0>>
+		<br>
+		<<link "Attach trained medics to the unit">>
+			<<set $slaveUnits[$targetIndex].medics = 1>>
+			<<set $cash -= $equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Attach a small squad of trained medics to the unit.
+		<br>//Costs <<print ($equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops) + 1000>> and will decrease the number of casualties suffered during battle.//
+	<<else>>
+		<br>The unit has a medic detachment following it into battle, decreasing the number of casualties the unit suffers.
+	<</if>>
+	<<if $securityForceActive == 1>>
+		<<if $slaveUnits[$targetIndex].SF == 0>>
+			<br>
+			<<link "Attach Special Force advisors">>
+				<<set $slaveUnits[$targetIndex].SF = 1>>
+				<<set $cash -= ($equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops) + 5000>>
+				<<goto "seeUnit">>
+			<</link>>
+			Attach $securityForceName advisors to the unit.
+			<br>//Costs <<print ($equipUpgradeCost * $slaveUnits[$targetIndex].maxTroops) + 5000>> and will slightly increase the base stats of the unit.//
+		<<else>>
+			<br>The unit has attached advisors from $securityForceName that will help the squad remain tactically aware and active.
+		<</if>>
+	<</if>>
+	<<if $showBattleStatistics == 1>>
+		<<if $slaveUnits[$targetIndex].training <= 10>>
+			<<set _expBonus = 0>>
+		<<elseif $slaveUnits[$targetIndex].training <= 33>>
+			<<set _expBonus = 10>>
+		<<elseif $slaveUnits[$targetIndex].training <= 66>>
+			<<set _expBonus = 25>>
+		<<else>>
+			<<set _expBonus = 50>>
+		<</if>>
+		<<if $slaveUnits[$targetIndex].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $slaveUnits[$targetIndex].loyalty <= 33>>
+			<<set _loyaltyBonus = 10>>
+		<<elseif $slaveUnits[$targetIndex].loyalty <= 66>>
+			<<set _loyaltyBonus = 20>>
+		<<else>>
+			<<set _loyaltyBonus = 30>>
+		<</if>>
+		<br>
+		<br>Slaves base attack: $slaveBaseAttack <<if $humanUpgrade.attack > 0>> + $humanUpgrade.attack <</if>>(<<print Math.round($slaveBaseAttack + $slaveUnits[$targetIndex].cyber + $slaveBaseAttack * $slaveUnits[$targetIndex].equip * $equipMod + $slaveBaseAttack * _expBonus * 0.01 + $slaveBaseAttack * _loyaltyBonus * 0.01 + $slaveBaseAttack * $slaveUnits[$targetIndex].SF * 0.20)>>)
+		<br>Slaves base defense: $slaveBaseDefense <<if $humanUpgrade.defense > 0>> + $humanUpgrade.defense <</if>>(<<print Math.round($slaveBaseDefense + $slaveUnits[$targetIndex].cyber + $slaveBaseDefense * $slaveUnits[$targetIndex].equip * $equipMod + $slaveBaseDefense * _expBonus * 0.01 + $slaveBaseDefense * _loyaltyBonus * 0.01 + $slaveBaseDefense * $slaveUnits[$targetIndex].SF * 0.20)>>)
+		<<if $slaveUnits[$targetIndex].equip > 0>>
+			<br>Equipment bonus: + <<print $slaveUnits[$targetIndex].equip * 15>>%
+		<</if>>
+		<<if $slaveUnits[$targetIndex].cyber > 0>>
+			<br>Cyber enhancements bonus: + 1
+		<</if>>
+		<<if _expBonus > 0>>
+			<br>Experience bonus: +<<print _expBonus>>%
+		<</if>>
+		<<if _loyaltyBonus > 0>>
+			<br>Loyalty bonus: +<<print _loyaltyBonus>>%
+		<</if>>
+		<<if $slaveUnits[$targetIndex].SF > 0>>
+			<br>Special Force advisors bonus: +20%
+		<</if>>
+		<br>Slaves base morale: $slaveBaseMorale <<if $humanUpgrade.morale > 0>> + $humanUpgrade.morale <</if>>(<<print Math.round($slaveBaseMorale + $slaveBaseMorale * $secBarracksUpgrades.luxury * 0.05)>>)
+		<<if $secBarracksUpgrades.luxury > 0>>
+			<br>Barracks bonus: + <<print $secBarracksUpgrades.luxury * 5>>%
+		<</if>>
+		<br>Slaves base hp: $slaveBaseHp <<if $humanUpgrade.hp > 0>> + $humanUpgrade.hp <</if>>(<<print Math.round($slaveBaseHp + $slaveUnits[$targetIndex].cyber + $slaveBaseHp * $slaveUnits[$targetIndex].medics * 0.25)>>)
+		<<if $slaveUnits[$targetIndex].medics > 0>>
+			<br>Medics detachment bonus: +25%
+		<</if>>
+	<</if>>
+<<elseif $targetUnit == "mercUnits">>
+	<<mercUnitsDescription $mercUnits[$targetIndex]>>
+	<br>
+	Rename unit <<textbox "$mercUnits[$targetIndex].platoonName" $mercUnits[$targetIndex].platoonName "seeUnit">>
+	<<if $mercUnits[$targetIndex].troops < $mercUnits[$targetIndex].maxTroops && $mercFreeManpower > 0>>
+		<br>
+		<<link "Replenish unit">>
+			<<if $mercFreeManpower >= $mercUnits[$targetIndex].maxTroops - $mercUnits[$targetIndex].troops>>
+				<<set $mercFreeManpower -= $mercUnits[$targetIndex].maxTroops - $mercUnits[$targetIndex].troops>>
+				<<set $mercEmployedManpower += $mercUnits[$targetIndex].maxTroops - $mercUnits[$targetIndex].troops>>
+				<<set _expLoss = ($mercUnits[$targetIndex].maxTroops - $mercUnits[$targetIndex].troops) / $mercUnits[$targetIndex].troops>>
+				<<set $mercUnits[$targetIndex].training -= $mercUnits[$targetIndex].training * _expLoss>>
+				<<set $mercUnits[$targetIndex].troops = $mercUnits[$targetIndex].maxTroops>>
+			<<else>>
+				<<set $mercEmployedManpower += $mercFreeManpower>>
+				<<set _expLoss = $mercFreeManpower / $mercUnits[$targetIndex].troops>>
+				<<set $mercUnits[$targetIndex].training -= $mercUnits[$targetIndex].training * _expLoss>>
+				<<set $mercUnits[$targetIndex].troops += $mercFreeManpower>>
+				<<set $mercFreeManpower = 0>>
+			<</if>>
+			<<goto "seeUnit">>
+		<</link>>
+	<</if>>
+	<br>
+	<<if $mercUnits[$targetIndex].maxTroops < 50>>
+		<br>
+		<<link "Intensive officers training">>
+			<<set $mercUnits[$targetIndex].maxTroops += 10>>
+			<<set $cash -= 5000 + 10 * $equipUpgradeCost * ($mercUnits[$targetIndex].equip + $mercUnits[$targetIndex].commissars + $mercUnits[$targetIndex].cyber + $mercUnits[$targetIndex].SF)>>
+			<<goto "seeUnit">>
+		<</link>>
+		Invest in the training of your officers to increase the maximum number of soldiers in the unit.
+		<br>//Costs <<print 5000 + 10 * $equipUpgradeCost * ($mercUnits[$targetIndex].equip + $mercUnits[$targetIndex].commissars + $mercUnits[$targetIndex].cyber + $mercUnits[$targetIndex].SF)>> and will increase the max by 10//
+	<<else>>
+		<br>Your officers reached their peak. Further training will have little impact on the number of troops they can effectively lead.
+	<</if>>
+	<<if $mercUnits[$targetIndex].equip < 3>>
+		<br>
+		<<link "Improve weaponry and equipment">>
+			<<set $mercUnits[$targetIndex].equip += 1>>
+			<<set $cash -= ($equipUpgradeCost * $mercUnits[$targetIndex].maxTroops) + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Invest in better equipment for your soldiers to increase their battle effectiveness.
+		<br>//Costs <<print ($equipUpgradeCost * $mercUnits[$targetIndex].maxTroops) + 1000>> and will increase attack and defense value of the unit by 15% for every upgrade.//
+	<<else>>
+		<br>The unit is equipped with state of the art weaponry and equipment.
+	<</if>>
+	<<if $mercUnits[$targetIndex].commissars == 0>>
+		<br>
+		<<link "Attach commissars to the unit">>
+			<<set $mercUnits[$targetIndex].commissars = 1>>
+			<<set $cash -= $equipUpgradeCost * $mercUnits[$targetIndex].maxTroops + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Attach a small squad of commissars to the unit.
+		<br>//Costs <<print ($equipUpgradeCost * $mercUnits[$targetIndex].maxTroops) + 1000>> and will slowly increase the loyalty of the unit.//
+	<<elseif $mercUnits[$targetIndex].commissars < 2>>
+		<br>
+		<<link "Intensive loyalty training">>
+			<<set $mercUnits[$targetIndex].commissars += 1>>
+			<<set $cash -= $equipUpgradeCost * $mercUnits[$targetIndex].maxTroops + 1000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Provide special training for the officers and the commissars of the unit.
+		<br>//Costs <<print ($equipUpgradeCost * $mercUnits[$targetIndex].maxTroops) + 1000>> and will increase the loyalty of the unit faster.//
+	<<elseif $mercUnits[$targetIndex].commissars == 1>>
+		<br>The unit has a commissar detachment, keeping under control the ambitions of the unit's officers.
+	<<else>>
+		<br>The unit has a perfectly trained and loyal commissar detachment, keeping under control the ambitions of the unit's officers.
+	<</if>>
+	<<if $prostheticsUpgrade >= 2 || $researchLab.advCombatPLimb == 1>>
+		<<if $mercUnits[$targetIndex].cyber == 0>>
+			<br>
+			<<link "Provide enhanced cybernetic enhancements">>
+				<<set $mercUnits[$targetIndex].cyber += 1>>
+				<<set $cash -= $equipUpgradeCost * $mercUnits[$targetIndex].maxTroops + 2000>>
+				<<goto "seeUnit">>
+			<</link>>Will augment all soldiers of the unit with high tech cyber enhancements.
+			<br>//Costs <<print ($equipUpgradeCost * $mercUnits[$targetIndex].maxTroops) + 2000>> and will increase attack, defense and base hp values of the unit.//
+		<<else>>
+			<br>The unit is equipped with advanced cybernetic enhancements.
+		<</if>>	
+	<</if>>
+	<<if $mercUnits[$targetIndex].medics == 0>>
+		<br>
+		<<link "Attach trained medics to the unit">>
+			<<set $mercUnits[$targetIndex].medics = 1>>
+			<<set $cash -= ($equipUpgradeCost * $mercUnits[$targetIndex].maxTroops) + 5000>>
+			<<goto "seeUnit">>
+		<</link>>
+		Attach a small squad of trained medics to the unit.
+		<br>//Costs <<print ($equipUpgradeCost * $mercUnits[$targetIndex].maxTroops) + 5000>> and will decrease the number of casualties suffered during battle.//
+	<<else>>
+		<br>The unit has a medic detachment following it into battle, decreasing the number of casualties the unit suffers.
+	<</if>>
+	<<if $securityForceActive == 1>>
+		<<if $mercUnits[$targetIndex].SF == 0>>
+			<br>
+			<<link "Attach Special Force advisors">>
+				<<set $mercUnits[$targetIndex].SF = 1>>
+				<<set $cash -= ($equipUpgradeCost * $mercUnits[$targetIndex].maxTroops) + 5000>>
+				<<goto "seeUnit">>
+			<</link>>
+			Attach $securityForceName advisors to the unit.
+			<br>//Costs <<print ($equipUpgradeCost * $mercUnits[$targetIndex].maxTroops) + 5000>> and will slightly increase the base stats of the unit.//
+		<<else>>
+			<br>The unit has attached advisors from $securityForceName that will help the squad remain tactically aware and active.
+		<</if>>
+	<</if>>
+	<<if $showBattleStatistics == 1>>
+		<<if $mercUnits[$targetIndex].training <= 10>>
+			<<set _expBonus = 0>>
+		<<elseif $mercUnits[$targetIndex].training <= 33>>
+			<<set _expBonus = 10>>
+		<<elseif $mercUnits[$targetIndex].training <= 66>>
+			<<set _expBonus = 25>>
+		<<else>>
+			<<set _expBonus = 50>>
+		<</if>>
+		<<if $mercUnits[$targetIndex].loyalty <= 10>>
+			<<set _loyaltyBonus = 0>>
+		<<elseif $mercUnits[$targetIndex].loyalty <= 33>>
+			<<set _loyaltyBonus = 10>>
+		<<elseif $mercUnits[$targetIndex].loyalty <= 66>>
+			<<set _loyaltyBonus = 20>>
+		<<else>>
+			<<set _loyaltyBonus = 30>>
+		<</if>>
+		<br>
+		<br>Mercenaries base attack: $mercBaseAttack <<if $humanUpgrade.attack > 0>> + $humanUpgrade.attack <</if>>(<<print Math.round($mercBaseAttack + $mercBaseAttack * $mercUnits[$targetIndex].equip * $equipMod + $mercBaseAttack * _expBonus * 0.01 + $mercBaseAttack * _loyaltyBonus * 0.01 + $mercBaseAttack * $mercUnits[$targetIndex].SF * 0.20 + $mercUnits[$targetIndex].cyber)>>)
+		<br>Mercenaries base defense: $mercBaseDefense <<if $humanUpgrade.defense > 0>> + $humanUpgrade.defense <</if>>(<<print Math.round($mercBaseDefense + $mercBaseDefense * $mercUnits[$targetIndex].equip * $equipMod + $mercBaseDefense * _expBonus * 0.01 + $mercBaseDefense * _loyaltyBonus * 0.01 + $mercBaseDefense * $mercUnits[$targetIndex].SF * 0.20 + $mercUnits[$targetIndex].cyber)>>)
+		<<if $mercUnits[$targetIndex].equip > 0>>
+			<br>Equipment bonus: + <<print $mercUnits[$targetIndex].equip * 15>>%
+		<</if>>
+		<<if $mercUnits[$targetIndex].cyber > 0>>
+			<br>Cyber enhancements bonus: + 1
+		<</if>>
+		<<if _expBonus > 0>>
+			<br>Experience bonus: +<<print _expBonus>>%
+		<</if>>
+		<<if _loyaltyBonus > 0>>
+			<br>Loyalty bonus: +<<print _loyaltyBonus>>%
+		<</if>>
+		<<if $mercUnits[$targetIndex].SF > 0>>
+			<br>Special Force advisors bonus: +20%
+		<</if>>
+		<br>Mercenaries base morale: $mercBaseMorale <<if $humanUpgrade.morale > 0>> + $humanUpgrade.morale <</if>>(<<print Math.round($mercBaseMorale + $mercBaseMorale * $secBarracksUpgrades.luxury * 0.05)>>)
+		<<if $secBarracksUpgrades.luxury > 0>>
+			<br>Barracks bonus: + <<print $secBarracksUpgrades.luxury * 5>>%
+		<</if>>
+		<br>Mercenaries base hp: $mercBaseHp <<if $humanUpgrade.hp > 0>> + $humanUpgrade.hp <</if>>(<<print Math.round($mercBaseHp + $mercBaseHp * $mercUnits[$targetIndex].medics * 0.25 + $mercUnits[$targetIndex].cyber)>>)
+		<<if $mercUnits[$targetIndex].medics > 0>>
+			<br>Medics detachment bonus: +25%
+		<</if>>
+	<</if>>
+<</if>>

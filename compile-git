@@ -3,18 +3,27 @@
 # Run sanity check.
 ./sanityCheck
 
-HASH=`git log -n1 |grep -m1 commit | sed 's/commit //'`
-
-if [ $(uname -m) = "x86_64" ]
+HASH="$(git rev-list -n 1 --abbrev-commit HEAD)"
+ARCH="$(uname -m)"
+if [ "$ARCH" = "x86_64" ]
 then
 	echo "x64 arch"
-	./devTools/tweeGo/tweego_nix64 -o bin/FC_pregmod_$HASH.html src/
-else
+	./devTools/tweeGo/tweego_nix64 -o "bin/FC_pregmod_$HASH.html" src/
+elif echo "$ARCH" | grep -Ee '86$' > /dev/null
+then
 	echo "x86 arch"
-	./devTools/tweeGo/tweego_nix86 -o bin/FC_pregmod_$HASH.html src/
+	./devTools/tweeGo/tweego_nix86 -o "bin/FC_pregmod_$HASH.html" src/
+elif echo "$ARCH" | grep -Ee '^arm' > /dev/null
+then
+	echo "arm arch"
+	# tweego doesn't provide arm binaries so you have to build it yourself
+	export TWEEGO_PATH=devTools/tweeGo/storyFormats
+	tweego -o "bin/FC_pregmod_$HASH.html" src/
+else
+	exit 2
 fi
 
 #Make the output prettier, replacing \t with a tab and \n with a newline
-sed -i -e '/^<div id="store-area".*$/s/\\t/\t/g' -e '/^<div id="store-area".*$/s/\\n/\n/g'  bin/FC_pregmod_$HASH.html
+sed -i -e '/^<div id="store-area".*$/s/\\t/\t/g' -e '/^<div id="store-area".*$/s/\\n/\n/g'  "bin/FC_pregmod_$HASH.html"
 
 echo "FC_pregmod_$HASH.html" compilation finished.

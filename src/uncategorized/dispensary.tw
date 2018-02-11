@@ -2,88 +2,144 @@
 
 <<set $nextButton = "Back", $nextLink = "Manage Penthouse", $showEncyclopedia = 1, $encyclopedia = "The Pharmaceutical Fab.">>
 
+<br>
+The Dispensary
+<hr>
 <<if $dispensaryUpgrade == 0>>
-//The pharmaceutical fabricator is running smoothly. It can cheaply replicate complex medications, and has already cut the cost of drugs for your slaves by a fourth. It can easily produce advanced drugs should you obtain the data necessary to create them.//
+	//The pharmaceutical fabricator is running smoothly. It can cheaply replicate complex medications, and has already cut the cost of drugs for your slaves by a fourth. It can easily produce advanced drugs should you obtain the data necessary to create them.//
+	<br>
 <<else>>
-//The pharmaceutical fabricator is running smoothly. It can cheaply and quickly replicate complex medications, and has already cut the cost of drugs for your slaves in half. It can easily produce advanced drugs should you obtain the data necessary to create them.//
+	//The pharmaceutical fabricator is running smoothly. It can cheaply and quickly replicate complex medications, and has already cut the cost of drugs for your slaves in half. It can easily produce advanced drugs should you obtain the data necessary to create them.//
+	<br>
 <</if>>
 
 <<if ($dispensaryUpgrade == 0)>>
-<br><br>
-<<if ($rep > 5000)>>
-	[[Upgrade the pharmaceutical fabricator|Dispensary][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $dispensaryUpgrade = 1, $drugsCost = $drugsCost/2]]
-	//Costs ¤<<print Math.trunc(30000*$upgradeMultiplierArcology)>>//
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will improve production efficiency further decreasing costs.//
-<<else>>
-	//You lack the reputation to obtain cutting-edge pharmaceutical fabricator upgrades//
-<</if>>
+	<<if ($rep > 5000)>>
+		[[Upgrade the pharmaceutical fabricator|Dispensary][$cash -= Math.trunc(30000*$upgradeMultiplierArcology), $dispensaryUpgrade = 1, $drugsCost = (($drugsCost*2)/3)]]
+		//Costs <<print cashFormat(Math.trunc(30000*$upgradeMultiplierArcology))>>//
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will improve production efficiency further decreasing costs.//
+		<br>
+	<<else>>
+		//You lack the reputation to obtain cutting-edge pharmaceutical fabricator upgrades//
+		<br>
+	<</if>>
 <</if>>
 
-<br><br>
-
+<br>
+The Organ Farm
+<hr>
 <<if ($organFarmUpgrade < 3) && ($rep <= 10000*$upgradeMultiplierMedicine)>>
 	//You lack the reputation to access experimental organ farm parts//
+	<br>
 <<elseif $dispensaryUpgrade == 0 && $organFarmUpgrade == 2>>
-	//The fabricator must updgraded before it can be fitted with perfected organ farm parts//
+	//The fabricator must upgraded before it can be fitted with perfected organ farm parts//
+	<br>
 <<elseif $organs.length > 0>>
 	//The organ farm can not be upgraded while it is use//
+	<br>
 <<elseif ($organFarmUpgrade == 2) && ($rep > 10000*$upgradeMultiplierMedicine)>>
 	[[Upgrade to the organ farm to the cutting edge model|Dispensary][$cash -= 150000*$upgradeMultiplierMedicine, $organFarmUpgrade = 3]]
-	//Costs ¤<<print 150000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(150000*$upgradeMultiplierMedicine)>>//
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the organ farm to rapidly grow organs without risk to the implantee's health.//
+	<br>
 <<elseif ($organFarmUpgrade == 1) && ($rep > 10000*$upgradeMultiplierMedicine)>>
 	[[Upgrade the organ farm with an experimental growth accelerator|Dispensary][$cash -= 50000*$upgradeMultiplierMedicine, $organFarmUpgrade = 2]]
-	//Costs ¤<<print 50000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(50000*$upgradeMultiplierMedicine)>>//
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the organ farm to quickly grow organs. Implanted organs may cause health issues.//
+	<br>
 <<elseif ($organFarmUpgrade == 0) && ($rep > 10000*$upgradeMultiplierMedicine)>>
 	[[Upgrade the fabricator with an experimental organ farm|Dispensary][$cash -= 50000*$upgradeMultiplierMedicine, $organFarmUpgrade = 1]]
-	//Costs ¤<<print 50000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(50000*$upgradeMultiplierMedicine)>>//
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of tailored organs using the autosurgery.//
+	<br>
 <</if>>
-<br>
 <<if $organFarmUpgrade > 2>>
 	The fabricator is capable of rapidly growing organs.
+	<br>
 <<elseif $organFarmUpgrade > 1>>
 	The fabricator is capable of quickly growing organs, though not without side effects.
+	<br>
 <<elseif ($organFarmUpgrade > 0)>>
 	The fabricator is capable of growing organs.
+	<br>
 <</if>>
-
 <<if $organs.length > 0>>
 It is currently working on the following organs:
 	<<for $i = 0; $i < $organs.length; $i++>>
-	<<for $j = 0; $j < $slaves.length; $j++>>
-		<<if $slaves[$j].ID == $organs[$i].ID>>
-		<br>
-		$slaves[$j].slaveName's $organs[$i].type,
-		<<if $organs[$i].weeksToCompletion <= 0>>
-			ready for implantation.
-		<<else>>
-			<<if $organFarmUpgrade == 1>><<print $organs[$i].weeksToCompletion>><<elseif $organFarmUpgrade == 2>><<print Math.ceil($organs[$i].weeksToCompletion/2)>><<elseif $organFarmUpgrade == 3>><<print Math.ceil($organs[$i].weeksToCompletion/4)>><</if>> weeks from completion.
-		<</if>>
-		<<break>>
-		<</if>>
+		<<for $j = 0; $j < $slaves.length; $j++>>
+			<<if $slaves[$j].ID == $organs[$i].ID>>
+				<br>
+				$slaves[$j].slaveName's $organs[$i].type,
+				<<if $organFarmUpgrade == 1>>
+					<<print $organs[$i].weeksToCompletion>>
+				<<elseif $organFarmUpgrade == 2>>
+					<<print Math.ceil($organs[$i].weeksToCompletion/2)>>
+				<<elseif $organFarmUpgrade == 3>>
+					<<print Math.ceil($organs[$i].weeksToCompletion/4)>>
+				<</if>> weeks from completion.
+				<<break>>
+			<</if>>
+		<</for>>
 	<</for>>
+	<br>
+<</if>>
+<<if $incubatorSlaves > 0>>
+	<<for $x = 0; $x < $incubatorOrgans.length; $x++>>
+		<<for _w = 0; _w < $incubatorSlaves; _w++>>
+			<<if $tanks[_w].ID == $incubatorOrgans[$x].ID>>
+				<br>
+				$tanks[_w].slaveName's $incubatorOrgans[$x].type,
+				<<if $incubatorOrgans[$x].weeksToCompletion <= 0>>
+					ready to be implanted as soon as she exits the incubator.
+				<<else>>
+					<<if $organFarmUpgrade == 1>>
+						<<print $incubatorOrgans[$x].weeksToCompletion>>
+					<<elseif $organFarmUpgrade == 2>>
+						<<print Math.ceil($incubatorOrgans[$x].weeksToCompletion/2)>>
+					<<elseif $organFarmUpgrade == 3>>
+						<<print Math.ceil($incubatorOrgans[$x].weeksToCompletion/4)>>
+					<</if>> weeks from completion.
+				<</if>>
+				<<break>>
+			<</if>>
+		<</for>>
 	<</for>>
+	<br>
+<</if>>
+<<if $completedOrgans.length > 0>>
+	<br>
+	Currently the following organs are completed and ready for implantation:
+	<<for $i = 0; $i < $completedOrgans.length; $i++>>
+		<<for $j = 0; $j < $slaves.length; $j++>>
+			<<if $slaves[$j].ID == $completedOrgans[$i].ID>>
+				<br>$slaves[$j].slaveName's $completedOrgans[$i].type.
+				<<break>>
+			<</if>>
+		<</for>>
+	<</for>>
+	<br>
 <</if>>
 
-<br><br>
-
+<br>
+Hormones Upgrades
+<hr>
 The fabricator is producing
 <<if $injectionUpgrade == 0>>
 	standard growth hormones.
 	<<if $rep > 6000>>
 		[[Purchase data on prototype growth hormone tests|Dispensary][$cash -= 25000*$upgradeMultiplierMedicine, $injectionUpgrade = 1]]
-		//Costs ¤<<print 25000*$upgradeMultiplierMedicine>>//
+		//Costs <<print cashFormat(25000*$upgradeMultiplierMedicine)>>//
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should improve the reliability of growth injections of all kinds.//
+		<br>
 	<<else>>
 		//You lack the reputation to obtain prototype medicines//
+		<br>
 	<</if>>
 <<elseif $injectionUpgrade == 1>>
 	prototype growth hormones.
 	<<if $rep > 10000>>
 		[[Upgrade the fabricator to customize each slave's growth hormones|Dispensary][$cash -= 50000*$upgradeMultiplierMedicine, $injectionUpgrade = 2]]
-		//Costs ¤<<print 50000*$upgradeMultiplierMedicine>>//
+		//Costs <<print cashFormat(50000*$upgradeMultiplierMedicine)>>//
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should improve the reliability of growth injections of all kinds.//
 	<<else>>
 		//You lack the reputation to obtain prototype fabricator upgrades//
@@ -92,396 +148,480 @@ The fabricator is producing
 	prototype growth hormones.
 	<<if $rep > 14000>>
 		[[Upgrade the fabricator with prototype biomechanical microfactories|Dispensary][$cash -= 100000*$upgradeMultiplierMedicine, $injectionUpgrade = 3]]
-		//Costs ¤<<print 100000*$upgradeMultiplierMedicine>>//
+		//Costs <<print cashFormat(100000*$upgradeMultiplierMedicine)>>//
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should improve the reliability of growth injections of all kinds.//
+		<br>
 	<<else>>
 		//You lack the reputation to obtain prototype biomechanical microfactories//
+		<br>
 	<</if>>
 <<else>>
 	the world's most effective growth hormones.
+	<br>
 <</if>>
-
-<br><br>
 
 The fabricator is producing
 <<if $hormoneUpgradeMood == 0>>
 	standardized hormone replacement therapies.
 	<<if $rep > 2000>>
 		[[Upgrade for individualized therapy|Dispensary][$cash -= 10000*$upgradeMultiplierMedicine, $hormoneUpgradeMood = 1]]
-		//Costs ¤<<print 10000*$upgradeMultiplierMedicine>>//
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should eliminate the occasional moodiness caused by generalized therapy.//
+		//Costs <<print cashFormat(10000*$upgradeMultiplierMedicine)>>//
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should eliminate the occasional moodiness and sexual disinterest caused by generalized therapy.//
+		<br>
 	<<else>>
 		//You lack the reputation to obtain advanced drug manufacturing components//
+		<br>
 	<</if>>
 <<else>>
 	individualized hormone replacement therapies.
+	<br>
 <</if>>
-
-<br>
 
 The hormone replacement therapies
 <<if $hormoneUpgradePower == 0>>
 	are traditional: they're formulated to mimic natural hormones.
 	<<if $rep > 4000>>
 		[[Purchase data on advanced HRT|Dispensary][$cash -= 25000*$upgradeMultiplierMedicine, $hormoneUpgradePower = 1]]
-		//Costs ¤<<print 25000*$upgradeMultiplierMedicine>>//
+		//Costs <<print cashFormat(25000*$upgradeMultiplierMedicine)>>//
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should increase the power of hormone therapies.//
+		<br>
 	<<else>>
 		//You lack the reputation to obtain prototype medicines//
+		<br>
 	<</if>>
 <<else>>
 	are advanced: they're formulated to improve on natural hormones.
+	<br>
 <</if>>
-
-<br>
 
 The hormone replacement therapies
 <<if $hormoneUpgradeShrinkage == 0>>
 	are broad-spectrum.
 	<<if $rep > 4000>>
 		[[Purchase data on targeted HRT|Dispensary][$cash -= 25000*$upgradeMultiplierMedicine, $hormoneUpgradeShrinkage = 1]]
-		//Costs ¤<<print 25000*$upgradeMultiplierMedicine>>//
+		//Costs <<print cashFormat(25000*$upgradeMultiplierMedicine)>>//
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should reduce atrophy of organs corresponding to original sex.//
+		<br>
 	<<else>>
 		//You lack the reputation to obtain prototype medicines//
+		<br>
 	<</if>>
 <<else>>
 	are targeted, reducing atrophy of organs corresponding to original sex.
+	<br>
 <</if>>
 
 <<if $precociousPuberty == 1>>
-<br><br>
-
-<<if ($pubertyHormones == 0) && ($rep <= 4500*$upgradeMultiplierMedicine)>>
-	//You lack the reputation to fund forced puberty drugs//
-<<elseif ($pubertyHormones == 0) && ($rep > 4500*$upgradeMultiplierMedicine)>>
-	[[Fund research into powerful hormonal injections to jumpstart puberty|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine, $pubertyHormones = 1]]
-	//Costs ¤<<print 30000*$upgradeMultiplierMedicine>>//
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the production of powerful hormonal drugs designed to force a slave through puberty without regard for side effects. //
-<<elseif ($pubertyHormones == 1)>>
-	The fabricator is producing extra strong hormonal drugs designed to force a slave through puberty.
+	<<if ($pubertyHormones == 0) && ($rep <= 4500*$upgradeMultiplierMedicine)>>
+		//You lack the reputation to fund forced puberty drugs//
+		<br>
+	<<elseif ($pubertyHormones == 0) && ($rep > 4500*$upgradeMultiplierMedicine)>>
+		[[Fund research into powerful hormonal injections to jumpstart puberty|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine, $pubertyHormones = 1]]
+		//Costs <<print cashFormat(30000*$upgradeMultiplierMedicine)>>//
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the production of powerful hormonal drugs designed to force a slave through puberty without regard for side effects. //
+		<br>
+	<<elseif ($pubertyHormones == 1)>>
+		The fabricator is producing extra strong hormonal drugs designed to force a slave through puberty.
+		<br>
+	<</if>>
 <</if>>
-<</if>>
 
-<br><br>
-
+<br>
+Dietary Upgrades
+<hr>
 <<if $feeder == 1>>
-<<if ($dietXXY == 0) && ($rep <= 3500*$upgradeMultiplierMedicine)>>
-	//You lack the reputation to fund research into hermaphrodite hormones//
-<<elseif ($dietXXY == 0) && ($rep > 3500*$upgradeMultiplierMedicine)>>
-	[[Fund research into developing hermaphrodite hormone therapies|Dispensary][$cash -= 10000*$upgradeMultiplierMedicine, $dietXXY = 1]]
-	//Costs ¤<<print 10000*$upgradeMultiplierMedicine>>//
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow for specially balanced meals to be served in the cafeteria designed to promote both halves of a herm's sexuality. //
-<<elseif ($dietXXY == 1)>>
-	The fabricator is producing meals to be served in the cafeteria designed to promote both halves of a herm's sexuality.
-<</if>>
+	<<if ($dietXXY == 0) && ($rep <= 3500*$upgradeMultiplierMedicine)>>
+		//You lack the reputation to fund research into hermaphrodite hormones//
+		<br>
+	<<elseif ($dietXXY == 0) && ($rep > 3500*$upgradeMultiplierMedicine)>>
+		[[Fund research into developing hermaphrodite hormone therapies|Dispensary][$cash -= 10000*$upgradeMultiplierMedicine, $dietXXY = 1]]
+		//Costs <<print cashFormat(10000*$upgradeMultiplierMedicine)>>//
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow for specially balanced meals to be served in the cafeteria designed to promote both halves of a herm's sexuality. //
+		<br>
+	<<elseif ($dietXXY == 1)>>
+		The fabricator is producing meals to be served in the cafeteria designed to promote both halves of a herm's sexuality.
+		<br>
+	<</if>>
 <<else>>
 	The feeders are incapable of modifying slave diets well enough to adjust hormones for hermaphrodite meals.
+	<br>
 <</if>>
-
-<br><br>
 
 <<if $cumProDiet == 0>>
 	[[Purchase recipes to encourage cum production|Dispensary][$cash -= 5000*$upgradeMultiplierMedicine, $cumProDiet = 1]]
-	//Costs ¤<<print 5000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(5000*$upgradeMultiplierMedicine)>>//
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow for specially designed meals to be served in the cafeteria to promote cum production.//
+	<br>
 <<elseif $cumProDiet == 1>>
 	The fabricator is producing meals to be served in the cafeteria designed to promote cum production.
+	<br>
 <</if>>
-
-<br><br>
 
 <<if $dietCleanse == 0>>
 	[[Purchase cleansing recipes to lessen genome damage|Dispensary][$cash -= 10000*$upgradeMultiplierMedicine, $dietCleanse = 1]]
-	//Costs ¤<<print 10000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(10000*$upgradeMultiplierMedicine)>>//
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow for specially designed meals to be served in the cafeteria to counteract excessive drug use.//
+	<br>
 <<elseif $dietCleanse == 1>>
 	The fabricator is producing meals to be served in the cafeteria designed to counteract excessive drug use and good health. They smell awful and taste worse than they look, but they're healthy.
+	<br>
 <</if>>
 
-<br><br>
-
+<br>
+Pharmacological Upgrades
+<hr>
 <<if ($curativeUpgrade == 0) && ($rep > 6000*$upgradeMultiplierMedicine)>>
 	[[Purchase data on advanced curatives|Dispensary][$cash -= 25000*$upgradeMultiplierMedicine, $curativeUpgrade = 1]]
-	//Costs ¤<<print 25000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(25000*$upgradeMultiplierMedicine)>>//
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should improve the effectiveness of curative treatment.//
+	<br>
 <<elseif ($curativeUpgrade == 1)>>
 	The fabricator is producing highly effective curative cocktails.
+	<br>
 <</if>>
-
-<br><br>
 
 <<if ($growthStim == 0) && ($rep > 6000*$upgradeMultiplierMedicine)>>
 	[[Purchase data on growth stimulants|Dispensary][$cash -= 20000*$upgradeMultiplierMedicine, $growthStim = 1]]
-	//Costs ¤<<print 20000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(20000*$upgradeMultiplierMedicine)>>//
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the manufacturing of drugs to encourage growth in slave height.//
+	<br>
 <<elseif ($growthStim == 1)>>
 	The fabricator is able to produce growth stimulants.
+	<br>
 <</if>>
-
-<br><br>
 
 <<if ($aphrodisiacUpgradeRefine == 0) && ($rep > 6000*$upgradeMultiplierMedicine)>>
 	[[Purchase data on refined aphrodisiacs|Dispensary][$cash -= 20000*$upgradeMultiplierMedicine, $aphrodisiacUpgradeRefine = 1]]
-	//Costs ¤<<print 20000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(20000*$upgradeMultiplierMedicine)>>//
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will prevent most physical side effects of aphrodisiacs. Once the formulas are changed they can not be changed back.//
+	<br>
 <<elseif ($aphrodisiacUpgradeRefine == 1)>>
 	The fabricator is producing refined aphrodisiacs with limited hormonal effects.
+	<br>
 <</if>>
-
-<br><br>
 
 <<if ($aphrodisiacUpgrade == 0) && ($rep > 6000*$upgradeMultiplierMedicine)>>
 	[[Purchase data on aphrodisiac withdrawal treatment|Dispensary][$cash -= 10000*$upgradeMultiplierMedicine, $aphrodisiacUpgrade = 1]]
-	//Costs ¤<<print 10000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(10000*$upgradeMultiplierMedicine)>>//
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should prevent most negative effects of withdrawal.//
+	<br>
 <<elseif ($aphrodisiacUpgrade == 1)>>
 	The fabricator is producing a substitute that will protect slaves from aphrodisiac withdrawal.
+	<br>
 <</if>>
-
-<br><br>
-
-<<if ($superFertilityDrugs == 0) && ($rep > 2500*$upgradeMultiplierMedicine) && $seeHyperPreg == 1>>
-	[[Purchase data on powerful fertility drugs|Dispensary][$cash -= 20000*$upgradeMultiplierMedicine, $superFertilityDrugs = 1]]
-	//Costs ¤<<print 20000*$upgradeMultiplierMedicine>>//
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should improve the likelihood of conception and multiples. //
-<<elseif ($superFertilityDrugs == 1)>>
-	The fabricator is producing highly effective fertility agents. There is a warning present involving overdosing and instances of ten or more children.
-<</if>>
-
-<br><br>
 
 <<if ($healthyDrugsUpgrade == 0)>>
 	<<if (($organFarmUpgrade >= 1) && ($injectionUpgrade != 0) && ($curativeUpgrade == 1) && ($aphrodisiacUpgrade == 1))>>
-	<<if ($rep >= 15000*$upgradeMultiplierMedicine)>>
-		[[Fund research into drug formulations without negative physical side effects|Dispensary][$cash -= 500000*$upgradeMultiplierMedicine,$healthyDrugsUpgrade = 1]] //Costs ¤<<print 500000*$upgradeMultiplierMedicine>>. Will prevent the negative side effects of excessive drug usage on your slaves.//
-		<br><br>
+		<<if ($rep >= 15000*$upgradeMultiplierMedicine)>>
+			[[Fund research into drug formulations without negative physical side effects|Dispensary][$cash -= 500000*$upgradeMultiplierMedicine,$healthyDrugsUpgrade = 1]]
+			//Costs <<print cashFormat(500000*$upgradeMultiplierMedicine)>>//
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will prevent the negative side effects of excessive drug usage on your slaves.//
+			<br>
+		<<else>>
+			// You lack the reputation to access the technology necessary to develop advanced drug formulations. //
+			<br>
+		<</if>>
 	<<else>>
-		// You lack the reputation to access the technology necessary to develop advanced drug formulations. //
-	<</if>>
-	<<else>>
-	// You must purchase all other upgrades before developing advanced drug formulations. //
-	<br><br>
+		// You must purchase all other upgrades before developing advanced drug formulations. //
+		<br>
 	<</if>>
 <<else>>
 	The fabricator has been upgraded to optimize the structures of your other drugs, eliminating their negative side effects.
-	<br><br>
+	<br>
 <</if>>
 /* Code [draft] contributed by Anon1888 */
 
-
 <<if ($arcologies[0].FSBodyPuristLaw == 1)>>
 	//The pharmaceutical fabricator is working with your body purist arcology to reduce long term drug side effects.//
-	<br><br>
+	<br>
 <</if>>
 
+<<if $seePreg != 0>>
+<br>
+Fertility Focused Pharmacology
+<hr>
+<<if $seeHyperPreg == 1>>
+	<<if $superFertilityDrugs == 1 && ($rep > 10000*$upgradeMultiplierMedicine) && $pregSpeedControl != 1>>
+		[[Fund research pregnancy speed control methods|Dispensary][$cash -= 200000*$upgradeMultiplierMedicine, $pregSpeedControl = 1, $clinicSpeedGestation = 0]]
+		//Costs <<print cashFormat(200000*$upgradeMultiplierMedicine)>>//
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;// Fund underground research labs to develop methods for controlling pregnancy progress. //
+		<br>
+	<<elseif ($rep <= 10000*$upgradeMultiplierMedicine) && $pregSpeedControl != 1>>
+		//You lack the reputation required to contact underground research labs to develop methods for controlling pregnancy progress.//
+		<br>
+	<<elseif ($pregSpeedControl == 1)>>
+		The fabricator is producing extremely complex gestation control agents. They can be used to control gestation speed, and even suppress labor for some time. //
+		<br>
+	<</if>>
+<<elseif $birthsTotal > 10>>
+	<<if ($rep > 10000*$upgradeMultiplierMedicine) && $pregSpeedControl != 1>>
+		[[Fund research pregnancy speed control methods|Dispensary][$cash -= 200000*$upgradeMultiplierMedicine, $pregSpeedControl = 1, $clinicSpeedGestation = 0]]
+		//Costs <<print cashFormat(200000*$upgradeMultiplierMedicine)>>//
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;// Fund underground research labs to develop methods for controlling pregnancy progress. //
+		<br>
+	<<elseif ($rep <= 10000*$upgradeMultiplierMedicine) && $pregSpeedControl != 1>>
+		//You lack the reputation required to contact underground research labs to develop methods for controlling pregnancy progress.//
+		<br>
+	<<elseif ($pregSpeedControl == 1)>>
+		The fabricator is producing extremely complex gestation control agents. They can be used to control gestation speed, and even suppress labor for some time. //
+		<br>
+	<</if>>
+<<else>>
+	//You lack the experience required to contact underground research labs to develop methods for controlling pregnancy progress.//
+	<br>
+<</if>>
 
+<<if ($superFertilityDrugs == 0) && ($rep > 2500*$upgradeMultiplierMedicine) && $seeHyperPreg == 1>>
+	[[Purchase data on powerful fertility drugs|Dispensary][$cash -= 20000*$upgradeMultiplierMedicine, $superFertilityDrugs = 1]]
+	//Costs <<print cashFormat(20000*$upgradeMultiplierMedicine)>>//
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Should improve the likelihood of conception and multiples. //
+	<br>
+<<elseif ($superFertilityDrugs == 1)>>
+	The fabricator is producing highly effective fertility agents. There is a warning present involving overdosing and instances of ten or more children.
+	<br>
+<</if>>
+<</if>>
+
+<br>
+Implant Production
+<hr>
 <<if ($ImplantProductionUpgrade == 0) && ($rep <= 2000*$upgradeMultiplierMedicine)>>
 	//You lack the reputation to access experimental implant manufacturer parts//
-	<br><br>
+	<br>
 <</if>>
 
 <<if ($ImplantProductionUpgrade == 0) && ($rep > 2000*$upgradeMultiplierMedicine)>>
     [[Upgrade the fabricator with an experimental implant manufacturer|Dispensary][$cash -= 20000*$upgradeMultiplierMedicine, $ImplantProductionUpgrade = 1]]
-	//Costs ¤<<print 20000*$upgradeMultiplierMedicine>>//
+	//Costs <<print cashFormat(20000*$upgradeMultiplierMedicine)>>//
     <br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of special implants using the autosurgery.//
+	<br>
 <<elseif ($ImplantProductionUpgrade > 0)>>
 	The fabricator is capable of crafting special implants.
+	<br>
 <</if>>
 
-<br><br>
-
-<<if $ImplantProductionUpgrade == 1 && $seeHyperPreg == 1 && $seeExtreme == 1>>
-<<if ($permaPregImplant == 0) and ($rep <= 4000*$upgradeMultiplierMedicine)>>
-	//You lack the reputation to access experimental pregnancy generator schematics//
-<</if>>
-
-<<if ($permaPregImplant == 0) && ($rep > 4000*$upgradeMultiplierMedicine)>>
-    [[Purchase schematics for an experimental implantable pregnancy generator|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine, $permaPregImplant = 1]]
-	//Costs ¤<<print 30000*$upgradeMultiplierMedicine>>//
-    <br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of implants that force perpetual pregnancy.//
-<<elseif ($permaPregImplant > 0)>>
-	The fabricator is capable of crafting pregnancy generators.
-<</if>>
-<br><br>
-<</if>>
-
-<<if $seeHyperPreg == 1>>
-<<if $superFertilityDrugs == 1 && ($rep > 10000*$upgradeMultiplierMedicine) && $pregSpeedControl != 1>>
-	[[Fund research pregnancy speed control methods|Dispensary][$cash -= 200000*$upgradeMultiplierMedicine, $pregSpeedControl = 1, $clinicSpeedGestation = 0]]
-	//Costs ¤<<print 200000*$upgradeMultiplierMedicine>>//
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;// Fund underground research labs to develop methods for controlling pregnancy progress. //
-<<elseif ($rep <= 10000*$upgradeMultiplierMedicine) && $pregSpeedControl != 1>>
-	//You lack the reputation required to contact underground research labs to develop methods for controlling pregnancy progress.//
-<<elseif ($pregSpeedControl == 1)>>
-	The fabricator is producing extremely complex gestation control agents. They can be used to control gestation speed, and even suppress labor for some time. //
-<</if>>
-<br><br>
-<<elseif $birthsTotal > 10>>
-<<if ($rep > 10000*$upgradeMultiplierMedicine) && $pregSpeedControl != 1>>
-	[[Fund research pregnancy speed control methods|Dispensary][$cash -= 200000*$upgradeMultiplierMedicine, $pregSpeedControl = 1, $clinicSpeedGestation = 0]]
-	//Costs ¤<<print 200000*$upgradeMultiplierMedicine>>//
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;// Fund underground research labs to develop methods for controlling pregnancy progress. //
-<<elseif ($rep <= 10000*$upgradeMultiplierMedicine) && $pregSpeedControl != 1>>
-	//You lack the reputation required to contact underground research labs to develop methods for controlling pregnancy progress.//
-<<elseif ($pregSpeedControl == 1)>>
-	The fabricator is producing extremely complex gestation control agents. They can be used to control gestation speed, and even suppress labor for some time. //
-<</if>>
-<br><br>
+<<if $ImplantProductionUpgrade == 1 && $seeHyperPreg == 1 && $seeExtreme == 1 && $seePreg != 0>>
+	<<if ($permaPregImplant == 0) and ($rep <= 4000*$upgradeMultiplierMedicine)>>
+		//You lack the reputation to access experimental pregnancy generator schematics//
+		<br>
+	<</if>>
+	<<if ($permaPregImplant == 0) && ($rep > 4000*$upgradeMultiplierMedicine)>>
+		[[Purchase schematics for an experimental implantable pregnancy generator|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine, $permaPregImplant = 1]]
+		//Costs <<print cashFormat(30000*$upgradeMultiplierMedicine)>>//
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of implants that force perpetual pregnancy.//
+		<br>
+	<<elseif ($permaPregImplant > 0)>>
+		The fabricator is capable of crafting pregnancy generators.
+		<br>
+	<</if>>
 <</if>>
 
 <<if $ImplantProductionUpgrade == 1>>
-<<if ($bellyImplants == 0) && ($rep <= 2000*$upgradeMultiplierMedicine)>>
-	//You lack the reputation to access experimental fillable abdominal implants//
+	<<if ($bellyImplants == 0) && ($rep <= 2000*$upgradeMultiplierMedicine)>>
+		//You lack the reputation to access experimental fillable abdominal implants//
+		<br>
+	<</if>>
+
+	<<if ($bellyImplants == 0) && ($rep > 2000*$upgradeMultiplierMedicine)>>
+		[[Purchase schematics for fillable abdominal implants|Dispensary][$cash -= 20000*$upgradeMultiplierMedicine, $bellyImplants = 1]]
+		//Costs <<print cashFormat(20000*$upgradeMultiplierMedicine)>>//
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of fillable abdominal implants using the autosurgery.//
+		<br>
+	<<elseif ($bellyImplants > 0)>>
+		The fabricator is capable of crafting fillable abdominal implants.
+		<br>
+	<</if>>
+	
+	<<if ($bellyImplants == 1) && ($cervixImplants != 1) && ($rep <= 6000*$upgradeMultiplierMedicine)>> /* show only after belly implants already researched */
+		//You lack the reputation to access schematics far experimental cervix filter micropumps for abdominal implants//
+		<br>
+	<</if>>
+
+	<<if ($bellyImplants == 1) && ($cervixImplants != 1) && ($rep >6000*$upgradeMultiplierMedicine)>> /* nanotech like technology much more impressive and costly than simple implant */
+		[[Purchase schematics for cervix filter micropumps|Dispensary][$cash -= 70000*$upgradeMultiplierMedicine, $cervixImplants = 1]]
+		//Costs <<print cashFormat(70000*$upgradeMultiplierMedicine)>>// 
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of cervix filter micropumps for fillable abdominal implants using the autosurgery.//
+		<br>
+	<<elseif ($cervixImplants > 0)>>
+		The fabricator is capable of crafting cervix filter micropumps for fillable abdominal implants.
+		<br>
+	<</if>>
+
+	<<if ($prostateImplants != 1) && ($rep <= 3000*$upgradeMultiplierMedicine)>>
+		//You lack the reputation to access plans for prostate implants//
+		<br>
+	<</if>>
+	<<if ($prostateImplants != 1) && ($rep > 3000*$upgradeMultiplierMedicine)>>
+		[[Purchase plans for ejaculation enhancing prostate implants|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine, $prostateImplants = 1]]
+		//Costs <<print cashFormat(30000*$upgradeMultiplierMedicine)>>// 
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of a prostate implant designed to stimulate fluid production for massive ejaculations. Beware of leaking and dehydration.//
+		<br>
+	<<elseif ($prostateImplants > 0)>>
+		The fabricator is capable of producing ejaculation enhancing prostate implants.
+		<br>
+	<</if>>
+
+	<<if ($meshImplants != 1) && ($rep <= 10000*$upgradeMultiplierMedicine)>>
+		//You lack the reputation to access plans for supportive breast implants//
+		
+	<</if>>
+	<<if ($meshImplants != 1) && ($rep > 10000*$upgradeMultiplierMedicine)>>
+		[[Purchase plans for supportive mesh breast implants|Dispensary][$cash -= 40000*$upgradeMultiplierMedicine, $meshImplants = 1]]
+		//Costs <<print cashFormat(40000*$upgradeMultiplierMedicine)>>// 
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of an organic, supportive mesh breast implants.//
+		<br>
+	<<elseif ($meshImplants > 0)>>
+		The fabricator is capable of producing supportive mesh breast implants.
+		<br>
+	<</if>>
+
 <</if>>
+	
+<br>
+Future Societies Research
+<hr>
 
-<<if ($bellyImplants == 0) && ($rep > 2000*$upgradeMultiplierMedicine)>>
-    [[Purchase schematics for fillable abdominal implants|Dispensary][$cash -= 20000*$upgradeMultiplierMedicine, $bellyImplants = 1]]
-	//Costs ¤<<print 20000*$upgradeMultiplierMedicine>>//
-    <br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of fillable abdominal implants using the autosurgery.//
-<<elseif ($bellyImplants > 0)>>
-	The fabricator is capable of crafting fillable abdominal implants.
-<</if>>
-
-<br><br>
-
-<<if ($bellyImplants == 1) && ($cervixImplants != 1) && ($rep <= 6000*$upgradeMultiplierMedicine)>> /* show only after belly implants already researched */
-	//You lack the reputation to access schematics far experimental cervix filter micropumps for abdominal implants//
-<</if>>
-
-<<if ($bellyImplants == 1) && ($cervixImplants != 1) && ($rep >6000*$upgradeMultiplierMedicine)>> /* nanotech like technology much more impressive and costly than simple implant */
-    [[Purchase schematics for cervix filter micropumps|Dispensary][$cash -= 70000*$upgradeMultiplierMedicine, $cervixImplants = 1]]
-	//Costs ¤<<print 70000*$upgradeMultiplierMedicine>>// 
-    <br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of cervix filter micropumps for fillable abdominal implants using the autosurgery.//
-<<elseif ($cervixImplants > 0)>>
-	The fabricator is capable of crafting cervix filter micropumps for fillable abdominal implants.
-<</if>>
-
-<br><br>
-
-<<if ($prostateImplants != 1) && ($rep <= 3000*$upgradeMultiplierMedicine)>>
-	//You lack the reputation to access plans for prostate implants//
-<</if>>
-
-<<if ($prostateImplants != 1) && ($rep > 3000*$upgradeMultiplierMedicine)>>
-    [[Purchase plans for ejaculation enhancing prostate implants|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine, $prostateImplants = 1]]
-	//Costs ¤<<print 30000*$upgradeMultiplierMedicine>>// 
-    <br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of a prostate implant designed to stimulate fluid production for massive ejaculations. Beware of leaking and dehydration.//
-<<elseif ($prostateImplants > 0)>>
-	The fabricator is capable of producing ejaculation enhancing prostate implants.
-<</if>>
-
-<br><br>
-
-<<if ($meshImplants != 1) && ($rep <= 10000*$upgradeMultiplierMedicine)>>
-	//You lack the reputation to access plans for supportive breast implants//
-<</if>>
-
-<<if ($meshImplants != 1) && ($rep > 10000*$upgradeMultiplierMedicine)>>
-    [[Purchase plans for supportive mesh breast implants|Dispensary][$cash -= 40000*$upgradeMultiplierMedicine, $meshImplants = 1]]
-	//Costs ¤<<print 40000*$upgradeMultiplierMedicine>>// 
-    <br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of an organic, supportive mesh breast implants.//
-<<elseif ($meshImplants > 0)>>
-	The fabricator is capable of producing supportive mesh breast implants.
-<</if>>
-
-<</if>>
-
-<br><br>
-__Societal Focused Research__
-<br><br>
-
+<<if $seePreg != 0>>
 <<if $arcologies[0].FSGenderRadicalistDecoration == 100 && $organFarmUpgrade > 0>>
 	<<if ($arcologies[0].FSGenderRadicalistResearch == 0)>>
 		<<if ($rep >= 10000*$upgradeMultiplierMedicine)>>
-		  [[Fund research into developing male pregnancy methods|Dispensary][$cash -= 50000*$upgradeMultiplierMedicine,$arcologies[0].FSGenderRadicalistResearch = 1]] //Costs ¤<<print 50000*$upgradeMultiplierMedicine>>. Will allow cloning and production of anal uteri and ovaries.//
+			[[Fund research into developing male pregnancy methods|Dispensary][$cash -= 50000*$upgradeMultiplierMedicine,$arcologies[0].FSGenderRadicalistResearch = 1]] //Costs <<print cashFormat(50000*$upgradeMultiplierMedicine)>>. Will allow cloning and production of anal uteri and ovaries.//
+			<br>
 		<<else>>
-		  // You lack the reputation to access the research necessary to develop anal uteri and ovaries. //
+			// You lack the reputation to access the research necessary to develop anal uteri and ovaries. //
+			<br>
 		<</if>>
 	<<else>>
-	  The organ farm has been upgraded with schematics for modified uteri and ovaries.
+		The organ farm has been upgraded with schematics for modified uteri and ovaries.
+		<br>
 	<</if>>
+<<elseif $arcologies[0].FSGenderRadicalistResearch == 1>>
+	The organ farm has been upgraded with schematics for modified uteri and ovaries.
+	<br>
 <<else>>
 	// Gender Radicalist focused research unavailable. //
+	<br>
+<</if>>
 <</if>>
 
 <<if ($ImplantProductionUpgrade == 1) and ($arcologies[0].FSTransformationFetishistDecoration >= 100)>>
-	<br>
 	<<if ($arcologies[0].FSTransformationFetishistResearch == 0) and ($rep <= 5000*$upgradeMultiplierMedicine)>>
 		//You lack the reputation to access experimental gigantic implants and elasticizing filler.//
+		<br>
 	<<elseif ($arcologies[0].FSTransformationFetishistResearch == 0)>>
 		[[Purchase data on gigantic implants and elasticizing filler|Dispensary][$cash -= 20000*$upgradeMultiplierMedicine, $arcologies[0].FSTransformationFetishistResearch = 1]]
-		//Costs ¤<<print 20000*$upgradeMultiplierMedicine>>//
+		//Costs <<print cashFormat(20000*$upgradeMultiplierMedicine)>>//
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of gigantic implants using the autosurgery and filler capable of overfilling existing fillable implants.//
+		<br>
 	<<elseif ($arcologies[0].FSTransformationFetishistResearch > 0)>>
 		The fabricator is capable of crafting gigantic implants and elasticizing filler designed to overfill existing implants.
+		<br>
 	<</if>>
+<<elseif $arcologies[0].FSTransformationFetishistResearch == 1>>
+	The fabricator is capable of crafting gigantic implants and elasticizing filler designed to overfill existing implants.
+	<br>
 <<else>>
-	<br>// Transformation Fetishist focused research unavailable. //
+	// Transformation Fetishist focused research unavailable. //
+	<br>
 <</if>>
 
 <<if $arcologies[0].FSAssetExpansionistDecoration == 100>>
-	<br>
 	<<if ($arcologies[0].FSAssetExpansionistResearch == 0)>>
 		<<if ($rep >= 5000*$upgradeMultiplierMedicine)>>
-		  [[Fund research into drug formulations for growth without limit|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine,$arcologies[0].FSAssetExpansionistResearch = 1]] //Costs ¤<<print 30000*$upgradeMultiplierMedicine>>. Will allow creation of drugs to push assets to unthinkable sizes.//
+			[[Fund research into drug formulations for growth without limit|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine,$arcologies[0].FSAssetExpansionistResearch = 1]] //Costs <<print cashFormat(30000*$upgradeMultiplierMedicine)>>. Will allow creation of drugs to push assets to unthinkable sizes.//
+			<br>
 		<<else>>
-		  // You lack the reputation to access the research necessary to develop advanced growth drug formulations. //
+			// You lack the reputation to access the research necessary to develop advanced growth drug formulations. //
+			<br>
 		<</if>>
 	<<else>>
-	  The fabricator has been upgraded to manufacture extremely powerful growth drugs.
+		The fabricator has been upgraded to manufacture extremely powerful growth drugs.
+		<br>
 	<</if>>
+<<elseif $arcologies[0].FSAssetExpansionistResearch == 1>>
+	The fabricator has been upgraded to manufacture extremely powerful growth drugs.
+	<br>
 <<else>>
-	<br>// Asset Expansionist focused research unavailable. //
+	// Asset Expansionist focused research unavailable. //
+	<br>
 <</if>>
 
 <<if $arcologies[0].FSSlimnessEnthusiastDecoration == 100>>
-	<br>
 	<<if ($arcologies[0].FSSlimnessEnthusiastResearch == 0)>>
 		<<if ($rep >= 5000*$upgradeMultiplierMedicine)>>
-		  [[Fund research into drug formulations for slimming slaves|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine,$arcologies[0].FSSlimnessEnthusiastResearch = 1]] //Costs ¤<<print 30000*$upgradeMultiplierMedicine>>. Will allow creation of drugs to shrink assets.//
+			[[Fund research into drug formulations for slimming slaves|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine,$arcologies[0].FSSlimnessEnthusiastResearch = 1]] //Costs <<print cashFormat(30000*$upgradeMultiplierMedicine)>>. Will allow creation of drugs to shrink assets.//
+			<br>
 		<<else>>
-		  // You lack the reputation to access the research necessary to develop asset reducing drug formulations. //
+			// You lack the reputation to access the research necessary to develop asset reducing drug formulations. //
+			<br>
 		<</if>>
 	<<else>>
-	  The fabricator has been upgraded to manufacture growth reversing drugs.
+		The fabricator has been upgraded to manufacture growth reversing drugs.
+		<br>
 	<</if>>
+<<elseif $arcologies[0].FSSlimnessEnthusiastResearch == 1>>
+	The fabricator has been upgraded to manufacture growth reversing drugs.
+	<br>
 <<else>>
-	<br>// Slimness Enthusiast focused research unavailable. //
+	// Slimness Enthusiast focused research unavailable. //
+	<br>
 <</if>>
 
 <<if $arcologies[0].FSYouthPreferentialistDecoration == 100>>
-	<br>
 	<<if ($arcologies[0].FSYouthPreferentialistResearch == 0)>>
 		<<if ($rep >= 5000*$upgradeMultiplierMedicine)>>
-		  [[Fund research into skin care designed to reverse the effects of aging|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine,$arcologies[0].FSYouthPreferentialistResearch = 1]] //Costs ¤<<print 30000*$upgradeMultiplierMedicine>>. Will allow creation of beauty creams designed to make slaves look young again.//
+			[[Fund research into skin care designed to reverse the effects of aging|Dispensary][$cash -= 30000*$upgradeMultiplierMedicine,$arcologies[0].FSYouthPreferentialistResearch = 1]] //Costs <<print cashFormat(30000*$upgradeMultiplierMedicine)>>. Will allow creation of beauty creams designed to make slaves look young again.//
+			<br>
 		<<else>>
-		  // You lack the reputation to access the research necessary to develop beauty creams designed to make slaves look young again. //
+			// You lack the reputation to access the research necessary to develop beauty creams designed to make slaves look young again. //
+			<br>
 		<</if>>
 	<<else>>
-	  The fabricator has been upgraded to manufacture extremely effective beauty creams designed to combat aging.
+		The fabricator has been upgraded to manufacture extremely effective beauty creams designed to combat aging.
+		<br>
 	<</if>>
+<<elseif $arcologies[0].FSYouthPreferentialistResearch == 1>>
+	The fabricator has been upgraded to manufacture extremely effective beauty creams designed to combat aging.
+	<br>
 <<else>>
-	<br>// Youth Preferentialist focused research unavailable. //
+	// Youth Preferentialist focused research unavailable. //
+	<br>
 <</if>>
 
 <<if $arcologies[0].FSHedonisticDecadenceDecoration == 100>>
-	<br>
 	<<if ($arcologies[0].FSHedonisticDecadenceResearch == 0)>>
 		<<if ($rep >= 5000*$upgradeMultiplierMedicine)>>
-		  [[Purchase recipes for concentrated, shaped slave food|Dispensary][$cash -= 50000*$upgradeMultiplierMedicine,$arcologies[0].FSHedonisticDecadenceResearch = 1]] //Costs ¤<<print 50000*$upgradeMultiplierMedicine>>. Will allow production of solid slave food in various familiar shapes and flavors. Addictive and a little fatty.<<if $arcologies[0].FSDegradationist != "unset">> Since your slaves don't deserve luxuries, a modified recipe formulated to cause severe stomach cramps minutes after ingestion will be developed.<</if>> //
+			[[Purchase recipes for concentrated, shaped slave food|Dispensary][$cash -= 50000*$upgradeMultiplierMedicine,$arcologies[0].FSHedonisticDecadenceResearch = 1]] //Costs <<print cashFormat(50000*$upgradeMultiplierMedicine)>>. Will allow production of solid slave food in various familiar shapes and flavors. Addictive and a little fatty.<<if $arcologies[0].FSDegradationist != "unset">> Since your slaves don't deserve luxuries, a modified recipe formulated to cause severe stomach cramps minutes after ingestion will be developed.<</if>> //
+			<br>
 		<<else>>
-		  // You lack the reputation to access the research necessary to purchage concentrated, shaped slave food recipes. //
+			// You lack the reputation to access the research necessary to purchase concentrated, shaped slave food recipes. //
+			<br>
 		<</if>>
 	<<else>>
-		The fabricator has been upgraded to manufacture tasty, extremely addictive, solid slave food in various familiar shapes and flavors. While they look and taste like real food, their consistancy is all wrong. Slaves gorging on them are likely to experience steady weight gain.<<if $arcologies[0].FSDegradationist != "unset">> Since your slaves don't deserve luxuries, all food crafted will cause severe stomach cramps minutes after ingestion. Coupled with their addictive nature, it ought to be quite torturous.<</if>>
+		The fabricator has been upgraded to manufacture tasty, extremely addictive, solid slave food in various familiar shapes and flavors. While they look and taste like real food, their consistency is all wrong. Slaves gorging on them are likely to experience steady weight gain.<<if $arcologies[0].FSDegradationist != "unset">> Since your slaves don't deserve luxuries, all food crafted will cause severe stomach cramps minutes after ingestion. Coupled with their addictive nature, it ought to be quite torturous.<</if>>
 		<<if $arcologies[0].FSSlimnessEnthusiast > 50 && $arcologies[0].FSHedonisticDecadenceDietResearch == 0>>
-			<br>&nbsp;&nbsp;&nbsp;&nbsp;[[Purchase diet recipes|Dispensary][$cash -= 10000*$upgradeMultiplierMedicine,$arcologies[0].FSHedonisticDecadenceDietResearch = 1]] //Costs ¤<<print 10000*$upgradeMultiplierMedicine>> Will prevent rampant weight gain from ruining your slim slaves.
+			[[Purchase diet recipes|Dispensary][$cash -= 10000*$upgradeMultiplierMedicine,$arcologies[0].FSHedonisticDecadenceDietResearch = 1]]
+			//Costs <<print cashFormat(10000*$upgradeMultiplierMedicine)>>//
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;Will prevent rampant weight gain from ruining your slim slaves.
+			<br>
 		<<elseif $arcologies[0].FSHedonisticDecadenceDietResearch == 1>>
 			A diet recipe is being utilized to prevent unwanted weight gain.
+			<br>
 		<</if>>
 	<</if>>
+<<elseif $arcologies[0].FSHedonisticDecadenceResearch == 1>>
+	The fabricator has been upgraded to manufacture tasty, extremely addictive, solid slave food in various familiar shapes and flavors. While they look and taste like real food, their consistency is all wrong. Slaves gorging on them are likely to experience steady weight gain.<<if $arcologies[0].FSDegradationist != "unset">> Since your slaves don't deserve luxuries, all food crafted will cause severe stomach cramps minutes after ingestion. Coupled with their addictive nature, it ought to be quite torturous.<</if>>
+	<<if $arcologies[0].FSSlimnessEnthusiast > 50 && $arcologies[0].FSHedonisticDecadenceDietResearch == 0>>
+		[[Purchase diet recipes|Dispensary][$cash -= 10000*$upgradeMultiplierMedicine,$arcologies[0].FSHedonisticDecadenceDietResearch = 1]]
+		//Costs <<print cashFormat(10000*$upgradeMultiplierMedicine)>>//
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;Will prevent rampant weight gain from ruining your slim slaves.
+		<br>
+	<<elseif $arcologies[0].FSHedonisticDecadenceDietResearch == 1>>
+		A diet recipe is being utilized to prevent unwanted weight gain.
+		<br>
+	<</if>>
 <<else>>
-	<br>// Hedonistic Decadence focused research unavailable. //
+	// Hedonistic Decadence focused research unavailable. //
+	<br>
 <</if>>
 

@@ -21,6 +21,11 @@
 	<<if $slaves[_FLs].trust < 60>>
 		<<set $slaves[_FLs].trust++>>
 	<</if>>
+	
+	<<if $slaves[_FLs].livingRules != "luxurious">>
+		<<set $slaves[_FLs].livingRules = "luxurious">>
+	<</if>>
+	
 	<<set $slaves[_FLs].devotion += _devBonus>>
 	<<if $slaves[_FLs].fetishStrength <= 95>>
 		<<if $slaves[_FLs].fetish != "dom">>
@@ -48,6 +53,11 @@
 	<<if setup.nurseCareers.includes($Nurse.career)>>
 		She has experience with medicine from her life before she was a slave, and can often recognize conditions before even the medical scanners can.
 		<<set _idleBonus++, _healthBonus++>>
+	<<elseif $Nurse.skillNU >= $masteredXP>>
+		She has experience with medicine from working for you, and can often recognize conditions before even the medical scanners can.
+		<<set _idleBonus++, _healthBonus++>>
+	<<else>>
+		<<set $slaves[_FLs].skillNU += random(1,($Nurse.intelligence+4)*2)>>
 	<</if>>
 	<<if ($Nurse.fetish == "dom")>>
 		She raps out commands with the confidence of long and partly sexual experience, so patients are inclined to follow even unpleasant medical instructions.
@@ -147,7 +157,7 @@
 		<</switch>>
 		<<if $slaves[$i].bellyImplant > -1 && $clinicInflateBelly == 1>>
 			<br>''@@.pink;$slaves[$i].slaveName@@'' spent a lot of time during the week under IV-like stands with bags of inert filler steadily flowing into her belly implant, slowly pushing her belly further and further out. Careful attention, along with several drug injections, were used to make sure her body was able to safely adjust to the implant's rapid growth.
-			<<set $slaves[$i].bellyImplant += 1000, $slaves[$i].health -= 10>>
+			<<set $slaves[$i].bellyImplant += 5000, $slaves[$i].health -= 10>>
 			<<if ($slaves[$i].devotion > 50)>>
 				<<set $slaves[$i].devotion += 4, $slaves[$i].trust += 3>>
 			<<elseif ($slaves[$i].devotion >= -20)>>
@@ -155,9 +165,9 @@
 			<<else>>
 				<<set $slaves[$i].devotion -= 5, $slaves[$i].trust -= 10>>
 			<</if>>
-			<<if $slaves[$i].bellyImplant > ($arcologies[0].FSTransformationFetishistResearch ? 40000 : 10000)>>
-				<<set $slaves[$i].bellyImplant = ($arcologies[0].FSTransformationFetishistResearch ? 40000 : 10000)>>
-				She is filled to the maximum that her body can stand.
+			<<if $slaves[$i].bellyImplant > ($arcologies[0].FSTransformationFetishistResearch ? 800000 : 130000)>>
+				<<set $slaves[$i].bellyImplant = ($arcologies[0].FSTransformationFetishistResearch ? 800000 : 130000)>>
+				She is filled to the maximum that her implant can stand.
 			<</if>>
 		<</if>>
 		<<if $slaves[$i].pregKnown == 1 && $slaves[$i].preg < 40 && $slaves[$i].pregControl == "speed up">>
@@ -181,7 +191,7 @@
 	<</for>>
 	<<if (_DL < $clinic)>>
 		<<set _seed = random(1,10)+(($clinic-_DL)*(random(150,170)+(_idleBonus*10))), $cash += _seed>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;Since she doesn't have enough girls to occupy all her time, the clinic takes in citizens' slaves on a contract basis and she helps them too, earning @@.yellowgreen;¤_seed.@@
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;Since she doesn't have enough girls to occupy all her time, the clinic takes in citizens' slaves on a contract basis and she helps them too, earning @@.yellowgreen;<<print cashFormat(_seed)>>.@@
 	<</if>>
 	<<if (_DL > 0)>><br><br><</if>>
 <</if>>
@@ -204,6 +214,7 @@
 		''__@@.pink;<<SlaveFullName $slaves[_FLs]>>@@__'' is serving as the clinical nurse.
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -213,6 +224,7 @@
 	<<else>>
 		<<silently>>
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -236,6 +248,16 @@
 	<<if $slaves[$i].health < 90>>
 		<<set $slaves[$i].health += 10 + ($curativeUpgrade * 10) + _healthBonus>>
 	<</if>>
+	
+	<<switch $clinicDecoration>>
+	<<case "Repopulation Focus" "Eugenics" "Gender Radicalist" "Gender Fundamentalist" "Paternalist" "Maturity Preferentialist" "Youth Preferentialist" "Slimness Enthusiast" "Hedonistic">>
+		<<set $slaves[$i].livingRules = "luxurious">>
+	<<case "Roman Revivalist" "Aztec Revivalist" "Egyptian Revivalist" "Arabian Revivalist" "Chinese Revivalist" "Chattel Religionist" "Edo Revivalist">>
+		<<set $slaves[$i].livingRules = "normal">>
+	<<default>>
+		<<set $slaves[$i].livingRules = "spare">>
+	<</switch>>
+	
 	<<if ($Nurse != 0) && ($clinicSpeedGestation == 1) && ($slaves[$i].pregKnown == 1)>>
 		<<set $slaves[$i].pregControl = "speed up">>
 	<</if>>
@@ -249,7 +271,7 @@
 	<<if ($slaves[$i].health <= 40)>>
 	<<elseif ($Nurse != 0) && ($slaves[$i].chem > 15) && ($clinicUpgradeFilters == 1)>>
 	<<elseif ($Nurse != 0) && ($slaves[$i].pregKnown == 1) && ($clinicSpeedGestation >= 0 || $slaves[$i].pregControl == "speed up")>>
-	<<elseif ($Nurse != 0) && ($clinicInflateBelly > 0) && ($slaves[$i].bellyImplant >= 0) && ($slaves[$i].bellyImplant <= ($arcologies[0].FSTransformationFetishistResearch ? 40000 : 10000))>>
+	<<elseif ($Nurse != 0) && ($clinicInflateBelly > 0) && ($slaves[$i].bellyImplant >= 0) && ($slaves[$i].bellyImplant <= ($arcologies[0].FSTransformationFetishistResearch ? 800000 : 130000))>>
 	<<else>>
 		<br><br>''__@@.pink;$slaves[$i].slaveName@@__'' has been returned to health<<if ($Nurse != 0) && ($clinicUpgradeFilters == 1)>> and purity<</if>>, so @@.yellow;her assignment has defaulted to rest.@@
 		<<removeJob $slaves[$i] "get treatment in the clinic">>
@@ -274,6 +296,7 @@
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA rest">>
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>
@@ -285,6 +308,7 @@
 		<<include "SA chooses own job">>
 		<<include "SA rest">>
 		<<include "SA chooses own clothes">>
+		<<include "SA rules">>
 		<<include "SA diet">>
 		<<include "SA long term effects">>
 		<<include "SA drugs">>

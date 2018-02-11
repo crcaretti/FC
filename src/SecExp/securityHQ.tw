@@ -1,0 +1,337 @@
+:: securityHQ [nobr]
+
+<<if $career == "mercenary" || $career == "gang" || $career == "slaver">>
+	<<set _HistoryDiscount = .5>>
+<<else>>
+	<<set _HistoryDiscount = 1>>
+<</if>>
+
+<<set $nextButton = "Back to Arcology Management", $nextLink = "Manage Arcology", $returnTo = "Manage Arcology">>
+
+Security headquarters
+<hr>
+
+The security headquarters stand in front of you. Innumerable screens flood with light the great central room. <<if $secHelots > 0>>Some slaves see you enter and interrupt their work to greet you.<</if>> From here you can build a safe and prosperous arcology.
+<br>
+/* security level. Slaves */
+You have <span id="secHel"><<print $secHelots>></span> slaves working in the HQ. $reqHelots are required and you have <span id="hel"><<print $helots>></span> free menial slaves.
+<<if $secHelots < $reqHelots>>
+	You do not have enough slaves here. You will not receive the full benefit of the installed upgrades.
+<<else>>
+	You have enough slaves to man all security systems.
+<</if>>
+<<silently>><<MenialPopCap>><</silently>>
+<<set _menialPrice = menialSlaveCost()>>
+<<if $cash > _menialPrice>>
+<<if $PopCap > $helots+$fuckdolls+$menialBioreactors || $helots+$fuckdolls+$menialBioreactors == 0>>
+	<br>
+	[[Buy|securityHQ][$helots+=1,$menialDemandFactor+=1,$cash-=_menialPrice]]
+	<<if $cash > (_menialPrice+200)*10>>
+		[[(x10)|securityHQ][$helots+=10,$menialDemandFactor+=10,$cash-=(_menialPrice+200)*10]]
+	<</if>>
+	<<if $cash > (_menialPrice+200)*100>>
+		[[(x100)|securityHQ][$helots+=100,$menialDemandFactor+=100,$cash-=(_menialPrice+200)*100]]
+	<</if>>
+	<<if $cash > (_menialPrice+200)*2>>
+		[[(max)|securityHQ][$helots+=Math.trunc($cash/(_menialPrice+200)),$menialDemandFactor+=Math.trunc($cash/(_menialPrice+200)),$cash-=Math.trunc($cash/(_menialPrice+200))*(_menialPrice+200)]]
+	<</if>>
+	//Bulk purchases will cost <<print cashFormat(200)>> over market price.//
+<</if>>
+<</if>>
+<br>
+<<if $helots >= 5>>
+	<<link "Transfer 5 menial slaves to the headquarters">>
+		<<set $helots -= 5>>
+		<<set $secHelots += 5>>
+		<<replace "#secHel">><<print $secHelots>><</replace>>
+		<<replace "#hel">><<print $helots>><</replace>>
+		<<if $helots < 5 || $secHelots >= $reqHelots || $secHelots == 5>>
+			<<goto "securityHQ">>
+		<</if>>
+	<</link>>
+<<else>>
+	Transfer 5 menial slaves to the headquarters
+<</if>>
+|
+<<if $secHelots >= 5>>
+	<<link "Transfer out 5 slaves">>
+		<<set $helots += 5>>
+		<<set $secHelots -= 5>>
+		<<replace "#secHel">><<print $secHelots>><</replace>>
+		<<replace "#hel">><<print $helots>><</replace>>
+		<<if $secHelots < 5>>
+			<<goto "securityHQ">>
+		<</if>>
+		<<if $secHelots < $reqHelots>>
+			<<goto "securityHQ">>
+		<</if>>
+	<</link>>
+<<else>>
+	Transfer out 5 slaves
+<</if>>
+|
+<<if $secHelots != $reqHelots>>
+	<<link "Match the requirement">>
+		<<if $helots >= $reqHelots - $secHelots>>
+			<<set $helots -= $reqHelots - $secHelots>>
+			<<set $secHelots = $reqHelots>>
+		<<elseif $reqHelots < $secHelots>>
+			<<set $helots += $secHelots - $reqHelots>>
+			<<set $secHelots = $reqHelots>>
+		<<else>>
+			<<set $secHelots += $helots>>
+			<<set $helots = 0>>
+		<</if>>
+		<<replace "#secHel">><<print $secHelots>><</replace>>
+		<<replace "#hel">><<print $helots>><</replace>>
+		<<if $secHelots == $reqHelots>>
+			<<goto "securityHQ">>
+		<</if>>
+	<</link>>
+<<else>>
+	Match the requirement
+<</if>>
+
+<br>
+<br>
+
+/* security level and upgrades */
+<<if $security <= 20>>
+	Your security level (@@.deepskyblue;<<print $security>>@@) is dangerously low.
+<<elseif $security <= 40>>
+	Your security level (@@.deepskyblue;<<print $security>>@@) is low.
+<<elseif $security <= 60>>
+	Your security level (@@.deepskyblue;<<print $security>>@@) is decent.
+<<elseif $security <= 80>>
+	Your security level (@@.deepskyblue;<<print $security>>@@) is good.
+<<else>>
+	Your security level (@@.deepskyblue;<<print $security>>@@) is great.
+<</if>>
+Considering the current upgrades the resting level for security is <<print $secRestPoint>>, while the effective maximum level is <<print Math.trunc($secRestPoint * (Math.clamp($secHelots,0,$reqHelots) / $reqHelots))>>.
+
+<br>
+<br>
+
+<<if $secUpgrades.nanoCams == 0>>
+	[[Install a nano-camera system |securityHQ][$cash -= Math.trunc(5000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.nanoCams = 1, $secRestPoint += 15, $reqHelots += 5, $secHQUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(5000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will raise rest point of security by 10 points, but will require 5 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have installed all across the arcology closed circuit nano-cameras to keep the arcology under your watchful eye.
+<</if>>
+<br>
+<<if $secUpgrades.cyberBots == 0>>
+	[[Buy cybersecurity algorithms|securityHQ][$cash -= Math.trunc(7500*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.cyberBots = 1, $secRestPoint += 15, $reqHelots += 5, $secHQUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(7500*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will raise rest point of security by 10 points, but will require 5 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have bought advanced cybersecurity algorithms that will defend your arcology against hack attempts or cyber frauds.
+<</if>>
+<br>
+<<if $rep > 10000>>
+	<<if $secUpgrades.eyeScan == 0>>
+		[[Install invisible eye scanners|securityHQ][$cash -= Math.trunc(10000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.eyeScan = 1, $secRestPoint += 20, $reqHelots += 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(10000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will raise rest point of security by 15 points, but will require 10 extra slaves in the headquarters and increases upkeep.//
+	<<else>>	
+		You have installed numerous hidden eye scanners that accurately register the movements of everyone inside the arcology.
+	<</if>>
+	<br>
+	<<if $secUpgrades.cryptoAnalyzer == 0>>
+		[[Buy and install crypto analyzers|securityHQ][$cash -= Math.trunc(15000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.cryptoAnalyzer = 1, $secRestPoint += 20, $reqHelots += 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(15000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will raise rest point of security by 15 points, but will require 10 extra slaves in the headquarters and increases upkeep.//
+	<<else>>
+		You have bought and employed sophisticated crypto analyzing software to accurately track and archive every financial movement or transaction made inside the walls of your arcology.
+	<</if>>	
+<<else>>
+	<br>You lack the reputation to access more advanced upgrades.
+<</if>>
+
+<br>
+<br>
+
+/* crime level and upgrades */
+<<if $crime <= 20>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is very low.
+<<elseif $crime <= $upgradeUpkeep>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is low.
+<<elseif $crime <= 60>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is average.
+<<elseif $crime <= $upgradeUpkeep>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is high.
+<<else>>
+	Your crime level (@@.orangered;<<print $crime>>@@) is extremely high.
+<</if>>
+Considering the current upgrades the maximum level of crime is <<print $crimeCap>>, while the effective maximum level is <<print Math.trunc(Math.clamp($crimeCap + ($crimeCap - $crimeCap * ($secHelots / $reqHelots)),0,100))>>.
+
+<br>
+<br>
+
+<<if $crimeUpgrades.advForensic == 0>>
+	[[Install advanced forensic equipment|securityHQ][$cash -= Math.trunc(5000*$upgradeMultiplierArcology*_HistoryDiscount), $crimeUpgrades.advForensic = 1, $crimeCap -= 10, $reqHelots += 5, $secHQUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(5000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will bring down the crime level cap by 10 points, but will require 5 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have installed advanced forensic equipment, able to extract every bit of precious information from any clue.
+<</if>>
+<br>
+<<if $crimeUpgrades.autoArchive == 0>>
+	[[Install auto-curating archiver|securityHQ][$cash -= Math.trunc(7500*$upgradeMultiplierArcology*_HistoryDiscount), $crimeUpgrades.autoArchive = 1, $crimeCap -= 10, $reqHelots += 5, $secHQUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(7500*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will bring down the crime level cap by 10 points, but will require 5 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have installed auto-curating archiver software, which will update in real time your data archives with any new relevant information on criminals residing in your arcology. 
+<</if>>
+<br>
+<<if $rep > 10000>>
+	<<if $crimeUpgrades.autoTrial == 0>>
+		[[Install automated trials software|securityHQ][$cash -= Math.trunc(10000*$upgradeMultiplierArcology*_HistoryDiscount), $crimeUpgrades.autoTrial = 1, $crimeCap -= 15, $reqHelots += 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(10000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will bring down the crime level cap by 15 points, but will require 10 extra slaves in the headquarters and increases upkeep.//
+	<<else>>
+		You have installed advanced legal algorithms that allows the handling of legal matters much quicker and much more accurately.
+	<</if>>
+	<br>
+	<<if $crimeUpgrades.worldProfiler == 0>>
+		[[Install worldwide profilers|securityHQ][$cash -= Math.trunc(15000*$upgradeMultiplierArcology*_HistoryDiscount), $crimeUpgrades.worldProfiler = 1, $crimeCap -= 15, $reqHelots += 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(15000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will bring down the crime level cap by 15 points, but will require 10 extra slaves in the headquarters and increases upkeep.//
+	<<else>>
+		You have installed advanced profiler software, which will constantly scour every known data archive on the globe (legally or not) to gather as much information as possible on dangerous criminals.
+	<</if>>
+<<else>>
+	<br>You lack the reputation to access more advanced upgrades.
+<</if>>
+
+<br>
+<br>
+
+/* intelligence */
+
+<<if $recon == 0>>
+	Your reconnaissance capabilities are very limited. Very little information will be available if the arcology is attacked.
+<<elseif $recon == 1>>
+	You have limited reconnaissance capabilities. You'll have limited intel available in case of an attack.
+<<elseif $recon == 2>>
+	You have good reconnaissance capabilities. Good, reliable intel will be available if the arcology is attacked.
+<<else>>
+	You have great reconnaissance capabilities. You'll have very accurate information on the enemy if the arcology is attacked.
+<</if>>
+
+<br>
+<br>
+
+<<if $intelUpgrades.sensors == 0>>
+	[[Install perimeter	sensors|securityHQ][$cash -= Math.trunc(5000*$upgradeMultiplierArcology*_HistoryDiscount), $intelUpgrades.sensors = 1, $recon += 1, $reqHelots += 5, $secHQUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(5000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will increase recon capabilites, but will require 5 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have installed perimeter seismic sensors able to detect movement with high accuracy.
+<</if>>
+<br>
+<<if $intelUpgrades.signalIntercept == 0>>
+	[[Create signal interception hub|securityHQ][$cash -= Math.trunc(10000*$upgradeMultiplierArcology*_HistoryDiscount), $intelUpgrades.signalIntercept = 1, $recon += 1, $reqHelots += 5, $secHQUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(10000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will increase recon capabilities, but will require 5 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have installed advanced signal interception equipment.
+<</if>>
+<br>
+<<if $rep > 10000>>
+	<<if $intelUpgrades.radar == 0>>
+		[[Install advanced radar equipment|securityHQ][$cash -= Math.trunc(15000*$upgradeMultiplierArcology*_HistoryDiscount), $intelUpgrades.radar = 1, $recon += 1, $reqHelots += 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(15000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will increase recon capabilities, but will require 10 extra slaves in the headquarters and increases upkeep.//
+	<<else>>
+		You have installed sophisticated radar equipment.
+	<</if>>
+<<else>>
+	<br>You lack the reputation to access more advanced upgrades.
+<</if>>
+
+<br>
+<br>
+	
+/* readiness */
+
+<<if $readiness == 1>>
+	You have low readiness. You won't be able to mobilize many troops in time in case of an attack.
+<<elseif $readiness == 2>>
+	You have decent readiness. You will be able to muster up sufficient forces to handle an average attack.
+<<elseif $readiness == 3>>
+	You have good readiness. You will be able to mobilize a lot of troops in case of an attack.
+<<else>>
+	You have great readiness. You can mobilize an small army in very little time.
+<</if>>
+	
+<br>
+<br>
+
+<<if $readinessUpgrades.pathways == 0>>
+	[[Build specialized pathways in the arcology|securityHQ][$cash -= Math.trunc(5000*$upgradeMultiplierArcology*_HistoryDiscount), $readinessUpgrades.pathways = 1, $readiness += 1, $secHQUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(5000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will increase readiness by 1, but will increases upkeep.//
+<<else>>
+	You have built specialized pathways inside the arcology to quickly move troops around the structure.
+<</if>>
+<br>
+<<if $readinessUpgrades.rapidVehicles == 0>>
+	[[Buy rapid armored transport vehicles|securityHQ][$cash -= Math.trunc(7500*$upgradeMultiplierArcology*_HistoryDiscount), $readinessUpgrades.rapidVehicles = 1, $readiness += 2, $reqHelots += 5, $secHQUpkeep += $upgradeUpkeep]]
+	<br>//Costs <<print cashFormat(Math.trunc(75000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will increase readiness by 2, but will require 5 extra slaves in the headquarters and increases upkeep.//
+<<else>>
+	You have bought rapid armored transport vehicles able to bring your troops to battle much quicker than before.
+<</if>>
+<br>
+<<if $rep > 10000>>
+	<<if $readinessUpgrades.rapidPlatforms == 0>>
+		[[Build rapid deployment platforms|securityHQ][$cash -= Math.trunc(10000*$upgradeMultiplierArcology*_HistoryDiscount), $readinessUpgrades.rapidPlatforms = 1, $readiness += 2, $reqHelots += 5, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(10000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will increase readiness by 2, but will require 5 extra slaves in the headquarters and increases upkeep.//
+	<<else>>
+		You have built rapid deployment platforms able to equip and deploy units within very limited time windows.
+	<</if>>
+	<br>
+	<<if $readinessUpgrades.earlyWarn == 0>>
+		[[Institute early warning systems|securityHQ][$cash -= Math.trunc(15000*$upgradeMultiplierArcology*_HistoryDiscount), $readinessUpgrades.earlyWarn = 1, $readiness += 2, $reqHelots += 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(15000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will increase readiness by 2, but will require 10 extra slaves in the headquarters and increases upkeep.//
+	<<else>>
+		You have created early warning systems that constantly analyze in real time data to determine the likeness of an attack.
+	<</if>>
+<<else>>
+	<br>You lack the reputation to access more advanced upgrades.
+<</if>>
+
+<br>
+<br>
+
+<<if $rep > 12000>>
+	<br>__Cold Data Storage Facility__:
+	<<if $secUpgrades.coldstorage == 6 && $rep >= 19500 && $reqHelots > 10>>
+		<br>You have installed a cold storage facility for the Security HQ's archives with a data retention capability of two years.
+		<br>
+		[[Expand the cold storage facility to increase data retention to three years|securityHQ][$cash -= Math.trunc(2400000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.coldstorage++, $reqHelots -= 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(2400000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will lower the amount of required slaves by a further 10, but will increases upkeep.//
+	<<elseif $secUpgrades.coldstorage == 5 && $rep >= 19500 && $reqHelots > 10>>
+	<br>You have installed a cold storage facility for the Security HQ's archives with a data retention capability of one year.
+		<br>
+		[[Expand the cold storage facility to increase data retention to two years|securityHQ][$cash -= Math.trunc(1200000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.coldstorage++, $reqHelots -= 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(1200000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will lower the amount of required slaves by a further 10, but will increases upkeep.//
+	<<elseif $secUpgrades.coldstorage == 4 && $rep >= 19500 && $reqHelots > 10>>
+		<br>You have installed a cold storage facility for the Security HQ's archives with a data retention capability of nine months.
+		<br>
+		[[Expand the cold storage facility to increase data retention to one year|securityHQ][$cash -= Math.trunc(900000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.coldstorage++, $reqHelots -= 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(900000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will lower the amount of required slaves by a further 10, but will increases upkeep.//
+	<<elseif $secUpgrades.coldstorage == 3 && $rep > 18000 && $reqHelots > 10>>
+		<br>You have installed a cold storage facility for the Security HQ's archives with a data retention capability of six months.
+		<br>
+		[[Expand the cold storage facility to increase data retention to nine months|securityHQ][$cash -= Math.trunc(600000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.coldstorage++, $reqHelots -= 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(600000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will lower the amount of required slaves by a further 10, but will increases upkeep.//
+	<<elseif $secUpgrades.coldstorage == 2 && $rep > 16000 && $reqHelots > 10>>
+		<br>You have installed a cold storage facility for the Security HQ's archives with a data retention capability of three months.
+		<br>
+		[[Expand the cold storage facility to increase data retention to six months|securityHQ][$cash -= Math.trunc(300000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.coldstorage++, $reqHelots -= 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(300000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will lower the amount of required slaves by a further 10, but will increases upkeep.//
+	<<elseif $secUpgrades.coldstorage == 1 && $rep > 14000 && $reqHelots > 10>>
+		<br>You have installed a cold storage facility for the Security HQ's archives with a data retention capability of one month.
+		<br>
+		[[Expand the cold storage facility to increase data retention to three months|securityHQ][$cash -= Math.trunc(100000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.coldstorage++, $reqHelots -= 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(100000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will lower the amount of required slaves by a further 10, but will increases upkeep.//
+	<<elseif $secUpgrades.coldstorage == 0 && $rep > 12000 && $reqHelots > 10>>
+		[[Install a cold storage facility|securityHQ][$cash -= Math.trunc(50000*$upgradeMultiplierArcology*_HistoryDiscount), $secUpgrades.coldstorage++, $reqHelots -= 10, $secHQUpkeep += $upgradeUpkeep]]
+		<br>//Costs <<print cashFormat(Math.trunc(50000*$upgradeMultiplierArcology*_HistoryDiscount))>>. Will lower the amount of required slaves by 10, but will increases upkeep.//
+	<<elseif $secUpgrades.coldstorage > 6>>
+		<br>You have installed a cold storage facility for the Security HQ's archives with a data retention capability of three years.
+	<<elseif $reqHelots <= 10>>
+		<br>Personnel cannot be further reduced.
+	<<else>>
+		<br>You lack the reputation to access more advanced upgrades.
+	<</if>>
+<</if>>
