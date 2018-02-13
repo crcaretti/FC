@@ -9,6 +9,7 @@
 	dogTesticles: 0,
 	foreskin: 0,
 	ovaries: 0,
+	freshOvaries: 0,
 	prostate: 0,
 	pigOvaries: 0,
 	dogOvaries: 0,
@@ -49,6 +50,8 @@
 			<<set $slaveOrgans.mpregPig = 1>>
 		<<elseif $organs[_i].type == "mpregDog">>
 			<<set $slaveOrgans.mpregDog = 1>>
+		<<elseif $organs[_i].type == "freshOvaries">>
+			<<set $slaveOrgans.freshOvaries = 1>>
 		<</if>>
 	<</if>>
 <</for>>
@@ -122,16 +125,6 @@ The fabricator is ready to grow an organ for $object. Extract tissue to begin gr
 		<</if>>
 	<</if>>
 <</if>>
-<<if $slaveOrgans.ovaries != 1>>
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;
-	<<link "Ovaries">>
-		<<set $cash -= 10000>>
-		<<set _newOrgan = {type: "ovaries", weeksToCompletion: "10", ID: 0}>>
-		<<set _newOrgan.ID = $activeSlave.ID>>
-		<<set $organs.push(_newOrgan)>>
-		<<goto "Remote Surgery">>
-	<</link>> //Costs <<print cashFormat(10000)>> and requires a vagina for successful implantation//
-<</if>>
 <<if $slaveOrgans.prostate != 1>>
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;
 	<<link "Prostate">>
@@ -141,6 +134,16 @@ The fabricator is ready to grow an organ for $object. Extract tissue to begin gr
 		<<set $organs.push(_newOrgan)>>
 		<<goto "Remote Surgery">>
 	<</link>> //Costs <<print cashFormat(5000)>> and does not require the presence any specific organ for successful implantation//
+<</if>>
+<<if $slaveOrgans.ovaries != 1>>
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;
+	<<link "Ovaries">>
+		<<set $cash -= 10000>>
+		<<set _newOrgan = {type: "ovaries", weeksToCompletion: "10", ID: 0}>>
+		<<set _newOrgan.ID = $activeSlave.ID>>
+		<<set $organs.push(_newOrgan)>>
+		<<goto "Remote Surgery">>
+	<</link>> //Costs <<print cashFormat(10000)>> and requires a vagina for successful implantation//
 <</if>>
 <<if $animalParts != 0>>
 	<<if $slaveOrgans.pigOvaries != 1>>
@@ -153,7 +156,7 @@ The fabricator is ready to grow an organ for $object. Extract tissue to begin gr
 			<<goto "Remote Surgery">>
 		<</link>> //Costs <<print cashFormat(10000)>> and requires a vagina for successful implantation//
 	<</if>>
-	<<if $slaveOrgans.pigOvaries != 1>>
+	<<if $slaveOrgans.dogOvaries != 1>>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;
 		<<link "Dog ovaries">>
 			<<set $cash -= 10000>>
@@ -162,6 +165,18 @@ The fabricator is ready to grow an organ for $object. Extract tissue to begin gr
 			<<set $organs.push(_newOrgan)>>
 			<<goto "Remote Surgery">>
 		<</link>> //Costs <<print cashFormat(10000)>> and requires a vagina for successful implantation//
+	<</if>>
+<</if>>
+<<if $youngerOvaries == 1>>
+	<<if $slaveOrgans.freshOvaries != 1>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;
+		<<link "Fertile Ovaries">>
+			<<set $cash -= 10000>>
+			<<set _newOrgan = {type: "fertile ovaries", weeksToCompletion: "10", ID: 0}>>
+			<<set _newOrgan.ID = $activeSlave.ID>>
+			<<set $organs.push(_newOrgan)>>
+			<<goto "Remote Surgery">>
+		<</link>> //Costs <<print cashFormat(10000)>> and requires a womb for successful implantation//
 	<</if>>
 <</if>>
 <<if $slaveOrgans.eyes != 1>>
@@ -595,6 +610,43 @@ The fabricator is ready to grow an organ for $object. Extract tissue to begin gr
 							<</if>>
 						<</if>>
 						<<set $surgeryType = "addDogOvaries">>
+						<<goto "Surgery Degradation">>
+					<</link>>
+					|
+					<<link "Discard">><<for $i = 0; $i < $completedOrgans.length; $i++>><<if $activeSlave.ID == $completedOrgans[$i].ID>><<set $completedOrgans.deleteAt($i)>><<break>><</if>><</for>><<goto "Remote Surgery">><</link>>
+				<</if>>
+			<<elseif $completedOrgans[_i].type == "freshOvaries">>
+				<<if ($activeSlave.mpreg == 0 && $activeSlave.ovaries == 0) || $activeSlave.bellyImplant != -1>>
+					<br>&nbsp;&nbsp;&nbsp;&nbsp;
+					ERROR: this slave lacks a viable womb.
+					<<link "Discard">><<for $i = 0; $i < $completedOrgans.length; $i++>><<if $activeSlave.ID == $completedOrgans[$i].ID>><<set $completedOrgans.deleteAt($i)>><<break>><</if>><</for>><<goto "Remote Surgery">><</link>>
+				<<else>>
+					<br>&nbsp;&nbsp;&nbsp;&nbsp;
+					<<link "Implant">>
+						<<set $cash -= $surgeryCost>>
+						<<for $i = 0; $i < $completedOrgans.length; $i++>><<if $activeSlave.ID == $completedOrgans[$i].ID>><<set $completedOrgans.deleteAt($i)>><<break>><</if>><</for>>
+						<<if $activeSlave.ovaryAge >= 47>>
+							<<set $activeSlave.ovaryAge = 45>>
+						<<else>>
+							<<set $activeSlave.ovaryAge -= 2>> /* It shouldn't matter if this goes negative as it is just a signal for menopause to occur. */
+						<</if>>
+						<<set $activeSlave.preg = 0>>
+						<<set $activeSlave.health -= 20>>
+						<<if $organFarmUpgrade == 2>>
+							<<set $activeSlave.chem += 20>>
+						<</if>>
+						<<if $activeSlave.pubertyXX == 0>>
+							<<if $precociousPuberty == 1>>
+								<<if $activeSlave.physicalAge >= $fertilityAge>>
+									<<set $activeSlave.pubertyAgeXX = ($activeSlave.physicalAge+1)>>
+								<</if>>
+							<<else>>
+								<<if $activeSlave.physicalAge >= $fertilityAge>>
+									<<set $activeSlave.pubertyXX = 1>>
+								<</if>>
+							<</if>>
+						<</if>>
+						<<set $surgeryType = "freshOvaries">>
 						<<goto "Surgery Degradation">>
 					<</link>>
 					|

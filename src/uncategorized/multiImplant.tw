@@ -13,6 +13,7 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 		dogTesticles: 0,
 		foreskin: 0,
 		ovaries: 0,
+		freshOvaries: 0,
 		prostate: 0,
 		pigOvaries: 0,
 		dogOvaries: 0,
@@ -44,6 +45,9 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 				<<set $completedOrgans.deleteAt(_j),_j-->>
 			<<elseif $completedOrgans[_j].type == "ovaries">>
 				<<set _slaveOrgans.ovaries = $completedOrgans[_j]>>
+				<<set $completedOrgans.deleteAt(_j),_j-->>
+			<<elseif $completedOrgans[_j].type == "freshOvaries">>
+				<<set _slaveOrgans.freshOvaries = $completedOrgans[_j]>>
 				<<set $completedOrgans.deleteAt(_j),_j-->>
 			<<elseif $completedOrgans[_j].type == "prostate">>
 				<<set _slaveOrgans.prostate = $completedOrgans[_j]>>
@@ -430,6 +434,40 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 			@@.red;Could not implant dog anal womb on $activeSlave.slaveName: she already has an anal womb.@@
 			<<set $completedOrgans.push(_slaveOrgans.mpregDog)>>
 		<</if>>
+	<</if>>
+	/* ovary renewal */
+	<<if _slaveOrgans.freshOvaries != 0>>
+		<<if ($activeSlave.ovaries == 0) && ($activeSlave.vagina < 0) && ($activeSlave.mpreg == 0) && ($activeSlave.bellyImplant == -1)>>
+			<<set $cash -= $surgeryCost>>
+			<<if $activeSlave.ovaryAge >= 47>>
+				<<set $activeSlave.ovaryAge = 45>>
+			<<else>>
+				<<set $activeSlave.ovaryAge -= 2>> /* It shouldn't matter if this goes negative as it is just a signal for menopause to occur. */
+			<</if>>
+			<<set $activeSlave.preg = 0>>
+			<<set $activeSlave.health -= 20>>
+			<<if $organFarmUpgrade == 2>>
+				<<set $activeSlave.chem += 20>>
+			<</if>>
+			<<if $activeSlave.pubertyXX == 0>>
+				<<if $precociousPuberty == 1>>
+					<<if $activeSlave.physicalAge >= $fertilityAge>>
+						<<set $activeSlave.pubertyAgeXX = ($activeSlave.physicalAge+1)>>
+					<</if>>
+				<<else>>
+					<<if $activeSlave.physicalAge >= $fertilityAge>>
+						<<set $activeSlave.pubertyXX = 1>>
+					<</if>>
+				<</if>>
+			<</if>>
+			<<set $surgeryType = "freshOvaries">>
+			<br><hr>
+			<<include "Surgery Degradation">>
+		<<elseif ($activeSlave.mpreg == 0 && $activeSlave.ovaries == 0) || $activeSlave.bellyImplant != -1>>
+			<br><hr>
+			@@.red;This slave lacks a viable womb to accept fertile ovaries.@@
+			<<set $completedOrgans.push(_slaveOrgans.freshOvaries)>>
+		<</if>>		
 	<</if>>
 	/* penis */
 	<<if _slaveOrgans.penis != 0>>
