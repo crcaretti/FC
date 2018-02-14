@@ -12,11 +12,12 @@
 <<if $useTabs == 0>>__The Corporation__<</if>>
 <br>
 
+<<set _totalShares = ($personalShares+$publicShares)>>
 <<set _roll = random(1,100)>>
 <<set $corpPeopleEnslaved += 1>>
 
 <<set $corpValue = $corpCash + ($generalAssets*$generalAssetPrice)+($slaveAssets*$slaveAssetPrice)+($entrapmentAssets*$entrapmentAssetPrice)+($captureAssets*$captureAssetPrice)+($trainingAssets*$trainingAssetPrice)+($surgicalAssets*$surgicalAssetPrice)+($drugAssets*$drugAssetPrice)>>
-<<set $corpProfit = Math.max(0, Math.trunc( 6666666 / (1 + Math.exp(-0.8 * (Math.log($corpValue) - 22))) ) - random(666, 6666))>> /* formula caps at 6666666, reaches 6.5 million at corpValue of 10 to the 12th power */
+<<set $corpProfit = Math.max(0, Math.trunc( 6666666 / (1 + Math.exp(-1.4 * (Math.log($corpValue) - 18))) ) - random(666, 6666))>> /* formula caps at 6666666, reaches 6.5 million at corpValue of 900 million */
 <<set $corpCash = Math.trunc($corpCash + $corpProfit)>>
 Your corporation was valued at <<print cashFormat($corpValue)>> and made a profit of <<print cashFormat($corpProfit)>> last week.
 <<set _addedSlaves = Math.ceil(Math.log($captureAssets+$entrapmentAssets))>>
@@ -51,17 +52,17 @@ in total, the corporation has enslaved <<print commaNum($corpPeopleEnslaved)>> p
 	<<set _drugWeight = 0.1, _trainingWeight += 0.1>>
 <</if>>
 <<set _improvementAssetsTotal = ($trainingAssets * _trainingWeight) + ($surgicalAssets * _surgicalWeight) + ($drugAssets * _drugWeight)>>
-<<if _improvementAssetsTotal > $slaveAssets * 0.4>>
+<<if _improvementAssetsTotal > $slaveAssets * 0.6>>
 	The corporation has enough training and medical assets to rapidly improve its human holdings.
-	<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)*400)>>
-<<elseif _improvementAssetsTotal > $slaveAssets * 0.2>>
+	<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)*800)>>
+<<elseif _improvementAssetsTotal > $slaveAssets * 0.4>>
 	The corporation uses its training and medical assets to improve its human holdings.
-	<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)*200)>>
+	<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)*400)>>
 <<else>>
 	The corporation has only enough training and medical assets to maintain the value of its human holdings.
 <</if>>
 /* model weekly corporate expenses as random 1-3% reduction in all asset types (including cash) ... except slaves, whose value is tied to $slaveCostFactor (which the corporation does not affect) */
-<<set $trainingAssets = Math.ceil($trainingAssets * random(97,99)/100), $surgicalAssets = Math.ceil($surgicalAssets * random(97,99)/100), $drugAssets = Math.ceil($drugAssets * random(97,99)/100), $generalAssets = Math.ceil($generalAssets * random(97,99)/100), $entrapmentAssets = Math.ceil($entrapmentAssets * random(97,99)/100), $captureAssets = Math.ceil($captureAssets * random(97,99)/100), $corpCash = Math.ceil($corpCash * random(97,99)/100)>>
+<<set $trainingAssets = Math.max(Math.ceil($trainingAssets * random(97,99)/100), 500), $surgicalAssets = Math.max(Math.ceil($surgicalAssets * random(97,99)/100), 500), $drugAssets = Math.max(Math.ceil($drugAssets * random(97,99)/100), 500), $generalAssets = Math.max(Math.ceil($generalAssets * random(97,99)/100), 500), $entrapmentAssets = Math.max(Math.ceil($entrapmentAssets * random(97,99)/100), 500), $captureAssets = Math.max(Math.ceil($captureAssets * random(97,99)/100), 500), $corpCash = Math.ceil($corpCash * random(97,99)/100)>>
 <<if $corpMarket>>
 	<<if $rep > 5000>>
 		<<set $slaveAssets += Math.ceil(Math.log($slaveAssets)/Math.log(10)*(($rep-5000)/15000)*200)>>
@@ -78,34 +79,41 @@ in total, the corporation has enslaved <<print commaNum($corpPeopleEnslaved)>> p
 		enhances the value of its slaves.
 	<</if>>
 <</if>>
-<<if $corpProfit > ($personalShares+$publicShares)*30>>
-	Since it is incredibly profitable, a massive dividend of ¤3/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*3)>>@@.
-	<<set $cash += $personalShares*3, $corpCash -= ($personalShares+$publicShares)*3>>
-<<elseif $corpProfit > ($personalShares+$publicShares)*20>>
-	Since it is extremely profitable, a huge dividend of ¤2/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*2)>>@@.
-	<<set $cash += $personalShares*2, $corpCash -= ($personalShares+$publicShares)*2>>
-<<elseif $corpProfit > ($personalShares+$publicShares)*10>>
-	Since it is highly profitable, a large dividend of ¤1/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares)>>@@.
-	<<set $cash += $personalShares, $corpCash -= ($personalShares+$publicShares)>>
-<<elseif $corpProfit > ($personalShares+$publicShares)*5>>
-	Since it is very profitable, a moderate dividend of ¤0.5/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*0.5)>>@@.
-	<<set $cash += Math.trunc($personalShares*0.5), $corpCash -= Math.trunc(($personalShares+$publicShares)*0.5)>>
-<<elseif $corpProfit > ($personalShares+$publicShares)*2>>
-	Since it is moderately profitable, a reasonable dividend of ¤0.2/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*0.2)>>@@.
-	<<set $cash += Math.trunc($personalShares*0.2), $corpCash -= Math.trunc(($personalShares+$publicShares)*0.2)>>
-<<elseif $corpProfit > ($personalShares+$publicShares)>>
-	Since it is acceptably profitable, a small dividend of ¤0.1/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*0.1)>>@@.
-	<<set $cash += Math.trunc($personalShares*0.1), $corpCash -= Math.trunc(($personalShares+$publicShares)*0.1)>>
-<<elseif $corpProfit > 200>>
-	Since it is barely profitable, a tiny dividend was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat(1+Math.ceil(($corpProfit*0.01*$personalShares)/($personalShares+$publicShares)))>>@@.
-	<<set $cash += 1+Math.ceil(($corpProfit*0.01*$personalShares)/($personalShares+$publicShares)), $corpCash -= Math.trunc($corpProfit*0.01)>>
+<<set _dividendPerShare = 0.2 * $corpProfit / _totalShares>>
+<<if _dividendPerShare > 5>>
+	Since it is incredibly profitable, a massive dividend of ¤5/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*5)>>@@.
+	<<set $cash += $personalShares*5, $corpCash -= _totalShares*5>>
+<<elseif _dividendPerShare > 3>>
+	Since it is extremely profitable, a huge dividend of ¤3/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*3)>>@@.
+	<<set $cash += $personalShares*3, $corpCash -= _totalShares*3>>
+<<elseif _dividendPerShare > 2>>
+	Since it is highly profitable, a huge dividend of ¤2/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*2)>>@@.
+	<<set $cash += $personalShares*2, $corpCash -= _totalShares*2>>
+<<elseif _dividendPerShare > 1>>
+	Since it is very profitable, a large dividend of ¤1/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares)>>@@.
+	<<set $cash += $personalShares, $corpCash -= _totalShares>>
+<<elseif _dividendPerShare > 0.5>>
+	Since it is quite profitable, a moderate dividend of ¤0.5/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*0.5)>>@@.
+	<<set $cash += Math.trunc($personalShares*0.5), $corpCash -= Math.trunc(_totalShares*0.5)>>
+<<elseif _dividendPerShare > 0.3>>
+	Since it is acceptably profitable, a reasonable dividend of ¤0.3/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*0.3)>>@@.
+	<<set $cash += Math.trunc($personalShares*0.3), $corpCash -= Math.trunc(_totalShares*0.3)>>
+<<elseif _dividendPerShare > 0.2>>
+	Since it is moderately profitable, a modest dividend of ¤0.2/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*0.2)>>@@.
+	<<set $cash += Math.trunc($personalShares*0.2), $corpCash -= (_totalShares*0.2)>>
+<<elseif _dividendPerShare > 0.1>>
+	Since it is modestly profitable, a small dividend of ¤0.1/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*0.1)>>@@.
+	<<set $cash += Math.trunc($personalShares*0.1), $corpCash -= Math.trunc(_totalShares*0.1)>>
+<<elseif $corpProfit > 0>>
+	Since its profits per share are low, a meager dividend was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat(1+Math.ceil(($corpProfit*0.2*$personalShares)/_totalShares))>>@@.
+	<<set $cash += 1+Math.ceil(($corpProfit*0.2*$personalShares)/_totalShares), $corpCash -= Math.trunc($corpProfit*0.2)>>
 <</if>>
 
 <<set _roll = random(1,100)>>
 
-<<if $sharePrice*($personalShares+$publicShares) < $corpValue*0.01>> /* market cap is less than 1% of assets */
+<<if $sharePrice*_totalShares < $corpValue*0.2>> /* market cap is less than 20% of value of assets */
 	The market consensus is that your corporation is undervalued, driving share prices sharply up.
-	<<set $sharePrice = Math.ceil($sharePrice*random(102,104))/100>> /* 2-4% rise */
+	<<set $sharePrice = Math.ceil($sharePrice*random(105,108))/100>> /* 5-8% rise */
 <<elseif random(1,100) < $rep/2000>> /* up to 10% chance */
 	Share prices in your corporation are driven up by your reputation.
 	<<set $sharePrice = Math.ceil($sharePrice*either(101,103))/100>> /* 1-3% rise */
@@ -115,9 +123,9 @@ in total, the corporation has enslaved <<print commaNum($corpPeopleEnslaved)>> p
 <<elseif _roll > 80>> /* 20% chance */
 	Market volatility drives share prices up.
 	<<set $sharePrice = Math.ceil($sharePrice*either(101,102))/100>> /* 1-2% rise */
-<<elseif $sharePrice*($personalShares+$publicShares) > $corpValue*0.05>> /* market cap is more than 5% of assets */
+<<elseif $sharePrice*_totalShares > $corpValue>> /* market cap is more than 80% of value of assets */
 	The market consensus is that your corporation is overvalued, driving share prices sharply down.
-	<<set $sharePrice = Math.ceil($sharePrice*random(95,97))/100>> /* 3-5% drop */
+	<<set $sharePrice = Math.ceil($sharePrice*random(92,95))/100>> /* 5-8% drop */
 <</if>>
 
 Shares in your corporation are trading at <<print cashFormat($sharePrice)>>:
@@ -133,8 +141,8 @@ Shares in your corporation are trading at <<print cashFormat($sharePrice)>>:
 <<set $oldSharePrice = Math.ceil($sharePrice)>>
 
 You hold <<print commaNum($personalShares)>> shares personally while <<print commaNum($publicShares)>> are publicly held.
-<<set _PrivateOwnershipPercentage = Math.trunc(($personalShares/($personalShares+$publicShares))*100)>>
-<<set _PublicOwnershipPercentage = Math.trunc(($publicShares/($personalShares+$publicShares))*100)>>
+<<set _PrivateOwnershipPercentage = Math.trunc(($personalShares/_totalShares)*100)>>
+<<set _PublicOwnershipPercentage = Math.trunc(($publicShares/_totalShares)*100)>>
 <span id="CorpAction">
 
 <br><br>
