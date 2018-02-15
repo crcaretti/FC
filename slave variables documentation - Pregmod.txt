@@ -2672,3 +2672,28 @@ To test if your slave is functioning, start up a normal game, swap to cheat mode
 @@.lightgreen;			- relationship
 
 
+wombJS.tw subsystem:
+
+This is womb processor/simulator script. It's take care about calculation of belly sizes based on individual foetus sizes, 
+with full support of broodmothers implant random turning on and off possibility. Also this can be expanded to store more parents data in each individual fetus in future.
+Design limitations:
+- Mother can't gestate children with different speeds at same time. All speed changes apply to all fetuses.
+- Sizes of inividual fetuses updated only on call of WombGetVolume - not every time as called WombProgress. This is for better overail code speed.
+- For broodmothers we need actual "new ova release" code now. But it's possible to control how many children will be added each time, and so - how much children is ready to birth each time.
+
+Usage form sugarcube code (samples):
+
+WombInit($slave) - before first pregnancy, at slave creation, of as backward compatibility update.
+
+WombImpregnate($Slave, $fetus_count, $fatherID, $initial_age) - should be added after normal impregnation code, with already calcualted fetus count. ID of father - can be used in future for prcess children from different fathers in one pregnancy. Initial age normally 1 (as .preg normally set to 1), but can be raised if needed. Also should be called at time as broodmother implant add another fetus(es), or if new fetuses added from other sources in future (transplanting maybe?)
+
+WombProgress($slave, $time_to_add_to_fetuses) - after code that update $slave.preg, time to add should be the same.
+
+$isReady = WombBirthReady($slave, $birth_ready_age) - how many children ready to be birthed if their time to be ready is $birth_ready_age (40 is for normal length pregnancy). Return int - count of ready to birth children, or 0 if no ready exists. 
+
+$children = WombBirth($slave, $birth_ready_age) - for actual birth. Return array with fetuses objects that birthed (can be used in future) and remove them from womb array of $slave. Should be called at actual birth code in sugarcube. fetuses that not ready remained in womb (array).
+
+WombFlush($slave) - clean womb (array). Can be used at broodmother birthstorm or abortion situations in game. But birthstorm logicaly should use WombBirth($slave, 35) or so before - some children in this event is live capable, others is not.
+
+$slave.bellyPreg = WombGetWolume($slave) - return double, with current womb volume in CC - for updating $slave.bellyPreg, or if need to update individual fetuses sizes.
+
