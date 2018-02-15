@@ -60,7 +60,14 @@ window.WombImpregnate = function(actor, fCount, fatherID, age)
 	tf.sex = Math.round(Math.random())+1; // 1 = male, 2 = female. For possible future usage, just as concept now.
     tf.volume = 1; //Initial, to create property. Updated with actual data after WombGetVolume call.
 
-	actor.womb.push(tf);
+    try {
+	        actor.womb.push(tf);
+        }catch(err){
+            WombInit($actor);
+            actor.womb.push(tf);
+            alert("WombImpregnate error");
+        }
+
     }
     
 }
@@ -68,15 +75,25 @@ window.WombImpregnate = function(actor, fCount, fatherID, age)
 window.WombProgress = function(actor, ageToAdd)
 {
     var ft;
-    for (ft in actor.womb)
-    {
-        rt.age += ageToAdd;
+    try {
+            for (ft in actor.womb)
+            {
+                rt.age += ageToAdd;
+            }
+    }catch(err){
+            WombInit($actor);
+            alert("WombProgress error");
     }
 }
 
 window.WombBirth = function(actor, readyAge)
 {
-    actor.womb.sort(function (a, b){return b.age - a.age}); //For normal processing fetuses that more old should be first. Now - they are.
+    try{
+        actor.womb.sort(function (a, b){return b.age - a.age}); //For normal processing fetuses that more old should be first. Now - they are.
+        }catch(err){
+            WombInit($actor);
+            alert("WombBirth error");       
+        }
 
     var birthed = [];    
     var ready = WombBirthReady(actor, readyAge);
@@ -101,10 +118,16 @@ window.WombBirthReady = function(actor, readyAge)
 
     var ft;
     var readyCnt = 0;
-    for (ft in actor.womb)
-    {
-        if (ft.age >= readyAge)
-            readyCnt++;
+    try {
+        for (ft in actor.womb)
+        {
+            if (ft.age >= readyAge)
+                  readyCnt++;
+        }
+    }catch(err){
+        WombInit($actor);
+        alert("WombBirthReady error");       
+        return 0;
     }
 
     return readyCnt;
@@ -118,21 +141,27 @@ window.WombGetVolume = function(actor) //most code from pregJS.tw with minor ada
     var targetLen;
     var wombSize = 0;
     
-    for (ft in actor.womb)
-    {
-       gestastionWeek = ft.age;
-            
-        if(gestastionWeek <= 32) {
-            targetLen = ((0.00006396 * Math.pow(gestastionWeek, 4)) - (0.005501 * Math.pow(gestastionWeek, 3)) + (0.161 * Math.pow(gestastionWeek, 2)) - (0.76 * gestastionWeek) + 0.208);
-        } else if(gestastionWeek <= 106) {
-            targetLen = ((-0.0000004675 * Math.pow(gestastionWeek, 4)) + (0.0001905 * Math.pow(gestastionWeek, 3)) - (0.029 * Math.pow(gestastionWeek, 2)) + (2.132 * gestastionWeek) - 16.575);
-        } else {
-            targetLen = ((-0.00003266 * Math.pow(gestastionWeek,2)) + (0.076 * gestastionWeek) + 43.843);
-        }
+    try{
 
-        ft.volume =((4 / 3) * (Math.PI) * (phi / 2) * (Math.pow((targetLen / 2), 3)));
+        for (ft in actor.womb)
+        {
+            gestastionWeek = ft.age;
+            
+            if(gestastionWeek <= 32) {
+                targetLen = ((0.00006396 * Math.pow(gestastionWeek, 4)) - (0.005501 * Math.pow(gestastionWeek, 3)) + (0.161 * Math.pow(gestastionWeek, 2)) - (0.76 * gestastionWeek) + 0.208);
+            } else if(gestastionWeek <= 106) {
+                targetLen = ((-0.0000004675 * Math.pow(gestastionWeek, 4)) + (0.0001905 * Math.pow(gestastionWeek, 3)) - (0.029 * Math.pow(gestastionWeek, 2)) + (2.132 * gestastionWeek) - 16.575);
+            } else {
+                targetLen = ((-0.00003266 * Math.pow(gestastionWeek,2)) + (0.076 * gestastionWeek) + 43.843);
+            }
+
+            ft.volume =((4 / 3) * (Math.PI) * (phi / 2) * (Math.pow((targetLen / 2), 3)));
         
-        wombSize += ft.volume;
+            wombSize += ft.volume;
+        }
+    }catch(err){
+        WombInit($actor);
+        alert("WombGetSize error");       
     }
   
     if (wombSize < 0) //catch for strange cases, to avoid messing with outside code.
