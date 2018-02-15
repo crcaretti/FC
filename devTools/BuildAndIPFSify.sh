@@ -37,13 +37,8 @@ sed -Ei -e '/^  \* Built on .+$/d' bin/*.html
 # add the date of the last commit to the file, but don't use colons because Windows (still?) doesn't like them
 mv bin/*.html "bin/FC pregmod $(git log -1 --format='%cd' --date='format:%F %H-%M').html"
 
-# add the vector art if it is available
-ipfs_hash="nothing"
-if [ -e ../resources ]; then
-	ipfs_hash="$(ipfs add -w -Q -r bin/*.html ../resources)"
-else
-	ipfs_hash="$(ipfs add -w -Q bin/*.html)"
-fi
+# include the unembedded vector art
+ipfs_hash="$(ipfs add -w -Q -r bin/*.html resources)"
 echo "IPFS Folder Hash: ${ipfs_hash}" > ../IPFS_hash.txt
 ipfs name publish "$ipfs_hash"
 
@@ -58,7 +53,7 @@ if [ -z "${XDG_RUNTIME_DIR+x}" ]; then
 fi
 
 # throw it into a file so we can loop over lines, not "strings delimited by whitespace"
-find ../resources/ bin -print | grep -ve '.gitignore' | sed -e 's|\.\./||' -e 's|bin/||' -e '/bin$/d' | grep -Ee '.+\.svg' -e '.html' > "${XDG_RUNTIME_DIR}/files.list"
+find resources bin -print | grep -ve '.gitignore' | sed -e 's|bin/||' | grep -Ee '.+\.svg' -e '.html' > "${XDG_RUNTIME_DIR}/files.list"
 
 # ipfs PeerID, it's user specific
 PeerID="$(ipfs config show | grep -e 'PeerID' | cut -d: -f 2 | tr -d ' "')"
