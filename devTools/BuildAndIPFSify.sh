@@ -4,6 +4,10 @@
 # add this to crontab:
 # */15 * * * * cd ~/FC/fc-pregmod && git pull --ff-only origin pregmod-master > ~/FC/git_pull.log 2>&1
 # and do "ln -s ~/FC/fc-pregmod/devTools/BuildAndIPFSify.sh .git/hooks/post-merge"
+# NOTE: you may need to define XDG_RUNTIME_DIR in your crontab
+
+# TODO: add logic to figure out if we should use ipfs-cluster instead of using the local instance directly.
+#			if we use ipfs-cluster we probably don't need to warm ipfs.io's cache.
 
 rm bin/*.html
 
@@ -45,3 +49,22 @@ ipfs name publish "$ipfs_hash"
 
 # when it's done it will print something like "Published to $your_pubkey: /ipfs/$ipfs_hash"
 # You can view the folder at http://127.0.0.1:8080/ipns/$your_pubkey
+
+# make ipfs.io cache the files
+# $XDG_RUNTIME_DIR SHOULD be defined, but there are cases where it wouldn't be
+if [ -z "${XDG_RUNTIME_DIR+x}" ]; then
+	echo "\$XDG_RUNTIME_DIR is unset, bailing"
+	exit 2
+fi
+
+# throw it into a file so we can loop over lines, not "strings delimited by whitespace"
+find ../resources/ bin -print | grep -ve '.gitignore' | sed -e 's|\.\./||' -e 's|bin/||' -e '/bin$/d' | grep -Ee '.+\.svg' -e '.html' > "${XDG_RUNTIME_DIR}/files.list"
+
+# ipfs PeerID, it's user specific
+PeerID="$(ipfs config show | grep -e 'PeerID' | cut -d: -f 2 | tr -d ' "')"
+while IFS= read -r item
+do
+	echo "https://ipfs.io/ipns/${PeerID}/${item}"
+done < "${XDG_RUNTIME_DIR}/files.list" | xargs --max-procs=10 --max-args=1 --replace curl --silent --show-error --range 0-499 --output /dev/null '{}'
+
+rm "${XDG_RUNTIME_DIR}/files.list"
