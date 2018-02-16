@@ -4115,7 +4115,7 @@
 			<</if>>
 		<</if>>
 	<</if>> /* closes .preg >= 10 */
-	<<SetPregType $slaves[$i]>>
+	// <<SetPregType $slaves[$i]>>  ????????? For WHAT is it here? .pregType is already set on impregnation time now... Legacy code? Or here should be SetBellySize?
 
 <</if>> /* END PREG EFFECTS */
 
@@ -4263,6 +4263,7 @@
 
 		<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = $HeadGirl.ID, $slaves[$i].pregWeek = 1, $slaves[$i].pregKnown = 1, $HGCum -= 1, $HeadGirl.penetrativeCount += 10, $penetrativeTotal += 10>>
 		<<SetPregType $slaves[$i]>>
+		<<set WombImpregnate($slaves[$i], $activeSlave.pregType, $HeadGirl.ID, 1)>>
 		<<set $activeSlave = $slaves[$i]>><<if $slaves[$i].mpreg == 1>><<AnalVCheck 10>><<else>><<VaginalVCheck 10>><</if>><<set $slaves[$i] to $activeSlave>>
 		<<for $j = 0; $j < $slaves.length; $j++>>
 			<<if $HeadGirl.ID == $slaves[$j].ID>>
@@ -4281,12 +4282,14 @@
 		<<if ($PC.dick == 1) && ($slaves[$i].fuckdoll == 0) && ($slaves[$i].fetish != "mindbroken") && ($slaves[$i].eggType == "human")>>
 			As your concubine, she takes care to only share her fertile <<if $slaves[$i].mpreg == 1>>ass<<else>>pussy<</if>> with you. Her efforts paid off; @@.lime;she has become pregnant with your child.@@
 			<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = -1, $slaves[$i].pregWeek = 1, $slaves[$i].pregKnown = 1>><<SetPregType $slaves[$i]>>
+			<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, -1, 1)>>
 		<</if>>
 
 	<<case "serve in the master suite">>
 		<<if ($PC.dick == 1) && ($slaves[$i].eggType == "human") && (($slaves[$i].toyHole == "all her holes" && $slaves[$i].mpreg != 1 && $slaves[$i].vagina > 0) || ($slaves[$i].toyHole == "all her holes" && $slaves[$i].mpreg == 1 && $slaves[$i].anus > 0) || ($slaves[$i].toyHole == "pussy" && $slaves[$i].mpreg != 1) || ($slaves[$i].mpreg == 1 && $slaves[$i].toyHole == "ass"))>>
 			You frequently avail yourself to her fertile <<if $slaves[$i].mpreg == 1>>ass<<else>>pussy<</if>>. It's no surprise when @@.lime;she ends up pregnant with your child.@@
 			<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = -1, $slaves[$i].pregWeek = 1, $slaves[$i].pregKnown = 1>><<SetPregType $slaves[$i]>>
+			<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, -1, 1)>>
 
 		<<else>> /% look for a random father among master suite slaves %/
 			<<set _msSlaves = $slaves.filter(function(s) { return s.assignment == "serve in the master suite"; })>>
@@ -4302,6 +4305,7 @@
 					/* found eligible father */
 					After all the unprotected sex $pronoun had this week, it's really no surprise when @@.lime;$pronoun ends up pregnant.@@
 					<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = _msSlaves[_m].ID, $slaves[$i].pregWeek = 1, $slaves[$i].pregKnown = 1>><<SetPregType $slaves[$i]>>
+					<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, $slaves[$i].pregSource, 1)>>
 					<<break>>
 				<</if>>
 			<</for>>
@@ -4311,18 +4315,21 @@
 		<<if ($PC.dick == 1) && ($slaves[$i].eggType == "human") && (($slaves[$i].toyHole == "all her holes" && $slaves[$i].mpreg != 1 && $slaves[$i].vagina > 0) || ($slaves[$i].toyHole == "all her holes" && $slaves[$i].mpreg == 1 && $slaves[$i].anus > 0) || ($slaves[$i].toyHole == "pussy" && $slaves[$i].mpreg != 1) || ($slaves[$i].mpreg == 1 && $slaves[$i].toyHole == "ass"))>>
 			You frequently avail yourself to her fertile <<if $slaves[$i].mpreg == 1>>ass<<else>>pussy<</if>>. It's no surprise when @@.lime;she ends up pregnant with your child.@@
 			<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = -1, $slaves[$i].pregWeek = 1, $slaves[$i].pregKnown = 1>><<SetPregType $slaves[$i]>>
+			<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, -1, 1)>>
 		<</if>>
 	
 	<<case "work in the brothel" "serve in the club" "whore" "serve the public">>
 		<<if ($slaves[$i].eggType == "human")>>
 			Due to all the citizens cumming in $possessive fertile <<if $slaves[$i].mpreg == 1>>ass<<else>>pussy<</if>>, @@.lime;$pronoun has become pregnant.@@
 			<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = -2, $slaves[$i].pregWeek = 1, $slaves[$i].pregKnown = 1>><<SetPregType $slaves[$i]>>
+			<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, -2, 1)>>
 		<</if>>
 
 	<<case "work a glory hole" "be confined in the arcade">>
 		<<if ($slaves[$i].eggType == "human")>>
 			Due to all the customers cumming in $possessive fertile, restrained <<if $slaves[$i].mpreg == 1>>ass<<else>>pussy<</if>>, @@.lime;$pronoun has become pregnant.@@
 			<<set $slaves[$i].preg = 1, $slaves[$i].pregSource = -2, $slaves[$i].pregWeek = 1, $slaves[$i].pregKnown = 1>><<SetPregType $slaves[$i]>>
+			<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, -2, 1)>>
 		<</if>>
 
 	<<default>> /* random impregnation chance on other assignments - consider relationships first */
@@ -4375,6 +4382,7 @@
 			<<if $slaves[$i].pregSource != 0>>
 				A quick scan after a bout of morning nausea reveals that @@.lime;$pronoun has become pregnant.@@
 				<<set $slaves[$i].preg = 1, $slaves[$i].pregWeek = 1, $slaves[$i].pregKnown = 1>><<SetPregType $slaves[$i]>>
+				<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, $slaves[$i].pregSource, 1)>>
 			<</if>>
 		<</if>> /* closes random chance and non-zero sex acts check */
 	<</switch>> /* closes assignment checks */
@@ -4385,9 +4393,11 @@
 <<if $slaves[$i].preg < 1>>
 	<<if $slaves[$i].pregType != 0>>
 		<<set $slaves[$i].pregType = 0>>
+		<<set WombFlush($slaves[$i])>>
 	<</if>>
 <<elseif $slaves[$i].preg > 0 && $slaves[$i].pregType == 0>>
 	<<SetPregType $slaves[$i]>>
+	<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, $slaves[$i].pregSource, 1)>>
 <</if>>
 <</if>> /* closes $seePreg */
 
