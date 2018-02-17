@@ -1,0 +1,264 @@
+:: csec [nobr]
+
+<<set $nextButton = " ", $nextLink = "Slave Interact">>
+<<ClearSummaryCache $activeSlave>>
+
+<<set _getFather = $slaves.find(function(s) { return s.ID == $activeSlave.pregSource; })>>
+<<if def _getFather>>
+	<<set $daddy = _getFather.slaveName>>
+<</if>>
+
+<<if $activeSlave.pregSource > 0>>
+	<<set _babyDaddy = $slaves.findIndex(function(s) { return s.ID == $activeSlave.pregSource; })>>
+	<<if $daddy != -1>>
+		<<set $slaves[_babyDaddy].slavesFathered += $activeSlave.pregType>>
+	<</if>>
+<<elseif $activeSlave.pregSource == -1>>
+	<<set $PC.slavesFathered += $activeSlave.pregType>>
+<</if>>
+<<set $activeSlave.births += $activeSlave.pregType, $activeSlave.birthsTotal += $activeSlave.pregType>>
+<<set _incubated = 0>>
+<<set _oldDevotion = $activeSlave.devotion>>
+
+Performing a cesarean section is trivial for the remote surgery for the remote surgery to carry out. $activeSlave.slaveName is sedated, her child<<if $activeSlave.pregType > 1>>ren<</if>> extracted, and taken to a bed to recover. By the time she comes to,
+<<if $activeSlave.pregSource == -1>>
+	your
+<<elseif $activeSlave.pregSource == -2>>
+	your arcology's
+<<elseif $activeSlave.pregSource == -3>>
+	the Societal Elites'
+<<elseif $activeSlave.pregSource == 0>>
+	some man's
+<<elseif $activeSlave.ID == $daddy.ID>>
+	her own
+<<else>>
+	$daddy's
+<</if>>
+<<if $activeSlave.pregType <= 1>>
+	baby has
+<<elseif $activeSlave.pregType >= 40>>
+	massive brood of $activeSlave.pregType babies have
+<<elseif $activeSlave.pregType >= 20>>
+	brood of $activeSlave.pregType babies have
+<<elseif $activeSlave.pregType >= 10>>
+	impressive group of $activeSlave.pregType babies have
+<<elseif $activeSlave.pregType == 9>>
+	nonuplets have
+<<elseif $activeSlave.pregType == 8>>
+	octuplets have
+<<elseif $activeSlave.pregType == 7>>
+	septuplets have
+<<elseif $activeSlave.pregType == 6>>
+	sextuplets have
+<<elseif $activeSlave.pregType == 5>>
+	quintuplets have
+<<elseif $activeSlave.pregType == 4>>
+	quadruplets have
+<<elseif $activeSlave.pregType == 3>>
+	triplets have
+<<else>>
+	twins have
+<</if>>
+already been
+
+<<if $activeSlave.reservedChildren == $activeSlave.pregType>>
+	taken to $incubatorName.
+	<<for _csec = $activeSlave.reservedChildren; _csec != 0; _csec-->>
+		<<set $mom = $slaves[$i]>>
+		<<include "Generate Child">>
+		<<include "Incubator Workaround">>
+	<</for>>
+	<<set _incubated = 2>>
+<<elseif $activeSlave.reservedChildren > 0>>
+	split between $incubatorName and
+	<<for _csec = $activeSlave.reservedChildren; _csec != 0; _csec-->>
+		<<set $mom = $slaves[$i]>>
+		<<include "Generate Child">>
+		<<include "Incubator Workaround">>
+		<<set $activeSlave.pregType-->>
+	<</for>>
+	<<set _incubated = 1>>
+<</if>>
+
+<<if _incubated != 2>>
+	<span id="_disposition">
+	<<if _incubated == 1>>the rest<</if>>
+	<<if $arcologies[0].FSRestart != "unset" && $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
+		<<set _lostBabies = 1>>
+		handed off to the Societal Elite to be raised into upstanding members of the new society.
+	<<elseif $Cash4Babies == 1 && ($activeSlave.relationship != -3) && ($activeSlave.assignment != "serve in the master suite") && ($activeSlave.assignment != "be your Concubine")>>
+		<<set _lostBabies = 1, _babyCost = random(-12,12)>>
+		sold for a total of @@.yellowgreen;<<print cashFormat($activeSlave.pregType*(50+_babyCost))>>.@@
+		<<set $cash += $activeSlave.pregType*(50+_babyCost)>>
+	<</if>>
+	<<if _lostBabies != 1>>
+		<br><br>
+		<<link 'sent to a slave orphanage'>>
+			<<replace #_disposition>>
+				<<set $slaveOrphanageTotal += $activeSlave.pregType>>
+				sent to one of $arcologies[0].name's slave orphanages. $activeSlave.slaveName
+				<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
+					has few thoughts about the matter.
+				<<elseif $activeSlave.devotion > 95>>
+					worships you so completely that she will not resent this.
+				<<elseif $activeSlave.devotion > 50>>
+					is devoted to you, but she will @@.mediumorchid;struggle to accept this.@@
+					<<set $activeSlave.devotion -= 2>>
+				<<elseif $activeSlave.devotion > 20>>
+					has accepted being a sex slave, but she will @@.mediumorchid;resent this intensely.@@
+					<<set $activeSlave.devotion -= 3>>
+				<<else>>
+					will of course @@.mediumorchid;hate you for this.@@
+					<<set $activeSlave.devotion -= 4>>
+				<</if>>
+			<</replace>>
+			<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
+		<</link>>
+		<<if $arcologies[0].FSRepopulationFocus > 40>>
+			<br><<link 'sent to a breeder school'>>
+				<<replace #_disposition>>
+					sent to one of $arcologies[0].name's future minded schools, to be administered fertility and virility treatments as well as be brought up to take pride in reproduction. $activeSlave.slaveName
+					<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
+						has few thoughts about the matter.
+					<<elseif $activeSlave.devotion > 95>>
+						loves you already, but <<print she>>'ll @@.hotpink;love you even more@@ for this. She can't wait to see her child<<if $activeSlave.pregType > 1>>ren<</if>> proudly furthering your cause.
+						<<set $activeSlave.devotion += 4>>
+					<<elseif $activeSlave.devotion > 50>>
+						heard about these and will be @@.hotpink;happy that her child<<if $activeSlave.pregType > 1>>ren<</if>> will have a purpose in your society other than slavery.@@ She will miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but she expected that.
+						<<set $activeSlave.devotion += 4>>
+					<<elseif $activeSlave.devotion > 20>>
+						will naturally miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but will is broken enough to hope that her offspring will have a better life, or at least an enjoyable one.
+					<<else>>
+						will of course @@.mediumorchid;hate you for this.@@ The mere thought of her $fertilityAge year old daughter<<if $activeSlave.pregType > 1>>s<</if>> swollen with life, and proud of it, fills her with @@.gold;disdain.@@
+						<<set $activeSlave.devotion -= 4, $activeSlave.trust -= 4>>
+					<</if>>
+					<<set $breederOrphanageTotal += $activeSlave.pregType>>
+				<</replace>>
+				<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
+			<</link>>
+			//Will cost a one time <<print cashFormat(50)>>//
+		<</if>>
+		<br><<link 'sent to a citizen school'>>
+			<<replace #_disposition>>
+				sent to one of $arcologies[0].name's citizen schools, to be brought up coequal with the arcology's other young people. $activeSlave.slaveName
+				<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
+					has few thoughts about the matter.
+				<<elseif $activeSlave.devotion > 95>>
+					loves you already, but <<print she>>'ll @@.hotpink;love you even more@@ for this.
+				<<elseif $activeSlave.devotion > 50>>
+					knows about these and will be @@.hotpink;overjoyed.@@ She will miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but she expected that.
+				<<elseif $activeSlave.devotion > 20>>
+					will naturally miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but will @@.hotpink;take comfort@@ in the hope that her offspring will have a better life.
+				<<else>>
+					will naturally retain some resentment over being separated from her child<<if $activeSlave.pregType > 1>>ren<</if>>, but this should be balanced by hope that her offspring will have a better life.
+				<</if>>
+				<<set $activeSlave.devotion += 4, $citizenOrphanageTotal += $activeSlave.pregType>>
+			<</replace>>
+			<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
+		<</link>>
+		//Will cost <<print cashFormat(100)>> weekly//
+		<br><<link 'sent to be raised privately'>>
+			<<replace #_disposition>>
+				The child<<if $activeSlave.pregType > 1>>ren are<<else>> is<</if>> sent to be privately raised, to be brought up as a future high class citizen. $activeSlave.slaveName
+				<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
+					has few thoughts about the matter.
+				<<elseif $activeSlave.devotion > 95>>
+					will @@.hotpink;worship you utterly@@ for this.
+				<<elseif $activeSlave.devotion > 50>>
+					understands that this is the best possible outcome for the offspring of slave, and will be @@.hotpink;overjoyed.@@
+				<<elseif $activeSlave.devotion > 20>>
+					will miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but will be @@.hotpink;very grateful,@@ since <<print she>>'ll understand this is the best possible outcome for a slave mother.
+				<<else>>
+					will resent being separated from her child<<if $activeSlave.pregType > 1>>ren<</if>>, but @@.hotpink;should understand and be grateful@@ that this is the best possible outcome here.
+				<</if>>
+				The child<<if $activeSlave.pregType > 1>>ren<</if>> will be raised privately, with expert care and tutoring, an expensive proposition.
+				<<set $activeSlave.devotion += 6, $privateOrphanageTotal += $activeSlave.pregType>>
+			<</replace>>
+			<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
+		<</link>> 
+		//Will cost <<print cashFormat(500)>> weekly//
+	<</if>>
+	</span>
+<</if>>
+
+
+<<if $activeSlave.fetish != "mindbroken" && $activeSlave.fuckdoll == 0>>
+	<br><br>
+	<<if $activeSlave.pregSource == -1>>
+		<<if $activeSlave.devotion < 20 && ($week-$activeSlave.weekAcquired >= $activeSlave.weekAcquired)>>
+			She @@.mediumorchid;despises@@ you for using her body to bear your children.
+			<<set $activeSlave.devotion -= 10>>
+		<<elseif $activeSlave.devotion > 50>>
+			<<print She>>'s @@.hotpink;so proud@@ to have successfully carried children for you.
+			<<set $activeSlave.devotion += 3>>
+		<</if>>
+	<</if>>
+	<<if $activeSlave.fetish == "pregnancy">>
+		She's a little disapointed she didn't get to give birth, but can't wait to get pregnant again.
+	<<elseif ($activeSlave.devotion > 50)>>
+		@@.hotpink;pleased by this stark development@@, since she is so attentive to your will. She also expects she'll be able to fuck better now.
+		<<set  $activeSlave.devotion += 4>>
+	<<elseif ($activeSlave.devotion > 20)>>
+		She is broken enough to accept your control of her pregancies.
+	<<elseif ($activeSlave.devotion >= -20)>>
+		She would have preferred to give birth when she was ready and is @@.gold;sensibly fearful@@ of your total power over her body.
+		<<set $activeSlave.trust -= 5>>
+	<<else>>
+		She does not understand the realities of her life as a slave at a core level, so she's @@.mediumorchid;terrified and angry@@ that you decided to cut short her pregnancy. She is @@.gold;sensibly fearful@@ of your total power over her body.
+		<<set $activeSlave.trust -= 5, $activeSlave.devotion -= 5>>
+	<</if>>
+<</if>>
+
+<<if $arcologies[0].FSRestart != "unset">>
+	<br><br>
+	<<if $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
+		The Societal Elite @@.green;are pleased@@ at the new additions to their class.
+		<<set $failedElite -= 2*$activeSlave.pregType>>
+	<<else>>
+		The Societal Elite @@.red;are disappointed@@ that you would allow subhuman filth to dirty society under your watch. Society @@.red;frowns@@ on the unwelcome addition of more subhumans into the world.
+		<<set $failedElite += 5*$activeSlave.pregType>>
+		<<set $rep -= 10*$activeSlave.pregType>>
+	<</if>>
+<</if>>
+
+<br><br>
+Since her <<if $activeSlave.mpreg == 1>>ass<<else>>vagina<</if>> was spared from childbirth, @@.lime;it retained its tightness.@@ 
+<<if ($PC.medicine >= 100)>>
+	Since you @@.springgreen;performed the surgery yourself,@@ and you do artist's work, her health is @@.green;less affected@@ by the surgery than it would have been if you'd paid some hack to do it remotely.
+	<<if $activeSlave.fetish != "mindbroken" && $activeSlave.fuckdoll == 0>>
+		She went into the surgery very aware that you were performing it personally.
+		<<if ($activeSlave.devotion < _oldDevotion)>>
+			<<if ($activeSlave.devotion > 50)>>
+				Though she is unhappy with the results, she consoles herself with the knowledge that you cared enough to do it personally.
+			<<elseif ($activeSlave.devotion >= -20)>>
+				She is @@.gold;even more afraid@@ of you afterward than she would otherwise be. You must seem a cruel and near-omnipotent power to her.
+				<<set $activeSlave.trust -= 5>>
+			<<else>>
+				She is @@.mediumorchid;even more hateful@@ of you afterward than she would otherwise be. It must seem to her that she's nothing more than a test subject to you.
+				<<set $activeSlave.devotion -= 5>>
+			<</if>>
+		<<else>>
+			<<if ($activeSlave.devotion > 50)>>
+				Since she's happy with the results, she's almost beside herself with @@.hotpink;gratitude,@@ and filled with @@.mediumaquamarine;admiration@@ of your skill.
+				<<set $activeSlave.devotion += 4, $activeSlave.trust += 4>>
+			<<elseif ($activeSlave.devotion >= -20)>>
+				She is quite struck by how you performed the surgery personally. She admires your refusal to be one of the idle rich, and @@.hotpink;likes you more.@@
+				<<set $activeSlave.devotion += 5>>
+			<<else>>
+				She knows that she should be grateful to you for performing the surgery personally, but the emotional turmoil of the occasion is too much for her, and the realization makes little lasting impact.
+			<</if>>
+		<</if>>
+	<</if>>
+<<else>>
+	As with all surgery @@.red;her health has been slightly affected.@@
+	<<set $activeSlave.health -= 5>>
+<</if>>
+
+<<if lastPregRule($activeSlave,$defaultRules)>><<set $activeSlave.preg = -1>><<else>><<set $activeSlave.preg = 0>><</if>>
+<<set $reservedChildren -= $activeSlave.reservedChildren>>
+<<set $activeSlave.pregType = 0>>
+<<set $activeSlave.pregSource = 0>>
+<<set $activeSlave.pregKnown = 0>>
+<<set $activeSlave.pregWeek = -4>>
+<<set $activeSlave.csec = 1>>
+<<SetBellySize $activeSlave>>
