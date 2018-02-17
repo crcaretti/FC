@@ -1,0 +1,1646 @@
+:: Revamped Art Control [script]
+
+class ArtStyleEntry {
+	constructor(name) {
+		this.name = name;
+	}
+	
+	toString()
+	{
+		var keys = Object.keys(this);
+		var styleArray = [];
+		if (keys !== null && keys !== undefined)
+		{
+			var styleObj = this;
+			keys.forEach(function(key) {
+				if(key !== "name") {
+					var value = styleObj[key];
+					styleArray.push(key + ":" + value);
+				}
+			});
+			
+			var styleValue = styleArray.join(";") + ";";
+			
+			var cssDef = "{" + styleValue + "}";
+			
+			if (this.name.length > 0)
+				cssDef = "." + this.name + cssDef;
+			
+			return cssDef;
+		}
+		
+		return "";
+	}
+}
+
+class ArtStyleControl {
+	constructor(artDisplayClass, artSlave) {
+		this.artDisplayClass = artDisplayClass;
+        this.artSlave = artSlave;
+		this.styles = [];
+		
+		this.initDefaultValues();
+		this.applyMakeup();
+		this.applyCalcMuscleTone();
+		this.applyEyeLensStyle();
+    }
+	
+	applyMakeup() {
+		var lipsColor = this.lips.fill;
+		var lipsOpacity = this.lips["fill-opacity"];
+		
+		switch(this.artSlave.makeup)
+		{
+			case 1:
+				//Nice
+				lipsColor = "#ff69b4";
+				lipsOpacity = 0.5;
+				break;
+			case 2:
+				//Gorgeous
+				lipsColor = "#8b008b";
+				lipsOpacity = 0.7;
+				break;
+			case 3:
+				//Hair coordinated
+				lipsColor = this.hair.fill;
+				lipsOpacity = 0.3;
+				break;
+			case 4:
+				//Slutty
+				lipsColor = "#ff0000";
+				lipsOpacity = 1;
+				break;
+			case 5:
+				//Neon
+				lipsColor = "#DC143C";
+				lipsOpacity = 1;
+				break;
+			case 6:
+				//Neon hair coordinated
+				lipsColor = this.hair.fill;
+				lipsOpacity = 1;
+				break;
+			case 7:
+				//Metallic
+				lipsColor = "#b22222";
+				lipsOpacity = 0.7;
+				break;
+			case 8:
+				//Metallic hair coordinated
+				lipsColor = this.hair.fill;
+				lipsOpacity = 0.7;
+				break;
+			default:
+		}
+		
+		this.lips.fill = lipsColor;
+		this.lips["fill-opacity"] = lipsOpacity;
+	}
+	
+	applyCalcMuscleTone() {
+		var musclesValue = this.artSlave.muscles + 100;
+		var musclesVisibility = 0.910239*Math.log(0.02*musclesValue);
+		
+		this.muscleTone["fill-opacity"] = musclesVisibility;
+	}
+	
+	applyEyeLensStyle() {
+		if (this.artSlave.eyeColor == null || this.artSlave.eyeColor == undefined)
+			return;
+		
+		var eyeColorSplit = this.artSlave.eyeColor.split(" ");
+		
+		if (eyeColorSplit == 1)
+			return;
+		
+		var eyeLens = eyeColorSplit[0];
+		
+		switch(eyeLens)
+		{
+			case "demonic":
+				this.eyeball.fill = this.iris.fill;
+				break;
+			case "devilish":
+				this.eyeball.fill = "#010101";
+		}
+	}
+	
+	getLipsColorBySkinColorName(colorName) {
+		var skinPalette = [
+			["light", "#ce6876"],
+			["white", "#ce6876"],
+			["fair", "#ce6876"],
+			["lightened", "#ce6876"],
+			["extremely pale", "#ffb9ca"],
+			["pale", "#ffb9ca"],
+			["tanned", "#9e4c44"],
+			["natural", "#9e4c44"],
+			["olive", "#c1a785"],
+			["light brown", "#5d2f1b"],
+			["dark", "#714536"],
+			["brown", "#714536"],
+			["black", "#403030"],
+			["camouflage patterned", "#708050"],
+			["red dyed", "#b04040"],
+			["dyed red", "#b04040"],
+			["green dyed", "#A0C070"],
+			["dyed green", "#A0C070"],
+			["blue dyed", "#5080b0"],
+			["dyed blue", "#5080b0"],
+			["tiger striped", "#e0d050"]
+		];
+		
+		var skinPaletteMap = new Map(skinPalette);
+		colorName = colorName.toLowerCase();
+		var colorValue = skinPaletteMap.get(colorName);
+		if (!colorValue) {
+			return parseColorFromName(colorName);
+		}
+
+		return colorValue;
+	}
+	
+	parseColorFromName(colorName) {
+		var colorPalette = [
+			["auburn", "#7e543e"],
+			["black", "#3F4040"],
+			["blonde", "#F4F1A3"],
+			["blue", "#4685C5"],
+			["brown", "#8D4F21"],
+			["burgundy", "#5f3946"],
+			["chestnut", "#663622"],
+			["chocolate", "#6e4937"],
+			["copper", "#a16145"],
+			["dark brown", "#463325"],
+			["ginger", "#da822d"],
+			["golden", "#ffdf31"],
+			["green", "#5FBA46"],
+			["grey", "#9e9fa4"],
+			["hazel", "#8d6f1f"],
+			["pink", "#D18CBC"],
+			["platinum blonde", "#fcf3c1"],
+			["red", "#BB2027"],
+			["silver", "#cdc9c6"],
+			["strawberry-blonde", "#e5a88c"],
+			["blazing red", "#E00E2B"],
+			["neon green", "#25d12b"],
+			["neon blue", "#2284C3"],
+			["neon pink", "#cc26aa"]
+		];
+		
+		var colorPaletteMap = new Map(colorPalette);
+		colorName = colorName.toLowerCase();
+		var colorValue = colorPaletteMap.get(colorName);
+		if (!colorValue) {
+			if (extractHairColor !== undefined) {
+				return extractHairColor(colorName)
+			}
+			else {
+				return colorName;
+			}
+		}
+
+		return colorValue;
+	}
+	
+	parseSkinColorFromName(colorName) {
+		var skinPalette = [
+			["light", "#feebe5"],
+			["white", "#feebe5"],
+			["fair", "#feebe5"],
+			["lightened", "#feebe5"],
+			["extremely pale", "#fff8f8"],
+			["pale", "#f9ebf0"],
+			["tanned", "#e8b693"],
+			["natural", "#e8b693"],
+			["olive", "#d4c6bb"],
+			["light brown", "#a46237"],
+			["dark", "#845c44"],
+			["brown", "#845c44"],
+			["black", "#463a3a"],
+			["camouflage patterned", "#78875a"],
+			["red dyed", "#bc4949"],
+			["dyed red", "#bc4949"],
+			["green dyed", "#A6C373"],
+			["dyed green", "#A6C373"],
+			["blue dyed", "#5b8eb7"],
+			["dyed blue", "#5b8eb7"],
+			["tiger striped", "#e2d75d"]
+		];
+		
+		var skinPaletteMap = new Map(skinPalette);
+		colorName = colorName.toLowerCase();
+		var colorValue = skinPaletteMap.get(colorName);
+		if (!colorValue) {
+			return parseColorFromName(colorName);
+		}
+
+		return colorValue;
+	}
+	
+	initDefaultValues() {
+		this.white = new ArtStyleEntry("white");
+		this.white.fill = "#FFFFFF";
+
+		this.skin = new ArtStyleEntry("skin");
+		this.skin.fill = this.parseSkinColorFromName(this.artSlave.skin);
+		
+		this.arm = new ArtStyleEntry("arm.skin");
+		this.arm.fill = this.skin.fill;
+		
+		this.head = new ArtStyleEntry("head");
+		this.head.fill = this.skin.fill;
+		
+		this.torso = new ArtStyleEntry("torso");
+		this.torso.fill = this.skin.fill;
+		
+		this.boob = new ArtStyleEntry("boob");
+		this.boob.fill = this.skin.fill;
+		
+		this.penis = new ArtStyleEntry("penis");
+		this.penis.fill = this.skin.fill;
+		
+		this.scrotum = new ArtStyleEntry("scrotum");
+		this.scrotum.fill = this.skin.fill;
+		
+		this.areola = new ArtStyleEntry("areola");
+		this.areola.fill = this.getLipsColorBySkinColorName(this.artSlave.skin);
+		
+		this.labia = new ArtStyleEntry("labia");
+		this.labia.fill = this.areola.fill;
+		
+		this.hair = new ArtStyleEntry("hair");
+		this.hair.fill = this.parseColorFromName(this.artSlave.hColor);
+		
+		this.shoe = new ArtStyleEntry("shoe");
+		this.shoe.fill = "#3E65B0";
+		
+		this.smartPiercing = new ArtStyleEntry("smart_piercing");
+		this.smartPiercing.fill = "#4DB748";
+		
+		this.steelPiercing = new ArtStyleEntry("steel_piercing");
+		this.steelPiercing.fill = "#c0c6c7";
+		
+		this.steelChastity = new ArtStyleEntry("steel_chastity");
+		this.steelChastity.fill = "#c0c6c7";
+		
+		this.labiaSkin = new ArtStyleEntry("labia.skin");
+		this.labiaSkin.fill = this.skin.fill;
+		
+		this.outfitBase = new ArtStyleEntry("outfit_base");
+		this.outfitBase.fill = "#515351";
+		
+		this.shadow = new ArtStyleEntry("shadow");
+		this.shadow.fill = "#010101";
+		
+		this.muscleTone = new ArtStyleEntry("muscle_tone");
+		this.muscleTone.fill = "#010101";
+		this.muscleTone["fill-opacity"] = 1;
+		
+		this.glasses = new ArtStyleEntry("glasses");
+		this.glasses.fill = "#010101";
+		
+		this.lips = new ArtStyleEntry("lips");
+		this.lips.fill = this.getLipsColorBySkinColorName(this.artSlave.skin);
+		this.lips["fill-opacity"] = 0.6;
+		
+		this.eyeball = new ArtStyleEntry("eyeball");
+		this.eyeball.fill = "#dfdfdf";
+		
+		this.iris = new ArtStyleEntry("iris");
+		this.iris.fill = this.parseColorFromName(this.artSlave.eyeColor);
+		
+		this.highlight1 = new ArtStyleEntry("highlight1");
+		this.highlight1.fill = "#ffffff";
+		this.highlight1["fill-opacity"] = 0.9;
+		this.highlight1["mix-blend-mode"] = "soft-light";
+		
+		this.highlight2 = new ArtStyleEntry("highlight2");
+		this.highlight2.fill = "#ffffff";
+		this.highlight2["fill-opacity"] = 0.9;
+		this.highlight2["mix-blend-mode"] = "soft-light";
+		
+		this.highlightStrong = new ArtStyleEntry("highlightStrong");
+		this.highlightStrong.fill = "#ffffff";
+		
+		this.armpitHair = new ArtStyleEntry("armpit_hair");
+		this.armpitHair.fill = this.parseColorFromName(this.artSlave.underArmHColor);;
+		
+		this.pubicHair = new ArtStyleEntry("pubic_hair");
+		this.pubicHair.fill = this.parseColorFromName(this.artSlave.pubicHColor);
+		
+		this.bellyDetails = new ArtStyleEntry("belly_details");
+		this.bellyDetails["fill-opacity"] = 1;
+		
+		this.bellySkin = new ArtStyleEntry("belly.skin");
+		this.bellySkin.fill = this.skin.fill;
+		
+		this.bellyUpperSkin = new ArtStyleEntry("belly_upper.skin");
+		this.bellyUpperSkin.fill = this.skin.fill;
+		
+		this.neckSkin = new ArtStyleEntry("neck.skin");
+		this.neckSkin.fill = this.skin.fill;
+		
+		this.legsSkin = new ArtStyleEntry("legs.skin");
+		this.legsSkin.fill = this.skin.fill;
+		
+		this.buttSkin = new ArtStyleEntry("butt.skin");
+		this.buttSkin.fill = this.skin.fill;
+		
+		this.feetSkin = new ArtStyleEntry("feet.skin");
+		this.feetSkin.fill = this.skin.fill;
+		
+		this.shadowBoobInnerLowerShadow = new ArtStyleEntry("shadow.boob_inner_lower_shadow");
+		this.shadowBoobInnerLowerShadow["fill-opacity"] = 1;
+		
+		this.shadowBoobInnerUpperShadow = new ArtStyleEntry("shadow.boob_inner_upper_shadow");
+		this.shadowBoobInnerUpperShadow["fill-opacity"] = 1;
+			
+	}
+	
+	get StylesCss() {
+		var mainStyle = new ArtStyleEntry("");
+		mainStyle.position = "absolute";
+    	mainStyle.height= "100%";
+    	mainStyle["margin-left"] = "auto";
+    	mainStyle["margin-right"] = "auto";
+    	mainStyle.left = "0";
+    	mainStyle.right = "0";
+		
+		this.styles.push(this.white);
+		this.styles.push(this.arm);
+		this.styles.push(this.skin);
+		this.styles.push(this.head);
+		this.styles.push(this.torso);
+		this.styles.push(this.boob);
+		this.styles.push(this.penis);
+		this.styles.push(this.scrotum);
+		this.styles.push(this.areola);
+		this.styles.push(this.labia);
+		this.styles.push(this.hair);
+		this.styles.push(this.shoe);
+		this.styles.push(this.smartPiercing);
+		this.styles.push(this.steelPiercing);
+		this.styles.push(this.steelChastity);
+		this.styles.push(this.labiaSkin);
+		this.styles.push(this.outfitBase);
+		this.styles.push(this.shadow);
+		this.styles.push(this.muscleTone);
+		this.styles.push(this.glasses);
+		this.styles.push(this.lips);
+		this.styles.push(this.eyeball);
+		this.styles.push(this.iris);
+		this.styles.push(this.highlight1);
+		this.styles.push(this.highlight2);
+		this.styles.push(this.highlightStrong);
+		this.styles.push(this.armpitHair);
+		this.styles.push(this.pubicHair);
+		this.styles.push(this.bellyDetails);
+		this.styles.push(this.bellySkin);
+		this.styles.push(this.bellyUpperSkin);
+		this.styles.push(this.neckSkin);
+		this.styles.push(this.legsSkin);
+		this.styles.push(this.buttSkin);
+		this.styles.push(this.feetSkin);
+		this.styles.push(this.shadowBoobInnerLowerShadow);
+		this.styles.push(this.shadowBoobInnerUpperShadow);
+		
+		var stylesValues = [];
+		
+		var artDisplayClass = this.artDisplayClass;
+		
+		stylesValues.push("." + artDisplayClass + " " + mainStyle.toString());
+		this.styles.forEach(function(style) {
+			stylesValues.push("." + artDisplayClass + " " + style.toString());
+		});
+		
+		return stylesValues.join(" ");
+	}
+	
+	
+}
+
+class ClothingControl {
+	get fuckdoll() {
+		var defaultOutfitColor = "#515351";
+		var areolaColor = "#383838";
+		return {
+			bodySettings: {
+				showEyes: false,
+				showPubic: false,
+				showArmHair: false,
+				showHair: false,
+				showLegHighlight: true,
+				showTorsoHighlight: true,
+				showBoobsHighlight: true,
+				showHeadHighlight: true
+			},
+			styleSettings: {
+				skin: { fill: defaultOutfitColor },
+				arm: { fill: defaultOutfitColor },
+				penis: { fill: defaultOutfitColor },
+				legsSkin: {fill: defaultOutfitColor },
+				feetSkin: {fill: defaultOutfitColor },
+				torso: {fill: defaultOutfitColor },
+				buttSkin: {fill: defaultOutfitColor },
+				head: { fill: defaultOutfitColor },
+				neckSkin: { fill: defaultOutfitColor },
+				boob: { fill: defaultOutfitColor },
+				areola: { fill: areolaColor },
+				labia: { fill: areolaColor },
+				bellySkin: { fill: defaultOutfitColor },
+				bellyUpperSkin: { fill: defaultOutfitColor },
+				shoe: { fill: defaultOutfitColor },
+				labiaSkin: { fill: defaultOutfitColor },
+				lips: { fill: areolaColor }
+			}
+		}
+	}
+	
+	get niceMaid() {		
+		return {
+			bodySettings: {
+				showPubic: false,
+				showBoobs: false,
+				showNipples: false,
+				showPenis: false,
+				showBalls: false,
+				showBellyPiercings: false,
+				showNipplesPiercings: false
+			},
+			styleSettings: {
+				bellySkin: { fill: "#FFFFFF" },
+				bellyUpperSkin: { fill: "#FFFFFF" },
+				bellyDetails: { "fill-opacity": 0 }
+			}
+		}
+	}
+	
+	get sluttyMaid() {		
+		return {
+			bodySettings: {
+				showBellyPiercings: false
+			},
+			styleSettings: {
+				bellySkin: { fill: "#FFFFFF" },
+				bellyDetails: { "fill-opacity": 0 }
+			}
+		}
+	}
+	
+	get restrictiveLatex() {	
+		var defaultOutfitColor = "#515351";
+		var areolaColor = "#383838";	
+		return {
+			bodySettings: {
+				showEyes: false,
+				showPubic: false,
+				showArmHair: false,
+				showHair: false,
+				showLegHighlight: true,
+				showTorsoHighlight: true,
+				showBoobsHighlight: true,
+				showHeadHighlight: true,
+				showHeadPiercings: false,
+				showBellyPiercings: false
+			},
+			styleSettings: {
+				skin: { fill: defaultOutfitColor },
+				arm: { fill: defaultOutfitColor },
+				legsSkin: {fill: defaultOutfitColor },
+				feetSkin: {fill: defaultOutfitColor },
+				torso: {fill: defaultOutfitColor },
+				buttSkin: {fill: defaultOutfitColor },
+				head: { fill: defaultOutfitColor },
+				neckSkin: { fill: defaultOutfitColor },
+				bellySkin: { fill: defaultOutfitColor },
+				bellyUpperSkin: { fill: defaultOutfitColor },
+				shoe: { fill: defaultOutfitColor }
+			}
+		}
+	}
+	
+	get latexCatsuit() {
+		var defaultOutfitColor = "#515351";
+		var areolaColor = "#383838";
+		return {
+			bodySettings: {
+				showPubic: false,
+				showArmHair: false,
+				showLegHighlight: true,
+				showTorsoHighlight: true,
+				showBoobsHighlight: true,
+				showHeadHighlight: true,
+				showPussyPiercings: false,
+				showPenisPiercings: false,
+				showBellyPiercings: false,
+				showNipplesPiercings: false
+			},
+			styleSettings: {
+				skin: { fill: defaultOutfitColor },
+				scrotum: { fill: defaultOutfitColor },
+				arm: { fill: defaultOutfitColor },
+				penis: { fill: defaultOutfitColor },
+				legsSkin: {fill: defaultOutfitColor },
+				feetSkin: {fill: defaultOutfitColor },
+				torso: {fill: defaultOutfitColor },
+				buttSkin: {fill: defaultOutfitColor },
+				
+				neckSkin: { fill: defaultOutfitColor },
+				boob: { fill: defaultOutfitColor },
+				areola: { fill: areolaColor },
+				labia: { fill: areolaColor },
+				bellySkin: { fill: defaultOutfitColor },
+				bellyUpperSkin: { fill: defaultOutfitColor },
+				shoe: { fill: defaultOutfitColor },
+				labiaSkin: { fill: defaultOutfitColor }
+			}
+		}
+	}
+	
+	get bodyOil() {
+		return {
+			bodySettings: {
+				showLegHighlight: true,
+				showTorsoHighlight: true,
+				showBoobsHighlight: true,
+				showHeadHighlight:true,
+			},
+			styleSettings: {
+				
+			}
+		}
+	}
+	
+	get bodysuit() {
+		var defaultOutfitColor = "#162d50";
+		return {
+			bodySettings: {
+				showPubic: false,
+				showArmHair: false,
+				showPussy: false,
+				showPussyPiercings: false,
+				showPenisPiercings: false,
+				showBellyPiercings: false,
+				showNipplesPiercings: false
+			},
+			styleSettings: {
+				skin: { fill: defaultOutfitColor },
+				scrotum: { fill: defaultOutfitColor },
+				arm: { fill: defaultOutfitColor },
+				penis: { fill: defaultOutfitColor },
+				legsSkin: {fill: defaultOutfitColor },
+				feetSkin: {fill: defaultOutfitColor },
+				torso: {fill: defaultOutfitColor },
+				buttSkin: {fill: defaultOutfitColor },				
+				boob: { fill: defaultOutfitColor },
+				areola: { fill: defaultOutfitColor },
+				bellySkin: { fill: defaultOutfitColor },
+				bellyUpperSkin: { fill: defaultOutfitColor },
+				shoe: { fill: defaultOutfitColor },
+				muscleTone: { "fill-opacity": 0 },
+				bellyDetails: { "fill-opacity": 0 }
+			}
+		}
+	}
+	
+	get leotard() {
+		var defaultOutfitColor = "#d35f8d";
+		return {
+			bodySettings: {
+				showPubic: false,
+				showArmHair: false,
+				showPussy: false,
+				showPussyPiercings: false,
+				showPenisPiercings: false,
+				showBellyPiercings: false,
+				showNipplesPiercings: false,				
+				showNipples: false
+			},
+			styleSettings: {
+				skin: { fill: defaultOutfitColor },
+				scrotum: { fill: defaultOutfitColor },
+				penis: { fill: defaultOutfitColor },
+				torso: {fill: defaultOutfitColor },
+				boob: { fill: defaultOutfitColor },
+				areola: { fill: defaultOutfitColor },
+				bellySkin: { fill: defaultOutfitColor },
+				bellyUpperSkin: { fill: defaultOutfitColor },
+				muscleTone: { "fill-opacity": 0 },
+				bellyDetails: { "fill-opacity": 0 }
+			}
+		}
+	}
+}
+
+class RevampedArtControl {
+	constructor(artDisplayClass, artSlave, globalShowHighlights, globalShowBodyMods) {
+		
+		this.artDisplayClass = artDisplayClass;
+        this.artSlave = artSlave;
+		this.styleControl = new ArtStyleControl(artDisplayClass, artSlave);
+		this.clothingControl = new ClothingControl();
+		this.artTransform = "";
+				
+		this.showArmHair = true;
+		this.showHair = true;
+		this.showPussy = true;
+		this.showPubic = true;
+		this.showChastityVaginal = true;
+		this.showChastityAnal = true;
+		this.showBalls = true;
+		this.showPenis = true;
+		this.showNipples = true;
+		this.showBoobs = true;
+		this.showEyes = true;
+		this.showMouth = true;
+		
+		this.hairLength = this.getHairLength;
+		this.torsoSize = this.getTorsoSize;
+		this.bellyLevel = this.getBellyLevel;
+		
+		this.showLegHighlight = false;
+		this.showTorsoHighlight = false;
+		this.showBoobsHighlight = false;
+		this.showHeadHighlight = false;
+		
+		this.showPussyPiercings = true;
+		this.showBellyPiercings = true;
+		this.showPenisPiercings = true;
+		this.showNipplesPiercings = true;
+		this.showHeadPiercings = true;
+		
+		this.pubicTattooText = "";
+		
+		var clothing = this.getClothing();
+		if (clothing != null)
+		{
+			if (clothing.bodySettings != null)
+				this.applyClothingSettings(clothing.bodySettings);
+			if (clothing.styleSettings != null)
+				this.applyClothingStyleSettings(clothing.styleSettings);
+		}
+		
+		if (!globalShowHighlights)
+		{
+			this.showLegHighlight = false;
+			this.showTorsoHighlight = false;
+			this.showBoobsHighlight = false;
+			this.showHeadHighlight = false;
+		}
+		if (!globalShowBodyMods)
+		{
+			this.showPussyPiercings = false;
+			this.showBellyPiercings = false;
+			this.showPenisPiercings = false;
+			this.showNipplesPiercings = false;
+			this.showHeadPiercings = false;
+		}
+		
+    }
+	
+	copyProperties(objTo, objFrom) {
+		for (var attr in objFrom) {
+			if (objFrom.hasOwnProperty(attr)) 
+				objTo[attr] = objFrom[attr];
+		}
+	}
+	
+	applyClothingSettings(clothingSettings) {
+		this.copyProperties(this, clothingSettings);
+	}
+	
+	applyClothingStyleSettings(styleSettings) {
+		for (var attr in styleSettings) {
+			if (styleSettings.hasOwnProperty(attr)) 
+				this.copyProperties(this.styleControl[attr], styleSettings[attr]);
+		}
+	}
+	
+	getClothing() {
+		if (this.artSlave.fuckdoll > 0)
+			return this.clothingControl.fuckdoll;
+		
+		switch(this.artSlave.clothes)
+		{
+			case "a nice maid outfit":
+				return this.clothingControl.niceMaid;
+				break;
+			case "a slutty maid outfit":
+				return this.clothingControl.sluttyMaid;
+				break;
+			case "restrictive latex":
+				return this.clothingControl.restrictiveLatex;
+				break;
+			case "a latex catsuit":
+				return this.clothingControl.latexCatsuit;
+				break;
+			case "body oil":
+				return this.clothingControl.bodyOil;
+				break;
+			case "a comfortable bodysuit":
+				return this.clothingControl.bodysuit;
+				break;
+			case "a leotard":
+				/*return this.clothingControl.leotard;*/
+				break;
+			default:
+		}
+		
+		return null;
+	}
+		
+	get getHairLength() {
+		var result = "Short";
+		
+		if (this.artSlave.hLength >= 80)
+			result = "Long";
+		else if (this.artSlave.hLength >= 40)
+			result = "Medium";
+		else
+			result = "Short";
+		
+		return result;
+	}
+	
+	get getTorsoSize() {
+		var torsoSize = "Normal";
+		
+		if (this.artSlave.waist < -40) {
+			torsoSize = this.artSlave.weight > 30 ? "Hourglass" : "Unnatural";
+		}
+		else if (this.artSlave.waist <= 10) {
+			torsoSize = this.artSlave.weight > 30 ? "Normal" : "Hourglass";
+		}
+		else {
+			torsoSize = "Normal";
+		}
+		
+		return torsoSize;
+	}
+	
+	get getBellyLevel() {
+		var bellyLevel = 0;
+		if (this.artSlave.belly >= 120000)
+			bellyLevel = 9;
+		else if (this.artSlave.belly >= 90000)
+			bellyLevel = 8;
+		else if (this.artSlave.belly >= 50000)
+			bellyLevel = 7;
+		else if (this.artSlave.belly >= 30000)
+			bellyLevel = 6;
+		else if (this.artSlave.belly >= 15000)
+			bellyLevel = 5;
+		else if (this.artSlave.belly >= 10000)
+			bellyLevel = 4;
+		else if (this.artSlave.belly >= 5000)
+			bellyLevel = 3;
+		else if (this.artSlave.belly >= 1500)
+			bellyLevel = 2;
+		else if (this.artSlave.belly >= 500)
+			bellyLevel = 1;
+		else
+			bellyLevel = 0;
+		
+		return bellyLevel;
+	}
+	
+	get hairBackLayer() {
+		var result = [];
+		
+		if (!this.showHair)
+			return result;
+		
+		if (this.artSlave.hLength == 0)
+			return result;
+
+		switch(this.artSlave.hStyle)
+		{
+			case "neat":
+				result.push("Art_Vector_Revamp_Hair_Back_Neat_" + this.hairLength);
+				break;
+			case "bun":
+			case "up":
+				result.push("Art_Vector_Revamp_Hair_Back_Bun_" + this.hairLength);
+				break;
+			case "tails":
+				result.push("Art_Vector_Revamp_Hair_Back_Tails_" + this.hairLength);
+				break;
+			case "ponytail":
+				result.push("Art_Vector_Revamp_Hair_Back_Ponytail_" + this.hairLength);
+				break;
+			case "braided":
+				result.push("Art_Vector_Revamp_Hair_Back_Braids_" + this.hairLength);
+				break;
+			case "curled":
+				result.push("Art_Vector_Revamp_Hair_Back_Curled_" + this.hairLength);
+				break;
+			case "cornrows":
+				result.push("Art_Vector_Revamp_Hair_Back_Cornrows_" + this.hairLength);
+				break;
+			case "strip":
+				result.push("Art_Vector_Revamp_Hair_Back_Shaved_Sides_" + this.hairLength);
+				break;
+			case "luxurious":
+				result.push("Art_Vector_Revamp_Hair_Back_Luxurious_" + this.hairLength);
+				break;
+			case "afro":
+				result.push("Art_Vector_Revamp_Hair_Back_Afro_" + this.hairLength);
+				break;
+			case "permed":
+				result.push("Art_Vector_Revamp_Hair_Back_Permed_" + this.hairLength);
+				break;
+			case "dreadlocks":
+				result.push("Art_Vector_Revamp_Hair_Back_Dreadlocks_" + this.hairLength);
+				break;
+			default:		
+				result.push("Art_Vector_Revamp_Hair_Back_Messy_" + this.hairLength);
+		}
+		
+		return result;
+	}
+	
+	get armLayer() {
+		var result = [];
+		
+		var leftArmType = "";
+		var rightArmType = "";
+				
+		if (this.artSlave.amp) {
+			result.push("Art_Vector_Revamp_Arm_Stump");
+		}
+		else {
+			var leftArmType = "";
+			var rightArmType = "";
+			if (this.artSlave.devotion > 50) {
+				leftArmType = "High"
+				rightArmType = "High"
+			}
+			else if (this.artSlave.trust >= -20) {
+				if (this.artSlave.devotion < -20) {
+					leftArmType = "Low"
+					rightArmType = "Low"
+				}
+				else if (this.artSlave.devotion <= 20) {
+					leftArmType = "Low"
+					rightArmType = "Low"
+				}			
+				else
+				{
+					leftArmType = "Mid"
+					rightArmType = "High"
+				}
+			}
+			else {
+				leftArmType = "Mid"
+				rightArmType = "Mid"
+			}
+			result.push("Art_Vector_Revamp_Arm_Right_"+rightArmType);
+			result.push("Art_Vector_Revamp_Arm_Left_"+leftArmType);
+		}
+		
+		if (this.showArmHair && (this.artSlave.amp || leftArmType == "High"))
+		{
+			switch(this.artSlave.underArmHStyle)
+			{
+				case "bushy":
+					result.push("Art_Vector_Revamp_Arm_Up_Hair_Bushy");
+					break;
+				case "neat":
+					result.push("Art_Vector_Revamp_Arm_Up_Hair_Neat");
+					break;
+				default:				   
+			}
+		}
+		
+		return result;
+	}
+	
+	get buttLayer() {
+		var result = [];
+		var buttSize = 0;
+		if (this.artSlave.amp)
+			return result;
+		
+		if (this.artSlave.butt > 6)
+			buttSize = 3;
+		else if (this.artSlave.butt > 4)
+			buttSize = 2;
+		else if (this.artSlave.butt > 2)
+			buttSize = 1;
+		else 
+			buttSize = 0;
+		
+		result.push("Art_Vector_Revamp_Butt_" + buttSize);
+		
+		return result;
+	}
+	
+	get legLayer() {
+		var result = [];
+		
+		if (this.artSlave.amp) {
+			result.push("Art_Vector_Revamp_Stump");
+		}
+		else {
+			var legSize = "Normal";
+			
+			if (this.artSlave.hips < 0) {
+				legSize = this.artSlave.weight > 95 ? "Normal" : "Narrow";
+			}
+			else if (this.artSlave.hips == 0) {
+				legSize = this.artSlave.weight > 95 ? "Wide" : "Normal";
+			}
+			else if (this.artSlave.hips > 0) {
+				legSize = "Wide";
+			}
+			
+			result.push("Art_Vector_Revamp_Leg_" + legSize);
+			
+			if (this.showLegHighlight)
+			{
+				result.push("Art_Vector_Revamp_Leg_Highlights2");
+				result.push("Art_Vector_Revamp_Leg_Highlights1");
+			}
+		}
+		
+		return result;
+	}
+	
+	get feetLayer() {
+		var result = [];
+		
+		if (this.artSlave.amp) {
+			return result;
+		}
+		
+		switch(this.artSlave.shoes)
+		{
+			case "heels":
+				result.push("Art_Vector_Revamp_Shoes_Heel");
+				break;
+			case "extreme heels":
+				result.push("Art_Vector_Revamp_Shoes_Exterme_Heel");
+				break;
+			case "boots":
+				result.push("Art_Vector_Revamp_Shoes_Boot");
+				break;
+			case "flats":
+				result.push("Art_Vector_Revamp_Shoes_Flat");
+				break;
+			default:
+				result.push("Art_Vector_Revamp_Feet");
+		}
+				
+		return result;
+	}
+	
+	get torsoLayer() {
+		var result = [];
+		
+		result.push("Art_Vector_Revamp_Torso_" + this.torsoSize);
+		result.push("Art_Vector_Revamp_Clavicle");
+		if (this.showTorsoHighlight)
+		{
+			result.push("Art_Vector_Revamp_Torso_Highlights2");
+			result.push("Art_Vector_Revamp_Torso_Highlights1");
+		}
+		
+		if (this.showArmHair)
+		{
+			switch(this.artSlave.underArmHStyle)
+			{
+				case "bushy":
+					result.push("Art_Vector_Revamp_Arm_Down_Hair_Bushy");
+					break;
+				case "neat":
+					result.push("Art_Vector_Revamp_Arm_Down_Hair_Neat");
+					break;
+				default:				   
+			}
+		}
+		
+		return result;
+	}
+	
+	get pussyLayer() {
+		var result = [];
+		
+		if (this.showPussy && this.artSlave.vagina >= 0)
+			result.push("Art_Vector_Revamp_Pussy");
+		
+		return result;
+	}
+	
+	get pubicLayer() {
+		var result = [];
+		
+		if (!this.showPubic)
+			return result;
+		
+		if (this.artSlave.physicalAge < 12)
+			return result;
+		
+		if (this.artSlave.vaginaTat == "rude words")
+		{
+			this.pubicTattooText = this.artSlave.dick != 0 ? "Useless" : "Fucktoy";
+			result.push("Art_Vector_Revamp_Pussy_Tattoo");
+		}		
+		
+		switch(this.artSlave.pubicHStyle)
+		{
+			case "strip":
+			case "in a strip":
+				result.push("Art_Vector_Revamp_Pubic_Hair_Strip");
+				break;
+			case "bushy":
+			case "bushy in the front and neat in the rear":
+			case "very bushy":
+				result.push("Art_Vector_Revamp_Pubic_Hair_Bush");
+				break;
+			case "neat":
+				result.push("Art_Vector_Revamp_Pubic_Hair_Neat");
+				break;
+			case "waxed":
+				break;
+			default:
+		}
+		
+		return result;
+	}
+	
+	get pussyPiercingsLayer() {
+		var result = [];
+
+		if (!this.showPussyPiercings)
+			return result;
+		
+		if (this.artSlave.vaginaPiercing == 1)
+			result.push("Art_Vector_Revamp_Pussy_Piercing");
+		else if (this.artSlave.vaginaPiercing == 2)
+			result.push("Art_Vector_Revamp_Pussy_Piercing_Heavy");
+		
+		if (this.artSlave.clitPiercing == 1)
+			result.push("Art_Vector_Revamp_Clit_Piercing");
+		else if (this.artSlave.clitPiercing == 2)
+			result.push("Art_Vector_Revamp_Clit_Piercing_Heavy");
+		else if (this.artSlave.clitPiercing == 1)
+			result.push("Art_Vector_Revamp_Clit_Piercing_Smart");
+		
+		return result;
+	}
+	
+	get chastityBeltLayer() {
+		var result = [];
+		
+		var isChastityAnalWorn = this.artSlave.dickAccessory == "anal chastity" || this.artSlave.dickAccessory == "combined chastity" || this.artSlave.vaginalAccessory == "anal chastity" || this.artSlave.vaginalAccessory == "combined chastity";
+		
+		isChastityAnalWorn = isChastityAnalWorn && this.showChastityAnal;
+		
+		var isChastityVaginalWorn = this.artSlave.vaginalAccessory == "chastity belt" || this.artSlave.vaginalAccessory == "combined chastity";
+		
+		isChastityVaginalWorn = isChastityVaginalWorn && this.showChastityVaginal;
+		
+		if (isChastityAnalWorn)
+			result.push("Art_Vector_Revamp_Chastity_Anus");
+		
+		if (isChastityVaginalWorn)
+			result.push("Art_Vector_Revamp_Chastity_Vagina");
+		
+		if (isChastityAnalWorn || isChastityVaginalWorn)
+			result.push("Art_Vector_Revamp_Chastity_Base");
+		
+		return result;
+	}
+	
+	get torsoOutfitLayer() {
+		var result = [];
+		
+		switch(this.artSlave.clothes)
+		{
+			case "uncomfortable straps":
+				result.push("Art_Vector_Revamp_Torso_Outfit_Straps_" + this.torsoSize);
+				break;
+			case "a nice maid outfit":
+				result.push("Art_Vector_Revamp_Torso_Outfit_Maid_" + this.torsoSize);
+				break;
+			case "a slutty maid outfit":
+				result.push("Art_Vector_Revamp_Torso_Outfit_Maid_Lewd_" + this.torsoSize);
+				break;
+			default:
+		}
+		
+		return result;
+	}
+	
+	get ballsLayer() {
+		var result = [];
+		
+		if (!this.showBalls || this.artSlave.scrotum <= 0 || this.artSlave.balls <= 0)
+			return result;
+		
+		var ballsSize = 0;
+		
+		if (this.artSlave.scrotum >= 6) 
+			ballsSize = 4;
+		else if (this.artSlave.scrotum >= 4)
+			ballsSize = 3;
+		else if (this.artSlave.scrotum >= 3)
+			ballsSize = 2;
+		else if (this.artSlave.scrotum >= 2)
+			ballsSize = 1;
+		else 
+			ballsSize = 0;
+		
+		result.push("Art_Vector_Revamp_Balls_" + ballsSize);
+		
+		return result;
+	}
+	
+	get bellyLayer() {
+		var result = [];
+		
+		if (this.bellyLevel > 0)
+		{
+			result.push("Art_Vector_Revamp_Belly_" + this.bellyLevel);
+			
+			if (this.showBellyPiercings)
+			{
+				if (this.artSlave.navelPiercing >= 1)
+					result.push("Art_Vector_Revamp_Belly_" + this.bellyLevel + "_Piercing");
+				
+				if (this.artSlave.navelPiercing == 2)
+					result.push("Art_Vector_Revamp_Belly_" + this.bellyLevel + "_Piercing_Heavy");
+			}
+		}
+		else
+		{
+			if (this.showBellyPiercings)
+			{
+				if (this.artSlave.navelPiercing >= 1)
+					result.push("Art_Vector_Revamp_Navel_Piercing");
+				
+				if (this.artSlave.navelPiercing == 2)
+					result.push("Art_Vector_Revamp_Navel_Piercing_Heavy");
+			}
+		}
+		
+		return result;
+	}
+	
+	get penisLayer() {
+		var result = [];
+		
+		if (this.getBellyLevel >= 8)
+			return result;
+		
+		var penisSize = -1;
+		
+		if (this.artSlave.dick >= 8)
+			penisSize = 6;
+		else if (this.artSlave.dick >= 7)
+			penisSize = 5;
+		else if (this.artSlave.dick >= 6)
+			penisSize = 4;
+		else if (this.artSlave.dick >= 5)
+			penisSize = 3;
+		else if (this.artSlave.dick >= 4)
+			penisSize = 2;
+		else if (this.artSlave.dick >= 2)
+			penisSize = 1;
+		else if (this.artSlave.dick >= 1)
+			penisSize = 0;
+		else
+			penisSize = -1;
+		
+		if (!this.showPenis || penisSize < 0)
+			return result;
+		
+		if (canAchieveErection(this.artSlave) && (this.artSlave.dickAccessory != "chastity") && (this.artSlave.dickAccessory != "combined chastity"))
+		{
+			result.push("Art_Vector_Revamp_Penis_" + penisSize);
+			
+			if (!this.showPenisPiercings)
+				return result;
+			
+			if (this.artSlave.dickPiercing == 1)
+				result.push("Art_Vector_Revamp_Penis_" + penisSize + "_Piercing");
+			else if (this.artSlave.dickPiercing == 2)
+				result.push("Art_Vector_Revamp_Penis_" + penisSize + "_Piercing_Heavy");	
+		}
+		else 
+		{
+			result.push("Art_Vector_Revamp_Flaccid_" + penisSize);
+			
+			if ((this.artSlave.dickAccessory == "chastity") || (this.artSlave.dickAccessory == "combined chastity")) {
+				result.push("Art_Vector_Revamp_Chastity_Cage_" + penisSize);
+			}
+		}
+		
+		return result;
+	}
+	
+	get boobLayer() {
+		var result = [];
+		
+		var artScaleFactor = 0.255622*Math.log(0.0626767*this.artSlave.boobs);
+		
+		var artTranslationX = -283.841*artScaleFactor+280.349;
+		var artTranslationY = -198.438*artScaleFactor+208.274;
+		var artBoobTransform = "matrix(" + artScaleFactor +",0,0," + artScaleFactor + "," + artTranslationX + "," + artTranslationY + ")";
+		
+		this.artTransform = artBoobTransform;
+		
+		if (this.artSlave.boobs < 300)
+		{
+			artBoobTransform = "matrix(1,0,0,1,0,0)";
+			this.artTransform = artBoobTransform;
+			
+			if (this.showNipples)
+				result.push("Art_Vector_Revamp_Boob_Areola_NoBoob");
+		}
+		else 
+		{
+			if (!this.showBoobs)
+				return result;
+			
+			result.push("Art_Vector_Revamp_Boob");
+			
+			if (this.showNipples)
+				result.push("Art_Vector_Revamp_Boob_Areola");
+			
+			if (this.showBoobsHighlight)
+			{
+				result.push("Art_Vector_Revamp_Boob_Highlights2");
+				result.push("Art_Vector_Revamp_Boob_Highlights1");
+			}
+		}
+		
+		
+		return result;
+	}
+	
+	get boobAddonLayer() {
+		var result = [];
+		
+		if (this.showNipplesPiercings)
+		{
+			if (this.artSlave.nipplesPiercing == 1)
+			{
+				if (this.artSlave.boobs < 300)
+					result.push("Art_Vector_Revamp_Boob_Piercing_NoBoob");
+				else 
+					result.push("Art_Vector_Revamp_Boob_Piercing");
+			}
+			else if (this.artSlave.nipplesPiercing == 2)
+			{
+				if (this.artSlave.boobs < 300)
+					result.push("Art_Vector_Revamp_Boob_Piercing_NoBoob_Heavy");
+				else
+					result.push("Art_Vector_Revamp_Boob_Piercing_Heavy");
+			}
+			
+			if (this.artSlave.areolaePiercing == 1)
+			{
+				if (this.artSlave.boobs < 300)
+					result.push("Art_Vector_Revamp_Boob_Areola_Piercing_NoBoob");
+				else 
+					result.push("Art_Vector_Revamp_Boob_Areola_Piercing");
+			}
+			else if (this.artSlave.areolaePiercing == 2)
+			{
+				if (this.artSlave.boobs < 300)
+					result.push("Art_Vector_Revamp_Boob_Areola_Piercing_NoBoob_Heavy");
+				else
+					result.push("Art_Vector_Revamp_Boob_Areola_Piercing_Heavy");
+			}
+		}
+		
+		switch(this.artSlave.clothes)
+		{
+			case "uncomfortable straps":
+				if (this.artSlave.boobs >= 300)
+					result.push("Art_Vector_Revamp_Boob_Outfit_Straps");
+				break;
+			case "a nice maid outfit":
+				if (this.artSlave.boobs >= 300)
+					result.push("Art_Vector_Revamp_Boob_Outfit_Maid");
+				break;
+			
+			default:
+		}
+		
+		
+		return result;
+	}
+		
+	get clavicleLayer() {
+		var result = [];
+		
+		result.push("Art_Vector_Revamp_Clavicle");
+		
+		return result;
+	}
+	
+	get collarLayer() {
+		var result = [];
+		
+		switch(this.artSlave.collar)
+		{
+			case "leather with cowbell":
+				result.push("Art_Vector_Revamp_Collar_Cowbell");
+				break;
+			case "heavy gold":
+				result.push("Art_Vector_Revamp_Collar_Gold_Heavy");
+				break;
+			case "neck corset":
+				result.push("Art_Vector_Revamp_Collar_Neck_Corset");
+				break;	
+			case "pretty jewelry":
+				result.push("Art_Vector_Revamp_Collar_Pretty_Jewelry");
+				break;
+			case "cruel retirement counter":
+				result.push("Art_Vector_Revamp_Collar_Retirement_Cruel");
+				break;
+			case "nice retirement counter":
+				result.push("Art_Vector_Revamp_Collar_Retirement_Nice");
+				break;
+			case "satin choker":
+				result.push("Art_Vector_Revamp_Collar_Satin_Choker");
+				break;
+			case "shock punishment":
+				result.push("Art_Vector_Revamp_Collar_Shock_Punishment");
+				break;
+			case "stylish leather":
+				result.push("Art_Vector_Revamp_Collar_Stylish_Leather");
+				break;	
+			case "tight steel":
+				result.push("Art_Vector_Revamp_Collar_Tight_Steel");
+				break;	
+			default:
+		}
+		
+		return result;
+	}
+	
+	get headLayer() {
+		var result = [];
+		
+		result.push("Art_Vector_Revamp_Head");
+		
+		if (this.showHeadHighlight)
+			result.push("Art_Vector_Revamp_Face_Highlights");
+		
+		if (!this.showHeadPiercings)
+			return result;
+		
+		if (this.artSlave.earPiercing == 1)
+			result.push("Art_Vector_Revamp_Head_Ear_Piercing");
+		else if (this.artSlave.earPiercing == 2)
+			result.push("Art_Vector_Revamp_Head_Ear_Piercing_Heavy");
+		
+		if (this.artSlave.nosePiercing == 1)
+			result.push("Art_Vector_Revamp_Head_Nose_Piercing");
+		else if (this.artSlave.nosePiercing == 2)
+			result.push("Art_Vector_Revamp_Head_Nose_Piercing_Heavy");
+		
+		return result;
+	}
+	
+	get eyesLayer() {
+		var result = [];
+		
+		if (!this.showEyes)
+			return result;
+		
+		if (this.artSlave.devotion > 50)
+		{
+			result.push("Art_Vector_Revamp_Eyes_Happy");
+			result.push("Art_Vector_Revamp_Eyes_Happy_Highlights");
+			
+			if (this.showHeadPiercings)
+			{
+				if (this.artSlave.eyebrowPiercing == 1)
+					result.push("Art_Vector_Revamp_Head_Eyebrow_Happy_Piercing");
+				else if (this.artSlave.eyebrowPiercing == 2)
+					result.push("Art_Vector_Revamp_Head_Eyebrow_Happy_Piercing_Heavy");
+			}
+		}
+		else if (this.artSlave.devotion >= 0)
+		{
+			result.push("Art_Vector_Revamp_Eyes_Shy");
+			result.push("Art_Vector_Revamp_Eyes_Shy_Highlights");
+			
+			if (this.showHeadPiercings)
+			{
+				if (this.artSlave.eyebrowPiercing == 1)
+					result.push("Art_Vector_Revamp_Head_Eyebrow_Shy_Piercing");
+				else if (this.artSlave.eyebrowPiercing == 2)
+					result.push("Art_Vector_Revamp_Head_Eyebrow_Shy_Piercing_Heavy");
+			}
+		}
+		else if (this.artSlave.devotion >= -50)
+		{
+			result.push("Art_Vector_Revamp_Eyes_Closed");
+			
+			if (this.showHeadPiercings)
+			{
+				if (this.artSlave.eyebrowPiercing == 1)
+					result.push("Art_Vector_Revamp_Head_Eyebrow_Closed_Piercing");
+				else if (this.artSlave.eyebrowPiercing == 2)
+					result.push("Art_Vector_Revamp_Head_Eyebrow_Closed_Piercing_Heavy");
+			}
+		}
+		else 
+		{
+			result.push("Art_Vector_Revamp_Eyes_Angry");
+			result.push("Art_Vector_Revamp_Eyes_Angry_Highlights");
+			if (this.showHeadPiercings)
+			{
+				if (this.artSlave.eyebrowPiercing == 1)
+					result.push("Art_Vector_Revamp_Head_Eyebrow_Angry_Piercing");
+				else if (this.artSlave.eyebrowPiercing == 2)
+					result.push("Art_Vector_Revamp_Head_Eyebrow_Angry_Piercing_Heavy");
+			}
+		}
+		
+		return result;
+	}
+		
+	get mouthLayer() {
+		var result = [];
+		var lipsSize = "Normal";
+		
+		if (!this.showMouth)
+			return result;
+		
+		if (this.artSlave.lips > 95)
+			lipsSize = "Enormous";
+		else if (this.artSlave.lips > 70)
+			lipsSize = "Huge";
+		else if (this.artSlave.lips > 50)
+			lipsSize = "Big";
+		else if (this.artSlave.lips > 30)
+			lipsSize = "Plush";
+		else if (this.artSlave.lips > 10)
+			lipsSize = "Normal";
+		else
+			lipsSize = "Thin";
+		
+		if (this.artSlave.trust > 20)
+		{
+			result.push("Art_Vector_Revamp_Makeup_Mouth_Happy_" + lipsSize);
+			result.push("Art_Vector_Revamp_Mouth_Happy_" + lipsSize);
+			
+			if (this.showHeadPiercings)
+			{
+				if (this.artSlave.lipsPiercing == 1)
+					result.push("Art_Vector_Revamp_Head_Mouth_Happy_Piercing");
+				else if (this.artSlave.lipsPiercing == 2)
+					result.push("Art_Vector_Revamp_Head_Mouth_Happy_Piercing_Heavy");
+			}
+		}
+		else 
+		{
+			result.push("Art_Vector_Revamp_Makeup_Mouth_Angry_" + lipsSize);
+			result.push("Art_Vector_Revamp_Mouth_Angry_" + lipsSize);
+			
+			if (this.showHeadPiercings)
+			{
+				if (this.artSlave.lipsPiercing == 1)
+					result.push("Art_Vector_Revamp_Head_Mouth_Angry_Piercing");
+				else if (this.artSlave.lipsPiercing == 2)
+					result.push("Art_Vector_Revamp_Head_Mouth_Angry_Piercing_Heavy");
+			}
+		}
+		
+		return result;
+	}	
+	
+	get headAddonLayer() {
+		var result = [];
+		
+		if (this.showEyes) {
+			switch(this.artSlave.eyewear)
+			{
+				case "corrective glasses":
+				case "glasses":
+				case "blurring glasses":
+					result.push("Art_Vector_Revamp_Glasses");
+					break;
+				default:
+			}
+		}
+		
+		if (this.showMouth)
+		{
+			switch(this.artSlave.collar)
+			{
+				case "dildo gag":
+					result.push("Art_Vector_Revamp_Dildo_Gag");
+					break;
+				case "bit gag":
+					result.push("Art_Vector_Revamp_Bit_Gag");
+					break;
+				case "ball gag":
+					result.push("Art_Vector_Revamp_Ball_Gag");
+					break;
+				default:
+				
+			}
+		}
+		return result;
+	}	
+		
+	get hairForeLayer() {
+		var result = [];
+		
+		if (!this.showHair)
+			return result;
+		
+		if (this.artSlave.hLength == 0)
+			return result;
+
+		switch(this.artSlave.hStyle)
+		{
+			case "neat":
+				result.push("Art_Vector_Revamp_Hair_Fore_Neat");
+				break;
+			case "bun":
+			case "up":
+			case "tails":
+			case "ponytail":
+				result.push("Art_Vector_Revamp_Hair_Fore_Bun");
+				break;
+			case "braided":
+				result.push("Art_Vector_Revamp_Hair_Fore_Braids");
+				break;
+			case "curled":
+				result.push("Art_Vector_Revamp_Hair_Fore_Curled");
+				break;
+			case "cornrows":
+				result.push("Art_Vector_Revamp_Hair_Fore_Cornrows");
+				break;
+			case "strip":
+				result.push("Art_Vector_Revamp_Hair_Fore_Shaved_Sides");
+				break;
+			case "luxurious":
+				result.push("Art_Vector_Revamp_Hair_Fore_Luxurious");
+				break;
+			case "afro":
+				result.push("Art_Vector_Revamp_Hair_Fore_Afro");
+				break;
+			case "permed":
+				result.push("Art_Vector_Revamp_Hair_Fore_Permed");
+				break;
+			case "dreadlocks":
+				result.push("Art_Vector_Revamp_Hair_Fore_Dreadlocks");
+				break;
+			default:		
+				result.push("Art_Vector_Revamp_Hair_Fore_Messy");
+		}
+		
+		return result;
+	}
+	
+	
+	get StylesCss() {
+		return this.styleControl.StylesCss;
+	}
+	
+	get Layers() {
+		var layers = [];
+		
+		Array.prototype.push.apply(layers, this.hairBackLayer);
+		Array.prototype.push.apply(layers, this.armLayer);
+		Array.prototype.push.apply(layers, this.buttLayer);
+		Array.prototype.push.apply(layers, this.legLayer);
+		Array.prototype.push.apply(layers, this.feetLayer);
+		Array.prototype.push.apply(layers, this.torsoLayer);
+		Array.prototype.push.apply(layers, this.pussyLayer);
+		Array.prototype.push.apply(layers, this.pubicLayer);
+		Array.prototype.push.apply(layers, this.pussyPiercingsLayer);
+		Array.prototype.push.apply(layers, this.chastityBeltLayer);
+		Array.prototype.push.apply(layers, this.torsoOutfitLayer);
+		Array.prototype.push.apply(layers, this.ballsLayer);
+		Array.prototype.push.apply(layers, this.bellyLayer);		
+		Array.prototype.push.apply(layers, this.penisLayer);
+		Array.prototype.push.apply(layers, this.boobLayer);
+		Array.prototype.push.apply(layers, this.boobAddonLayer);
+		Array.prototype.push.apply(layers, this.clavicleLayer);
+		Array.prototype.push.apply(layers, this.collarLayer);
+		Array.prototype.push.apply(layers, this.headLayer);
+		Array.prototype.push.apply(layers, this.eyesLayer);
+		Array.prototype.push.apply(layers, this.mouthLayer);		
+		Array.prototype.push.apply(layers, this.headAddonLayer);
+		Array.prototype.push.apply(layers, this.hairForeLayer);
+				
+		return layers;
+	}
+}
+
+window.getVectorArtRevampedControl = function(artDisplayClass, artSlave, globalShowHighlights, globalShowBodyMods) {
+	return new RevampedArtControl(artDisplayClass, artSlave, globalShowHighlights, globalShowBodyMods);
+};
+
