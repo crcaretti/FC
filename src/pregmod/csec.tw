@@ -8,19 +8,64 @@
 	<<set $daddy = _getFather.slaveName>>
 <</if>>
 
+/*---------------- claculations -----------------*/
+
+/* Now it's will be possible to use passge for broodmothers and partial birthers too.*/
+
+<<set $activeSlave.pregControl = "none">>
+<<set _beforeSize = WombGetVolume($slaves[$i])>>
+<<set $activeSlave.curBabies = WombBirth($activeSlave, 34)>> /* 34 week is minimal gestation time for live birth. Here we take only ready to survive. With others we will deal later in code. */
+
+<<set $activeSlave.curStillBirth = 0 >>
+
+<<set _curBabies = $activeSlave.curBabies.length>> /*just to improve speed and usability here.*/
+
+<<set $activeSlave.births += _curBabies>>
+<<set $activeSlave.birthsTotal += _curBabies>>
+<<set $birthsTotal += _curBabies>>
+
 <<if $activeSlave.pregSource > 0>>
 	<<set _babyDaddy = $slaves.findIndex(function(s) { return s.ID == $activeSlave.pregSource; })>>
 	<<if $daddy != -1>>
-		<<set $slaves[_babyDaddy].slavesFathered += $activeSlave.pregType>>
+		<<set $slaves[_babyDaddy].slavesFathered += _curBabies>>
 	<</if>>
 <<elseif $activeSlave.pregSource == -1>>
-	<<set $PC.slavesFathered += $activeSlave.pregType>>
+	<<set $PC.slavesFathered += _curBabies>>
 <</if>>
-<<set $activeSlave.births += $activeSlave.pregType, $activeSlave.birthsTotal += $activeSlave.pregType>>
+<<set $activeSlave.births += _curBabies, $activeSlave.birthsTotal += _curBabies>>
+
+<<if $activeSlave.broodmother < 1>>  /* broodmothers can't lose fetuses, or it's abortion procedure, not c'sec.*/
+	<<if $safePartialBirthTech == 1 >>
+		/* nothing right now. For partial birhters, who can do it. For future use.*/
+	<<else>>
+		<<set $activeSlave.curStillBirth = $activeSlave.womb.length>>
+		<<set WombFlush($activeSlave)>>
+		/* normally fetuses before 34 week will not survive */
+	<</if>>
+<</if>>
+<<set _afterSize = WombGetVolume($activeSlave)>> /* not really needed right now, but better to add alredy for future usage. To not forget later.*/
+<<set $diffSize = _beforeSize / (1 + _afterSize)>> /* 1 used to avoid devide by zero error.*/ 
+
 <<set _incubated = 0>>
 <<set _oldDevotion = $activeSlave.devotion>>
 
-Performing a cesarean section is trivial for the remote surgery for the remote surgery to carry out. $activeSlave.slaveName is sedated, her child<<if $activeSlave.pregType > 1>>ren<</if>> extracted, and taken to a bed to recover. By the time she comes to,
+<<set _cToIncub = 0, _origReserve = $slaves[$i].reservedChildren>> 
+<<if _origReserve > 0 && _curBabies > 0>> /*Do we need incubator checks?*/
+	<<if _curBabies >= _origReserve >>
+		/*adding normal*/
+		<<set _cToIncub = _origReserve >>
+	<<elseif _curBabies <  _origReserve && $slaves[$i].womb.length > 0>>
+		/*broodmother or partial birth, we will wait for next time to get remaining children*/
+		<<set $slaves[$i].reservedChildren -= _curBabies, _cToIncub = _curBabies>>
+	<<else>>
+		/*Stillbirth or something other go wrong. Correcting children count.*/
+		<<set $slaves[$i].reservedChildren = 0, _cToIncub = _curBabies>>
+	<</if>>
+<</if>>
+
+/* ------------------------------------------------ */
+
+Performing a cesarean section is trivial for the remote surgery for the remote surgery to carry out. $activeSlave.slaveName is sedated, her child<<if _curBabies > 1>>ren<</if>> extracted, and taken to a bed to recover. By the time she comes to,
 <<if $activeSlave.pregSource == -1>>
 	your
 <<elseif $activeSlave.pregSource == -2>>
@@ -34,51 +79,48 @@ Performing a cesarean section is trivial for the remote surgery for the remote s
 <<else>>
 	$daddy's
 <</if>>
-<<if $activeSlave.pregType <= 1>>
+<<if _curBabies <= 1>>
 	baby has
-<<elseif $activeSlave.pregType >= 40>>
+<<elseif _curBabies >= 40>>
 	massive brood of $activeSlave.pregType babies have
-<<elseif $activeSlave.pregType >= 20>>
+<<elseif _curBabies >= 20>>
 	brood of $activeSlave.pregType babies have
-<<elseif $activeSlave.pregType >= 10>>
+<<elseif _curBabies >= 10>>
 	impressive group of $activeSlave.pregType babies have
-<<elseif $activeSlave.pregType == 9>>
+<<elseif _curBabies == 9>>
 	nonuplets have
-<<elseif $activeSlave.pregType == 8>>
+<<elseif _curBabies == 8>>
 	octuplets have
-<<elseif $activeSlave.pregType == 7>>
+<<elseif _curBabies == 7>>
 	septuplets have
-<<elseif $activeSlave.pregType == 6>>
+<<elseif _curBabies == 6>>
 	sextuplets have
-<<elseif $activeSlave.pregType == 5>>
+<<elseif _curBabies == 5>>
 	quintuplets have
-<<elseif $activeSlave.pregType == 4>>
+<<elseif _curBabies == 4>>
 	quadruplets have
-<<elseif $activeSlave.pregType == 3>>
+<<elseif _curBabies == 3>>
 	triplets have
 <<else>>
 	twins have
 <</if>>
 already been
 
-<<if $activeSlave.reservedChildren == $activeSlave.pregType>>
+<<if _cToIncub == _curBabies >>
 	taken to $incubatorName.
-	<<for _csec = $activeSlave.reservedChildren; _csec != 0; _csec-->>
-		<<set $mom = $slaves[$i]>>
-		<<include "Generate Child">>
-		<<include "Incubator Workaround">>
-	<</for>>
 	<<set _incubated = 2>>
-<<elseif $activeSlave.reservedChildren > 0>>
+<<elseif _cToIncub < _curBabies>>
 	split between $incubatorName and
-	<<for _csec = $activeSlave.reservedChildren; _csec != 0; _csec-->>
-		<<set $mom = $slaves[$i]>>
-		<<include "Generate Child">>
-		<<include "Incubator Workaround">>
-		<<set $activeSlave.pregType-->>
-	<</for>>
 	<<set _incubated = 1>>
 <</if>>
+<<set $mom = $activeSlave>>
+<<for _cb = 0; _cb < _cToIncub; _cb++>> /* if there is no reserved children, code in loop will not trigger */
+		<<include "Generate Child">>
+		<<include "Incubator Workaround">>
+		<<set $activeSlave.curBabies.shift()>> /*for now child generation metod for incubator not changed. But here children for incubator removed from array of birthed babies. If we decide later - we can use them for incubator as real objects here. For now they just discarded silently */
+		<<set $reservedChildren-- >>
+<</for>>
+<<set _curBabies = $slaves[$i].curBabies.length >>
 
 <<if _incubated != 2>>
 	<span id="_disposition">
@@ -88,14 +130,14 @@ already been
 		handed off to the Societal Elite to be raised into upstanding members of the new society.
 	<<elseif $Cash4Babies == 1 && ($activeSlave.relationship != -3) && ($activeSlave.assignment != "serve in the master suite") && ($activeSlave.assignment != "be your Concubine")>>
 		<<set _lostBabies = 1, _babyCost = random(-12,12)>>
-		sold for a total of @@.yellowgreen;<<print cashFormat($activeSlave.pregType*(50+_babyCost))>>.@@
-		<<set $cash += $activeSlave.pregType*(50+_babyCost)>>
+		sold for a total of @@.yellowgreen;<<print cashFormat(_curBabies*(50+_babyCost))>>.@@
+		<<set $cash += _curBabies*(50+_babyCost)>>
 	<</if>>
 	<<if _lostBabies != 1>>
 		<br><br>
 		<<link '...sent to a slave orphanage.'>>
 			<<replace #_disposition>>
-				<<set $slaveOrphanageTotal += $activeSlave.pregType>>
+				<<set $slaveOrphanageTotal += _curBabies>>
 				sent to one of $arcologies[0].name's slave orphanages. $activeSlave.slaveName
 				<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
 					has few thoughts about the matter.
@@ -121,18 +163,18 @@ already been
 					<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
 						has few thoughts about the matter.
 					<<elseif $activeSlave.devotion > 95>>
-						loves you already, but <<print she>>'ll @@.hotpink;love you even more@@ for this. She can't wait to see her child<<if $activeSlave.pregType > 1>>ren<</if>> proudly furthering your cause.
+						loves you already, but <<print she>>'ll @@.hotpink;love you even more@@ for this. She can't wait to see her child<<if _curBabies > 1>>ren<</if>> proudly furthering your cause.
 						<<set $activeSlave.devotion += 4>>
 					<<elseif $activeSlave.devotion > 50>>
 						heard about these and will be @@.hotpink;happy that her child<<if $activeSlave.pregType > 1>>ren<</if>> will have a purpose in your society other than slavery.@@ She will miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but she expected that.
 						<<set $activeSlave.devotion += 4>>
 					<<elseif $activeSlave.devotion > 20>>
-						will naturally miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but will is broken enough to hope that her offspring will have a better life, or at least an enjoyable one.
+						will naturally miss her child<<if _curBabies > 1>>ren<</if>>, but will is broken enough to hope that her offspring will have a better life, or at least an enjoyable one.
 					<<else>>
-						will of course @@.mediumorchid;hate you for this.@@ The mere thought of her $fertilityAge year old daughter<<if $activeSlave.pregType > 1>>s<</if>> swollen with life, and proud of it, fills her with @@.gold;disdain.@@
+						will of course @@.mediumorchid;hate you for this.@@ The mere thought of her $fertilityAge year old daughter<<if _curBabies > 1>>s<</if>> swollen with life, and proud of it, fills her with @@.gold;disdain.@@
 						<<set $activeSlave.devotion -= 4, $activeSlave.trust -= 4>>
 					<</if>>
-					<<set $breederOrphanageTotal += $activeSlave.pregType>>
+					<<set $breederOrphanageTotal += _curBabies>>
 				<</replace>>
 				<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
 			<</link>>
@@ -146,20 +188,20 @@ already been
 				<<elseif $activeSlave.devotion > 95>>
 					loves you already, but <<print she>>'ll @@.hotpink;love you even more@@ for this.
 				<<elseif $activeSlave.devotion > 50>>
-					knows about these and will be @@.hotpink;overjoyed.@@ She will miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but she expected that.
+					knows about these and will be @@.hotpink;overjoyed.@@ She will miss her child<<if _curBabies > 1>>ren<</if>>, but she expected that.
 				<<elseif $activeSlave.devotion > 20>>
-					will naturally miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but will @@.hotpink;take comfort@@ in the hope that her offspring will have a better life.
+					will naturally miss her child<<if _curBabies > 1>>ren<</if>>, but will @@.hotpink;take comfort@@ in the hope that her offspring will have a better life.
 				<<else>>
-					will naturally retain some resentment over being separated from her child<<if $activeSlave.pregType > 1>>ren<</if>>, but this should be balanced by hope that her offspring will have a better life.
+					will naturally retain some resentment over being separated from her child<<if _curBabies > 1>>ren<</if>>, but this should be balanced by hope that her offspring will have a better life.
 				<</if>>
-				<<set $activeSlave.devotion += 4, $citizenOrphanageTotal += $activeSlave.pregType>>
+				<<set $activeSlave.devotion += 4, $citizenOrphanageTotal += _curBabies>>
 			<</replace>>
 			<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
 		<</link>>
 		//Will cost <<print cashFormat(100)>> weekly//
 		<br><<link '...sent to be raised privately.'>>
 			<<replace #_disposition>>
-				The child<<if $activeSlave.pregType > 1>>ren are<<else>> is<</if>> sent to be privately raised, to be brought up as a future high class citizen. $activeSlave.slaveName
+				The child<<if _curBabies > 1>>ren are<<else>> is<</if>> sent to be privately raised, to be brought up as a future high class citizen. $activeSlave.slaveName
 				<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
 					has few thoughts about the matter.
 				<<elseif $activeSlave.devotion > 95>>
@@ -167,12 +209,12 @@ already been
 				<<elseif $activeSlave.devotion > 50>>
 					understands that this is the best possible outcome for the offspring of slave, and will be @@.hotpink;overjoyed.@@
 				<<elseif $activeSlave.devotion > 20>>
-					will miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but will be @@.hotpink;very grateful,@@ since <<print she>>'ll understand this is the best possible outcome for a slave mother.
+					will miss her child<<if _curBabies > 1>>ren<</if>>, but will be @@.hotpink;very grateful,@@ since <<print she>>'ll understand this is the best possible outcome for a slave mother.
 				<<else>>
-					will resent being separated from her child<<if $activeSlave.pregType > 1>>ren<</if>>, but @@.hotpink;should understand and be grateful@@ that this is the best possible outcome here.
+					will resent being separated from her child<<if _curBabies > 1>>ren<</if>>, but @@.hotpink;should understand and be grateful@@ that this is the best possible outcome here.
 				<</if>>
-				The child<<if $activeSlave.pregType > 1>>ren<</if>> will be raised privately, with expert care and tutoring, an expensive proposition.
-				<<set $activeSlave.devotion += 6, $privateOrphanageTotal += $activeSlave.pregType>>
+				The child<<if _curBabies > 1>>ren<</if>> will be raised privately, with expert care and tutoring, an expensive proposition.
+				<<set $activeSlave.devotion += 6, $privateOrphanageTotal += _curBabies>>
 			<</replace>>
 			<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
 		<</link>> 
@@ -212,11 +254,11 @@ already been
 	<br><br>
 	<<if $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
 		The Societal Elite @@.green;are pleased@@ at the new additions to their class.
-		<<set $failedElite -= 2*$activeSlave.pregType>>
+		<<set $failedElite -= 2*_curBabies>>
 	<<else>>
 		The Societal Elite @@.red;are disappointed@@ that you would allow subhuman filth to dirty society under your watch. Society @@.red;frowns@@ on the unwelcome addition of more subhumans into the world.
-		<<set $failedElite += 5*$activeSlave.pregType>>
-		<<set $rep -= 10*$activeSlave.pregType>>
+		<<set $failedElite += 5*_curBabies>>
+		<<set $rep -= 10*_curBabies>>
 	<</if>>
 <</if>>
 
@@ -253,11 +295,12 @@ Since her <<if $activeSlave.mpreg == 1>>ass<<else>>vagina<</if>> was spared from
 	<<set $activeSlave.health -= 5>>
 <</if>>
 
-<<if lastPregRule($activeSlave,$defaultRules)>><<set $activeSlave.preg = -1>><<else>><<set $activeSlave.preg = 0>><</if>>
-<<set $reservedChildren -= $activeSlave.reservedChildren>>
-<<set $activeSlave.pregType = 0>>
-<<set $activeSlave.pregSource = 0>>
-<<set $activeSlave.pregKnown = 0>>
-<<set $activeSlave.pregWeek = -4>>
+<<if $activeSlave.womb.length == 0>> /* Only if pregnancy is really ended... */
+	<<if lastPregRule($activeSlave,$defaultRules)>><<set $activeSlave.preg = -1>><<else>><<set $activeSlave.preg = 0>><</if>>
+	<<set $activeSlave.pregType = 0>>	
+	<<set $activeSlave.pregSource = 0>>
+	<<set $activeSlave.pregKnown = 0>>
+	<<set $activeSlave.pregWeek = -4>>
+<</if>>
 <<set $activeSlave.cSec = 1>>
 <<SetBellySize $activeSlave>>
