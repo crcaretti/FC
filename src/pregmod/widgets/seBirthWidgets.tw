@@ -284,6 +284,7 @@
 <<set $slaves[$i].curStillBirth = 0 >>
 
 <<set _curBabies = $slaves[$i].curBabies.length>> /*just to improve speed and usability here.*/
+/*<br>TEST curBabies:  _curBabies<br>*/
 
 <<set $slaves[$i].births += _curBabies>>
 <<set $slaves[$i].birthsTotal += _curBabies>>
@@ -330,7 +331,10 @@ This decriptions can be expanded with more outcomes later. But it's not practica
 */
 <<if $slaves[$i].assignment == "work in the dairy" && $dairyPregSetting > 0>> 
 	As a human cow, $pronoun @@.orange;gave birth@@<<if $diffSize < 1.15>> but $possessive overfilled womb barely lost any size. $possessiveCap body gave life <<elseif $diffSize < 1.3>> but $possessive stomach barely shrank at all. $possessiveCap body gave life <</if>>
-	<<if _curBabies <= 1>>
+
+	<<if _curBabies < 1>>
+		no live ones, but a stilbirth only.
+	<<elseif _curBabies == 1>>
 		to a single calf
 	<<elseif _curBabies >= 40>>
 		to a massive brood of _curBabies calves
@@ -371,7 +375,10 @@ This decriptions can be expanded with more outcomes later. But it's not practica
 	<<else>>	
 		$pronounCap @@.orange;gave birth@@<<if $diffSize < 1.15>>, but $possessive stomach barely shrank at all. $possessiveCap body gave life to <<elseif $diffSize < 1.3>>, but $possessive overfilled womb barely lost any size. $possessiveCap body gave life to <</if>>
 	<</if>>
-	<<if _curBabies <= 1>>
+	
+	<<if _curBabies < 1>>
+		no live ones, but a stilbirth only.
+	<<elseif _curBabies == 1>>
 		a single baby.
 	<<elseif _curBabies >= 40>>
 		a massive brood of _curBabies babies.
@@ -398,20 +405,22 @@ This decriptions can be expanded with more outcomes later. But it's not practica
 	<</if>>
 
 	Created by
-	<<if $slaves[$i].pregSource == -1>>
-		your magnificent dick,
-	<<elseif $slaves[$i].pregSource == -2>>
-		your arcology's eager citizens,
-	<<elseif $slaves[$i].pregSource == -3>>
-		the Societal Elite,
-	<<elseif $slaves[$i].pregSource == 0>>
-		an unknown father,
-	<<elseif $slaves[$i].ID == $daddy.ID>>
-		$possessive own curiosity over if $pronoun could fuck <<print $possessive>>self,
-	<<else>>
-		$daddy's virile cock and balls,
+	<<if _curBabies > 1>>
+		<<if $slaves[$i].pregSource == -1>>
+			your magnificent dick,
+		<<elseif $slaves[$i].pregSource == -2>>
+			your arcology's eager citizens,
+		<<elseif $slaves[$i].pregSource == -3>>
+			the Societal Elite,
+		<<elseif $slaves[$i].pregSource == 0>>
+			an unknown father,
+		<<elseif $slaves[$i].ID == $daddy.ID>>
+			$possessive own curiosity over if $pronoun could fuck <<print $possessive>>self,
+		<<else>>
+			$daddy's virile cock and balls,
+		<</if>>
+		<<if _curBabies > 1>>they<<else>>she<</if>> entered the world.
 	<</if>>
-	<<if _curBabies > 1>>they<<else>>she<</if>> entered the world.
 <</if>>
 
 /* ---- Postbirth reactions, body -------------------------------------------------------------------------------------------*/
@@ -738,19 +747,29 @@ All in all,
 		<<set _lostBabies = 1>>
 		Without time loss $possessive child<<if _curBabies > 1>>ren<</if>> collected by the Societal Elite to be raised into upstanding members of the new society.
 	<<elseif $Cash4Babies == 1>>
-		<<set _lostBabies = 1>>
+		/*<<set _lostBabies = 1>>*/
 		<<set _babyCost = random(-12,12)>>
 		<<if ($slaves[$i].relationship == -3)>>
 			You make sure $possessive children are cared for, since $pronoun is your wife. $slaves[$i].slaveName is @@.hotpink;touched@@ by this @@.mediumaquamarine;act of kindness.@@
 			<<set $slaves[$i].trust += 3, $slaves[$i].devotion += 3>>
-			<<set _lostBabies = 0>>
+			<<set _lostBabies = 1>>
 		<<elseif ($slaves[$i].assignment == "serve in the master suite" || $slaves[$i].assignment == "be your Concubine")>>
 			$possessiveCap children are guaranteed to be treated well despite the laws you've passed since $pronoun is a member of your harem. $slaves[$i].slaveName is @@.hotpink;touched@@ by this @@.mediumaquamarine;act of kindness.@@
 			<<set $slaves[$i].trust += 3, $slaves[$i].devotion += 3>>
-			<<set _lostBabies = 0>>
+			<<set _lostBabies = 1>>
+		
 		<<else>>
+		/*
+		<<link 'Just sell them'>> 
+				<<replace `"#" + $dispositionId`>>
+					<<set _babyCost = random(-12,12)>>
+					$possessiveCap <<if _count > 1>>babies<<else>>baby<</if>> sold for a total of @@.yellowgreen;<<print cashFormat(_count*(50+_babyCost))>>.@@
+					<<set $cash += _curBabies*(50+_babyCost)>>
+				<</replace>>
+			<</link>> | 
 			$possessiveCap <<if _curBabies > 1>>babies<<else>>baby<</if>> sold for a total of @@.yellowgreen;<<print cashFormat(_curBabies*(50+_babyCost))>>.@@
 			<<set $cash += _curBabies*(50+_babyCost)>>
+		*/
 		<</if>>
 	<</if>>
 	<<if _lostBabies != 1>>
@@ -825,8 +844,7 @@ All in all,
 		<</link>> 
 		//Will cost <<print cashFormat(500)>> weekly//
 		<<if $Cash4Babies == 1>>
-			<br><br>
-			<<link 'Just sell them'>>
+			| <<link 'Just sell them'>>
 				<<replace `"#" + $dispositionId`>>
 					<<set _babyCost = random(-12,12)>>
 					$possessiveCap <<if _count > 1>>babies<<else>>baby<</if>> sold for a total of @@.yellowgreen;<<print cashFormat(_count*(50+_babyCost))>>.@@

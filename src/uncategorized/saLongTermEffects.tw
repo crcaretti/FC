@@ -7291,6 +7291,7 @@
 			<<set $slaves[$i].pregSource = 0>>
 			<<set $slaves[$i].pregWeek = 0>>
 			<<set $slaves[$i].pregKnown = 0>>
+			<<set WombFlush($slaves[$i])>>
 			<<SetBellySize $slaves[$i]>>
 			<<set $cash -= 100000>>
 			<<set $failedElite += 150>>
@@ -7304,17 +7305,21 @@
 	<</if>>
 <</if>>
 
-<<if ($slaves[$i].preg > 37) && ($slaves[$i].broodmother == 0) && (random(1,100) > 90) && $slaves[$i].pregControl != "labor supressors">>
-	<<set $slaves[$i].labor = 1>>
-	<<set $birthee = 1>>
-<<elseif ($slaves[$i].preg > 41) && ($slaves[$i].broodmother == 0) && $slaves[$i].pregControl != "labor supressors">>
-	<<set $slaves[$i].labor = 1>>
-	<<set $birthee = 1>>
-<<elseif ($slaves[$i].preg > 37) && ($slaves[$i].broodmother > 0) && ($slaves[$i].assignment != "labor in the production line")>>
-	<<set $slaves[$i].labor = 1>>
-	<<set $birthee = 1>>
-	<<if $slaves[$i].ovaryAge >= 47>>
-		<<set $slaves[$i].broodmotherCountDown = 37>>
+/*--------------- main labor triggers: -------- */
+
+<<if $slaves[$i].pregControl != "labor supressors" && $slaves[$i].assignment != "labor in the production line">>
+	<<if $slaves[$i].broodmother < 1>>
+		<<if WombBirthReady($slaves[$i], 43) > 0>> /*check for really ready fetuses - 43 weeks - max, overdue*/
+			<<set $slaves[$i].labor = 1, $birthee = 1>>
+		<<elseif WombBirthReady($slaves[$i], 40) > 0 && (random(1,100) > 50)>> /*check for really ready fetuses - 40 weeks - normal*/
+			<<set $slaves[$i].labor = 1, $birthee = 1>>
+		<<elseif WombBirthReady($slaves[$i], 36) > 0 && (random(1,100) > 90)>> /*check for really ready fetuses - 36 weeks minimum */
+			<<set $slaves[$i].labor = 1, $birthee = 1>>
+		<</if>>
+	<<else>> 
+		<<if WombBirthReady($slaves[$i], 37)>> /* broodmothers ready at 37 week always */
+			<<set $slaves[$i].labor = 1, $birthee = 1>>
+		<</if>>
 	<</if>>
 <</if>>
 
