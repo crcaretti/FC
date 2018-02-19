@@ -13,7 +13,7 @@
 /* Now it's will be possible to use passge for broodmothers and partial birthers too.*/
 
 <<set $activeSlave.pregControl = "none">>
-<<set _beforeSize = WombGetVolume($slaves[$i])>>
+<<set _beforeSize = WombGetVolume($activeSlave)>>
 <<set $activeSlave.curBabies = WombBirth($activeSlave, 34)>> /* 34 week is minimal gestation time for live birth. Here we take only ready to survive. With others we will deal later in code. */
 
 <<set $activeSlave.curStillBirth = 0 >>
@@ -32,7 +32,6 @@
 <<elseif $activeSlave.pregSource == -1>>
 	<<set $PC.slavesFathered += _curBabies>>
 <</if>>
-<<set $activeSlave.births += _curBabies, $activeSlave.birthsTotal += _curBabies>>
 
 <<if $activeSlave.broodmother < 1>>  /* broodmothers can't lose fetuses, or it's abortion procedure, not c'sec.*/
 	<<if $safePartialBirthTech == 1 >>
@@ -49,17 +48,17 @@
 <<set _incubated = 0>>
 <<set _oldDevotion = $activeSlave.devotion>>
 
-<<set _cToIncub = 0, _origReserve = $slaves[$i].reservedChildren>> 
+<<set _cToIncub = 0, _origReserve = $activeSlave.reservedChildren>> 
 <<if _origReserve > 0 && _curBabies > 0>> /*Do we need incubator checks?*/
 	<<if _curBabies >= _origReserve >>
 		/*adding normal*/
 		<<set _cToIncub = _origReserve >>
-	<<elseif _curBabies <  _origReserve && $slaves[$i].womb.length > 0>>
+	<<elseif _curBabies <  _origReserve && $activeSlave.womb.length > 0>>
 		/*broodmother or partial birth, we will wait for next time to get remaining children*/
-		<<set $slaves[$i].reservedChildren -= _curBabies, _cToIncub = _curBabies>>
+		<<set $activeSlave.reservedChildren -= _curBabies, _cToIncub = _curBabies>>
 	<<else>>
 		/*Stillbirth or something other go wrong. Correcting children count.*/
-		<<set $slaves[$i].reservedChildren = 0, _cToIncub = _curBabies>>
+		<<set $activeSlave.reservedChildren = 0, _cToIncub = _curBabies>>
 	<</if>>
 <</if>>
 
@@ -107,10 +106,10 @@ Performing a cesarean section is trivial for the remote surgery for the remote s
 	<</if>>
 	already been
 
-	<<if _cToIncub == _curBabies >>
+	<<if _cToIncub == _curBabies && _cToIncub > 0 >>
 		taken to $incubatorName.
 		<<set _incubated = 2>>
-	<<elseif _cToIncub < _curBabies>>
+	<<elseif _cToIncub < _curBabies && _cToIncub > 0>>
 		split between $incubatorName and
 		<<set _incubated = 1>>
 	<</if>>
@@ -124,7 +123,7 @@ Performing a cesarean section is trivial for the remote surgery for the remote s
 <<else>>
 	/*No live babies. Placeholder */
 <</if>>
-<<set _curBabies = $slaves[$i].curBabies.length >>
+<<set _curBabies = $activeSlave.curBabies.length >>
 
 <<if _incubated != 2 && _curBabies > 0 >>
 	<span id="_disposition">
