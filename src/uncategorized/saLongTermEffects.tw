@@ -483,7 +483,7 @@
 		The tight corseting has @@.orange;caused her to miscarry,@@ which @@.red;damages her health.@@
 		<<set $slaves[$i].health -= 20>>
 		<<if lastPregRule($slaves[$i],$defaultRules)>><<set $slaves[$i].preg = -1>><<else>><<set $slaves[$i].preg = 0>><</if>>
-		<<set $slaves[$i].pregType = 0, $slaves[$i].pregKnown = 0, $slaves[$i].pregWeek = 0>>
+		<<set $slaves[$i].pregType = 0, $slaves[$i].pregKnown = 0, $slaves[$i].pregWeek = -4>>
 		<<SetBellySize $slaves[$i]>>
 		<<if $slaves[$i].reservedChildren > 0>><<set $reservedChildren -= $slaves[$i].reservedChildren>><<set $slaves[$i].reservedChildren = 0>><</if>>
 		She is
@@ -795,7 +795,7 @@
 		The dildo penetrating her womb @@.orange;caused her to miscarry,@@ which @@.red;damages her health.@@
 		<<set  $slaves[$i].health -= 20>>
 		<<if lastPregRule($slaves[$i],$defaultRules)>><<set $slaves[$i].preg = -1>><<else>><<set $slaves[$i].preg = 0>><</if>>
-		<<set $slaves[$i].pregType = 0, $slaves[$i].pregKnown = 0, $slaves[$i].pregWeek = 0>>
+		<<set $slaves[$i].pregType = 0, $slaves[$i].pregKnown = 0, $slaves[$i].pregWeek = -4>>
 		<<SetBellySize $slaves[$i]>>
 		She is
 		<<if $slaves[$i].devotion < -50>>
@@ -2237,6 +2237,9 @@
 		She @@.mediumorchid;loathes@@ being forced to carry a fake pregnancy.
 		<<set _para = -1>>
 		<<set $slaves[$i].devotion -= 3>>
+	<<elseif $slaves[$i].pregWeek < 0>>
+		Her paraphilia is temporarily sated by her recent pregnancy, though she anxiously counts the days until she can get pregnant again.
+		<<set _para = 1>>
 	<<else>>
 		She isn't pregnant, leaving the breeder slut @@.mediumorchid;depressed and anxious.@@
 		<<set _para = -1>>
@@ -2363,7 +2366,7 @@
 	<<elseif $slaves[$i].pregControl == "speed up">>
 		Her life used to revolve around being pregnant all the time and nothing has changed. She @@.gold;watches in horror@@ as her middle visibly swells before her eyes. She @@.hotpink;slips more into submission@@ as the pressure in her womb increases.
 		<<set $slaves[$i].trust -= 10, $slaves[$i].devotion += 5>>
-	<<elseif $slaves[$i].pregKnown == 1>>
+	<<elseif $slaves[$i].pregKnown == 1 || $slaves[$i].pregWeek < 0>>
 		Her life used to revolve around being pregnant all the time and nothing has changed. She @@.gold;fears@@ that her entire life will revolve around pregnancy and @@.hotpink;slips more into submission@@ of her fate.
 		<<set $slaves[$i].trust -= 1, $slaves[$i].devotion += 1>>
 	<<else>>
@@ -5041,6 +5044,12 @@
 	<<elseif setup.fakeBellies.includes($bellyAccessory)>>
 		Society is @@.green;placated@@ by $slaves[$i].slaveName's fake belly.
 		<<set $repGain += 0.01*$FSSingleSlaveRep>>
+	<<elseif $slaves[$i].pregWeek < 0>>
+		Society is @@.green;pleased@@ by $slaves[$i].slaveName's recent birth.
+		<<FSChangePorn "Repopulationist" 2>>
+	<<elseif $slaves[$i].collar == "preg biometrics" && $slaves[$i].preg > 0>>
+		Society is @@.green;pleased@@ by $slaves[$i].slaveName's collar revealing her womb's secret<<if $slaves[$i].pregType > 1>>s<</if>> even when $possessive body is trying its best to keep <<if $slaves[$i].pregType > 1>>them<<else>>it<</if>> hidden.
+		<<FSChangePorn "Repopulationist" 1>>
 	<<elseif ($slaves[$i].ovaries == 0 && $slaves[$i].mpreg == 0) || ($slaves[$i].preg < -1) || ($slaves[$i].pubertyXX == 0)>>
 		Society is @@.red;mildly disappointed@@ that $slaves[$i].slaveName is unable to become pregnant.
 		<<FSChangePorn "Repopulationist" -1>>
@@ -5166,9 +5175,9 @@
 		<<FSChangePorn "Degradationist" 1>>
 	<<else>>
 		<<if ($slaves[$i].assignment == "be your Head Girl")>>
-			Society accepts of $slaves[$i].slaveName trusting you, since $pronoun is your Head Girl and keeps the other slaves down.
+			Society accepts $slaves[$i].slaveName trusting you, since $pronoun is your Head Girl and keeps the other slaves down.
 		<<elseif ($slaves[$i].assignment == "recruit girls")>>
-			Society accepts of $slaves[$i].slaveName trusting you, since $pronoun is your Recruiter and entraps new slaves.
+			Society accepts $slaves[$i].slaveName trusting you, since $pronoun is your Recruiter and entraps new slaves.
 		<<elseif ($slaves[$i].devotion > 95)>>
 			Society reluctantly accepts of $slaves[$i].slaveName trusting you, since $pronoun worshipful of you.
 		<<else>>
@@ -5204,7 +5213,7 @@
 /* pregmod */
 <<if ($slaves[$i].scars != 0) and ($slaves[$i].scars != 6)>>
 <<if $arcologies[0].FSDegradationist != "unset">>
-	Society @@.green;mildly approves@@ of your slaves scarring; this encourages the further abuse of slaves.
+	Society @@.green;mildly approves@@ of your slave's scarring; this encourages the further abuse of slaves.
 	<<FSChangePorn "Degradationist" 1>>
 <<elseif $arcologies[0].FSPaternalist != "unset">>
 	Society @@.red;mildly disapproves@@ of your scarred slaves, viewing them as a sign of mistreatment.
@@ -5452,8 +5461,8 @@
 <<if typeof $slaves[$i].origin == "string">>
 <<set $toSearch to $slaves[$i].origin>>
 <<if $toSearch.indexOf("Slave Shelter") != -1>>
-	<<if ($slaves[$i].assignment == "serve the public") || ($slaves[$i].assignment == "whore") || ($slaves[$i].assignment == "work in the brothel") || ($slaves[$i].assignment == "serve in the club")>>
-	<<if ($slaves[$i].health > -20) && ($slaves[$i].trust > 20) && ($slaves[$i].health > 40)>>
+	<<if ["serve the public", "whore", "work in the brothel", "serve in the club"].includes($slaves[$i].assignment)>>
+	<<if ($slaves[$i].trust > 20) && ($slaves[$i].health > 40)>>
 	<<if $arcologies[0].FSPaternalist != "unset">>
 		Society @@.green;strongly approves@@ of how you've brought a shelter girl health and happiness.
 		<<FSChangePorn "Paternalist" 2>>
@@ -7290,6 +7299,9 @@
 <<elseif ($slaves[$i].preg > 37) && ($slaves[$i].broodmother > 0) && ($slaves[$i].assignment != "labor in the production line")>>
 	<<set $slaves[$i].labor = 1>>
 	<<set $birthee = 1>>
+	<<if $slaves[$i].ovaryAge >= 47>>
+		<<set $slaves[$i].broodmotherCountDown = 37>>
+	<</if>>
 <</if>>
 
 <<if $slaves[$i].burst == 1>>
