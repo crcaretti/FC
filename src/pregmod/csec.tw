@@ -66,63 +66,67 @@
 /* ------------------------------------------------ */
 
 Performing a cesarean section is trivial for the remote surgery for the remote surgery to carry out. $activeSlave.slaveName is sedated, her child<<if _curBabies > 1>>ren<</if>> extracted, and taken to a bed to recover. By the time she comes to,
-<<if $activeSlave.pregSource == -1>>
-	your
-<<elseif $activeSlave.pregSource == -2>>
-	your arcology's
-<<elseif $activeSlave.pregSource == -3>>
-	the Societal Elites'
-<<elseif $activeSlave.pregSource == 0>>
-	some man's
-<<elseif $activeSlave.ID == $daddy.ID>>
-	her own
-<<else>>
-	$daddy's
-<</if>>
-<<if _curBabies <= 1>>
-	baby has
-<<elseif _curBabies >= 40>>
-	massive brood of $activeSlave.pregType babies have
-<<elseif _curBabies >= 20>>
-	brood of $activeSlave.pregType babies have
-<<elseif _curBabies >= 10>>
-	impressive group of $activeSlave.pregType babies have
-<<elseif _curBabies == 9>>
-	nonuplets have
-<<elseif _curBabies == 8>>
-	octuplets have
-<<elseif _curBabies == 7>>
-	septuplets have
-<<elseif _curBabies == 6>>
-	sextuplets have
-<<elseif _curBabies == 5>>
-	quintuplets have
-<<elseif _curBabies == 4>>
-	quadruplets have
-<<elseif _curBabies == 3>>
-	triplets have
-<<else>>
-	twins have
-<</if>>
-already been
+<<if _curBabies >0 >>
+	<<if $activeSlave.pregSource == -1>>
+		your
+	<<elseif $activeSlave.pregSource == -2>>
+		your arcology's
+	<<elseif $activeSlave.pregSource == -3>>
+		the Societal Elites'
+	<<elseif $activeSlave.pregSource == 0>>
+		some man's
+	<<elseif $activeSlave.ID == $daddy.ID>>
+		her own
+	<<else>>
+		$daddy's
+	<</if>>
+	<<if _curBabies <= 1>>
+		baby has
+	<<elseif _curBabies >= 40>>
+		massive brood of $activeSlave.pregType babies have
+	<<elseif _curBabies >= 20>>
+		brood of $activeSlave.pregType babies have
+	<<elseif _curBabies >= 10>>
+		impressive group of $activeSlave.pregType babies have
+	<<elseif _curBabies == 9>>
+		nonuplets have
+	<<elseif _curBabies == 8>>
+		octuplets have
+	<<elseif _curBabies == 7>>
+		septuplets have
+	<<elseif _curBabies == 6>>
+		sextuplets have
+	<<elseif _curBabies == 5>>
+		quintuplets have
+	<<elseif _curBabies == 4>>
+		quadruplets have
+	<<elseif _curBabies == 3>>
+		triplets have
+	<<else>>
+		twins have
+	<</if>>
+	already been
 
-<<if _cToIncub == _curBabies >>
-	taken to $incubatorName.
-	<<set _incubated = 2>>
-<<elseif _cToIncub < _curBabies>>
-	split between $incubatorName and
-	<<set _incubated = 1>>
+	<<if _cToIncub == _curBabies >>
+		taken to $incubatorName.
+		<<set _incubated = 2>>
+	<<elseif _cToIncub < _curBabies>>
+		split between $incubatorName and
+		<<set _incubated = 1>>
+	<</if>>
+	<<set $mom = $activeSlave>>
+	<<for _cb = 0; _cb < _cToIncub; _cb++>> /* if there is no reserved children, code in loop will not trigger */
+			<<include "Generate Child">>
+			<<include "Incubator Workaround">>
+			<<set $activeSlave.curBabies.shift()>> /*for now child generation metod for incubator not changed. But here children for incubator removed from array of birthed babies. If we decide later - we can use them for incubator as real objects here. For now they just discarded silently */
+			<<set $reservedChildren-- >>
+	<</for>>
+<<else>>
+	/*No live babies. Placeholder */
 <</if>>
-<<set $mom = $activeSlave>>
-<<for _cb = 0; _cb < _cToIncub; _cb++>> /* if there is no reserved children, code in loop will not trigger */
-		<<include "Generate Child">>
-		<<include "Incubator Workaround">>
-		<<set $activeSlave.curBabies.shift()>> /*for now child generation metod for incubator not changed. But here children for incubator removed from array of birthed babies. If we decide later - we can use them for incubator as real objects here. For now they just discarded silently */
-		<<set $reservedChildren-- >>
-<</for>>
 <<set _curBabies = $slaves[$i].curBabies.length >>
 
-<<if _incubated != 2>>
+<<if _incubated != 2 && _curBabies > 0 >>
 	<span id="_disposition">
 	<<if _incubated == 1>>the rest<</if>>
 	<<if $arcologies[0].FSRestart != "unset" && $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
@@ -223,7 +227,9 @@ already been
 	</span>
 <</if>>
 
-<<if $activeSlave.fetish != "mindbroken" && $activeSlave.fuckdoll == 0>>
+<<if _curBabies+_cToIncub < 1>>
+	/* Reaction for no live babies here. Placeholder.*/	
+<<elseif $activeSlave.fetish != "mindbroken" && $activeSlave.fuckdoll == 0>> 
 	<br><br>
 	<<if $activeSlave.pregSource == -1>>
 		<<if $activeSlave.devotion < 20 && ($week-$activeSlave.weekAcquired >= $activeSlave.weekAcquired)>>
@@ -250,7 +256,7 @@ already been
 	<</if>>
 <</if>>
 
-<<if $arcologies[0].FSRestart != "unset">>
+<<if $arcologies[0].FSRestart != "unset" && _curBabies > 0>>
 	<br><br>
 	<<if $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
 		The Societal Elite @@.green;are pleased@@ at the new additions to their class.
