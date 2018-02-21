@@ -74,6 +74,10 @@ window.WombImpregnate = function(actor, fCount, fatherID, age)
     tf.volume = 1; //Initial, to create property. Updated with actual data after WombGetVolume call.
 
     try {
+            if (actor.womb.length == 0)
+                actor.pregWeek = age;
+                actor.preg = age;
+
 	        actor.womb.push(tf);
         }catch(err){
             WombInit(actor);
@@ -88,6 +92,7 @@ window.WombImpregnate = function(actor, fCount, fatherID, age)
 window.WombProgress = function(actor, ageToAdd)
 {
     var i, ft;
+    ageToAdd = Math.ceil(ageToAdd*10)/10;
     try {
             for (i in actor.womb)
             {
@@ -214,13 +219,53 @@ window.WombMinPreg = function(actor)
 {
     actor.womb.sort(function (a, b){return b.age - a.age});
 
-    return actor.womb[actor.womb.length-1].age;
+    if (actor.womb.length > 0) 
+        return actor.womb[actor.womb.length-1].age;
+    else
+        return 0;
 }
 
 window.WombMaxPreg = function(actor)
 {
     actor.womb.sort(function (a, b){return b.age - a.age});
-
-    return actor.womb[0].age;
+    if (actor.womb.length > 0) 
+        return actor.womb[0].age;
+    else
+        return 0;
 }
 
+window.WombNormalizePreg = function(actor)
+{
+    if (actor.womb.length > 1)
+    {
+        var max = WombMaxPreg(actor);
+
+        if (actor.pregWeek < 1 )
+            actor.pregWeek = 1
+
+        if ( max > actor.preg)
+            actor.preg = max;
+        else if (max < actor.preg)
+            WombProgress(actor, max - actor.preg);
+
+        actor.pregType = actor.womb.length;
+
+        actor.pregSource = actor.womb[0].fatherID;
+        
+        actor.bellyPreg = WombGetVolume(actor);
+    } 
+    else if (actor.broodmother < 1)
+    {
+        actor.pregType = 0;
+        actor.pregKnown = 0;
+        
+        if (actor.preg > 0)
+            actor.preg = 0;
+        
+        if (actor.pregSource > 0)
+            actor.pregSource = 0;
+
+        if (actor.pregWeek > 0) // We can't properly set postpartum here, but can normalize obvious error with forgotten property.
+            actor.pregWeek = 0;
+    }
+}

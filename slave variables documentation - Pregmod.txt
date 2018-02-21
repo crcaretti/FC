@@ -2701,35 +2701,33 @@ Impregnantion:
 
 <<set WombImpregnate($activeSlave, 3, -1, 15)>> 
 $activeSlave, 3 fetuses, -1 - player is father, 15 week is initial time for fetuses. Can be used on already pregnant slaves (broodmothers use it).
-<<set $activeSlave.preg = 1>> 
-to mark slave as pregnant for advancing at End Week code.
 <<SetSlaveBelly $activeSlave>> 
-Last line needed only if you need to show description with changed state immidiately, an advanced initial pernancy time set (showing already).
+Last line needed only if you need to show description with changed state immidiately, an advanced initial prenancy time set (showing already).
 
 Advancing pregnancy:
 
 <<set WombProgress($activeSlave, 1)>>
-Advancing 1 week. Normally it's called by End Week processing for all slaves.
+Advancing 1 week. Normally it's called by End Week processing for all slaves. Old method with using .preg++ on slave supported too, but better to use this new.
 
 Birth checking:
 
 <<if WombBirthReady($activeSlave, 40) > 0>>
-Check if we have any babies in womb with is 40 week gestation age?
+Check if we have any babies in womb with is at minimum 40 week of gestation age? Age can be any.
 
 Birthing:
 
 <<set _babies = WombBirth($activeSlave, 34)>>
-In array _babies will be placed all babyies from womb of $activeSlave who gestation age at least 34 weeks. Others will be leaved in womb.
+In array _babies will be placed all babyies from womb of $activeSlave who gestation age at least 34 weeks (can be any). Others will be leaved in womb.
 Optionally:
 <<set WombFlush($activeSlave)>>
-Will empty womb. You also still should set .preg .pregType .pregSource .pregWeek to 0. 
+Will empty womb. You also still should set .preg .pregType .pregSource .pregWeek to 0, or call WombNormalizePreg. 
 _babies here become normal array - we can do with it as with any other array in sugarcube. _babies.length - size, _babies[0] - first element, etc. Contains all babies object, with their age, sex, volume/size, and father ID. Right now - not used anywhere but useful for possible incubator improvements in future at least.
 
 Usage reference without sugarcube code (samples):
 
-WombInit($slave) - before first pregnancy, at slave creation, of as backward compatibility update.
+WombInit($slave) - before first pregnancy, at slave creation, of as backward compatibility update. Can generate proper pregnancy based on preg, pregType, and pregSource properties too. Can be little glitchy with broodmothers in this case, if their preg != pregType (or pregType can't be divided by preg with integer result).
 
-WombImpregnate($Slave, $fetus_count, $fatherID, $initial_age) - should be added after normal impregnation code, with already calcualted fetus count. ID of father - can be used in future for prcess children from different fathers in one pregnancy. Initial age normally 1 (as .preg normally set to 1), but can be raised if needed. Also should be called at time as broodmother implant add another fetus(es), or if new fetuses added from other sources in future (transplanting maybe?)
+WombImpregnate($Slave, $fetus_count, $fatherID, $initial_age) - should be added after normal impregnation code, with already calcualted fetus count. ID of father - can be used in future for processing children from different fathers in one pregnancy. Initial age normally 1 (as .preg normally set to 1), but can be raised if needed. Also should be called at time as broodmother implant add another fetus(es), or if new fetuses added from other sources in future (transplanting maybe?)
 
 WombProgress($slave, $time_to_add_to_fetuses) - after code that update $slave.preg, time to add should be the same.
 
@@ -2746,5 +2744,7 @@ _time = WombMinPreg($activeSlave) - age of most young fetus in womb.
 _time = WombMaxPreg($activeSlave) - age of most old fetus in womb.
 
 WombUpdatePregVars($activeSlave) - automaticaly update $activeSlave.preg, $activeSlave.pregType, $activeSlave.bellyPreg to actual values based on womb fetuses.
+
+WombNormalizePreg($activeSlave) - automatialy correct all pregnancy related properties of given $activeSlave. Also it advance pregnancy if detected old .preg++ method used on slave and womb simulation is late. Can be called at any time without conditions checks - function do all needed checks by itself. Call of this function do NOT advance pregnancy by itself.
 
 P.S. All this womb system can be much more automated (.preg .pregType .pregSource .pregWeek may have to be done in a way, that they will have no need to be controlled manually anywhere at all. Just will be set fully automatially). But in this case many changes in present game code needed, to REMOVE legacy code.
