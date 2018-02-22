@@ -663,8 +663,9 @@
 			<<set $activeSlave.preg = 0>>
 			<<SetBellySize $activeSlave>>
 		<</if>>
-	<<elseif $activeSlave.broodmotherCountDown > 0>>
-			//Her pregnancy implant is shutting down; she will be completely emptied of her remaining brood in $activeSlave.broodmotherCountDown week<<if $activeSlave.broodmotherCountDown > 1>>s<</if>>//
+	<<elseif $activeSlave.broodmotherOnHold == 1>>
+	//Her pregnancy implant is turned off; she expected to be completely emptied of her remaining brood in $activeSlave.broodmotherCountDown week<<if $activeSlave.broodmotherCountDown > 1>>s<</if>>// 
+	[[Turn on implant|Slave Interact][$activeSlave.broodmotherOnHold = 0, $activeSlave.broodmotherCountDown = 0]]
 	<<elseif ($activeSlave.preg >= -1)>>
 		__Contraception__: <span id="fertility"><strong><<if $activeSlave.preg == -1>><<print "using contraceptives">><<elseif $activeSlave.pregWeek < 0>><<print "postpartum">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong></span>.
 		<<if ($activeSlave.preg == 0)>>
@@ -677,8 +678,11 @@
 			[[Induce labor|Slave Interact][$activeSlave.labor = 1,$activeSlave.induce = 1,$birthee = 1]]
 			| [[Give her a cesarean section|csec]]
 		<<elseif ($activeSlave.broodmother > 0)>>
+			<<if $activeSlave.broodmotherOnHold != 1>>
+				[[Turn off implant|Slave Interact][$activeSlave.broodmotherOnHold = 1, $activeSlave.broodmotherCountDown = 38-WombMinPreg($activeSlave)]] 
+			<</if>>
 			<<if ($activeSlave.preg > 37)>>
-				[[Induce mass childbirth|BirthStorm]] | [[Begin implant shutdown|Slave Interact][$activeSlave.broodmotherCountDown = 37]]
+				| [[Induce mass childbirth|BirthStorm]]  
 			<</if>>
 		<<elseif ($activeSlave.preg > 35)>>
 			[[Give her a cesarean section|csec]]
@@ -699,8 +703,9 @@
 			<<set $activeSlave.preg = 0>>
 			<<SetBellySize $activeSlave>>
 		<</if>>
-	<<elseif $activeSlave.broodmotherCountDown > 0>>
-		//Its pregnancy implant is shutting down; it will be completely emptied of its contained brood in $activeSlave.broodmotherCountDown week<<if $activeSlave.broodmotherCountDown > 1>>s<</if>>//
+	<<elseif $activeSlave.broodmotherOnHold == 1>>
+	//Its pregnancy implant is turned off; it expected to be completely emptied of its remaining brood in $activeSlave.broodmotherCountDown week $activeSlave.broodmotherCountDown week<<if $activeSlave.broodmotherCountDown > 1>>s<</if>>// 
+	[[Turn on implant|Slave Interact][$activeSlave.broodmotherOnHold = 0, $activeSlave.broodmotherCountDown = 0]]
 	<<elseif ($activeSlave.preg >= -1)>>
 		__Contraception__: <span id="fertility"><strong><<if $activeSlave.preg == -1>><<print "using contraceptives">><<elseif $activeSlave.pregWeek < 0>><<print "postpartum">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong></span>.
 		<<if ($activeSlave.preg == 0)>>
@@ -717,8 +722,11 @@
 			[[Induce labor|Slave Interact][$activeSlave.labor = 1,$activeSlave.induce = 1,$birthee = 1]]
 			| [[Give it a cesarean section|csec]]
 		<<elseif ($activeSlave.broodmother > 0)>>
+			<<if $activeSlave.broodmotherOnHold != 1>>
+				[[Turn off implant|Slave Interact][$activeSlave.broodmotherOnHold = 1, $activeSlave.broodmotherCountDown = 38-WombMinPreg($activeSlave)]] 
+			<</if>>
 			<<if ($activeSlave.preg > 37)>>
-				[[Induce mass childbirth|BirthStorm]] | [[Begin implant shutdown|Slave Interact][$activeSlave.broodmotherCountDown = 37]]
+				| [[Induce mass childbirth|BirthStorm]]  
 			<</if>>
 		<<elseif ($activeSlave.preg > 35)>>
 			[[Give it a cesarean section|csec]]
@@ -2370,6 +2378,7 @@ This experience
 					<<set $args[0].pregWeek = 1>>
 				<</if>>
 				<<SetPregType $args[0]>>
+				<<set WombImpregnate($args[0], $args[0].pregType, $args[0].pregSource, 1)>>
 				<<if $menstruation == 1>>
 				<<elseif ndef $args[4]>>
 					<<set $args[0].pregKnown = 1>>
@@ -2390,6 +2399,7 @@ This experience
 					<<set $args[0].pregWeek = 1>>
 				<</if>>
 				<<SetPregType $args[0]>>
+				<<set WombImpregnate($args[0], $args[0].pregType, $args[0].pregSource, 1)>>
 				<<if $menstruation == 1>>
 				<<elseif ndef $args[4]>>
 					<<set $args[0].pregKnown = 1>>
@@ -2413,6 +2423,8 @@ This experience
  $args[0]: Slave.
 */
 <<widget "SetBellySize">>
+
+/*
 	<<if $args[0].broodmother == 1>>
 		<<if $args[0].broodmotherCountDown > 0>>
 			<<set $args[0].bellyPreg = setup.broodSizeOneShutDown[$args[0].broodmotherCountDown]>>
@@ -2426,11 +2438,18 @@ This experience
 	<<else>>
 		<<set $args[0].bellyPreg = 0>>
 	<</if>>
+
+	This block now relpaced with universal code
+*/
+	<<set WombInit($args[0])>>
+	<<set WombNormalizePreg($args[0])>> /*now with support for legacy code that advance pregnancy by setting .preg++ */ 
+
 	<<if $args[0].bellyImplant > 0>>
 		<<set _implantSize = $args[0].bellyImplant>>
 	<<else>>
 		<<set _implantSize = 0>>
 	<</if>>
+		
 	<<if $args[0].inflation == 3>>	
 		<<set $args[0].bellyFluid = 10000>>
 	<<elseif $args[0].inflation == 2>>
@@ -2440,7 +2459,9 @@ This experience
 	<<else>>
 		<<set $args[0].bellyFluid = 0>>
 	<</if>>
+	
 	<<set $args[0].belly = $args[0].bellyPreg+$args[0].bellyFluid+_implantSize>>
+
 <</widget>>
 
 /* see how they are on a single line? This permits "."s and other things to be appended directly onto the widget result */
