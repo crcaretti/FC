@@ -6,7 +6,7 @@ while [ $COUNTER -ge 0 ]; do
 	cd $LocalDir/ && AbrevHash=`git log -n1 --reverse --abbrev-commit |grep -m1 commit | sed 's/commit //'`
 	if [ $COUNTER -eq 0 ]; then echo "First run. Compliling, formatting and placing .html." && ./compile > /dev/null && mv bin/FC_pregmod.html "bin/FC-pregmod-$(git log -1 --format='%cd' --date='format:%F-%H-%M')-$AbrevHash.html" && mega-put bin/*.html $RemoteDir && echo "Inital compiled .html placed."
 	else if [ "$(git pull)" == "Already up to date." ]; then echo "No updated files."
-		else echo "Compliling, formatting and placing updated .html." ; rm bin/*.html ; ./compile > /dev/null && mv bin/FC_pregmod.html "bin/FC-pregmod-$(git log -1 --format='%cd' --date='format:%F-%H-%M')-$AbrevHash.html" && mega-put bin/*.html $RemoteDir ; echo "Updated .html placed."
+		else echo "Compliling, formatting and placing updated .html." ; rm bin/*.html ; ./compile > /dev/null && mv bin/FC_pregmod.html "bin/FC-pregmod-$(git log -1 --format='%cd' --date='format:%F-%H-%M')-$AbrevHash.html" && mega-login $U $P && mega-put bin/*.html $RemoteDir ; echo "Updated .html placed."
 		fi
 	fi	
 	let COUNTER=COUNTER+1 && mega-logout > /dev/null && sleep 300s
