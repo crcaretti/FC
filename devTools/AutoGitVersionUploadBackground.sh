@@ -5,7 +5,7 @@ while [ $COUNTER -ge 0 ]; do
 	fi	
 	cd $LocalDir/ && AbrevHash=`git log --reverse -n1 --abbrev-commit |grep -m1 commit | sed 's/commit //'`
 	if [ $COUNTER -eq 0 ]; then ./compile > /dev/null && mv bin/FC_pregmod.html "bin/FC-pregmod-$(git log -1 --format='%cd' --date='format:%F-%H-%M')-$AbrevHash.html" && mega-put bin/*.html $RemoteDir
-	else if [ "$(git pull)" == "Already up to date." ]; then exit
+	else if [ "$(git pull)" == "Already up to date." ]; then ehco ""
 		else rm bin/*.html ; .compile > /dev/null && mv bin/FC_pregmod.html "bin/FC-pregmod-$(git log -1 --format='%cd' --date='format:%F-%H-%M')-$AbrevHash.html" && mega-login $U $P && mega-put bin/*.html $RemoteDir
 		fi
 	fi	
