@@ -19,13 +19,9 @@ import copy
 import re
 import inkscape_svg_fixup
 
-#input_file = sys.argv[1]
-#output_format = sys.argv[2]
-#output_directory = sys.argv[3]
-
-input_file = "vector_revamp_source.svg"
-output_format = "tw"
-output_directory = "../src/art/vector_revamp/layers/"
+input_file = sys.argv[1]
+output_format = sys.argv[2]
+output_directory = sys.argv[3]
 
 if not os.path.exists(output_directory):
     os.makedirs(output_directory)
