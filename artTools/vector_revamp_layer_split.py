@@ -112,14 +112,14 @@ for layer in layers:
         svg = svg.replace('\n', '').replace('\r', '')  # print cannot be multi-line
         svg = regex_space.sub('><', svg)  # remove indentaion
         svg = svg.replace('svg:', '')  # svg namespace was removed
-        #transformVariableName="_boob_right_art_transform"
+
         transformGroups = regex_transformVar.findall(svg)
 
-        if (transformGroups != None):
+        if (len(transformGroups) > 0):
             svg = regex_transformAttr.sub('', svg)
             for transformGroup in transformGroups:
                 transformValue = regex_transformValue.search(transformGroup)
-                if (transformValue != None):
+                if (transformValue is not None):
                     svg = svg.replace(transformGroup, ' transform="\'+' + transformValue.group() + '+\'" ')  # internal groups are used for scaling
 
         svg = svg.encode('utf-8')
