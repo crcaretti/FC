@@ -5,9 +5,16 @@
 // it has been wrapped in a closure so as not to polute the global namespace
 
 window.FResult = (function() {
-	const V = SugarCube.State.Variables
-	const incest_bonus = V.arcologies[0].FSEgyptianRevivalist > 20 || V.arcologies[0].FSEgyptianRevivalistIncestPolicy === 1
+	// we can't initialise our global variables on load, because SugarCube.State isn't initialised
+	// instead, declare them and initialise on run time
+	let V, incest_bonus
 	function FResult(slave) {
+		V = SugarCube.State.variables
+		// it's possible for $arcologies to be unset in the beginning of the game
+		incest_bonus = (V.arcologies?
+			V.arcologies[0].FSEgyptianRevivalist > 20 || V.arcologies[0].FSEgyptianRevivalistIncestPolicy === 1 :
+			false)
+		
 		calcUseWeights(slave)
 		if (!slave.fuckdoll)
 			calcNotFuckdoll(slave)
@@ -210,7 +217,7 @@ window.FResult = (function() {
 			calcWorksWithRelativesVanilla(slave)
 		if (slave.relationship > 0) calcWorksWithRelationship(slave)
 		if (slave.rivalry !== 0) calcWorksWithRival(slave)
-		calcHInjectionsDiet(slaves)
+		calcHInjectionsDiet(slave)
 		calcPreg(slave)
 		calcRace(slave)
 		calcSexAttributes(slave)
