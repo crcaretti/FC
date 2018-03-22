@@ -708,11 +708,6 @@ window.isItemAccessible = function(string) {
 	}
 };
 
-window.ruleApplied = function(slave, ID) {
-	if (!slave || !slave.currentRules)
-		return null;
-	return slave.currentRules.includes(ID);
-};
 
 window.expandFacilityAssignments = function(facilityAssignments) {
 	var assignmentPairs = {
@@ -737,139 +732,6 @@ window.expandFacilityAssignments = function(facilityAssignments) {
 	});
 	return fullList.flatten();
 };
-
-window.ruleSlaveSelected = function(slave, rule) {
-	if (!slave || !rule || !rule.selectedSlaves)
-		return false;
-	return rule.selectedSlaves.includes(slave.ID);
-};
-
-window.ruleSlaveExcluded = function(slave, rule) {
-	if (!slave || !rule || !rule.excludedSlaves)
-		return false;
-	return rule.excludedSlaves.includes(slave.ID);
-};
-
-window.ruleAssignmentSelected = function(slave, rule) {
-	if (!slave || !rule || (!rule.assignment && !rule.facility))
-		return false;
-	var assignment = rule.assignment.concat(expandFacilityAssignments(rule.facility));
-	return assignment.includes(slave.assignment);
-}
-
-window.ruleAssignmentExcluded = function(slave, rule) {
-	if (!slave || !rule || (!rule.excludeAssignment && !rule.excludeFacility))
-		return false;
-	var excludeAssignment = rule.excludeAssignment.concat(expandFacilityAssignments(rule.excludeFacility));
-	return excludeAssignment.includes(slave.assignment);
-}
-
-window.hasSurgeryRule = function(slave, rules) {
-	if (!slave || !rules || !slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].autoSurgery > 0) {
-				return true;
-			}
-		}
-	}
-	return false;
-};
-
-window.hasRuleFor = function(slave, rules, what) {
-	if (!slave || !rules || !slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d][what] !== "no default setting") {
-				return true;
-			}
-		}
-	}
-	return false;
-};
-
-window.hasHColorRule = function(slave, rules) {
-	return hasRuleFor(slave, rules, "hColor");
-}
-
-window.hasHStyleRule = function(slave, rules) {
-	return hasRuleFor(slave, rules, "hStyle");
-};
-
-window.hasEyeColorRule = function(slave, rules) {
-	return hasRuleFor(slave, rules, "eyeColor");
-};
-
-window.lastPregRule = function(slave, rules) {
-	if (!slave || !rules)
-		return null;
-	if (!slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].preg == -1) {
-				return true;
-			}
-		}
-	}
-
-	return null;
-};
-
-window.lastSurgeryRuleFor = function(slave, rules, what) {
-	if (!slave || !rules || !slave.currentRules)
-		return null;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (!rules[d].surgery)
-			return null;
-
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].surgery[what] != "no default setting") {
-				return rules[d];
-			}
-		}
-	}
-
-	return null;
-};
-
-window.lastEyeSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "eyes");
-}
-
-window.lastLactationSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "lactation");
-}
-
-window.lastProstateSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "prostate");
-}
-
-window.lastLipSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "lips");
-};
-
-window.lastBoobSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "boobs");
-};
-
-window.lastButtSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "butt");
-};
-
-window.lastHairSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "hair");
-}
-
-window.lastBodyHairSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "bodyhair");
-}
 
 window.milkAmount = function(slave) {
 	var milk;
@@ -1042,56 +904,6 @@ window.nameReplace = function(name)
 	return name;
 }
 
-window.mergeRules = function(rules) {
-    var combinedRule = {};
-
-    for (var i = 0; i < rules.length; i++) {
-        for (var prop in rules[i]) {
-            // A rule overrides any preceding ones if,
-            //   * there are no preceding ones,
-            //   * or it sets autoBrand,
-            //   * or it does not set autoBrand and is not "no default setting"
-            var applies = (
-                combinedRule[prop] === undefined
-                || (prop === "autoBrand" && rules[i][prop])
-                || (prop !== "autoBrand" && rules[i][prop] !== "no default setting")
-            );
-
-            if (applies)
-            {
-
-            	//Objects in JS in operations "=" pass by reference, so we need a completely new object to avoid messing up previous rules.
-            	if ("object" == typeof rules[i][prop] && "object" != typeof combinedRule[prop])
-            		combinedRule[prop] = new Object();
-
-            	//If we already have object - now we will process its properties, but object itself should be skipped.
-            	if ("object" != typeof combinedRule[prop])
-                	combinedRule[prop] = rules[i][prop];
-
-            	/*Some properties of rules now have second level properties. We need to check it, and change ones in combinedRule. (Good example - growth drugs. Breasts, butt, etc...) */
-            	if ( "object" == typeof rules[i][prop])
-    	        {
-	            	for (var subprop in rules[i][prop])
-    	        	{
-    	           		var subapplies = (
-            	    	combinedRule[prop][subprop] === undefined
-                			|| (rules[i][prop][subprop] !== "no default setting")
-	            		);
-
-		            	if (subapplies)
-    		            	combinedRule[prop][subprop] = rules[i][prop][subprop];
-    		        }
-
-            	}
-           	}
-
-        }
-
-    }
-
-    return combinedRule;
-}
-
 window.isVegetable = function(slave) {
 	slave = slave || State.variables.activeSlave;
 	if(!slave) { return false; }
@@ -1176,6 +988,18 @@ window.jsConsoleInfo = function(obj)
 /*:: Extended Family Mode JS [script]*/
 
 /* see documentation for details /devNotes/Extended Family Mode Explained.txt */
+
+window.isMotherP = function isMotherP(daughter, mother) {
+	return daughter.mother === mother.ID
+}
+
+window.isFatherP = function isFatherP(daughter, father) {
+	return daughter.father === father.ID
+}
+
+window.isParentP = function isParentP(daughter, parent) {
+	return isMotherP(daughter,parent) || isFatherP(daughter,parent)
+}
 
 window.sameDad = function(slave1, slave2){
 	if ((slave1.father == slave2.father) && (slave1.father != 0 && slave1.father != -2)) {
@@ -3664,7 +3488,6 @@ window.numberWithCommas = function(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-
 window.jsRandom = function(min,max) {
     return Math.floor(Math.random()*(max-min+1)+min);
 }
@@ -3682,6 +3505,17 @@ window.jsRandomMany = function (arr, count) {
 window.jsEither = function(choices) {
 	var index = Math.floor(Math.random() * choices.length);
 	return choices[index];
+}
+
+//This function is alternative to clone - usage needed if nested objects present. Slower but result is separate object tree, not with reference to source object.
+window.deepCopy = function (o) {
+   var output, v, key;
+   output = Array.isArray(o) ? [] : {};
+   for (key in o) {
+       v = o[key];
+       output[key] = (typeof v === "object") ? deepCopy(v) : v;
+   }
+   return output;
 }
 
 /*
@@ -3732,6 +3566,40 @@ Macro.add('span', {
 			.appendTo(this.output);
 	}
 });
+
+window.hashChoice = function hashChoice(obj) {
+	let randint = Math.floor(Math.random()*hashSum(obj));
+	let ret;
+	Object.keys(obj).some(key => {
+		if (randint < obj[key]) {
+			ret = key;
+			return true;
+		} else {
+			randint -= obj[key];
+			return false;
+		}
+	});
+	return ret;
+};
+
+window.hashSum = function hashSum(obj) {
+	let sum = 0;
+	Object.keys(obj).forEach(key => { sum += obj[key]; });
+	return sum;
+};
+
+window.arr2obj = function arr2obj(arr) {
+	const obj = {};
+	arr.forEach(item => { obj[item] = 1; });
+	return obj;
+};
+
+window.hashPush = function hashPush(obj, ...rest) {
+	rest.forEach(item => {
+		if (obj[item] === undefined) obj[item] = 1;
+		else obj[item] += 1;
+	});
+};
 
 /*:: EventSelectionJS [script]*/
 
@@ -6872,6 +6740,30 @@ window.slimPass = function(slave) {
 	return slimPass;
 }
 
+window.sameAssignmentP = function sameAssignmentP(A, B) {
+	return A.assignment === B.assignment
+}
+
+window.haveRelationP = function haveRelationP(slave, target) {
+	return slave.relationTarget === target.ID
+}
+
+window.haveRelationshipP = function haveRelationshipP(slave, target) {
+	return slave.relationshipTarget === target.ID
+}
+
+window.isRivalP = function isRivalP(slave, target) {
+	return slave.rivalryTarget === target.ID
+}
+
+window.supremeRaceP = function supremeRaceP(slave) {
+	return SugarCube.State.variables.arcologies[0].FSSupremacistRace === slave.race
+}
+
+window.inferiorRaceP = function inferiorRaceP(slave) {
+	return SugarCube.State.variables.arcologies[0].FSSubjugationistRace === slave.race
+}
+
 /*:: wombJS [script]*/
 
 /*
@@ -7910,6 +7802,445 @@ window.todaysCorset = function(slave) {
 		}
 	}
 	return jsEither(belly);
+}
+
+/*:: FResult [script]*/
+
+// this is a port of the FResult widget
+// it has been broken up into several functions, because it grew too long
+// it has been wrapped in a closure so as not to polute the global namespace
+// and so that nested functions are only evaluated once
+
+window.FResult = (function() {
+	"use strict";
+	// we can't initialise our global variables on load, because SugarCube.State isn't initialised
+	// instead, declare them and initialise on run time
+	let V, incest_bonus;
+	function FResult(slave) {
+		V = State.variables;
+		incest_bonus = V.arcologies[0].FSEgyptianRevivalist > 20 || V.arcologies[0].FSEgyptianRevivalistIncestPolicy === 1;
+		
+		calcUseWeights(slave);
+		if (!slave.fuckdoll)
+			calcNotFuckdoll(slave);
+		else
+			V.FResult += slave.fuckdoll/10;
+		
+		V.FResult += Math.max(0, slave.aphrodisiacs) * 2;
+
+		if (slave.inflationType === "aphrodisiac")
+			V.FResult += slave.inflation*4;
+
+		if (slave.lactation > 0)
+			V.FResult += 1;
+
+		if (V.seeAge === 1)
+			calcAge(slave);
+		if (slave.fetish === "mindbroken")
+			V.FResult = Math.trunc(V.FResult*0.4);
+		else
+			V.FResult = Math.trunc(V.FResult*0.7);
+
+		if (slave.pregWeek < 0)
+			V.FResult -= Math.trunc(V.FResult*slave.pregWeek/10); // reduced the most just after birth
+
+		calcAmputation(slave);
+
+		if (V.arcologies[0].FSHedonisticDecadence > 20)
+			calcHedonismWeight(slave);
+		if (V.FResult < 2) {
+			if (supremeRaceP(slave))
+				V.FResult = 0;
+			else
+				V.FResult = 2;
+		}
+	}
+
+	function calcUseWeights(slave) {
+		V.FResult = (3 - slave.anus)+(slave.muscles/30);
+		if (slave.muscles < -95)
+			V.FResult -= 5;
+		else if (slave.muscle < -30)
+			V.FResult -= 2;
+
+		V.seed = V.oralUseWeight + V.vaginalUseWeight + V.analUseWeight;
+		if (V.seed <= 0) return;
+
+		V.FResult += (6+slave.tonguePiercing) * (V.oralUseWeight/V.seed) * (slave.oralSkill/30);
+		if (slave.sexualFlaw === "cum addict")
+			V.FResult += (V.oralUseWeight/V.seed) * (slave.oralSkill/30);
+		if (canDoVaginal(slave)) {
+			V.FResult += 6 * (V.vaginalUseWeight/V.seed) * (slave.vaginalSkill/30);
+			V.FResult += (3 - slave.vagina);
+			V.FResult += slave.vaginaLube;
+		}
+		if (canDoAnal(slave)) {
+			V.FResult += 6 * (V.analUseWeight/V.seed) * (slave.analSkill/30);
+			if (slave.sexualFlaw === "anal addict")
+				V.FResult += (V.analUseWeight/V.seed) * (slave.analSkill/30);
+			if (slave.inflationType === "aphrodisiac")
+				V.FResult += (V.analUseWeight/V.seed) * (slave.inflation * 3);
+		}
+	}
+
+	function calcWorksWithRelatives(slave) {
+		V.slaves.forEach(islave => {
+			if (isParentP(slave, islave) && sameAssignmentP(slave, islave)) {
+				V.FResult += 1;
+				if (incest_bonus) V.FResult += 1;
+			}
+			if (areSisters(slave, islave) > 0 && sameAssignmentP(slave, islave)) {
+				V.FResult += 1;
+				if (incest_bonus) V.FResult += 1;
+			}
+		});
+	}
+
+	function calcWorksWithRelativesVanilla(slave) {
+		const fre = V.slaves.findIndex(s => {
+			return haveRelationP(slave, s) && sameAssignmentP(slave, s);
+		});
+		if (fre !== -1) {
+			V.FResult += 2;
+			if (incest_bonus) V.FResult += 2;
+		}
+	}
+
+	function calcWorksWithRelationship(slave) {
+		const fre = V.slaves.findIndex(s => {
+			return haveRelationshipP(slave, s) && sameAssignmentP(slave, s);
+		});
+		if (fre !== -1) V.FResult += 1;
+	}
+	
+	function calcWorksWithRival(slave) {
+		const en = V.slaves.findIndex(s => {
+			return isRivalP(slave, s) && sameAssignmentP(slave, s);
+		});
+		if (en !== -1) V.FResult -= 1;
+	}
+
+	function calcHInjectionsDiet(slave) {
+		if (slave.drugs === "male hormone injections" || slave.drugs === "female hormone injections")
+			V.FResult -= 10;
+		if (slave.diet === "XXY")
+			V.FResult += 2;
+		else if (slave.diet === "XY" || slave.diet === "XX")
+			V.FResult += 1;
+		else if (slave.diet === "cum production")
+			V.FResult += 1;
+	}
+	function calcPreg(slave) {
+		if (V.arcologies[0].FSRepopulationFocus > 20) {
+			if (slave.preg > 10) V.FResult += 2;
+			else V.FResult -= 2;
+		} else if (V.arcologies[0].FSRestart > 20) {
+			if (slave.bellyPreg >= 500 && slave.breedingMark === 1)
+				V.FResult += 1;
+			else if (slave.preg > 10)
+				V.FResult -= 10;
+			else
+				V.FResult += 0;
+		}
+	}
+
+	function calcRace(slave) {
+		if (V.arcologies[0].FSSupremacist !== "unset" && supremeRaceP(slave))
+			V.FResult -= (V.arcologies[0].FSSupremacist/5) + (V.arcologies[0].FSSupremacistLawME*10);
+		if (V.arcologies[0].FSSubjugationist !== "unset" && inferiorRaceP(slave))
+			V.FResult += (V.arcologies[0].FSSubjugationist/10) + (V.arcologies[0].FSSubjugationistLawME);
+	}
+
+	function calcSexAttributes(slave) {
+		if (slave.clitPiercing > 2) V.FResult += 1;
+		if (slave.fetishKnown === 1 && slave.fetishStrength > 60 && slave.fetish != "none")
+			V.FResult += slave.fetishStrength/5;
+		
+		if (slave.attrKnown === 1) {
+			V.FResult += Math.trunc(slave.attrXX/20);
+			V.FResult += Math.trunc(slave.attrXY/20);
+			if (slave.energy > 95) V.FResult += 3;
+			else if (slave.energy > 80) V.FResult += 2;
+			else if (slave.energy > 60) V.FResult += 1;
+			else if (slave.energy <= 20) V.FResult -= 2;
+			else if (slave.energy <= 40) V.FResult -= 1;
+		}
+		if (slave.sexualFlaw !== "none") V.FResult -= 2;
+		if (slave.sexualQuirk !== "none") V.FResult += 2;
+		if (slave.behavioralFlaw !== "none") V.FResult -= 2;
+		if (slave.behavioralQuirk !== "none") V.FResult += 2;
+	}
+
+	function calcCareer(slave) {
+		if (setup.whoreCareers.includes(slave.career))
+			V.FResult += 1;
+		else if (slave.oralCount + slave.analCount + slave.vaginalCount + slave.mammaryCount + slave.penetrativeCount > 1000)
+			V.FResult += 1;
+	}
+
+	function calcSight(slave) {
+		if (!canSee(slave)) V.FResult -= 3;
+		else if (slave.eyes <= -1) {
+			if (slave.eyewear !== "corrective glasses" && slave.eyewear !== "corrective contacts")
+				V.FResult -= 1;
+		} else if (slave.eyewear === "blurring glasses")
+			V.FResult -= 1;
+		else if (slave.eyewear === "blurring contacts")
+			V.FResult -= 1;
+	}
+
+	function calcEgyptianBonus(slave) {
+		if (V.racialVarieties === undefined) V.racialVarieties = [];
+		V.seed = 0;
+		V.racialVarieties.forEach(race => {
+			if (slave.race === race) V.seed = 1;
+		});
+		if (V.seed === 0)
+			V.racialVarieties.push(slave.race);
+	}
+
+	function calcYouthBonus(slave) {
+		if (slave.visualAge < 30) {
+			if (slave.actualAge > 30)
+				V.FResult += 5; // experienced for her apparent age
+			if (slave.physicalAge > 30)
+				V.FResult -= slave.physicalAge/2; // too old :(
+		}
+	}
+
+	function calcMatureBonus(slave) {
+		if (slave.visualAge >= 30 && slave.actualAge >= 30 && slave.physicalAge < slave.visualAge)
+			V.FResult += Math.min((slave.physicalAge - slave.visualAge) * 2, 20); // looks and acts mature, but has a body that just won't quit
+	}
+
+	function calcNotFuckdoll(slave) {
+		if (V.familyTesting === 1 && totalRelatives(slave) > 0)
+			calcWorksWithRelatives(slave);
+		else if(!V.familyTesting && slave.relation !==0)
+			calcWorksWithRelativesVanilla(slave);
+		if (slave.relationship > 0) calcWorksWithRelationship(slave);
+		if (slave.rivalry !== 0) calcWorksWithRival(slave);
+		calcHInjectionsDiet(slave);
+		calcPreg(slave);
+		calcRace(slave);
+		calcSexAttributes(slave);
+		calcCareer(slave);
+		calcSight(slave);
+		if (V.arcologies[0].FSEgyptianRevivalist !== "unset")
+			calcEgyptianBonus(slave);
+		if (V.arcologies[0].FSYouthPreferentialist !== "unset")
+			calcYouthBonus(slave);
+		else if (V.arcologies[0].FSMaturityPreferentialist !== "unset")
+			calcMatureBonus(slave);
+	}
+	
+	function calcAge(slave) {
+		if ((V.arcologies[0].FSRepopulationFocus !== "unset" || V.arcologies[0].FSGenderFundamentalist !== "unset") && slave.physicalAge === V.minimumSlaveAge && slave.physicalAge === V.fertilityAge && canGetPregnant(slave)) {
+			V.FResult += 1;
+			if (slave.birthWeek === 0) V.FResult += V.FResult;
+			else if (slave.birthWeek < 4) V.FResult += 0.2*V.FResult;
+		} else if (slave.physicalAge === V.minimumSlaveAge) {
+			V.FResult += 1;
+			if (slave.birthWeek === 0 ) V.FResult += 0.5*V.FResult;
+			else if (slave.birthWeek < 4) V.FResult += 0.1*V.FResult;
+		} else if (slave.physicalAge === V.fertilityAge && canGetPregnant(slave) && (V.arcologies[0].FSRepopulationFocus !== "unset" || V.arcologies[0].FSGenderFundamentalist !== "unset")) {
+			V.FResult += 1;
+			if (slave.birthWeek === 0)
+				V.FResult += 0.5*V.FResult;
+			else if (slave.birthWeek < 4)
+				V.FResult += 0.1*V.FResult;
+		}
+	}
+	
+	function calcAmputation(slave) {
+		switch(slave.amp) {
+		case 0:
+			break;
+		case 1:
+			V.FResult -= 2;
+			break;
+		case -2:
+			break;
+		case -5:
+			break;
+		default:
+			V.FResult -= 1;
+		}
+	}
+	
+	function calcHedonismWeight(slave) {
+		if (slave.weight < 10)
+			V.FResult -= 2;
+		else if (slave.weight > 190)
+			V.FResult -= 5; // too fat
+	}
+	return FResult;
+})();
+
+/*:: RA JS [script]*/
+
+window.ruleApplied = function(slave, ID) {
+	if (!slave || !slave.currentRules)
+		return null;
+	return slave.currentRules.includes(ID);
+};
+
+window.ruleSlaveSelected = function(slave, rule) {
+	if (!slave || !rule || !rule.selectedSlaves)
+		return false;
+	return rule.selectedSlaves.includes(slave.ID);
+};
+
+window.ruleSlaveExcluded = function(slave, rule) {
+	if (!slave || !rule || !rule.excludedSlaves)
+		return false;
+	return rule.excludedSlaves.includes(slave.ID);
+};
+
+window.ruleAssignmentSelected = function(slave, rule) {
+	if (!slave || !rule || (!rule.assignment && !rule.facility))
+		return false;
+	var assignment = rule.assignment.concat(expandFacilityAssignments(rule.facility));
+	return assignment.includes(slave.assignment);
+}
+
+window.ruleAssignmentExcluded = function(slave, rule) {
+	if (!slave || !rule || (!rule.excludeAssignment && !rule.excludeFacility))
+		return false;
+	var excludeAssignment = rule.excludeAssignment.concat(expandFacilityAssignments(rule.excludeFacility));
+	return excludeAssignment.includes(slave.assignment);
+}
+
+window.hasSurgeryRule = function(slave, rules) {
+	if (!slave || !rules || !slave.currentRules)
+		return false;
+
+	for (var d = rules.length-1; d >= 0; d--) {
+		if (ruleApplied(slave, rules[d].ID)) {
+			if (rules[d].autoSurgery > 0) {
+				return true;
+			}
+		}
+	}
+	return false;
+};
+
+window.hasRuleFor = function(slave, rules, what) {
+	if (!slave || !rules || !slave.currentRules)
+		return false;
+
+	for (var d = rules.length-1; d >= 0; d--) {
+		if (ruleApplied(slave, rules[d].ID)) {
+			if (rules[d][what] !== "no default setting") {
+				return true;
+			}
+		}
+	}
+	return false;
+};
+
+window.hasHColorRule = function(slave, rules) {
+	return hasRuleFor(slave, rules, "hColor");
+}
+
+window.hasHStyleRule = function(slave, rules) {
+	return hasRuleFor(slave, rules, "hStyle");
+};
+
+window.hasEyeColorRule = function(slave, rules) {
+	return hasRuleFor(slave, rules, "eyeColor");
+};
+
+window.lastPregRule = function(slave, rules) {
+	if (!slave || !rules)
+		return null;
+	if (!slave.currentRules)
+		return false;
+
+	for (var d = rules.length-1; d >= 0; d--) {
+		if (ruleApplied(slave, rules[d].ID)) {
+			if (rules[d].preg == -1) {
+				return true;
+			}
+		}
+	}
+
+	return null;
+};
+
+window.autoSurgerySelector = function(slave, ruleset)
+{
+
+	var appRules = ruleset.filter(function(rule){
+			return (rule.autoSurgery == 1) && this.currentRules.contains(rule.ID);
+		}, slave);
+
+	var surgery = {eyes: "no default setting", lactation: "no default setting", cosmetic: "nds", accent: "no default setting", shoulders: "no default setting", shouldersImplant: "no default setting", boobs: "no default setting", hips: "no default setting", hipsImplant: "no default setting", butt: "no default setting", faceShape: "no default setting", lips: "no default setting", holes: "nds", bodyhair: "nds", hair: "nds", bellyImplant: "no default setting"};
+	var i, key, ruleSurgery;
+
+	for (i in appRules)
+	{
+		ruleSurgery = appRules[i].surgery;
+		for (key in ruleSurgery)
+		{
+			if (ruleSurgery[key] != "no default setting" || ruleSurgery[key] != "nds")
+			{	
+				surgery[key] = ruleSurgery[key];
+			}
+		}
+	}
+
+	return surgery;
+}
+
+window.mergeRules = function(rules) {
+    var combinedRule = {};
+
+    for (var i = 0; i < rules.length; i++) {
+        for (var prop in rules[i]) {
+            // A rule overrides any preceding ones if,
+            //   * there are no preceding ones,
+            //   * or it sets autoBrand,
+            //   * or it does not set autoBrand and is not "no default setting"
+            var applies = (
+                combinedRule[prop] === undefined
+                || (prop === "autoBrand" && rules[i][prop])
+                || (prop !== "autoBrand" && rules[i][prop] !== "no default setting")
+            );
+
+            if (applies)
+            {
+
+            	//Objects in JS in operations "=" pass by reference, so we need a completely new object to avoid messing up previous rules.
+            	if ("object" == typeof rules[i][prop] && "object" != typeof combinedRule[prop])
+            		combinedRule[prop] = new Object();
+
+            	//If we already have object - now we will process its properties, but object itself should be skipped.
+            	if ("object" != typeof combinedRule[prop])
+                	combinedRule[prop] = rules[i][prop];
+
+            	/*Some properties of rules now have second level properties. We need to check it, and change ones in combinedRule. (Good example - growth drugs. Breasts, butt, etc...) */
+            	if ( "object" == typeof rules[i][prop])
+    	        {
+	            	for (var subprop in rules[i][prop])
+    	        	{
+    	           		var subapplies = (
+            	    	combinedRule[prop][subprop] === undefined
+                			|| (rules[i][prop][subprop] !== "no default setting")
+	            		);
+
+		            	if (subapplies)
+    		            	combinedRule[prop][subprop] = rules[i][prop][subprop];
+    		        }
+
+            	}
+           	}
+
+        }
+
+    }
+
+    return combinedRule;
 }
 
 /*:: DTreeJS [script]*/
