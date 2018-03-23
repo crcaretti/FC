@@ -1,6 +1,6 @@
 :: Basenationalities Controls [nobr]
 
-<<if $nationalities.length < 1>>
+<<if hashSum($nationalities) < 1>>
 	//You cannot be a slave owner without a slave trade. Please add nationalities to continue.//
 <<else>>
 	<<link "Confirm customization">>
@@ -15,14 +15,14 @@
 <br>
 
 /* Generates cloned array of $nationalities, removing duplicates and then sorting */
-<<set $nationalitiescheck = _.uniq($nationalities, false).sort()>>
+<<set $nationalitiescheck = Object.assign({}, $nationalities)>>
 
 /* Prints distribution of $nationalities, using $nationalitiescheck to render array */
-<<set _percentPerPoint = 100.0 / $nationalities.length>>
-<<for _i = 0; _i < $nationalitiescheck.length; _i++>>
-	<<set _nation = $nationalitiescheck[_i]>>
-	_nation @@.orange;<<= ($nationalities.count(_nation) * _percentPerPoint).toFixed(2)>>%@@
-	<<if _i < $nationalitiescheck.length-1>> | <</if>>
+<<set _percentPerPoint = 100.0 / hashSum($nationalities)>>
+<<set _len = Object.keys($nationalitiescheck).length>>
+<<for _nation, _i range $nationalitiescheck>>
+	_nation @@.orange;<<= ($nationalities[_nation] * _percentPerPoint).toFixed(2)>>%@@
+	<<if _i < _len-1>> | <</if>>
 <</for>>
 <<unset _percentPerPoint>>
 <br><br>
@@ -76,24 +76,27 @@ Filter by Region:
 		<div style="float: left;">
 		<<set _nation = setup.baseNationalities[_i]>>
 		<<print "
-		_nation 
+		_nation
 			@@.plusButton;<<link '+'>>
-				<<set $nationalities.push(setup.baseNationalities[" + _i + "])>>
+				<<set hashPush($nationalities, setup.baseNationalities["+_i+"])>>
 				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
 			<</link>>@@
 		">>
-	<<if $nationalitiescheck.includes(_nation) > 0 >>
+	<<if def $nationalitiescheck[_nation]>>
 		<<print "
 			@@.minusButton;<<link '–'>>
-				<<set $nationalities.deleteAt(($nationalities.indexOf(setup.baseNationalities[" + _i + "])))>>
+				<<set $nationalities[setup.baseNationalities["+_i+"]] -= 1>>
+				<<if $nationalities[setup.baseNationalities["+_i+"]] <= 0>>
+					<<set delete $nationalities[setup.baseNationalities["+_i+"]]>>
+				<</if>>
 				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
 			<</link>>@@
 		">>
 		<</if>>
-	<<if $nationalities.count(_nation) > 1 >>
+	<<if $nationalities[_nation] > 1 >>
 		<<print "
 			@@.zeroButton;<<link '0'>>
-				<<set $nationalities.delete(setup.baseNationalities[" + _i + "])>>
+				<<set delete $nationalities[setup.baseNationalities["+_i+"]]>>
 				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
 			<</link>>@@
 		">>
@@ -105,19 +108,19 @@ Filter by Region:
 	<<foreach _race of setup.filterRaces>>
 		<<set _racialNationalities = setup.baseNationalities.filter(function(n) {
 			var races = setup.raceSelector[n] || setup.raceSelector[''];
-			return races.count(_race.toLowerCase()) * 2 > races.length; })>>
+			return races[_race.toLowerCase()] * 2 > hashSum(races); })>>
 		<<if _racialNationalities.length > 0>>
 			<<= "<div style='float: left; width: 13em; padding: 0 5px;' title='"
 				+ (_racialNationalities.length > 0 ? _racialNationalities.join(", ") : "(none)") 
 				+"'>_race @@.plusButton; <<link '+'>>
-				<<run Array.prototype.push.apply($nationalities, setup.baseNationalities.filter(function(n) {
+				<<run setup.baseNationalities.filter(function(n) {
 						var races = setup.raceSelector[n] || setup.raceSelector[''];
-						return races.count('" + _race.toLowerCase() + "') * 2 > races.length; }))>>
+						return races['" + _race.toLowerCase() + "'] * 2 > hashSum(races); }).forEach(function(n) { hashPush($nationalities, n);})>>
 				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
 			<</link>>@@ @@.zeroButton;<<link '0'>>
-				<<run Array.prototype.delete.apply($nationalities, setup.baseNationalities.filter(function(n) {
+				<<run setup.baseNationalities.filter(function(n) {
 						var races = setup.raceSelector[n] || setup.raceSelector[''];
-						return races.count('" + _race.toLowerCase() + "') * 2 > races.length; }))>>
+						return races['" + _race.toLowerCase() + "'] * 2 > hashSum(races.length); }).forEach(function(n) { delete $nationalities[n]; })>>
 				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
 			<</link>>@@</div>">>
 		<</if>>
@@ -131,22 +134,25 @@ Filter by Region:
 		<<print "
 		_nation 
 			@@.plusButton;<<link '+'>>
-				<<set $nationalities.push(_controlsNationality[" + _i + "])>>
+				<<set hashPush($nationalities, _controlsNationality[" + _i + "])>>
 				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
 			<</link>>@@
 		">>
-	<<if $nationalitiescheck.includes(_nation) > 0 >>
+	<<if def $nationalitiescheck[_nation]>>
 		<<print "
 			@@.minusButton;<<link '–'>>
-				<<set $nationalities.deleteAt(($nationalities.indexOf(_controlsNationality[" + _i + "])))>>
+				<<set $nationalities[_controlsNationality["+_i+"]] -= 1>>
+				<<if $nationalities[_controlsNationality["+_i+"]] <= 0>>
+					<<set delete $nationalities["+_controlsNationality[_i]+"]>>
+				<</if>>
 				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
 			<</link>>@@
 		">>
 		<</if>>
-	<<if $nationalities.count(_nation) > 1 >>
+	<<if $nationalities[_nation] > 1 >>
 		<<print "
 			@@.zeroButton;<<link '0'>>
-				<<set $nationalities.delete(_controlsNationality[" + _i + "])>>
+				<<set delete $nationalities[_controlsNationality["+_i+"]]>>
 				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
 			<</link>>@@
 		">>

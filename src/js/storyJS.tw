@@ -293,7 +293,11 @@ window.canImpreg = function(slave1, slave2) {
 window.isFertile = function(slave) {
 	if (!slave) {
 		return null;
-	} else if (slave.preg > 0) { /* currently pregnant */
+	}
+
+	WombInit(slave);
+
+	if (slave.womb.length > 0 || slave.broodmother > 0) { /* currently pregnant or broodmother */
 		return false;
 	} else if (slave.preg < -1) { /* sterile */
 		return false;
@@ -704,11 +708,6 @@ window.isItemAccessible = function(string) {
 	}
 };
 
-window.ruleApplied = function(slave, ID) {
-	if (!slave || !slave.currentRules)
-		return null;
-	return slave.currentRules.includes(ID);
-};
 
 window.expandFacilityAssignments = function(facilityAssignments) {
 	var assignmentPairs = {
@@ -733,139 +732,6 @@ window.expandFacilityAssignments = function(facilityAssignments) {
 	});
 	return fullList.flatten();
 };
-
-window.ruleSlaveSelected = function(slave, rule) {
-	if (!slave || !rule || !rule.selectedSlaves)
-		return false;
-	return rule.selectedSlaves.includes(slave.ID);
-};
-
-window.ruleSlaveExcluded = function(slave, rule) {
-	if (!slave || !rule || !rule.excludedSlaves)
-		return false;
-	return rule.excludedSlaves.includes(slave.ID);
-};
-
-window.ruleAssignmentSelected = function(slave, rule) {
-	if (!slave || !rule || (!rule.assignment && !rule.facility))
-		return false;
-	var assignment = rule.assignment.concat(expandFacilityAssignments(rule.facility));
-	return assignment.includes(slave.assignment);
-}
-
-window.ruleAssignmentExcluded = function(slave, rule) {
-	if (!slave || !rule || (!rule.excludeAssignment && !rule.excludeFacility))
-		return false;
-	var excludeAssignment = rule.excludeAssignment.concat(expandFacilityAssignments(rule.excludeFacility));
-	return excludeAssignment.includes(slave.assignment);
-}
-
-window.hasSurgeryRule = function(slave, rules) {
-	if (!slave || !rules || !slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].autoSurgery > 0) {
-				return true;
-			}
-		}
-	}
-	return false;
-};
-
-window.hasRuleFor = function(slave, rules, what) {
-	if (!slave || !rules || !slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d][what] !== "no default setting") {
-				return true;
-			}
-		}
-	}
-	return false;
-};
-
-window.hasHColorRule = function(slave, rules) {
-	return hasRuleFor(slave, rules, "hColor");
-}
-
-window.hasHStyleRule = function(slave, rules) {
-	return hasRuleFor(slave, rules, "hStyle");
-};
-
-window.hasEyeColorRule = function(slave, rules) {
-	return hasRuleFor(slave, rules, "eyeColor");
-};
-
-window.lastPregRule = function(slave, rules) {
-	if (!slave || !rules)
-		return null;
-	if (!slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].preg == -1) {
-				return true;
-			}
-		}
-	}
-
-	return null;
-};
-
-window.lastSurgeryRuleFor = function(slave, rules, what) {
-	if (!slave || !rules || !slave.currentRules)
-		return null;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (!rules[d].surgery)
-			return null;
-
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].surgery[what] != "no default setting") {
-				return rules[d];
-			}
-		}
-	}
-
-	return null;
-};
-
-window.lastEyeSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "eyes");
-}
-
-window.lastLactationSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "lactation");
-}
-
-window.lastProstateSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "prostate");
-}
-
-window.lastLipSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "lips");
-};
-
-window.lastBoobSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "boobs");
-};
-
-window.lastButtSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "butt");
-};
-
-window.lastHairSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "hair");
-}
-
-window.lastBodyHairSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "bodyhair");
-}
 
 window.milkAmount = function(slave) {
 	var milk;
@@ -1036,56 +902,6 @@ window.nameReplace = function(name)
 	name = name.replace("cE", "thE");
 	name = name.replace("cY", "thY");
 	return name;
-}
-
-window.mergeRules = function(rules) {
-    var combinedRule = {};
-
-    for (var i = 0; i < rules.length; i++) {
-        for (var prop in rules[i]) {
-            // A rule overrides any preceding ones if,
-            //   * there are no preceding ones,
-            //   * or it sets autoBrand,
-            //   * or it does not set autoBrand and is not "no default setting"
-            var applies = (
-                combinedRule[prop] === undefined
-                || (prop === "autoBrand" && rules[i][prop])
-                || (prop !== "autoBrand" && rules[i][prop] !== "no default setting")
-            );
-
-            if (applies)
-            {
-
-            	//Objects in JS in operations "=" pass by reference, so we need a completely new object to avoid messing up previous rules.
-            	if ("object" == typeof rules[i][prop] && "object" != typeof combinedRule[prop])
-            		combinedRule[prop] = new Object();
-
-            	//If we already have object - now we will process its properties, but object itself should be skipped.
-            	if ("object" != typeof combinedRule[prop])
-                	combinedRule[prop] = rules[i][prop];
-
-            	/*Some properties of rules now have second level properties. We need to check it, and change ones in combinedRule. (Good example - growth drugs. Breasts, butt, etc...) */
-            	if ( "object" == typeof rules[i][prop])
-    	        {
-	            	for (var subprop in rules[i][prop])
-    	        	{
-    	           		var subapplies = (
-            	    	combinedRule[prop][subprop] === undefined
-                			|| (rules[i][prop][subprop] !== "no default setting")
-	            		);
-
-		            	if (subapplies)
-    		            	combinedRule[prop][subprop] = rules[i][prop][subprop];
-    		        }
-
-            	}
-           	}
-
-        }
-
-    }
-
-    return combinedRule;
 }
 
 window.isVegetable = function(slave) {

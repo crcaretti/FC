@@ -42,12 +42,16 @@ window.WombInit = function(actor) //Init womb system.
           actor.broodmotherFetuses = 0;
     }
     
+    if ( typeof actor.readyOva != "number" )
+    {
+          actor.readyOva = 0;
+    }
 
     if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother == 0) //backward compatibility setup. Fully accurate for normal pregnancy only.
     {
         WombImpregnate(actor, actor.pregType, actor.pregSource, actor.preg);
     }
-    else if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother > 0) //sorry but for already present broodmothers it's impossible to calculate fully, aproximation used.
+    else if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother > 0 && actor.broodmotherOnHold < 1) //sorry but for already present broodmothers it's impossible to calculate fully, aproximation used.
     {
         var i, pw = actor.preg, bCount, bLeft;
         if (pw > 40)
@@ -249,6 +253,23 @@ window.WombNormalizePreg = function(actor)
 {
 //    console.log("New actor: " + actor.slaveName + " ===============" + actor.name);
     WombInit(actor);
+
+    if (actor.womb.length == 0 && actor.broodmother >= 1) // this is broodmother on hold.
+    {
+        actor.pregType = 0; 
+        actor.pregKnown = 0;
+        
+        if (actor.preg > 0)
+            actor.preg = 0.1; //to avoid legacy code conflicts - broodmother on hold can't be impregnated, but she not on normal contraceptives. So we set this for special case.
+        
+        if (actor.pregSource > 0)
+            actor.pregSource = 0;
+
+        if (actor.pregWeek > 0) 
+            actor.pregWeek = 0;
+            
+        actor.broodmotherCountDown = 0;
+    }
     
     if (actor.womb.length > 0)
     {
@@ -272,7 +293,7 @@ window.WombNormalizePreg = function(actor)
         actor.pregType = actor.womb.length;
         actor.pregSource = actor.womb[0].fatherID;
     } 
-    else if (actor.womb.length == 0 && actor.broodmother < 1)
+    else if (actor.womb.length == 0 && actor.broodmother < 1) //not broodmother
     {
 //        console.log("preg fixing");
         actor.pregType = 0;

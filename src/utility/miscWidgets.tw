@@ -674,7 +674,7 @@
 			<<SetBellySize $activeSlave>>
 		<</if>>
 	<<elseif $activeSlave.broodmotherOnHold == 1>>
-	//Her pregnancy implant is turned off; she expected to be completely emptied of her remaining brood in $activeSlave.broodmotherCountDown week<<if $activeSlave.broodmotherCountDown > 1>>s<</if>>// 
+	//Her pregnancy implant is turned off<<if $activeSlave.broodmotherCountDown > 0>>; she is expected to be completely emptied of her remaining brood in $activeSlave.broodmotherCountDown week<<if $activeSlave.broodmotherCountDown > 1>>s<</if>><<else>>.<</if>>//  
 	[[Turn on implant|Slave Interact][$activeSlave.broodmotherOnHold = 0, $activeSlave.broodmotherCountDown = 0]]
 	<<elseif ($activeSlave.preg >= -1)>>
 		__Contraception__: <span id="fertility"><strong><<if $activeSlave.preg == -1>><<print "using contraceptives">><<elseif $activeSlave.pregWeek < 0>><<print "postpartum">><<elseif $activeSlave.preg == 0>><<print "fertile">><<elseif $activeSlave.preg < 4>><<print "may be pregnant">><<else>><<print $activeSlave.preg>><<print " weeks pregnant">><</if>></strong></span>.
@@ -2356,64 +2356,70 @@ This experience
 <</widget>>
 
 /*
+ OBSOLETE: Use setPregType()instead!
  Call as <<SetPregType>>
  $args[0]: Slave.
 */
-<<widget "SetPregType">>
-	<<if $args[0].ID == -1>>
-		<<if $PC.birthMaster > 0>> /* Predisposed to twins */
-			<<if $PC.fertDrugs == 1>>
-				<<set $args[0].pregType = either(2, 2, 3, 3, 3, 3, 4, 4)>>
-			<<else>>
-				<<set $args[0].pregType = either(1, 1, 1, 2, 2, 2, 2, 2, 2, 3)>>
-			<</if>>
-			<<if $PC.forcedFertDrugs > 0>>
-				<<set $args[0].pregType += either(1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4)>>
-			<</if>>
-		<<else>>
-			<<if $PC.fertDrugs == 1>>
-				<<set $args[0].pregType = either(1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4)>>
-			<<else>>
-				<<set $args[0].pregType = either(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2)>>
-			<</if>>
-			<<if $PC.forcedFertDrugs > 0>>
-				<<set $args[0].pregType += either(0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4)>>
-			<</if>>
+<<widget "SetPregType">> /* IMHO rework is posssible. Can be more interesting to play, if this code will take in account more body conditions - age, fat, food, hormone levels, etc. */
+	<<if $args[0].broodmother < 1>> /* Broodmothers should be not processed here. Necessary now.*/
+		<<if (def $args[0].readyOva) && $args[0].readyOva > 0 >>
+			<<set $args[0].pregType = $args[0].readyOva, $args[0].readyOva = 0>> /* just single override; for delayed impregnation cases */
 		<</if>>
-	<<else>>
-	<<if $args[0].pregType == 0>>
-		<<if ($args[0].drugs == "super fertility drugs")>>
-			<<if (($masterSuitePregnancyFertilitySupplements == 1) && (($args[0].assignment == "serve in the master suite") || ($args[0].assignment == "be your Concubine")))>>
-				<<if ($args[0].hormones == 2)>>
-					<<set $args[0].pregType = random(20,29)>>
+		<<if $args[0].ID == -1>>
+			<<if $PC.birthMaster > 0>> /* Predisposed to twins */
+				<<if $PC.fertDrugs == 1>>
+					<<set $args[0].pregType = either(2, 2, 3, 3, 3, 3, 4, 4)>>
 				<<else>>
-					<<set $args[0].pregType = random(10,29)>>
+					<<set $args[0].pregType = either(1, 1, 1, 2, 2, 2, 2, 2, 2, 3)>>
+				<</if>>
+				<<if $PC.forcedFertDrugs > 0>>
+					<<set $args[0].pregType += either(1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4)>>
 				<</if>>
 			<<else>>
-				<<if ($args[0].hormones == 2)>>
-					<<set $args[0].pregType = random(10,29)>>
+				<<if $PC.fertDrugs == 1>>
+					<<set $args[0].pregType = either(1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4)>>
 				<<else>>
-					<<set $args[0].pregType = either(3, 4, 4, 4, 5, 5, 6, 10, 11, 20)>>
+					<<set $args[0].pregType = either(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2)>>
 				<</if>>
-			<</if>>
-		<<elseif ($args[0].drugs == "fertility drugs")>>
-			<<if (($masterSuitePregnancyFertilitySupplements == 1) && (($args[0].assignment == "serve in the master suite") || ($args[0].assignment == "be your Concubine")))>>
-				<<if ($args[0].hormones == 2)>>
-					<<set $args[0].pregType = random(4,5)>>
-				<<else>>
-					<<set $args[0].pregType = either(2, 2, 3, 3, 3, 3, 4, 4, 5, 5)>>
-				<</if>>
-			<<else>>
-				<<if ($args[0].hormones == 2)>>
-					<<set $args[0].pregType = random(2,5)>>
-				<<else>>
-					<<set $args[0].pregType = either(1, 1, 2, 2, 3, 3, 4, 4, 5, 5)>>
+				<<if $PC.forcedFertDrugs > 0>>
+					<<set $args[0].pregType += either(0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4)>>
 				<</if>>
 			<</if>>
 		<<else>>
-			<<set $args[0].pregType = either(1, 1, 1, 1, 1, 1, 1, 1, 1, 2)>>
+			<<if $args[0].pregType == 0>>
+				<<if ($args[0].drugs == "super fertility drugs")>>
+					<<if (($masterSuitePregnancyFertilitySupplements == 1) && (($args[0].assignment == "serve in the master suite") || ($args[0].assignment == "be your Concubine")))>>
+						<<if ($args[0].hormones == 2)>>
+							<<set $args[0].pregType = random(20,29)>>
+						<<else>>
+							<<set $args[0].pregType = random(10,29)>>
+						<</if>>
+					<<else>>
+						<<if ($args[0].hormones == 2)>>
+							<<set $args[0].pregType = random(10,29)>>
+						<<else>>
+							<<set $args[0].pregType = either(3, 4, 4, 4, 5, 5, 6, 10, 11, 20)>>
+						<</if>>
+					<</if>>
+				<<elseif ($args[0].drugs == "fertility drugs")>>
+					<<if (($masterSuitePregnancyFertilitySupplements == 1) && (($args[0].assignment == "serve in the master suite") || ($args[0].assignment == "be your Concubine")))>>
+						<<if ($args[0].hormones == 2)>>
+							<<set $args[0].pregType = random(4,5)>>
+						<<else>>
+							<<set $args[0].pregType = either(2, 2, 3, 3, 3, 3, 4, 4, 5, 5)>>
+						<</if>>
+					<<else>>
+						<<if ($args[0].hormones == 2)>>
+							<<set $args[0].pregType = random(2,5)>>
+						<<else>>
+							<<set $args[0].pregType = either(1, 1, 2, 2, 3, 3, 4, 4, 5, 5)>>
+						<</if>>
+					<</if>>
+				<<else>>
+					<<set $args[0].pregType = either(1, 1, 1, 1, 1, 1, 1, 1, 1, 2)>>
+				<</if>>
+			<</if>>
 		<</if>>
-	<</if>>
 	<</if>>
 <</widget>>
 

@@ -1896,13 +1896,13 @@ Of $possessive $slaves[$i].pregType child<<if $slaves[$i].pregType > 1>>ren<</if
 		s.nationality = setup.nationalityPoolSelector[Object.keys(setup.nationalityPoolSelector).random()].random();
 		/* Check for a pre-set race and if the nationality fits, else regenerate */
 		if(s.race && validRaces.includes(s.race)) {
-			while(setup.raceSelector[s.nationality] && !setup.raceSelector[s.nationality].includes(s.race)) {
+			while(setup.raceSelector[s.nationality] && !(s.race in setup.raceSelector[s.nationality])) {
 				s.nationality = setup.nationalityPoolSelector[Object.keys(setup.nationalityPoolSelector).random()].random();
 			}
 		}
 	}
 	if(!s.race || !validRaces.includes(s.race)) {
-		s.race = (setup.raceSelector[s.nationality] || setup.raceSelector[""]).random();
+		s.race = hashChoice(setup.raceSelector[s.nationality] || setup.raceSelector[""]);
 	}
 	if(!s.birthSurname) {
 		s.birthSurname = (setup.surnamePoolSelector[s.nationality + "." + s.race]
@@ -1916,7 +1916,9 @@ Of $possessive $slaves[$i].pregType child<<if $slaves[$i].pregType > 1>>ren<</if
 Call as <<HSM>>
 %/
 <<widget "HSM">>
-	<<if $PC.hacking <= -100>>
+	<<if ndef $PC.hacking>>
+		<<set $PC.hacking = 1, $HackingSkillMultiplier = 1>>
+	<<elseif $PC.hacking <= -100>>
 		<<set $HackingSkillMultiplier = 1.5>>
 	<<elseif $PC.hacking <= -75>>
 		<<set $HackingSkillMultiplier = 1.35>>
