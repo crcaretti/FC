@@ -60,3 +60,76 @@ window.bellyAdjective = function(slave) {
 		return '';
 	}
 }
+
+/* calculates and returns expected ovum count during conception*/
+window.setPregType == function(actor) {
+	/* IMHO rework is posssible. Can be more interesting to play, if this code will take in account more body conditions - age, fat, food, hormone levels, etc. */
+	
+	var ovum = 1;
+	var fertilityStack = 0;	// adds an increasing bonus roll for stacked fertility drugs
+
+	if(actor.broodmother < 1) { /* Broodmothers should be not processed here. Necessary now.*/
+		if(typeof actor.readyOva == "number" && actor.readyOva != 0) {
+			ovum = actor.readyOva;  /*just single override; for delayed impregnation cases */
+		} else if(actor.ID == -1) {
+			if(actor.birthMaster > 0) { // Predisposed to twins
+				if(actor.fertDrugs == 1) {
+					ovum += jsEither(1, 1, 2, 2, 2, 2, 3, 3);
+				} else {
+					ovum += jsEither(0, 0, 0, 1, 1, 1, 1, 1, 1, 2);
+				}
+				if(actor.forcedFertDrugs > 0) {
+					ovum += jsEither(1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4);
+				}
+			} else {
+				if(actor.fertDrugs == 1) {
+					ovum += jsEither(0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3);
+				} else {
+					ovum += jsEither(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+				}
+				if(actor.forcedFertDrugs > 0) {
+					ovum += jsEither(0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4);
+				}
+			}
+		} else if(actor.pregType == 0) {
+			ovum += jsEither(0, 0, 0, 0, 0, 0, 0, 0, 0, 1);	//base chance for twins
+			if(actor.hormones == 2) {
+				ovum += jsEither(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2);
+				fertilityStack++;
+			}
+			if(actor.hormoneBalance >= 400) {
+				ovum += jsEither(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 3);
+				fertilityStack++;
+			}
+			if(State.variables.masterSuitePregnancyFertilitySupplements == 1 && ((actor.assignment == "serve in the master suite" || actor.assignment == "be your Concubine"))) {
+				ovum += jsEither(0, 0, 0, 1, 1, 2, 2, 2, 3, 3);
+				fertilityStack++;
+				fertilityStack++;
+			}
+			if(actor.drugs == "super fertility drugs") {
+				ovum += jsEither(1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5);
+				fertilityStack++;
+				fertilityStack++;
+				fertilityStack++;
+				fertilityStack++;
+				fertilityStack++;
+			} else if(actor.drugs == "fertility drugs") {
+				ovum += jsEither(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3);
+				fertilityStack++;
+			}
+			if(State.variable.seeHyperPreg == 1) {
+				if(actor.drugs == "super fertility drugs") {
+					ovum += jsRandom(0, fertilityStack*2);
+				} else {
+					ovum += jsRandom(0, fertilityStack);
+				}
+			} else {
+				ovum += jsRandom(0, fertilityStack);
+				if(ovum > 12) {
+					ovum = jsRandom(6,12);
+				}
+			}
+		}
+		return ovum;
+	}
+}
