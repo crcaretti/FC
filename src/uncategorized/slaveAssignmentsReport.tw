@@ -2,7 +2,7 @@
 
 <<set $nextLink = "Economics", $nextButton = "Continue", _SL = $slaves.length, $RapeableIDs = []>>
 
-<h1>$arcologies[0].name Weekly Slave Report - Week $week</h1>
+<h1> $arcologies[0].name Weekly Slave Report - Week $week</h1>
 
 <<for $i = 0; $i < _SL; $i++>>
 
@@ -260,21 +260,6 @@
 	<<set $Concubine = $slaves[$i], $fuckSlaves++>>
 <<case "serve in the master suite" "please you">>
 	<<set $fuckSlaves++>>
-<<case "take classes">>
-	<<if $slaves[$i].fetish == "mindbroken">>
-		<<removeJob $slaves[$i] "take classes">>
-		''__@@.pink;$slaves[$i].slaveName@@__'' is no longer mentally capable and @@.yellow;has been dropped from class.@@
-	<</if>>
-<<case "learn in the schoolroom">>
-	<<if $slaves[$i].fetish == "mindbroken">>
-		<<removeJob $slaves[$i] "learn in the schoolroom">>
-		''__@@.pink;$slaves[$i].slaveName@@__'' is no longer mentally capable and @@.yellow;has been dropped from class.@@
-	<</if>>
-<<case "be confined in the cellblock">>
-	<<if $slaves[$i].fetish == "mindbroken">>
-		<<removeJob $slaves[$i] "be confined in the cellblock">>
-		''__@@.pink;$slaves[$i].slaveName@@__'' has mentally broken and thus can not be broken further. @@.yellow;She has been released from the cellblock.@@
-	<</if>>
 <</switch>>
 
 <<if $Lurcher>>
@@ -316,28 +301,42 @@
 <<if $slaves[$i].bellyPain != 0>>
 	<<set $slaves[$i].bellyPain = 0>>
 <</if>>
-/* preg speed control changes*/
+/* preg speed and advance*/
+
 <<if $slaves[$i].preg > 0>>
-	<<if $slaves[$i].pregWeek <= 0 || $slaves[$i].pregWeek > $slaves[$i].preg>> /* at .preg = 1, .pregWeek should be 1 also */
-		<<set $slaves[$i].pregWeek = $slaves[$i].preg>>
-	<<else>>
-		<<set $slaves[$i].pregWeek++>>
-	<</if>>
+	<<set _pregSpeed = 1>> /*base speed is normal*/
 	<<if $slaves[$i].pregControl == "slow gestation">>
-		<<set $slaves[$i].preg += 0.5>>
-		<<set $slaves[$i].preg = (Math.ceil($slaves[$i].preg*10)/10)>> /* trick to avoid precision lost error showed like week: 29.499999999999998*/
+		<<set _pregSpeed = 0.5>>
 	<<elseif $slaves[$i].pregControl == "speed up">>
-		<<set $slaves[$i].preg += 2>>
-	<<else>>
-		<<set $slaves[$i].preg++>>
+		<<set _pregSpeed = 2>>
 	<</if>>
-	<<SetBellySize $slaves[$i]>>
+
+	<<if $slaves[$i].broodmother == 1 && $slaves[$i].broodmotherOnHold != 1>> /* broodmother advance block */
+		<<if ($week / $slaves[$i].broodmotherFetuses == Math.round($week / $slaves[$i].broodmotherFetuses)) && $slaves[$i].broodmotherFetuses < 1>> 
+			/*one fetus in few week - selection and adding*/
+			<<set WombImpregnate($slaves[$i], 1, $slaves[$i].pregSource, 0)>> 
+		<<else>>
+			/*one or more fetuses in one week*/
+			<<set WombImpregnate($slaves[$i], Math.floor($slaves[$i].broodmotherFetuses), $slaves[$i].pregSource, 0)>> /* really 0, it's will be advanced right few lines down.*/
+		<</if>>
+		<<if $slaves[$i].ovaryAge >= 47>>
+			<<set $slaves[$i].broodmotherOnHold = 1 >>
+			<<set $slaves[$i].broodmotherCountDown = 37 - WombMinPreg($slaves[$i])>>
+		<</if>>
+	<</if>>
+	
+	<<set WombProgress($slaves[$i], _pregSpeed)>>
+
 	<<set $slaves[$i].pregKnown = 1>>
-<</if>>
-/* end of preg speed control changes*/
-<<if $slaves[$i].pregWeek < 0>>
 	<<set $slaves[$i].pregWeek++>>
 <</if>>
+<<if $slaves[$i].pregWeek < 0 >> /*postpartum state*/
+		<<set $slaves[$i].pregWeek++>>
+<</if>>
+
+<<SetBellySize $slaves[$i]>> /* here will be also set through WombGetVolume .bellyPreg, .pregType, to current values. */
+
+/* end of preg speed and advance*/
 
 <<if $slaves[$i].devotion >= -50>>
 <<if $slaves[$i].energy > 20>>
@@ -355,6 +354,9 @@
 	<</if>>
 	<<if ($slaves[$i].ovaries == 1 || $slaves[$i].mpreg == 1) && $slaves[$i].pubertyXX == 1 && $slaves[$i].physicalAge <= ($slaves[$i].pubertyAgeXX + 2) && $slaves[$i].physicalAge < 18>>
 		<<set $slaves[$i].need = ($slaves[$i].need*2)>>
+	<</if>>
+	<<if $slaves[$i].diet == "fertility">>
+		<<set $slaves[$i].need += 10>>
 	<</if>>
 <</if>>
 <</if>>

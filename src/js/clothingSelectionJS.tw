@@ -1,0 +1,711 @@
+:: clothingSelectionJS [script]
+
+window.todaysOutfit = function(slave) {
+
+	var ArcologyZero = State.variables.arcologies[0];
+	var player = State.variables.PC;
+	var clothing = [];
+	var wardrobeAssignment = [];
+	var wardrobeFS = [];
+	var wardrobeTastes = [];
+	var selection;
+
+	/*for the time being, this will use female pronouns until the system is updated.*/
+
+	if(slave.fetish == 'mindbroken') {
+		if(ArcologyZero.FSChattelReligionist > 0) {
+			selection = {text: "she commonly sees others wearing chattel habits and is drawn to doing so herself.", clothes: "a chattel habit"};
+		} else {
+			clothing.push('panties');
+			if(ArcologyZero.FSEgyptianRevivalist > 0) {
+				clothing.push('egyptian');
+			} else if(ArcologyZero.FSRomanRevivalist > 0) {
+				clothing.push('roman');
+			} else if(ArcologyZero.FSAztecRevivalist > 0) {
+				clothing.push('aztec');
+			} else if(ArcologyZero.FSEdoRevivalist > 0) {
+				clothing.push('edo');
+			} else if(ArcologyZero.FSArabianRevivalist > 0) {
+				clothing.push('arabic');
+			} else if(ArcologyZero.FSChineseRevivalist > 0) {
+				clothing.push('chinese');
+			}
+			if(ArcologyZero.FSGenderFundamentalist > 0) {
+				clothing.push('genderFund');
+			}
+			if(ArcologyZero.FSPaternalist > 0) {
+				clothing.push('paternalist');
+			} else if(ArcologyZero.FSDegradationist > 0) {
+				clothing.push('degradationist');
+			}
+			if(ArcologyZero.FSMaturityPreferentialist > 0) {
+				clothing.push('mature');
+			} else if(ArcologyZero.FSYouthPreferentialist > 0) {
+				clothing.push('youth');
+			}
+			if(ArcologyZero.FSPhysicalIdealist > 0) {
+				clothing.push('physicalIdealist');
+			}
+			if(ArcologyZero.FSPastoralist > 0) {
+				clothing.push('pastoralist');
+			}
+			if(ArcologyZero.FSBodyPurist > 0) {
+				clothing.push('bodyPurist');
+			}
+			clothing = jsEither(clothing);
+			switch(clothing) {
+			case 'egyptian':
+				selection = {text: "she commonly sees others wearing nothing but jewelry and is drawn to doing so herself.", clothes: "slutty jewelry"};
+				break;
+			case 'roman':
+				selection = {text: "she commonly sees others wearing togas and is drawn to doing so herself.", clothes: "a toga"};
+				break;
+			case 'aztec':
+				selection = {text: "she commonly sees others wearing huipils and is drawn to doing so herself.", clothes: "a huipil"};
+				break;
+			case 'edo':
+				selection = {text: "she commonly sees others wearing kimonos and is drawn to doing so herself.", clothes: "a kimono"};
+				break;
+			case 'arabic':
+				selection = {text: "she commonly sees others wearing silk and is drawn to doing so herself.", clothes: "harem gauze"};
+				break;
+			case 'chinese':
+				selection = {text: "she commonly sees others wearing qipaos and is drawn to doing so herself.", clothes: "a slutty qipao"};
+				break;
+			case 'genderFund':
+				if(jsRandom(1,2) == 1) {
+					selection = {text: "she commonly sees cheerleaders around and instinctually follows along.", clothes: jsEither(['a cheerleader outfit', 'a schoolgirl outfit'])};
+				} else {
+					selection = {text: "she commonly sees bunnies around and instinctually follows along.", clothes: "a bunny outfit"};
+				}
+				break;
+			case 'paternalist':
+				selection = {text: "she commonly sees others wearing clothing and is drawn to doing so herself.", clothes: "conservative clothing"};
+				break;
+			case 'degradationist':
+				selection = {text: "she commonly sees others wearing chains and is drawn to doing so herself.", clothes: jsEither(['chains', 'uncomfortable straps', 'shibari ropes'])};
+				break;
+			case 'mature':
+				selection = {text: "she commonly sees others wearing suits and is drawn to doing so herself.", clothes: jsEither(['slutty business attire', 'a nice maid outfit', 'a military uniform', 'nice business attire'])};
+				break;
+			case 'youth':
+				selection = {text: "she commonly sees schoolgirls around and instinctually follows along.", clothes: jsEither(['a schoolgirl outfit', 'a cheerleader outfit'])};
+				break;
+			case 'physicalIdealist':
+				selection = {text: "she commonly sees naked girls around and seldom realizes they are coated in oil.", clothes: jsEither(['body oil', 'no clothing', 'no clothing'])};
+				break;
+			case 'pastoralist':
+				selection = {text: "she commonly sees cowgirls around and instinctually follows along.", clothes: "Western clothing"};
+				break;
+			case 'bodyPurist':
+				selection = {text: "she commonly sees others wearing tight, form-fitting clothes and is drawn to doing so herself.", clothes: jsEither(['a leotard', 'a string bikini', 'a slave gown', 'a comfortable bodysuit', 'restrictive latex', 'clubslut netting', 'a leotard', 'a halter top dress'])};
+				break;
+			default:
+				selection = {text: "she chooses to put on underwear, the reasons lost to her, and moves on.", clothes: "attractive lingerie"};
+				break;
+			}
+		}
+	} else if(slave.devotion <= 20) {
+		clothing.push({text: "She uses the ability to select outfits to cover up with comfortable cut-offs and a t-shirt,", clothes: "cutoffs and a t-shirt"});
+		if(isItemAccessible("conservative clothing")) {
+			wardrobeAssignment.push({text: "She uses the ability to select outfits to cover up with the most conservative clothing she can find.", clothes: "conservative clothing"});
+		}
+		if(isItemAccessible("a kimono")) {
+			wardrobeAssignment.push({text: "She uses the ability to select outfits to cover herself with a kimono.", clothes: "a kimono"});
+		}
+		if(isItemAccessible("stretch pants and a crop-top")) {
+			wardrobeAssignment.push({text: "She uses the ability to select outfits to cover up with stretch pants and a crop-top, though she wishes it didn't have lewd comments printed on it.", clothes: "stretch pants and a crop-top"});
+		}
+		selection = jsEither(clothing);
+	} else {
+		if(ArcologyZero.FSChattelReligionist > 0) {
+			clothing.push({text: "and wears a chattel habit to conform to your arcology's culture.", clothes: "a chattel habit"});
+		}
+		/*Chooses clothes according to assignment (no exceptions)*/
+		else if(slave.assignment == "be the Nurse") {
+			if(slave.energy > 95 || slave.need > 100) {
+				wardrobeAssignment.push({text: "and wears a slutty nurse outfit to make it clear just how much this nurse needs her daily lay.", clothes: "a slutty nurse outfit"});
+			} else if(slave.energy > 80) {
+				wardrobeAssignment.push({text: "and wears a slutty nurse outfit to show off her body and arouse her patients.", clothes: "a slutty nurse outfit"});
+				wardrobeAssignment.push({text: "and wears a nice nurse outfit to look professional before her patients.", clothes: "a nice nurse outfit"});
+				wardrobeAssignment.push({text: "and wears a slutty nurse outfit to show to a little skin as she cares for her patients.", clothes: "a slutty nurse outfit"});
+			} else {
+				wardrobeAssignment.push({text: "and wears a nice nurse outfit to look professional before her patients.", clothes: "a nice nurse outfit"});
+				wardrobeAssignment.push({text: "and wears a slutty nurse outfit to show to a little skin as she cares for her patients.", clothes: "a slutty nurse outfit"});
+			}
+		} else if(slave.assignment == "be the Madam") {
+			if(slave.energy > 95 || slave.need > 100) {
+				wardrobeAssignment.push({text: "and wears a slutty suit to be certain nothing blocks her from getting the sex she needs.", clothes: "slutty business attire"});
+			} else if(slave.energy > 80) {
+				wardrobeAssignment.push({text: "and wears a nice suit to show she means business.", clothes: "nice business attire"});
+				wardrobeAssignment.push({text: "and wears a slutty suit to entice and arouse while still looking managerial.", clothes: "slutty business attire"});
+				wardrobeAssignment.push({text: "and wears a slutty suit to entice and arouse while still looking managerial.", clothes: "slutty business attire"});
+			} else {
+				wardrobeAssignment.push({text: "and wears a nice suit to show she means business.", clothes: "nice business attire"});
+				wardrobeAssignment.push({text: "and wears a slutty suit to entice and arouse while still looking managerial.", clothes: "slutty business attire"});
+			}
+		} else if(slave.assignment == "be the Milkmaid") {
+			if(slave.energy > 95 || slave.need > 100) {
+				if(isItemAccessible("body oil")) {
+					wardrobeAssignment.push({text: "and coats herself with oil to better slip between her cows as she pleasures them.", clothes: "body oil"});
+				}
+				wardrobeAssignment.push({text: "but goes nude to not be slowed down while moving between her charges.", clothes: "no clothing"});
+			} else {
+				wardrobeAssignment.push({text: "and wears a sturdy maid outfit, since anything else might be damaged by her hard work with the cows.", clothes: "a nice maid outfit"});
+				wardrobeAssignment.push({text: "and decides to call it casual friday and wear nothing but cutoffs and a t-shirt. Not like the cows will mind.", clothes: "cutoffs and a t-shirt"});
+				wardrobeAssignment.push({text: "and opts to don a cheerleader outfit to help cheer the cows on.", clothes: "a cheerleader outfit"});
+				wardrobeAssignment.push({text: "and dresses up as a succubus since she'll be drawing plenty of fluids.", clothes: "a succubus outfit"});
+				wardrobeAssignment.push({text: "and slips into some spats and a tanktop since she feels a workout coming on.", clothes: "spats and a tank top"});
+				if(isItemAccessible("Western clothing")) {
+					wardrobeAssignment.push({text: "and wears an appropriate cowgirl outift. Her bare ass walking past is sure to amuse her charges.", clothes: "Western clothing"});
+				}
+				if(isItemAccessible("stretch pants and a crop-top")) {
+					wardrobeAssignment.push({text: "and slips into some comfy stretch pants to relax as she works the cows.", clothes: "stretch pants and a crop-top"});
+				}
+				if(State.variables.cumSlaves > 2) {
+					wardrobeAssignment.push({text: "and wears a slutty nurse outfit to help keep her charges hard.", clothes: "a slutty nurse outfit"});
+					wardrobeAssignment.push({text: "and wears nothing but sexy lingerie to help keep her charges hard.", clothes: "attractive lingerie"});
+					wardrobeAssignment.push({text: "and wears the skimpiest bikini on hand to help keep her charges hard.", clothes: "a string bikini"});
+					if(isItemAccessible("body oil")) {
+						wardrobeAssignment.push({text: "and coats herself in oil for her charges to savor.", clothes: "body oil"});
+					}
+				}
+			}
+		} else if(slave.assignment == "be your Head Girl") {
+			wardrobeAssignment.push({text: "and wears a military uniform to give her that extra touch of authority.", clothes: "a military uniform"});
+			wardrobeAssignment.push({text: "and wears a handsome suit to give her that extra touch of authority.", clothes: "nice business attire"});
+			if(canPenetrate(slave)){
+				wardrobeAssignment.push({text: "and wears a slutty suit to make it perfectly clear that her dick is her main tool in her job.", clothes: "slutty business attire"});
+			}
+		} else if(slave.assignment == "be the Schoolteacher") {
+			wardrobeAssignment.push({text: "and wears a handsome suit to give her that teacherly authority.", clothes: "nice business attire"});
+			wardrobeAssignment.push({text: "and wears a slutty suit to give her an air of authority will keeping all eyes focused on her.", clothes: "slutty business attire"});
+			wardrobeAssignment.push({text: "and wears a schoolgirl outfit to help keep her charges focused on her.", clothes: "a schoolgirl outfit"});
+			wardrobeAssignment.push({text: "and dresses up as a succubus to give her sex lessons an extra kick.", clothes: "a succubus outfit"});
+			if(isItemAccessible("conservative clothing")) {
+				wardrobeAssignment.push({text: "and wears conservative clothes to not detract from this week's lesson.", clothes: "conservative clothing"});
+			}
+			if(isItemAccessible("a toga")) {
+				wardrobeAssignment.push({text: "and wraps herself in a toga to model herself after the philosophers of yore.", clothes: "a toga"});
+			}
+			if(isItemAccessible("a maternity dress") && slave.belly >= 10000) {
+				wardrobeAssignment.push({text: "and settles for a comfortable maternity dress to support her middle while she lectures in front of the class all week.", clothes: "a maternity dress"});
+			}
+		} else if(slave.assignment == "be the Wardeness") {
+			wardrobeAssignment.push({text: "and dons battledress, the better to intimidate the prisoners.", clothes: "battledress"});
+			wardrobeAssignment.push({text: "and slips into a scalemail bikini, the better to intimidate the prisoners.", clothes: "a scalemail bikini"});
+			wardrobeAssignment.push({text: "and dons a scandalous habit to make it perfectly clear that crossing this nun will result in sexual punishment.", clothes: "a fallen nun's habit"});
+			if(isItemAccessible("stretch pants and a crop-top")) {
+				wardrobeAssignment.push({text: "and decides to take it easy by slipping into some stretch pants. They come off just as quickly as they come on, just in case.", clothes: "stretch pants and a crop-top"});
+			}
+		} else if(slave.assignment == "be the Attendant") {
+			wardrobeAssignment.push({text: "and wears a string bikini, since it's all she can wear that won't be ruined by all the moisture in the spa.", clothes: "a string bikini"});
+			wardrobeAssignment.push({text: "but decides to go nude, since she'll be spending so much time in the water.", clothes: "no clothing"});
+		} else if(slave.assignment == "rest") {
+			wardrobeAssignment.push({text: "and wears a comfortable t-shirt and cutoffs to relax.", clothes: "cutoffs and a t-shirt"});
+			wardrobeAssignment.push({text: "and slips into some attractive lingerie to enjoy herself as she unwinds.", clothes: "attractive lingerie"});
+			wardrobeAssignment.push({text: "but decides that clothing takes too much work and would rather sleep nude.", clothes: "no clothing"});
+			if(isItemAccessible("stretch pants and a crop-top")) {
+				wardrobeAssignment.push({text: "and slips into some comfy stretch pants to relax.", clothes: "stretch pants and a crop-top"});
+			}
+			if(isItemAccessible("attractive lingerie for a pregnant woman") && slave.belly >= 1500) {
+				wardrobeAssignment.push({text: "and slips into some attractive lingerie to enjoy herself as she unwinds.", clothes: "attractive lingerie for a pregnant woman"});
+			}
+			if(slave.fetish == "submissive") {
+				wardrobeAssignment.push({text: "and decides the best way to relax is tied up nice and tight.", clothes: "shibari ropes"});
+			}
+		} else if(slave.assignment == "get milked" || slave.assignment == "work in the dairy") {
+			wardrobeAssignment.push({text: "and wears sturdy lingerie to offer the best support to her sore, milk-filled udders.", clothes: "attractive lingerie"});
+			if(isItemAccessible("attractive lingerie for a pregnant woman") && slave.belly >= 1500) {
+				wardrobeAssignment.push({text: "and wears lingerie designed for milky mothers.", clothes: "attractive lingerie for a pregnant woman"});
+			}
+			if(isItemAccessible("a maternity dress") && slave.belly >= 10000) {
+				wardrobeAssignment.push({text: "and chooses a maternity dress since it is easy to free her breasts from.", clothes: "a maternity dress"});
+			}
+			wardrobeAssignment.push({text: "and wears a string bikini for easy access to her udders.", clothes: "a string bikini"});
+			if(slave.lactation > 1) {
+				wardrobeAssignment.push({text: "but goes nude. There's no time for clothing, her udders need to be drained now!", clothes: "no clothing"});
+			}
+			wardrobeAssignment.push({text: "and dons a slutty outfit. If her breasts are going to hang out, might as well wear something to complement them.", clothes: "a slutty outfit"});
+		} else if(slave.assignment == "guard you") {
+			wardrobeAssignment.push({text: "and wears a bodysuit to show off her curves without hindering her deadliness.", clothes: "a comfortable bodysuit"});
+			wardrobeAssignment.push({text: "and wears a military uniform to look the part of the honor guard.", clothes: "a military uniform"});
+			wardrobeAssignment.push({text: "and wears a nice suit to make it clear you mean business.", clothes: "nice business attire"});
+			wardrobeAssignment.push({text: "and wears a scalemail bikini to make herself look fierce.", clothes: "a scalemail bikini"});
+			if(isItemAccessible("a kimono")) {
+				wardrobeAssignment.push({text: "and wears a nice kimono to add an air of elegance to your presence.", clothes: "a kimono"});
+			}
+		} else {
+			/*Chooses clothes according to assignment (exceptions allowed)*/
+			if(slave.assignment == "recruit girls") {
+				wardrobeAssignment.push({text: "and wears a flattering mini dress to appear sexy and carefree before those desperately seeking a better life.", clothes: "a mini dress"});
+				wardrobeAssignment.push({text: "and wears a cutoffs and a t-shirt to appear sexy and carefree before those desperately seeking a better life.", clothes: "cutoffs and a t-shirt"});
+				wardrobeAssignment.push({text: "and wears a nice suit to appear trustworthy before those desperately seeking a better life.", clothes: "nice business attire"});
+				wardrobeAssignment.push({text: "and wears a schoolgirl outfit to appear sexy and carefree before those desperately seeking a better life.", clothes: "a schoolgirl outfit"});
+				wardrobeAssignment.push({text: "and wears an opulent gown to showcase your wealth before those desperately seeking a better life.", clothes: "a ball gown"});
+				wardrobeAssignment.push({text: "and dresses as a succubus to attempt to lure any potential catches.", clothes: "a succubus outfit"});
+				if(isItemAccessible("harem gauze")) {
+					wardrobeAssignment.push({text: "and dons her finest silks to showcase the luxuries waiting would-be slaves.", clothes: "harem gauze"});
+				}
+				if(isItemAccessible("stretch pants and a crop-top")) {
+					wardrobeAssignment.push({text: "and wears comfortable stretch pants to and crop-top to appear carefree before those desperately seeking a better life.", clothes: "stretch pants and a crop-top"});
+				}
+				if(isItemAccessible("conservative clothing")) {
+					wardrobeAssignment.push({text: "and wears normal clothing to suggest to those desperately seeking a better life that they can find it here with you.", clothes: "conservative clothing"});
+				}
+			} else if(slave.assignment == "be the DJ") {
+				wardrobeAssignment.push({text: "and wears clubslut netting to look like the perfect easy club girl.", clothes: "clubslut netting"});
+				wardrobeAssignment.push({text: "and wears cutoffs and a t-shirt to look like the perfect easy club girl.", clothes: "cutoffs and a t-shirt"});
+				wardrobeAssignment.push({text: "and wears the slutty outfit she can find to look like the perfect easy club girl.", clothes: "a slutty outfit"});
+				wardrobeAssignment.push({text: "and wears nothing but slutty jewelry since she loves the way it jingles to her moves.", clothes: "slutty jewelry"});
+				wardrobeAssignment.push({text: "and wears a skin tight bodysuit so nothing gets in the way of her moves.", clothes: "a comfortable bodysuit"});
+				if(slave.boobs > 1000) {
+					wardrobeAssignment.push({text: "but decides to go naked and let her girls bounce free as she dances.", clothes: "no clothing"});
+				}
+				if(isItemAccessible("harem gauze")) {
+					wardrobeAssignment.push({text: "and wears the finest available silks to give her moves a sensual grace.", clothes: "harem gauze"});
+				}
+			} else if(slave.assignment == "be your Concubine") {
+				wardrobeAssignment.push({text: "and goes naked, since it's her honored role to be the chief object of your desire.", clothes: "no clothing"});
+				wardrobeAssignment.push({text: "and dresses as a slutty nurse as your genitals are always in need of her special treatment.", clothes: "a slutty nurse outfit"});
+				wardrobeAssignment.push({text: "and dresses as a schoolgirl in the hopes that you teach her how to be a woman.", clothes: "a schoolgirl outfit"});
+				wardrobeAssignment.push({text: "and dresses as a cheerleader so she may cheer you on as you blow her mind.", clothes: "a cheerleader outfit"});
+				if(player.dick == 1) {
+					wardrobeAssignment.push({text: "and dresses as a slutty maid as you always come home with a stiff package that needs a thorough polishing.", clothes: "a slutty maid outfit"});
+				}
+				wardrobeAssignment.push({text: "and, since you personally see that she never goes hungry, she dresses like the sex demoness she is.", clothes: "a succubus outfit"});
+				if(isItemAccessible("attractive lingerie for a pregnant woman") && slave.belly >= 10000 && slave.pregSource == -1) {
+					wardrobeAssignment.push({text: "and chooses attractive lingerie to showcase the body you've given her in the hopes that you ravish her.", clothes: "attractive lingerie for a pregnant woman"});
+				}
+				if(slave.toyHole == "dick" && canPenetrate(slave)) {
+					wardrobeAssignment.push({text: "and slips into a scalemail bikini so she can act the role of your conqueror as she bends you over.", clothes: "a scalemail bikini"});
+				}
+			} else if(slave.assignment == "be a subordinate slave") {
+				wardrobeAssignment.push({text: "but gives up and goes naked after the other slaves constantly tear whatever she's wearing off her.", clothes: "no clothing"});
+				if(isItemAccessible("Western clothing")) {
+					wardrobeAssignment.push({text: "and chooses a pair of crotchless chaps so your other slaves don't have to waste time undressing her.", clothes: "Western clothing"});
+				}
+				if(slave.fetish == "submissive") {
+					wardrobeAssignment.push({text: "and chooses to slip on a pair of spats and a tanktop in the hopes that she gets to be a violated schoolgirl.", clothes: "spats and a tank top"});
+					wardrobeAssignment.push({text: "and chooses to slip on a schoolgirl outfit in the hope that she gets held down and raped.", clothes: "a schoolgirl outfit"});
+					wardrobeAssignment.push({text: "and chooses to wear the sluttiest outfit available to make it clear what she wants done to her.", clothes: "a slutty outfit"});
+				}
+			} else if(slave.assignment == "work a glory hole") {
+				wardrobeAssignment.push({text: "but doesn't bother wearing anything, since no one can see her clothing when she's immured inside a glory hole.", clothes: "no clothing"});
+			} else if(slave.assignment == "take classes" || slave.assignment == "learn in the schoolroom") {
+				wardrobeAssignment.push({text: "and wears a schoolgirl outfit, since it seems most appropriate.", clothes: "a schoolgirl outfit"});
+				wardrobeAssignment.push({text: "and wears a cheerleader outfit, since she might as well be one of the popular girls.", clothes: "a cheerleader outfit"});
+				if(isItemAccessible("conservative clothing")) {
+					wardrobeAssignment.push({text: "and wears normal clothing to not distract from her lessons.", clothes: "conservative clothing"});
+				}
+			} else if((slave.assignment == "whore") || (slave.assignment == "work in the brothel")) {
+				 if(slave.belly >= 5000 && isItemAccessible("attractive lingerie for a pregnant woman")) {
+					wardrobeAssignment.push({text: "and wears pretty lingerie to show off her merchandise and accentuate her pregnancy while still looking a little classy.", clothes: "attractive lingerie for a pregnant woman"});
+				}
+				wardrobeAssignment.push({text: "and wears pretty lingerie to show off her merchandise and still look a little classy.", clothes: "attractive lingerie"});
+				if(isItemAccessible("harem gauze")) {
+					wardrobeAssignment.push({text: "and dresses herself with harem gauze to add an exotic charm to her display.", clothes: "harem gauze"});
+				}
+				if(isItemAccessible("a kimono")) {
+					wardrobeAssignment.push({text: "and wraps herself in a kimono to add some elegance to her display.", clothes: "a kimono"});
+				}
+				wardrobeAssignment.push({text: "and adorns herself in fine dress to show off how much of a high class whore she is.", clothes: "a slave gown"});
+				wardrobeAssignment.push({text: "and dresses herself in a slutty suit to show she's in it for the ¤.", clothes: "slutty business attire"});
+				wardrobeAssignment.push({text: "and wears a flattering mini dress to really strut her stuff.", clothes: "a mini dress"});
+			} else if(slave.assignment == "serve the public" || slave.assignment == "serve in the club") {
+				wardrobeAssignment.push({text: "and wears string lingerie to look fun and fuckable.", clothes: "a string bikini"});
+				wardrobeAssignment.push({text: "and throws together the sluttiest outfit since if you're going to slut you might as well go all out.", clothes: "a slutty outfit"});
+				wardrobeAssignment.push({text: "and tosses on a slutty suit that screams she needs a good fuck after a long day.", clothes: "slutty business attire"});
+				wardrobeAssignment.push({text: "and dresses up as a slutty nurse. She knows just how to fix penile swelling", clothes: "a slutty nurse outfit"});
+				wardrobeAssignment.push({text: "and wears a cheerleader outfit to look energetic and fuckable.", clothes: "a cheerleader outfit"});
+				if(isItemAccessible("a bunny outfit")) {
+					wardrobeAssignment.push({text: "and slips into a teddy to add some class to her post.", clothes: "a bunny outfit"});
+				}
+				wardrobeAssignment.push({text: "and dresses up as a succubus to clearly advertise her promiscuity.", clothes: "a succubus outfit"});
+				if(slave.bellyPreg >= 10000) {
+					wardrobeAssignment.push({text: "and struggles into a schoolgirl outfit. Her gravid belly just screams that she is a slutty little student who cares more for dick than lessons.", clothes: "a succubus outfit"});
+				}
+			} else if(slave.assignment == "be a servant" || slave.assignment == "work as a servant") {
+				if(slave.energy > 95 || slave.need > 100) {
+					wardrobeAssignment.push({text: "and wears a skimpy maid outfit hoping that someone sneaks up behind her as she works and fulfills her desires.", clothes: "a slutty maid outfit"});
+				} else if(slave.energy > 80) {
+					wardrobeAssignment.push({text: "and wears a skimpy maid outfit to tempt anyone watching her work.", clothes: "a slutty maid outfit"});
+					wardrobeAssignment.push({text: "and wears a sturdy maid outfit, since anything else might be damaged by her hard work around the penthouse.", clothes: "a nice maid outfit"});
+					wardrobeAssignment.push({text: "and wears a skimpy maid outfit to tempt anyone watching her work.", clothes: "a slutty maid outfit"});
+				} else {
+					wardrobeAssignment.push({text: "and wears a sturdy maid outfit, since anything else might be damaged by her hard work around the penthouse.", clothes: "a nice maid outfit"});
+					wardrobeAssignment.push({text: "and wears a skimpy maid outfit to tempt anyone watching her work.", clothes: "a slutty maid outfit"});
+				}
+			}
+			
+			/* Chooses clothes according to FS*/
+			if(ArcologyZero.FSEgyptianRevivalist > 0) {
+				wardrobeFS.push({text: "and complements it with golden bangles, since no clothing is necessary for a sex slave in your warm and sunny arcology.", clothes: "slutty jewelry"});
+			} else if(ArcologyZero.FSRomanRevivalist > 0) {
+				wardrobeFS.push({text: "and wears a toga to take part in your Roman revivalism.", clothes: "a toga"});
+			} else if(ArcologyZero.FSEdoRevivalist > 0) {
+				wardrobeFS.push({text: "and wears a kimono, overjoyed that such lovely clothing is now appropriate.", clothes: "a kimono"});
+			} else if(ArcologyZero.FSArabianRevivalist > 0) {
+				wardrobeFS.push({text: "and wears a harem outfit to look like a slave girl fit for a Sultan.", clothes: "harem gauze"});
+			} else if(ArcologyZero.FSChineseRevivalist > 0) {
+				wardrobeFS.push({text: "and wears a brief qipao to show off and look Chinese at the same time.", clothes: "a slutty qipao"});
+			} else if(ArcologyZero.FSAztecRevivalist > 0) {
+				wardrobeFS.push({text: "and drapes a huipil over herself to fit in with your Aztec revivalism.", clothes: "a huipil"});
+			}
+			if(ArcologyZero.FSGenderFundamentalist > 0) {
+				wardrobeFS.push({text: "and wears a cheerleader outfit to look like a hot slut.", clothes: "a cheerleader outfit"});
+				wardrobeFS.push({text: "and wears a bunny outfit to look like a slut from the glory days.", clothes: "a bunny outfit"});
+				if(slave.bellyPreg >= 5000) {
+					wardrobeFS.push({text: "but decides to wear nothing at all; she's already pregnant, so she just needs to be barefoot and naked to complete her look.", clothes: "no clothing"});
+				}
+			} else if(ArcologyZero.FSGenderRadicalist > 0) {
+				wardrobeFS.push({text: "and eagerly slips into a skimpy maid outfit so she can take advantage of its short skirt and her lack of underwear", clothes: "a slutty maid outfit"});
+				wardrobeFS.push({text: "and wears a cheerleader outfit that clearly shows off her ass.", clothes: "a cheerleader outfit"});
+				wardrobeFS.push({text: "and settles for some sexy succubutt.", clothes: "a succubus outfit"});
+			}
+			if(ArcologyZero.FSPaternalist > 0) {
+				wardrobeFS.push({text: "and wears conservative clothing, as permitted by your paternalism.", clothes: "conservative clothing"});
+				if(isItemAccessible("stretch pants and a crop-top")) {
+					wardrobeAssignment.push({text: "and wears the most comfortable stretch pants she can find.", clothes: "stretch pants and a crop-top"});
+				}
+			} else if(ArcologyZero.FSDegradationist > 0) {
+				wardrobeFS.push({text: "and wears chains, to degrade herself as required by your societal goals.", clothes: "chains"});
+			}
+			if(ArcologyZero.FSMaturityPreferentialist > 0) {
+				if(slave.visualAge >= 30) {
+					wardrobeFS.push({text: "and wears a slutty suit to look like the ideal horny older woman.", clothes: "slutty business attire"});
+				} else {
+					wardrobeFS.push({text: "and wears a formal suit to look more mature.", clothes: "nice business attire"});
+				}
+			} else if(ArcologyZero.FSYouthPreferentialist > 0) {
+				wardrobeFS.push({text: "and wears a schoolgirl outfit to look younger.", clothes: "a schoolgirl outfit"});
+				wardrobeFS.push({text: "and wears a cheerleader outfit to look younger and more energetic.", clothes: "a cheerleader outfit"});
+				wardrobeFS.push({text: "and wears spats and a tank top to look younger and more energetic.", clothes: "spats and a tank top"});
+			}
+			if(ArcologyZero.FSPhysicalIdealist > 0) {
+				wardrobeFS.push({text: "and coats herself in body oil to show off how she's part of your physical idealism.", clothes: "body oil"});
+				wardrobeFS.push({text: "and slips into some spats for her next workout.", clothes: "spats and a tank top"});
+			} else if(ArcologyZero.FSHedonisticDecadence > 0) {
+				wardrobeFS.push({text: "and throws on a very casual getup.", clothes: "stretch pants and a crop-top"});
+				wardrobeFS.push({text: "but decides against putting forth the effort and goes nude.", clothes: "no clothing"});
+			}
+			if(ArcologyZero.FSPastoralist > 0) {
+				wardrobeFS.push({text: "and wears Western clothing, since she thinks it fits with pastoralism.", clothes: "Western clothing"});
+				if(slave.lactation > 0) {
+					wardrobeFS.push({text: "and dresses up as a slutty wet nurse.", clothes: "a slutty nurse outfit"});
+				}
+				wardrobeFS.push({text: "but decides to let her breasts be free. Clothes will just get in the way.", clothes: "no clothing"});
+			}
+			if(ArcologyZero.FSBodyPurist > 0) {
+				wardrobeFS.push({text: "and wears a leotard to show off the purity of her body.", clothes: "a leotard"});
+				wardrobeFS.push({text: "but decides her body is too nice to hide with clothing.", clothes: "no clothing"});
+			} else if(ArcologyZero.FSTransormationFetishest > 0) {
+				if(isItemAccessible("body oil")) {
+					wardrobeAssignment.push({text: "and coats her assets in body oil to give them some extra shine.", clothes: "body oil"});
+				}
+				wardrobeFS.push({text: "and decides squeezing into a latex suit will only complement her unnatural appearance.", clothes: "restrictive latex"});
+			}
+			if(ArcologyZero.FSAssetExpansioninst > 0) {
+				wardrobeFS.push({text: "and decides to dress up like a young man's wet dream.", clothes: "a succubus outfit"});
+				wardrobeFS.push({text: "and decides to wear a skimpy bikini to make her assets look even larger.", clothes: "a string bikini"});
+				wardrobeFS.push({text: "and decides to throw together a slutty outfit that highlight her assets.", clothes: "a slutty outfit"});
+			} else if(ArcologyZero.FSSlimnessEnthusiast > 0) {
+				if(slave.boobs < 300) {
+					wardrobeFS.push({text: "and wears s string bikini to show off just how flat she is.", clothes: "a string bikini"});
+				}
+				if(slave.boobs < 600 && slave.butt < 3) {
+					wardrobeFS.push({text: "and wears a leotard to show off her lithe body.", clothes: "a leotard"});
+					wardrobeFS.push({text: "and wears a form fitting bodysuit to show off her lithe figure.", clothes: "a comfortable bodysuit"});
+					wardrobeFS.push({text: "and wears spats to hug her tight butt.", clothes: "spats and a tank top"});
+				} else {
+					wardrobeFS.push({text: "and squeezes into a form fitting bodysuit in the hopes that it squishes down her assets.", clothes: "restrictive latex"});
+				}
+			}
+			
+			/*Chooses clothes according to fetishes, quirks, etc.*/
+			if(slave.attrXY > 70) {
+				if(slave.attrKnown == 1) {
+					wardrobeTastes.push({text: "and wears a schoolgirl outfit to show off a some T&A to attract boys.", clothes: "a schoolgirl outfit"});
+					wardrobeTastes.push({text: "and wears nothing but pretty lingerie to attract boys.", clothes: "attractive lingerie"});
+					wardrobeTastes.push({text: "and selects a slutty outfit that's sure to have men drooling.", clothes: "a slutty outfit"});
+					if(slave.butt > 3){
+						wardrobeTastes.push({text: "and slips on some cuttoffs that are sure to have men checking out her ass.", clothes: "cutoffs and a t-shirt"});
+					}
+					if(isItemAccessible("a bunny outfit")) {
+						wardrobeAssignment.push({text: "and slips into a bunny outfit that she knows will have men lining up.", clothes: "a bunny outfit"});
+					}
+					if(slave.boobs > 800) {
+						wardrobeTastes.push({text: "and dresses up as a busty succubus that pulls eyes the her chest and leaves pants feeling tight.", clothes: "a succubus outfit"});
+					}
+				} else {
+					wardrobeTastes.push({text: "and selects a schoolgirl outfit that shows off some T&A.", clothes: "a schoolgirl outfit"});
+					wardrobeTastes.push({text: "and wears pretty lingerie that shows off her body.", clothes: "attractive lingerie"});
+					wardrobeTastes.push({text: "and selects a slutty outfit that's sure to draw attention.", clothes: "a slutty outfit"});
+					if(slave.butt > 3){
+						wardrobeTastes.push({text: "and slips on some cuttoffs that shows off her ass.", clothes: "cutoffs and a t-shirt"});
+					}
+					if(isItemAccessible("a bunny outfit")) {
+						wardrobeAssignment.push({text: "and slips into a bunny outfit that hugs her curves.", clothes: "a bunny outfit"});
+					}
+					if(slave.boobs > 800) {
+						wardrobeTastes.push({text: "and dresses up as a busty succubus that's sure to draw eyes.", clothes: "a succubus outfit"});
+					}
+				}
+			}
+			if(slave.attrXX > 70) {
+				if(slave.attrKnown == 1) {
+					wardrobeTastes.push({text: "and wears a fashionable gown, since girls appreciate nice clothes.", clothes: "a slave gown"});
+					wardrobeTastes.push({text: "and wears nothing but pretty lingerie to give the girls a show.", clothes: "attractive lingerie"});
+					wardrobeTastes.push({text: "and wears a nice suit, since girls appreciate nice clothes.", clothes: "nice business attire"});
+				} else {
+					wardrobeTastes.push({text: "and wears a fashionable gown.", clothes: "a slave gown"});
+					wardrobeTastes.push({text: "and wears pretty lingerie that shows off her body.", clothes: "attractive lingerie"});
+					wardrobeTastes.push({text: "and wears a nice suit, the reasons not entirely clear to you.", clothes: "nice business attire"});
+				}
+			}
+			
+			/* need */
+			if(slave.need > 90) {
+				wardrobeTastes.push({text: "but goes naked. She needs sex now and clothing will only get in the way.", clothes: "no clothing"});
+				wardrobeTastes.push({text: "and throws on a slutty suit. She hopes that it gets the point across that she needs sex now.", clothes: "slutty business attire"});
+				wardrobeTastes.push({text: "and dons a slutty nurse outfit. She's been infected and the only cure is a strong dicking.", clothes: "a slutty nurse outfit"});
+				wardrobeTastes.push({text: "and dresses up as a slutty maid. Maybe if she does her job poorly enough, someone will bend her over and fuck some sense into her.", clothes: "a slutty maid outfit"});
+				wardrobeTastes.push({text: "and dresses up as a succubus in the hopes it screams that she needs sex now.", clothes: "a succubus outfit"});
+			}
+			
+			/* quirks n flaws */
+			if(slave.behavioralQuirk == "sinful") {
+				wardrobeTastes.push({text: "and dresses up like a succubus because it makes $object feel naughty.", clothes: "a succubus outfit"});
+			} else if(slave.behavioralQuirk == "fitness") {
+				wardrobeTastes.push({text: "and wears spats and a tank top to give herself a sporty look.", clothes: "spats and a tank top"});
+			}
+
+			/* age stuff */
+			if(slave.actualAge < 10) {
+				wardrobeTastes.push({text: "and puts on a pretty dress so she can be a princess.", clothes: "a ball gown"});
+				wardrobeTastes.push({text: "and dresses up like a cheerleader since she thinks it looks cute.", clothes: "a cheerleader outfit"});
+				if(isItemAccessible("a kimono")) {
+					wardrobeAssignment.push({text: "and wraps herself in a kimono, since it feels so good on her skin.", clothes: "a kimono"});
+				}
+			}
+			
+			/* fetishes */
+			if(slave.fetishKnown == 1) {
+				if(slave.fetish == "submissive") {
+					wardrobeTastes.push({text: "and wears restrictive latex to encourage others to dominate her.", clothes: "restrictive latex"});
+					wardrobeTastes.push({text: "and wears shibari ropes to encourage others to dominate her.", clothes: "shibari ropes"});
+				} else if(slave.fetish == "dom") {
+					wardrobeTastes.push({text: "and wears a handsome suit, since she likes other slaves to look up to her.", clothes: "nice business attire"});
+					wardrobeTastes.push({text: "and wears a full body latex catsuit to look the part of the whip cracking domme.", clothes: "a latex catsuit"});
+				} else if(slave.fetish == "masochist") {
+					wardrobeTastes.push({text: "and wears painfully restrictive bondage gear, since she likes the torment.", clothes: "uncomfortable straps"});
+					if(isItemAccessible("chains")) {
+						wardrobeAssignment.push({text: "and wears painfully tight chains, since she likes the torment.", clothes: "chains"});
+					}
+				} else if(slave.fetish == "sadist") {
+					wardrobeTastes.push({text: "and wears an elegant gown, since she thinks it makes her look the part of the femme fatale.", clothes: "a slave gown"});
+					wardrobeTastes.push({text: "and wears a scalemail bikini, since she thinks it makes her look fierce.", clothes: "a scalemail bikini"});
+				} else if(slave.fetish == "cumslut") {
+					wardrobeTastes.push({text: "and wears cut-offs and a t-shirt, because the fun yet relatively conservative outfit seems to encourage others to ask her for blowjobs.", clothes: "cutoffs and a t-shirt"});
+				} else if(slave.fetish == "humiliation") {
+					wardrobeTastes.push({text: "and wears leather straps with rings over her private parts because she enjoys the embarrassment such a humiliating outfit causes her.", clothes: "uncomfortable straps"});
+				} else if(slave.fetish == "buttslut") {
+					wardrobeTastes.push({text: "and wears nothing other than slutty bangles, because she likes to catch the eye without putting anything between cocks and her rear end.", clothes: "slutty jewelry"});
+				} else if(slave.fetish == "pregnancy") {
+					wardrobeTastes.push({text: "and wears a short maid dress, because she wants to look motherly and fuckable at the same time.", clothes: "a slutty maid outfit"});
+					if(isItemAccessible("a maternity dress") && canGetPregnant(slave)) {
+						wardrobeAssignment.push({text: "and wears a maternity dress in the hope someone fills out its middle.", clothes: "a maternity dress"});
+					}
+				} else if(slave.fetish == "boobs") {
+					wardrobeAssignment.push({text: "and wears a cheerleader outfit, since she loves the way it hugs her tits as she moves.", clothes: "a cheerleader outfit"});
+				}
+			} else {
+				if(slave.fetish == "submissive") {
+					wardrobeTastes.push({text: "and strangely opts for restrictive latex.", clothes: "restrictive latex"});
+					wardrobeTastes.push({text: "and strangely opts for shibari ropes.", clothes: "shibari ropes"});
+				} else if(slave.fetish == "dom") {
+					wardrobeTastes.push({text: "and wears a handsome suit; she seems to think highly of herself in it.", clothes: "nice business attire"});
+					wardrobeTastes.push({text: "and wears a full body latex catsuit; there is a strange look on her face as she wears it.", clothes: "a latex catsuit"});
+				} else if(slave.fetish == "masochist") {
+					wardrobeTastes.push({text: "and strangely opts for painfully restrictive bondage gear.", clothes: "uncomfortable straps"});
+					if(isItemAccessible("chains")) {
+						wardrobeAssignment.push({text: "and strangely opts for painfully tight chains.", clothes: "chains"});
+					}
+				} else if(slave.fetish == "sadist") {
+					wardrobeTastes.push({text: "and wears an elegant gown for some reason.", clothes: "a slave gown"});
+					wardrobeTastes.push({text: "and wears a scalemail bikini; an odd choice.", clothes: "a scalemail bikini"});
+				} else if(slave.fetish == "cumslut") {
+					wardrobeTastes.push({text: "and wears cut-offs and a t-shirt; she can't stop licking her lips.", clothes: "cutoffs and a t-shirt"});
+				} else if(slave.fetish == "humiliation") {
+					wardrobeTastes.push({text: "and strangely opts for leather straps with rings over her private parts.", clothes: "uncomfortable straps"});
+				} else if(slave.fetish == "buttslut") {
+					wardrobeTastes.push({text: "and wears nothing other than slutty bangles, an odd choice; her ass is completely exposed.", clothes: "slutty jewelry"});
+				} else if(slave.fetish == "pregnancy") {
+					wardrobeTastes.push({text: "and wears a short maid dress; you frequently notice her observing her stomach.", clothes: "a slutty maid outfit"});
+					if(isItemAccessible("a maternity dress") && canGetPregnant(slave)) {
+						wardrobeAssignment.push({text: "and wears a maternity dress even though she isn't pregnant.", clothes: "a maternity dress"});
+					}
+				} else if(slave.fetish == "boobs") {
+					wardrobeAssignment.push({text: "and wears a cheerleader outfit; she seems to enjoy jiggling her breasts in it.", clothes: "a cheerleader outfit"});
+				}
+			}
+
+			/* energy */
+			if(slave.energy > 95) {
+				wardrobeTastes.push({text: "but goes nude, since as a nympho she gets plenty of attention anyway, and considers clothes an unnecessary hindrance.", clothes: "no clothing"});
+			}
+
+			/* pregnancy */
+			if(slave.belly >= 5000) {
+				wardrobeTastes.push({text: "and wears pretty lingerie to show off her merchandise while giving her protruding belly plenty of room to hang free.", clothes: "attractive lingerie"});
+				if(isItemAccessible("attractive lingerie for a pregnant woman") && slave.energy > 70) {
+					wardrobeTastes.push({text: "and wears pretty lingerie to show off her merchandise and accentuate her pregnancy while giving it plenty of room to hang free.", clothes: "attractive lingerie for a pregnant woman"});
+				} else if(isItemAccessible("a maternity dress")) {
+					wardrobeTastes.push({text: "and wears a conservative dress with plenty of give for her belly to stretch it.", clothes: "a maternity dress"});
+				}
+				wardrobeTastes.push({text: "and wears string lingerie to look fun and fuckable while giving her protruding belly plenty of room to hang free.", clothes: "a string bikini"});
+			} else {
+				wardrobeTastes.push({text: "and wears string lingerie to show off her body.", clothes: "a string bikini"});
+			}
+		}
+		/*Separated in three categories in case you want to, say, increase the probability of choosing _wardrobeAssignment to look more professional*/
+		if(wardrobeAssignment.length > 0) {
+			for (var i = 0; i < wardrobeAssignment.length; i++) {
+				clothing.push(wardrobeAssignment[i]);
+			}
+		}
+		if(wardrobeFS.length > 0) {
+			for (var i = 0; i < wardrobeFS.length; i++) {
+				clothing.push(wardrobeFS[i]);
+			}
+		}
+		if(wardrobeTastes.length > 0) {
+			for (var i = 0; i < wardrobeTastes.length; i++) {
+				clothing.push(wardrobeTastes[i]);
+			}
+		}
+		selection = jsEither(clothing);
+	}
+
+	return selection;
+}
+
+window.todaysShoes = function(slave) {
+	var ArcologyZero = State.variables.arcologies[0];
+	var player = State.variables.PC;
+	var shoes = [];
+	
+	if(slave.fetish == 'mindbroken') {
+		if(slave.amp != 1 && slave.heels == 1) {
+			shoes.push({text: "She finds she can inexplicably walk if she wears heels; a daily lesson for her, as she forgets shortly after leaving.", shoes: jsEither(["heels", "extreme heels", "boots"])});
+		}
+		shoes.push({text: "She vaguely remembers putting things on her feet, so she does.", shoes: jsEither(["heels", "extreme heels", "boots", "flats"])});
+		shoes.push({text: "She entered without shoes, and will leave the same.", shoes: "none"});
+	} else if(slave.devotion <= 20) {
+		if(slave.heels == 0) {
+			shoes.push({text: "and wears comfortable flats,", shoes: "flats"});
+		} else {
+			shoes.push({text: "and angrily wears the heels she needs to walk,", shoes: "heels"});
+		}
+	} else {
+		if(slave.fetishKnown == 1 && slave.fetish == "dom") {
+			shoes.push({text: "She wears boots to look like a proper dominant.", shoes: "boots"});
+		} else if(slave.fetishKnown == 1 && slave.fetish == "sadist") {
+			shoes.push({text: "She wears boots, since she thinks they make her look dangerous.", shoes: "boots"});
+		} else if(slave.fetishKnown == 1 && slave.fetish == "masochist") {
+			shoes.push({text: "She wears painfully tall heels, since she enjoys the twinge of pain with each step.", shoes: "extreme heels"});
+		} else if(slave.heels == 1) {
+			shoes.push({text: "She wears the heels she needs to walk.", shoes: "heels"});
+		} else if(slave.fetishKnown == 1 && slave.fetish == "pregnancy" && slave.bellyPreg >= 500) {
+			shoes.push({text: "She goes barefoot to complement her pregnancy.", shoes: "none"});
+		} else if(slave.fetishKnown == 1 && slave.fetish == "none") {
+			shoes.push({text: "She wears comfortable flats, since she doesn't have a fetish to show off.", shoes: "flats"});
+		} else if(slave.actualAge < 13){
+			shoes.push({text: "She puts on boots so she can stomp around.", shoes: "boots"});
+			shoes.push({text: "She playfully puts on heels to be like all the other girls.", shoes: "heels"});
+			shoes.push({text: "She wears flats as they are comfortable and easy to take on and off.", shoes: "flats"});
+			shoes.push({text: "Going barefoot is fun, so no shoes for her.", shoes: "none"});
+		} else {
+			shoes.push({text: "She wears heels to strut her stuff.", shoes: "heels"});
+			shoes.push({text: "She wears comfortable flats to take it easy.", shoes: "flats"});
+			shoes.push({text: "She goes barefoot to show off her toes.", shoes: "none"});
+		}
+	}
+	return jsEither(shoes);
+}
+
+window.todaysCollar = function(slave) {
+	var ArcologyZero = State.variables.arcologies[0];
+	var player = State.variables.PC;
+	var neck = [];
+	
+	if(slave.fetish == 'mindbroken') {
+		
+	} else if(slave.devotion <= 20) {
+		
+	} else {
+		if(ArcologyZero.FSEgyptianRevivalist > 0) {
+			neck.push({text: "dons a wesekh to support your ancient Egyptian pretensions,", collar: "ancient Egyptian"});
+		}
+		if(slave.fetish == "masochist") {
+			neck.push({text: "dons a tight steel collar around her neck,", collar: "tight steel"});
+			neck.push({text: "dons a painful leather collar,", collar: "uncomfortable leather"});
+			neck.push({text: "dons a painfully tight neck corset,", collar: "satin choker"});
+		} else if(slave.fetish == "pregnancy" && (canGetPregnant(slave) || slave.pregKnown == 1)) {
+			neck.push({text: "dons a digital display that tells everything about her womb,", collar: "preg biometrics"});
+		} else if(slave.fetish == "boobs" && slave.boobs >= 1000) {
+			neck.push({text: "dons a cowbell to draw attention to her luscious udders,", collar: "leather with cowbell"});
+		}
+		neck.push({text: "decides her neck needs no accenting,", collar: "none"});
+		neck.push({text: "dons some pretty jewelry,", collar: "pretty jewelry"});
+		neck.push({text: "dons a lovely gold collar,", collar: "heavy gold"});
+		neck.push({text: "dons a simple silk ribbon around her neck,", collar: "silk ribbon"});
+	}
+	return jsEither(neck);
+}
+
+window.todaysCorset = function(slave) {
+	var ArcologyZero = State.variables.arcologies[0];
+	var player = State.variables.PC;
+	var belly = [];
+	var empathyBellies = ["a small empathy belly", "a medium empathy belly", "a large empathy belly", "a huge empathy belly"];
+	
+	if(slave.fetish == 'mindbroken') {
+		if(ArcologyZero.FSRepopulationFocus > 0 && slave.belly < 1500) {
+			if(slave.weight > 130) {
+				belly.push({text: "She notices the fake bellies; since every girl she has ever met has a rounded middle, it's only natural she is compelled to wear one. She struggles to fit it around her huge gut, only stopping when another slave takes it away from her so she moves on and stops blocking the wardrobe with her fat ass.", bellyAccessory: "none"});
+			} else {
+				belly.push({text: "She notices the fake bellies; since every girl she has ever met has a rounded middle, it's only natural she is compelled to wear one.", bellyAccessory: jsEither(["a small empathy belly", "a medium empathy belly", "a large empathy belly", "a huge empathy belly"])});
+			}
+		} else {
+			belly.push({text: "", bellyAccessory: slave.bellyAccessory}); /*compatibility for no output, will likely get deprecated in the future as content is added*/
+		}
+	} else if(slave.devotion <= 20) {
+		
+	} else {
+		if(ArcologyZero.FSRepopulationFocus > 0 && slave.belly < 1500 && slave.sexualFlaw != "breeder") {
+			if(slave.weight > 130) {
+				belly.push({text: "struggles to fit a fake pregnant belly around her gut before giving up and hoping she can pass as fecund,", bellyAccessory: "none"});
+			} else {
+				belly.push({text: "straps on a fake pregnant belly to fit in with all the other pregnant girls,", bellyAccessory: jsEither(["a small empathy belly", "a medium empathy belly", "a large empathy belly", "a huge empathy belly"])});
+			}
+		} else if(slave.belly < 1500 && slave.fetish == "pregnancy" && isItemAccessible("a small empathy belly") && slave.sexualFlaw != "breeder" && slave.weight <= 130) {
+			if(slave.fetishStrength <= 30) {
+				belly.push({text: "straps on a 1st trimester belly to sate her curiosity,", bellyAccessory: "a small empathy belly"});
+				belly.push({text: "straps on a 2nd trimester belly to sate her curiosity,", bellyAccessory: "a medium empathy belly"});
+				belly.push({text: "straps on a 3rd trimester belly to sate her curiosity,", bellyAccessory: "a large empathy belly"});
+			} else if(slave.fetishStrength <= 95) {
+				belly.push({text: "straps on a 3rd trimester belly to satisfy her pregnancy fetish,", bellyAccessory: "a large empathy belly"});
+			} else if(slave.fetishStrength > 95) {
+				belly.push({text: "straps on the largest belly she can find to satisfy her pregnancy fetish,", bellyAccessory: "a huge empathy belly"});
+			}
+		} else if(empathyBellies.includes(slave.bellyAccessory) && slave.fetish != "pregnancy") {
+			belly.push({text: "removes her fake belly, since she dislikes it,", bellyAccessory: "none"});
+		} else if(empathyBellies.includes(slave.bellyAccessory) && slave.sexualFlaw == "breeder") {
+			belly.push({text: "pulls her fake belly off, disgusted by it,", bellyAccessory: "none"});
+		} else {
+			belly.push({text: "", bellyAccessory: slave.bellyAccessory}); /*compatibility for no output, will likely get deprecated in the future as content is added*/
+		}
+	}
+	return jsEither(belly);
+}

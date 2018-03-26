@@ -9,7 +9,7 @@
 	<<if $terrain == "ravine">>
 		<<set _initialTrade -= random(5)>>
 	<</if>>
-	<<if $PC.career == "wealth" || $PC.career == "capitalist" || $PC.career == "celebrity">>
+	<<if $PC.career == "wealth" || $PC.career == "capitalist" || $PC.career == "celebrity" || $PC.career == "BlackHat">>
 		<<set _initialTrade += random(5)>>
 	<<elseif $PC.career == "escort" || $PC.career == "servant" || $PC.career == "gang">>
 		<<set _initialTrade -= random(5)>>
@@ -532,4 +532,110 @@
 	<<if $SFBaseHp != 4 + $humanUpgrade.hp>>
 		<<set $SFBaseHp = 4 + $humanUpgrade.hp>>
 	<</if>>
+<</widget>>
+
+<<widget "replenishAllUnits">>
+	<<set _hasLossesM = 0>>
+	<<set _hasLossesS = 0>>
+	<<set _hasLossesMe = 0>>
+	
+	<<for _i = 0; _i < $militiaUnits.length; _i++>>
+		<<if $militiaUnits[_i].troops < $militiaUnits[_i].maxTroops && $militiaFreeManpower > 0>>
+			<<set _hasLossesM = 1>>
+			<<break>>
+		<</if>>
+	<</for>>
+	
+	<<for _i = 0; _i < $slaveUnits.length; _i++>>
+		<<if $slaveUnits[_i].troops < $slaveUnits[_i].maxTroops && $helots > 0>>
+			<<set _hasLossesS = 1>>
+			<<break>>
+		<</if>>
+	<</for>>
+
+	<<for _i = 0; _i < $mercUnits.length; _i++>>
+		<<if $mercUnits[_i].troops < $mercUnits[_i].maxTroops && $mercFreeManpower > 0>>
+			<<set _hasLossesMe = 1>>
+			<<break>>
+		<</if>>
+	<</for>>
+	
+	<<if _hasLossesM == 1 && $militiaFreeManpower > 0 || _hasLossesS == 1 && $helots > 0 || _hasLossesMe == 1 && $mercFreeManpower > 0>>
+	
+		<<link "Replenish all units">>
+		
+			<<if _hasLossesM == 1>>
+				<<for _i = 0; _i < $militiaUnits.length; _i++>>
+					<<if $militiaUnits[_i].troops < $militiaUnits[_i].maxTroops && $militiaFreeManpower > 0>>
+						<<if $militiaFreeManpower >= $militiaUnits[_i].maxTroops - $militiaUnits[_i].troops>>
+							<<set $militiaFreeManpower -= $militiaUnits[_i].maxTroops - $militiaUnits[_i].troops>>
+							<<set $militiaEmployedManpower += $militiaUnits[_i].maxTroops - $militiaUnits[_i].troops>>
+							<<set _expLoss = ($militiaUnits[_i].maxTroops - $militiaUnits[_i].troops) / $militiaUnits[_i].troops>>
+							<<set $militiaUnits[_i].training -= $militiaUnits[_i].training * _expLoss>>
+							<<set $militiaUnits[_i].troops = $militiaUnits[_i].maxTroops>>
+						<<else>>
+							<<set $militiaEmployedManpower += $militiaFreeManpower>>
+							<<set _expLoss = $militiaFreeManpower / $militiaUnits[_i].troops>>
+							<<set $militiaUnits[_i].training -= $militiaUnits[_i].training * _expLoss>>
+							<<set $militiaUnits[_i].troops += $militiaFreeManpower>>
+							<<set $militiaFreeManpower = 0>>
+						<</if>>
+					<</if>>
+				<</for>>
+			<</if>>
+			
+			<<if _hasLossesS == 1>>
+				<<for _i = 0; _i < $slaveUnits.length; _i++>>
+					<<if $slaveUnits[_i].troops < $slaveUnits[_i].maxTroops && $helots > 0>>
+						<<if $helots >= $slaveUnits[_i].maxTroops - $slaveUnits[_i].troops>>
+							<<set $helots -= $slaveUnits[_i].maxTroops - $slaveUnits[_i].troops>>
+							<<set $slavesEmployedManpower += $slaveUnits[_i].maxTroops - $slaveUnits[_i].troops>>
+							<<set _expLoss = ($slaveUnits[_i].maxTroops - $slaveUnits[_i].troops) / $slaveUnits[_i].troops>>
+							<<set $slaveUnits[_i].training -= $slaveUnits[_i].training * _expLoss>>
+							<<set $slaveUnits[_i].troops = $slaveUnits[_i].maxTroops>>
+						<<else>>
+							<<set $slavesEmployedManpower += $helots>>
+							<<set _expLoss = $helots / $slaveUnits[_i].troops>>
+							<<set $slaveUnits[_i].training -= $slaveUnits[_i].training * _expLoss>>
+							<<set $slaveUnits[_i].troops += $helots>>
+							<<set $helots = 0>>
+						<</if>>
+					<</if>>
+				<</for>>
+			<</if>>
+			
+			<<if _hasLossesMe == 1>>
+				<<for _i = 0; _i < $mercUnits.length; _i++>>
+					<<if $mercUnits[_i].troops < $mercUnits[_i].maxTroops && $mercFreeManpower > 0>>
+						<<if $mercFreeManpower >= $mercUnits[_i].maxTroops - $mercUnits[_i].troops>>
+							<<set $mercFreeManpower -= $mercUnits[_i].maxTroops - $mercUnits[_i].troops>>
+							<<set $mercEmployedManpower += $mercUnits[_i].maxTroops - $mercUnits[_i].troops>>
+							<<set _expLoss = ($mercUnits[_i].maxTroops - $mercUnits[_i].troops) / $mercUnits[_i].troops>>
+							<<set $mercUnits[_i].training -= $mercUnits[_i].training * _expLoss>>
+							<<set $mercUnits[_i].troops = $mercUnits[_i].maxTroops>>
+						<<else>>
+							<<set $mercEmployedManpower += $mercFreeManpower>>
+							<<set _expLoss = $mercFreeManpower / $mercUnits[_i].troops>>
+							<<set $mercUnits[_i].training -= $mercUnits[_i].training * _expLoss>>
+							<<set $mercUnits[_i].troops += $mercFreeManpower>>
+							<<set $mercFreeManpower = 0>>
+						<</if>>
+					<</if>>
+				<</for>>
+			<</if>>
+			
+			<<if $slaveRebellion == 1 || $citizenRebellion == 1>>
+				<<goto "rebellionOptions">>
+			<<elseif $attackThisWeek == 1>>
+				<<goto "attackOptions">>
+			<<else>>
+				<<goto "secBarracks">>
+			<</if>>
+			
+			
+
+		<</link>>
+		<br>//Will replenish units as long as manpower is available
+	<</if>>
+
 <</widget>>
