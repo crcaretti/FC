@@ -150,7 +150,7 @@ $possessiveCap $activeSlave.faceShape face is
 		<</if>>
 		<<if ($cyberMod == 1) && ($stockpile.ocularImplant > 0) && ($activeSlave.origEye != "implant")>>
 			<<if ($activeSlave.eyes != -3)>> | <</if>>
-			 | [[Give her ocular implants|Surgery Degradation][$activeSlave.origEye = "implant",$cash -= $surgeryCost, $activeSlave.health -= 20,$surgeryType = "ocular implant"]]
+			 | [[Give her ocular implants|Surgery Degradation][$activeSlave.origEye = "implant", $stockpile.ocularImplant--,$cash -= $surgeryCost, $activeSlave.health -= 20,$surgeryType = "ocular implant"]]
 		<</if>>
 	<</if>>
 <</if>>
@@ -208,7 +208,7 @@ $pronounCap has
 	<</if>>
 <<case "straightening braces">>
 	$possessiveCap crooked teeth are in braces.
-	[[Remove braces|Remote Surgery][$activeSlave.teeth = "crooked"]]
+	[[Remove braces|Remote Surgery][$activeSlave.teeth = "crooked",$surgeryType = "removeBraces"]]
 	<<if ($seeExtreme == 1) && ($activeSlave.indentureRestrictions < 1)>>
 	| [[Replace them with removable prosthetics|Surgery Degradation][$activeSlave.teeth = "removable",$cash -= $surgeryCost, $activeSlave.health -= 20,$surgeryType = "teeth"]] | [[Replace them with sharp teeth|Surgery Degradation][$activeSlave.teeth = "pointy",$cash -= $surgeryCost, $activeSlave.health -= 10,$surgeryType = "sharp"]]
 	<</if>>
@@ -504,8 +504,13 @@ waist.
 
 <br>&nbsp;&nbsp;&nbsp;&nbsp;
 $pronounCap's
-<<if $activeSlave.pregKnown == 1>>
+<<if $activeSlave.pregKnown > 0>>
 	pregnant.
+<<elseif $activeSlave.womb.length == 0 && $activeSlave.broodmother > 0>>
+	got a dormant broodmother implant in $possessive womb.
+<<elseif $activeSlave.preg > 0>>
+	showing unusual discomfort as $possessive stomach is inspected. A quick test reveals that @@.lime;$pronoun is pregnant.@@
+	<<set $activeSlave.pregKnown = 1>>
 <<elseif $activeSlave.bellyImplant > 0>>
 	got a <<print $activeSlave.bellyImplant>>cc implant filled implant located in $possessive abdomen.
 	<<if $activeSlave.cervixImplant == 1 >>
@@ -529,7 +534,7 @@ $pronounCap's
 	//$possessiveCap indenture forbids elective surgery//
 <<elseif $activeSlave.breedingMark == 1>>
 	//You are forbidden from affecting $possessive fertility//
-<<elseif $activeSlave.preg > 0 || $activeSlave.inflation > 0>>
+<<elseif $activeSlave.preg > 0 || $activeSlave.inflation > 0 || $activeSlave.broodmother > 0>>
 	//$pronounCap is unable to support an abdominal implant at this time//
 <<elseif $activeSlave.bellyImplant >= 750000>>
 	//$possessiveCap abdominal implant is so far beyond its maximum limit it is at risk of rupturing//
@@ -750,8 +755,18 @@ Work on her sex:
 		<</if>>
 		<<if $activeSlave.indentureRestrictions < 1 && $activeSlave.breedingMark != 1>>
 			<<if isFertile($activeSlave)>>
-				[[Implant a pregnancy generator|Surgery Degradation][$activeSlave.preg = 1,$activeSlave.pregWeek = 1,$activeSlave.pregKnown = 1,$activeSlave.pregType = 1,$activeSlave.broodmother = 1,$cash -= $surgeryCost,$activeSlave.pregControl = "none",$activeSlave.health -= 10,$surgeryType = "preg"]] //This will have severe effects on $possessive health and mind//
+				[[Implant a pregnancy generator|Surgery Degradation][$activeSlave.preg = 1,$activeSlave.pregWeek = 1,$activeSlave.pregKnown = 1,$activeSlave.pregType = 1,$activeSlave.broodmother = 1,$activeSlave.broodmotherFetuses = 1,$cash -= $surgeryCost,$activeSlave.pregControl = "none",$activeSlave.health -= 10,$surgeryType = "preg"]] //This will have severe effects on $possessive health and mind//
 			<</if>>
+		<</if>>
+	<</if>>
+<</if>>
+
+<<if $permaPregImplant == 1>>
+	<<if $activeSlave.broodmother >= 1 >>
+		<<if $activeSlave.womb.length == 0 >>
+			[[Remove a pregnancy generator|Surgery Degradation][$activeSlave.preg = 0,$activeSlave.pregWeek = -2,$activeSlave.pregSource = 0,$activeSlave.pregWeek = 0,$activeSlave.pregKnown = 0,$activeSlave.pregType = 0,$activeSlave.broodmother = 0,$activeSlave.broodmotherFetuses = 0,$activeSlave.broodmotherOnHold = 0,$cash -= $surgeryCost,$activeSlave.pregControl = "none",$activeSlave.health -= 10,$surgeryType = "pregRemove"]] 
+		<<else>>
+			$pronounCap is pregnant right now, so $possessive broodmother implant can't be safely extracted.
 		<</if>>
 	<</if>>
 <</if>>

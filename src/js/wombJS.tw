@@ -1,0 +1,327 @@
+:: wombJS [script]
+
+/*
+This is womb processor/simulator script. It's take care about calculation of belly sizes based on individual foetus sizes, 
+with full support of broodmothers implant random turning on and off possibility. Also this can be expanded to store more parents data in each individual fetus in future.
+Design limitations:
+- Mother can't gestate children with different speeds at same time. All speed changes apply to all fetuses.
+- Sizes of inividual fetuses updated only on call of WombGetVolume - not every time as called WombProgress. This is for better overail code speed.
+- For broodmothers we need actual "new ova release" code now. But it's possible to control how many children will be added each time, and so - how much children is ready to birth each time.
+
+Usage from sugarcube code (samples):
+
+WombInit($slave) - before first pregnancy, at slave creation, of as backward compatibility update.
+
+WombImpregnate($slave, $fetus_count, $fatherID, $initial_age) - should be added after normal impregnation code, with already calcualted fetus count. ID of father - can be used in future for prcess children from different fathers in one pregnancy. Initial age normally 1 (as .preg normally set to 1), but can be raised if needed. Also should be called at time as broodmother implant add another fetus(es), or if new fetuses added from other sources in future (transplanting maybe?)
+
+WombProgress($slave, $time_to_add_to_fetuses) - after code that update $slave.preg, time to add should be the same.
+
+$isReady = WombBirthReady($slave, $birth_ready_age) - how many children ready to be birthed if their time to be ready is $birth_ready_age (40 is for normal length pregnancy). Return int - count of ready to birth children, or 0 if no ready exists. 
+
+$children = WombBirth($slave, $birth_ready_age) - for actual birth. Return array with fetuses objects that birthed (can be used in future) and remove them from womb array of $slave. Should be called at actual birth code in sugarcube. fetuses that not ready remained in womb (array).
+
+WombFlush($slave) - clean womb (array). Can be used at broodmother birthstorm or abortion situations in game. But birthstorm logicaly should use WombBirth($slave, 35) or so before - some children in this event is live capable, others is not.
+
+$slave.bellyPreg = WombGetWolume($slave) - return double, with current womb volume in CC - for updating $slave.bellyPreg, or if need to update individual fetuses sizes.
+*/
+
+window.WombInit = function(actor) //Init womb system.
+{
+    
+    if (!Array.isArray(actor.womb))
+    {   
+       //alert("creating new womb"); //debugging
+	   actor.womb = [];
+    }
+
+//    console.log("broodmother:" + typeof actor.broodmother);
+    
+    if ( typeof actor.broodmother != "number" )
+    {
+          actor.broodmother = 0;
+          actor.broodmotherFetuses = 0;
+    }
+    
+    if ( typeof actor.readyOva != "number" )
+    {
+          actor.readyOva = 0;
+    }
+
+    if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother == 0) //backward compatibility setup. Fully accurate for normal pregnancy only.
+    {
+        WombImpregnate(actor, actor.pregType, actor.pregSource, actor.preg);
+    }
+    else if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother > 0 && actor.broodmotherOnHold < 1) //sorry but for already present broodmothers it's impossible to calculate fully, aproximation used.
+    {
+        var i, pw = actor.preg, bCount, bLeft;
+        if (pw > 40)
+            pw = 40; //to avoid disaster.
+        bCount = Math.floor(actor.pregType/pw);
+        bLeft = actor.pregType - (bCount*pw);
+        if (pw > actor.pregType)
+        {
+            pw = actor.pregType // low children count broodmothers not supported here. It's emergency/backward compatibility code, and they not in game anyway. So minimum is 1 fetus in week.
+            actor.preg = pw; // fixing initial pregnancy week.
+        }
+        for (i=0; i<pw; i++)
+        {
+            WombImpregnate(actor, bCount, actor.pregSource, i); // setting fetuses for every week, up to 40 week at max.
+        }
+
+        if (bLeft > 0)
+        {
+            WombImpregnate(actor, bLeft, actor.pregSource, i+1); // setting up leftower of fetuses.
+        }
+    }
+}
+
+window.WombImpregnate = function(actor, fCount, fatherID, age)
+{
+    var i;
+    var tf;
+    for (i=0; i<fCount; i++)
+    {
+	tf = {}; //new Object
+    tf.age = age; //initial age
+    tf.fatherID = fatherID; //We can store who is father too.
+	tf.sex = Math.round(Math.random())+1; // 1 = male, 2 = female. For possible future usage, just as concept now.
+    tf.volume = 1; //Initial, to create property. Updated with actual data after WombGetVolume call.
+
+    try {
+            if (actor.womb.length == 0)
+            {
+                actor.pregWeek = age;
+                actor.preg = age;
+            }
+
+	        actor.womb.push(tf);
+        }catch(err){
+            WombInit(actor);
+            actor.womb.push(tf);
+            alert("WombImpregnate warning - " + actor.slaveName+" "+err);
+        }
+
+    }
+    
+}
+
+window.WombProgress = function(actor, ageToAdd)
+{
+    var i, ft;
+    ageToAdd = Math.ceil(ageToAdd*10)/10;
+    try {
+            for (i in actor.womb)
+            {
+                ft = actor.womb[i];
+                ft.age += ageToAdd;
+            }
+    }catch(err){
+            WombInit(actor);
+            alert("WombProgress warning - " + actor.slaveName+" "+err);
+    }
+}
+
+window.WombBirth = function(actor, readyAge)
+{
+    try{
+        actor.womb.sort(function (a, b){return b.age - a.age}); //For normal processing fetuses that more old should be first. Now - they are.
+        }catch(err){
+            WombInit(actor);
+            alert("WombBirth warning - " + actor.slaveName+" "+err);       
+        }
+
+    var birthed = [];    
+    var ready = WombBirthReady(actor, readyAge);
+    var i;
+
+    for (i=0; i<ready; i++) //here can't be used "for .. in .." syntax.
+    {
+        birthed.push(actor.womb.shift());
+    }
+
+    return birthed;
+}
+
+window.WombFlush = function(actor)
+{
+    actor.womb = [];
+}
+
+window.WombBirthReady = function(actor, readyAge)
+{
+
+    var i, ft;
+    var readyCnt = 0;
+    try {
+        for (i in actor.womb)
+        {
+            ft = actor.womb[i];
+            if (ft.age >= readyAge)
+                  readyCnt++;
+        }
+    }catch(err){
+        WombInit(actor);
+        alert("WombBirthReady warning - " + actor.slaveName+" "+err);    
+
+        return 0;
+    }
+
+    return readyCnt;
+}
+
+window.WombGetVolume = function(actor) //most code from pregJS.tw with minor adaptation.
+{
+    var i, ft;
+    var gestastionWeek;
+    var phi = 1.618;
+    var targetLen;
+    var wombSize = 0;
+    
+    try{
+
+        for (i in actor.womb)
+        {
+            ft = actor.womb[i];
+            gestastionWeek = ft.age;
+            
+            if (gestastionWeek <= 32) 
+            {
+                targetLen = (0.00006396 * Math.pow(gestastionWeek, 4)) - (0.005501 * Math.pow(gestastionWeek, 3)) + (0.161 * Math.pow(gestastionWeek, 2)) - (0.76 * gestastionWeek) + 0.208;
+            } 
+            else if (gestastionWeek <= 106) 
+            {
+                targetLen = (-0.0000004675 * Math.pow(gestastionWeek, 4)) + (0.0001905 * Math.pow(gestastionWeek, 3)) - (0.029 * Math.pow(gestastionWeek, 2)) + (2.132 * gestastionWeek) - 16.575;
+            } 
+            else 
+            {
+                targetLen = (-0.00003266 * Math.pow(gestastionWeek,2)) + (0.076 * gestastionWeek) + 43.843;
+            }
+
+            ft.volume = ((4 / 3) * (Math.PI) * (phi / 2) * (Math.pow((targetLen / 2), 3)));
+        
+            wombSize += ft.volume;
+        }
+    }catch(err){
+        WombInit(actor);
+        alert("WombGetVolume warning - " + actor.slaveName + " " + err);       
+    }
+  
+    if (wombSize < 0) //catch for strange cases, to avoid messing with outside code.
+        wombSize = 0;
+
+    return wombSize;
+}
+
+window.WombUpdatePregVars = function(actor) {
+
+    actor.womb.sort(function (a, b){return b.age - a.age});
+    if (actor.womb.length > 0)
+    {
+        if (actor.preg > 0 && actor.womb[0].age > 0)
+        {
+            actor.preg = actor.womb[0].age;
+        }
+
+        actor.pregType = actor.womb.length;
+        
+        actor.bellyPreg = WombGetVolume(actor);
+
+    }
+
+}
+
+window.WombMinPreg = function(actor)
+{
+    actor.womb.sort(function (a, b){return b.age - a.age});
+
+    if (actor.womb.length > 0) 
+        return actor.womb[actor.womb.length-1].age;
+    else
+        return 0;
+}
+
+window.WombMaxPreg = function(actor)
+{
+    actor.womb.sort(function (a, b){return b.age - a.age});
+    if (actor.womb.length > 0) 
+        return actor.womb[0].age;
+    else
+        return 0;
+}
+
+window.WombNormalizePreg = function(actor)
+{
+//    console.log("New actor: " + actor.slaveName + " ===============" + actor.name);
+    WombInit(actor);
+
+    if (actor.womb.length == 0 && actor.broodmother >= 1) // this is broodmother on hold.
+    {
+        actor.pregType = 0; 
+        actor.pregKnown = 0;
+        
+        if (actor.preg >= 0)
+            actor.preg = 0.1; //to avoid legacy code conflicts - broodmother on hold can't be impregnated, but she not on normal contraceptives. So we set this for special case.
+        
+        if (actor.pregSource > 0)
+            actor.pregSource = 0;
+
+        if (actor.pregWeek > 0) 
+            actor.pregWeek = 0;
+            
+        actor.broodmotherCountDown = 0;
+    }
+    
+    if (actor.womb.length > 0)
+    {
+        var max = WombMaxPreg(actor);
+//        console.log("max: " + max);
+//        console.log(".preg: "+ actor.preg);
+        if (actor.pregWeek < 1 )
+            actor.pregWeek = 1
+
+        if (max < actor.preg)
+        {
+            WombProgress(actor, actor.preg - max);
+//            console.log("progressin womb");
+        }
+        else if ( max > actor.preg)
+        {
+            actor.preg = max;
+//            console.log("advancing .preg");
+        }
+
+        actor.pregType = actor.womb.length;
+        actor.pregSource = actor.womb[0].fatherID;
+    } 
+    else if (actor.womb.length == 0 && actor.broodmother < 1) //not broodmother
+    {
+//        console.log("preg fixing");
+        actor.pregType = 0;
+        actor.pregKnown = 0;
+        
+        if (actor.preg > 0)
+            actor.preg = 0;
+        
+        if (actor.pregSource > 0)
+            actor.pregSource = 0;
+
+        if (actor.pregWeek > 0) // We can't properly set postpartum here, but can normalize obvious error with forgotten property.
+            actor.pregWeek = 0;
+    }
+
+    actor.bellyPreg = WombGetVolume(actor);
+}
+
+window.WombZeroID = function(actor, id)
+{
+    WombInit(actor);
+    var i, ft;
+    for (i in actor.womb)
+    {
+        ft = actor.womb[i];
+        if (ft.fatherID == id)
+            ft.fatherID = 0;
+    }
+
+    WombNormalizePreg(actor);
+}

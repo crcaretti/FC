@@ -75,10 +75,10 @@ You are using standardized slave trading channels. [[Customize the slave trade|C
 		<<silently>><<include "Customize Slave Trade">><</silently>>
 	<</if>>
 	<br style="clear:both" /><hr style="margin:0">
-	<<for _i = 0; _i < $nationalitiescheck.length; _i++>>
-	<<set _nation = $nationalitiescheck[_i]>>
-		<<print _nation>> @@.orange;<<print (($nationalities.count(_nation)/$nationalities.length)*100).toFixed(2)>>%@@
-	<<if _i < $nationalitiescheck.length-1>> | <</if>>
+	<<set _len = Object.keys($nationalitiescheck).length>>
+	<<for _nation, _i range $nationalitiescheck>>
+		<<print _nation>> @@.orange;<<print (($nationalities[_nation]/hashSum($nationalities))*100).toFixed(2)>>%@@
+	<<if _i < _len-1>> | <</if>>
 	<</for>>
 	<br style="clear:both" /><hr style="margin:0">
 <</if>> /* closes $customVariety is defined */
@@ -420,9 +420,9 @@ The lingua franca of your arcology is <<textbox "$language" $language "Intro Sum
 	Arabic |
 <</if>>
 <<if $language != "Chinese">>
-	[[Chinese|Intro Summary][$language = "Chinese"]] |
+	[[Chinese|Intro Summary][$language = "Chinese"]]
 <<else>>
-	Chinese |
+	Chinese
 <</if>>
 <</if>>
 
@@ -456,16 +456,16 @@ __''Player Character''__
 		<<if $PCCreationSex != "masculine ''Master''">>
 			[[masculine Master|Intro Summary][$PC.title = 1, $PCCreationSex = "masculine ''Master''"]] 
 		<<elseif $PCCreationSex != "feminine ''Mistress''">>
-			[[feminine Mistress|Intro Summary][$PC.title = 0, $PCCreationSex = "feminine ''Mistress'"]] 
+			[[feminine Mistress|Intro Summary][$PC.title = 0, $PCCreationSex = "feminine ''Mistress''"]] 
 		<</if>>
 
-	<br>Everyone calls you ''<<textbox "$PC.name" $PC.name>>'' <<if $PC.surname == 1>> ''<<textbox "$PC.surname" $PC.surname>>'' <</if>>
+	<br>Everyone calls you ''<<textbox "$PC.name" $PC.name>>'' <<if $PC.surname>> ''<<textbox "$PC.surname" $PC.surname>>'' <</if>>
 	<br>
 	<<if $PC.surname == 0>>
 	<<link "Add a surname">>
-		<<set $PC.surname = 1>>
+		<<set $PC.surname = "Anon">>
 		<<goto "Intro Summary">>
-	<</link>> //Surnames cannot be changed during the game outisde of special circumstances//
+	<</link>> //Surnames cannot be changed during the game outside of special circumstances.//
 	<</if>>
 
 	<<if $PC.surname != 0>>
@@ -474,7 +474,6 @@ __''Player Character''__
 		<<goto "Intro Summary">>
 	<</link>>
 	<</if>>
-	.
 
 	<br>
 	You are <<textbox "$PC.actualAge" $PC.actualAge "Intro Summary">> years old which is 
@@ -489,7 +488,7 @@ __''Player Character''__
 	<</if>>
 	<<set $PC.physicalAge = $PC.actualAge, $PC.visualAge = $PC.actualAge>>
 	
-	Your birthday will be in <<textbox "$PC.birthWeek" $PC.birthWeek "Intro Summary">> weeks
+	Your birthday was <<textbox "$PC.birthWeek" $PC.birthWeek "Intro Summary">> weeks ago.
 
 	<<if $playerAging == 2>>
 		and you ''age naturally''.
@@ -575,28 +574,30 @@ __''Player Character''__
 
 	<<switch $PC.career>>
 		<<case "capitalist">>
-			<<set $PCCreationCareer = "business leader">>
+			<<set $PCCreationCareer = "a business leader">>
 		<<case "mercenary">>
-			<<set $PCCreationCareer = "mercenary">>
+			<<set $PCCreationCareer = "a mercenary">>
 		<<case "slaver">>
-			<<set $PCCreationCareer = "slaver">>
+			<<set $PCCreationCareer = "a slaver">>
 		<<case "engineer">>
-			<<set $PCCreationCareer = "engineer">>
+			<<set $PCCreationCareer = "an engineer">>
 		<<case "medicine">>
-			<<set $PCCreationCareer = "doctor">>
+			<<set $PCCreationCareer = "a doctor">>
 		<<case "celebrity">>
-			<<set $PCCreationCareer = "minor celebrity">>
+			<<set $PCCreationCareer = "a minor celebrity">>
 		<<case "escort">>
-			<<set $PCCreationCareer = "escort">>
+			<<set $PCCreationCareer = "an escort">>
 		<<case "servant">>
-			<<set $PCCreationCareer = "servant">>
+			<<set $PCCreationCareer = "a servant">>
 		<<case "gang">>
-			<<set $PCCreationCareer = "gang leader">>
+			<<set $PCCreationCareer = "a gang leader">>
+		<<case "BlackHat">>
+			<<set $PCCreationCareer = "an incursion specialist">>
 		<<default>>
-			<<set $PCCreationCareer = "member of the idle wealthy">>
+			<<set $PCCreationCareer = "a member of the idle wealthy">>
 	<</switch>>
 	<br>
-	Before you came to the free cities, you were a ''$PCCreationCareer'' and it is rumoured that you acquired your arcology through ''$PC.rumor''.
+	Before you came to the free cities, you were ''$PCCreationCareer'' and it is rumoured that you acquired your arcology through ''$PC.rumor''.
 	
 	<br>__Past career:__
 	<<if $PC.career != "arcology owner">>
@@ -606,6 +607,7 @@ __''Player Character''__
 		[[slaver|Intro Summary][$PC.career = "slaver"]] |
 		[[engineer|Intro Summary][$PC.career = "engineer"]] |
 		[[doctor|Intro Summary][$PC.career = "medicine"]] |
+		[[hacker|Intro Summary][$PC.career = "BlackHat"]] |
 		[[minor celebrity|Intro Summary][$PC.career = "celebrity"]] |
 		[[escort|Intro Summary][$PC.career = "escort"]] |
 		[[servant|Intro Summary][$PC.career = "servant"]] |
@@ -784,6 +786,8 @@ __''Player Character''__
 		Prior to being an arcology owner, you were a surgeon.
 	<<case "celebrity">>
 		Prior to being an arcology owner, you were a minor celebrity.
+	<<case "BlackHat">>
+		Prior to being an arcology owner, you specialized in cracking databases and making mockeries of cyber security.
 	<<case "arcology owner">>
 		Being an arcology owner defines your life now.
 	<<case "escort">>
@@ -953,7 +957,7 @@ __''Mods''__
 [[Enable|Intro Summary][$SFMODToggle = 1]]
 <</if>>
 <br>
-// This mod initally from anon1888 but expanded by SFanon offers a lategame special (initally, security but changed to Special in order to try and reduce confusion with crimeanon's seperate Security Expansion mod) force, triggered around week 80. It is non-canon where it conflicts with canonical updates to the base game.//
+// This mod initially from anon1888 but expanded by SFanon offers a lategame special (initially, security but changed to Special in order to try and reduce confusion with crimeanon's separate Security Expansion mod) force, triggered around week 80. It is non-canon where it conflicts with canonical updates to the base game.//
 
 <br><br>
 
@@ -994,14 +998,16 @@ __''Mods''__
 				<<set $PC.engineering = 100>>
 			<<case "medicine">>
 				<<set $PC.medicine = 100>>
+			<<case "BlackHat">>
+				<<set $PC.hacking = 100>>
 			<<case "arcology owner">>
-				<<set $PC.trading = 100, $PC.warfare = 100, $PC.slaving = 100, $PC.engineering = 100, $PC.medicine = 100>>
+				<<set $PC.trading = 100, $PC.warfare = 100, $PC.hacking = 100, $PC.slaving = 100, $PC.engineering = 100, $PC.medicine = 100>>
 			<<case "escort">>
-				<<set $PC.trading = 50, $PC.warfare = -100, $PC.slaving = -100, $PC.engineering = -100, $PC.medicine = 10>>
+				<<set $PC.trading = 50, $PC.warfare = -100, $PC.slaving = -100, $PC.engineering = -100, $PC.medicine = 10, $PC.hacking = 10>>
 			<<case "servant">>
-				<<set $PC.trading = -100, $PC.warfare = -100, $PC.slaving = -100, $PC.engineering = -100, $PC.medicine = -100>>
+				<<set $PC.trading = -100, $PC.warfare = -100, $PC.slaving = -100, $PC.engineering = -100, $PC.medicine = -100, $PC.hacking = -100>>
 			<<case "gang">>
-				<<set $PC.trading = 50, $PC.warfare = 50, $PC.slaving = 50, $PC.engineering = -100, $PC.medicine = 0>>
+				<<set $PC.trading = 50, $PC.warfare = 50, $PC.slaving = 50, $PC.engineering = -100, $PC.medicine = 0, $PC.hacking = 50>>
 		<</switch>>
 	<</if>>
 	<<if $saveImported == 1 && $freshPC == 0 && $girls < 3>>
@@ -1022,4 +1028,4 @@ __''Mods''__
 <</if>>
 
 <br><br>
-[[Cheat Start|init Nationalities][$cash += 1000000,$girls = 3,$rep += 10000,$dojo += 1,$cheatMode = 1,$seeDesk = 0, $seeFCNN = 0, $sortSlavesBy = "devotion",$sortSlavesOrder = "descending",$sortSlavesMain = 0,$rulesAssistantMain = 1,$abbreviateDevotion = 1,$abbreviateRules = 1,$abbreviateClothes = 2,$abbreviateHealth = 1,$abbreviateDiet = 1,$abbreviateDrugs = 1,$abbreviateRace = 1,$abbreviateNationality = 1,$abbreviateGenitalia = 1,$abbreviatePhysicals = 1,$abbreviateSkills = 1,$abbreviateMental = 2,$PC.trading = 100,$PC.warfare = 100,$PC.slaving = 100,$PC.engineering = 100,$PC.medicine = 100]] | //Intended for debugging: may have unexpected effects//
+[[Cheat Start|init Nationalities][$cash += 1000000,$girls = 3,$rep += 10000,$dojo += 1,$cheatMode = 1,$seeDesk = 0, $seeFCNN = 0, $sortSlavesBy = "devotion",$sortSlavesOrder = "descending",$sortSlavesMain = 0,$rulesAssistantMain = 1,$abbreviateDevotion = 1,$abbreviateRules = 1,$abbreviateClothes = 2,$abbreviateHealth = 1,$abbreviateDiet = 1,$abbreviateDrugs = 1,$abbreviateRace = 1,$abbreviateNationality = 1,$abbreviateGenitalia = 1,$abbreviatePhysicals = 1,$abbreviateSkills = 1,$abbreviateMental = 2,$PC.trading = 100,$PC.warfare = 100,$PC.slaving = 100,$PC.engineering = 100,$PC.medicine = 100,$PC.hacking = 100]] | //Intended for debugging: may have unexpected effects//

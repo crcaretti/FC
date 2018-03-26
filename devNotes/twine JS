@@ -191,7 +191,7 @@ if (typeof SlaveStatsChecker == "undefined") {
 	var SlaveStatsChecker = {
 		checkForLisp: function (slave) {
 				/* Begin mod section: toggle whether slaves lisp. */
-				if (SugarCube.State && SugarCube.State.variables.disableLisping == 1) {
+				if (State && State.variables.disableLisping == 1) {
 					return false;
 				}
 				/* End mod section: toggle whether slaves lisp. */
@@ -293,7 +293,11 @@ window.canImpreg = function(slave1, slave2) {
 window.isFertile = function(slave) {
 	if (!slave) {
 		return null;
-	} else if (slave.preg > 0) { /* currently pregnant */
+	}
+
+	WombInit(slave);
+
+	if (slave.womb.length > 0 || slave.broodmother > 0) { /* currently pregnant or broodmother */
 		return false;
 	} else if (slave.preg < -1) { /* sterile */
 		return false;
@@ -704,11 +708,6 @@ window.isItemAccessible = function(string) {
 	}
 };
 
-window.ruleApplied = function(slave, ID) {
-	if (!slave || !slave.currentRules)
-		return null;
-	return slave.currentRules.includes(ID);
-};
 
 window.expandFacilityAssignments = function(facilityAssignments) {
 	var assignmentPairs = {
@@ -733,139 +732,6 @@ window.expandFacilityAssignments = function(facilityAssignments) {
 	});
 	return fullList.flatten();
 };
-
-window.ruleSlaveSelected = function(slave, rule) {
-	if (!slave || !rule || !rule.selectedSlaves)
-		return false;
-	return rule.selectedSlaves.includes(slave.ID);
-};
-
-window.ruleSlaveExcluded = function(slave, rule) {
-	if (!slave || !rule || !rule.excludedSlaves)
-		return false;
-	return rule.excludedSlaves.includes(slave.ID);
-};
-
-window.ruleAssignmentSelected = function(slave, rule) {
-	if (!slave || !rule || (!rule.assignment && !rule.facility))
-		return false;
-	var assignment = rule.assignment.concat(expandFacilityAssignments(rule.facility));
-	return assignment.includes(slave.assignment);
-}
-
-window.ruleAssignmentExcluded = function(slave, rule) {
-	if (!slave || !rule || (!rule.excludeAssignment && !rule.excludeFacility))
-		return false;
-	var excludeAssignment = rule.excludeAssignment.concat(expandFacilityAssignments(rule.excludeFacility));
-	return excludeAssignment.includes(slave.assignment);
-}
-
-window.hasSurgeryRule = function(slave, rules) {
-	if (!slave || !rules || !slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].autoSurgery > 0) {
-				return true;
-			}
-		}
-	}
-	return false;
-};
-
-window.hasRuleFor = function(slave, rules, what) {
-	if (!slave || !rules || !slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d][what] !== "no default setting") {
-				return true;
-			}
-		}
-	}
-	return false;
-};
-
-window.hasHColorRule = function(slave, rules) {
-	return hasRuleFor(slave, rules, "hColor");
-}
-
-window.hasHStyleRule = function(slave, rules) {
-	return hasRuleFor(slave, rules, "hStyle");
-};
-
-window.hasEyeColorRule = function(slave, rules) {
-	return hasRuleFor(slave, rules, "eyeColor");
-};
-
-window.lastPregRule = function(slave, rules) {
-	if (!slave || !rules)
-		return null;
-	if (!slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].preg == -1) {
-				return true;
-			}
-		}
-	}
-
-	return null;
-};
-
-window.lastSurgeryRuleFor = function(slave, rules, what) {
-	if (!slave || !rules || !slave.currentRules)
-		return null;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (!rules[d].surgery)
-			return null;
-
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].surgery[what] != "no default setting") {
-				return rules[d];
-			}
-		}
-	}
-
-	return null;
-};
-
-window.lastEyeSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "eyes");
-}
-
-window.lastLactationSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "lactation");
-}
-
-window.lastProstateSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "prostate");
-}
-
-window.lastLipSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "lips");
-};
-
-window.lastBoobSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "boobs");
-};
-
-window.lastButtSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "butt");
-};
-
-window.lastHairSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "hair");
-}
-
-window.lastBodyHairSurgeryRule = function(slave, rules) {
-	return lastSurgeryRuleFor(slave, rules, "bodyhair");
-}
 
 window.milkAmount = function(slave) {
 	var milk;
@@ -1038,56 +904,6 @@ window.nameReplace = function(name)
 	return name;
 }
 
-window.mergeRules = function(rules) {
-    var combinedRule = {};
-
-    for (var i = 0; i < rules.length; i++) {
-        for (var prop in rules[i]) {
-            // A rule overrides any preceding ones if,
-            //   * there are no preceding ones,
-            //   * or it sets autoBrand,
-            //   * or it does not set autoBrand and is not "no default setting"
-            var applies = (
-                combinedRule[prop] === undefined
-                || (prop === "autoBrand" && rules[i][prop])
-                || (prop !== "autoBrand" && rules[i][prop] !== "no default setting")
-            );
-
-            if (applies)
-            {
-
-            	//Objects in JS in operations "=" pass by reference, so we need a completely new object to avoid messing up previous rules.
-            	if ("object" == typeof rules[i][prop] && "object" != typeof combinedRule[prop])
-            		combinedRule[prop] = new Object();
-
-            	//If we already have object - now we will process its properties, but object itself should be skipped.
-            	if ("object" != typeof combinedRule[prop])
-                	combinedRule[prop] = rules[i][prop];
-
-            	/*Some properties of rules now have second level properties. We need to check it, and change ones in combinedRule. (Good example - growth drugs. Breasts, butt, etc...) */
-            	if ( "object" == typeof rules[i][prop])
-    	        {
-	            	for (var subprop in rules[i][prop])
-    	        	{
-    	           		var subapplies = (
-            	    	combinedRule[prop][subprop] === undefined
-                			|| (rules[i][prop][subprop] !== "no default setting")
-	            		);
-
-		            	if (subapplies)
-    		            	combinedRule[prop][subprop] = rules[i][prop][subprop];
-    		        }
-
-            	}
-           	}
-
-        }
-
-    }
-
-    return combinedRule;
-}
-
 window.isVegetable = function(slave) {
 	slave = slave || State.variables.activeSlave;
 	if(!slave) { return false; }
@@ -1111,7 +927,7 @@ window.bodyguardSuccessorEligible = function(slave) {
 };
 
 window.ngUpdateGenePool = function(genePool) {
-  var transferredSlaveIds = (SugarCube.State.variables.slaves || [])
+  var transferredSlaveIds = (State.variables.slaves || [])
     .filter(function(s) { return s.ID >= 1200000; })
     .map(function(s) { return s.ID - 1200000; });
   return (genePool || [])
@@ -1173,6 +989,18 @@ window.jsConsoleInfo = function(obj)
 
 /* see documentation for details /devNotes/Extended Family Mode Explained.txt */
 
+window.isMotherP = function isMotherP(daughter, mother) {
+	return daughter.mother === mother.ID
+}
+
+window.isFatherP = function isFatherP(daughter, father) {
+	return daughter.father === father.ID
+}
+
+window.isParentP = function isParentP(daughter, parent) {
+	return isMotherP(daughter,parent) || isFatherP(daughter,parent)
+}
+
 window.sameDad = function(slave1, slave2){
 	if ((slave1.father == slave2.father) && (slave1.father != 0 && slave1.father != -2)) {
 		return true;
@@ -1191,7 +1019,7 @@ window.sameMom = function(slave1, slave2){
 
 // testtest catches the case if a mother is a father or a father a mother - thank you familyAnon, for this code
 window.sameTParent = function(slave1, slave2) {
-	if (slave1.mother == -1 && slave1.father == 1 && slave2.mother == -1 && slave2.father == -1) {
+	if (slave1.mother == -1 && slave1.father == -1 && slave2.mother == -1 && slave2.father == -1) {
 		return 1;
 	} else if (slave1.mother == slave2.father && slave1.father == slave2.mother && slave1.mother != 0 && slave1.mother != -2 && slave1.father != 0 && slave1.father != -2 && slave1.mother != slave1.father) {
 		return 2;
@@ -1227,7 +1055,9 @@ window.areTwins = function(slave1, slave2) {
 window.areSisters = function(slave1, slave2) {
 	if (slave1.ID == slave2.ID) {
 		return 0; //you are not your own sister
-	} else if ((slave1.father != 0 && slave1.father != -2) || (slave1.mother != 0 && slave1.mother != -2)) {
+    } else if (((slave1.father == 0) || (slave1.father == -2)) && ((slave1.mother == 0) || (slave1.mother == -2))) {
+		return 0; //not related
+	} else {
 		if (sameDad(slave1, slave2) == false && sameMom(slave1, slave2) == true) {
 			return 3; //half sisters
 		} else if (sameDad(slave1, slave2) == true && sameMom(slave1, slave2) == false) {
@@ -1245,8 +1075,6 @@ window.areSisters = function(slave1, slave2) {
 		} else {
 			return 0; //not related
 		}
-	} else {
-		return 0; //not related
 	}
 };
 
@@ -1273,6 +1101,10 @@ window.areSisters = function(c1, c2) {
 	}
 }
 */
+
+window.areRelated = function(slave1, slave2) {
+	return (slave1.father == slave2.ID || slave1.mother == slave2.ID || slave2.father == slave1.ID || slave2.mother == slave1.ID || areSisters(slave1, slave2) > 0);
+}
 
 window.totalRelatives = function(slave) {
 	var relatives = 0;
@@ -1304,7 +1136,7 @@ window.isSlaveAvailable = function(slave) {
 		return false;
 	} else if (slave.assignment == "be confined in the arcade") {
 		return false;
-	} else if (slave.assignment == "work in the dairy" && SugarCube.State.variables.DairyRestraintsSetting >= 2) {
+	} else if (slave.assignment == "work in the dairy" && State.variables.DairyRestraintsSetting >= 2) {
 		return false;
 	} else {
 		return true;
@@ -1326,7 +1158,7 @@ if (typeof DairyRestraintsSetting == "undefined") {
 window.randomRelatedSlave = function(slave, filterFunction) {
   if(!slave || !SugarCube) { return undefined; }
   if(typeof filterFunction !==  'function') { filterFunction = function(s, index, array) { return true; }; }
-  return SugarCube.State.variables.slaves.filter(filterFunction).shuffle().find(function(s, index, array) {return areSisters(slave, s) || s.mother == slave.ID || s.father == slave.ID || slave.ID == s.mother || slave.ID == s.father; })
+  return State.variables.slaves.filter(filterFunction).shuffle().find(function(s, index, array) {return areSisters(slave, s) || s.mother == slave.ID || s.father == slave.ID || slave.ID == s.mother || slave.ID == s.father; })
 }
 */
 
@@ -1335,7 +1167,7 @@ window.randomRelatedSlave = function(slave, filterFunction) {
   if(typeof filterFunction !== 'function') {
     filterFunction = function(s, index, array) { return true; };
   }
-  var arr = SugarCube.State.variables.slaves.filter(filterFunction)
+  var arr = State.variables.slaves.filter(filterFunction)
   arr.shuffle()
   return arr.find(function(s, index, array) {
     return areSisters(slave, s)
@@ -1399,6 +1231,23 @@ window.totalPlayerRelatives = function(pc) {
 	return relatives
 };
 
+window.relativeTerm = function(slave1, slave2) {
+	if(slave2.mother == slave1.ID || slave2.father == slave1.ID) {
+		return "daughter";
+	} else if(slave1.mother == slave2.ID) {
+		return "mother";
+	} else if(slave1.father == slave2.ID) {
+		return "father";
+	} else if(areSisters(slave2, slave1) == 1) {
+		return "twin";
+	} else if(areSisters(slave2, slave1) == 2) {
+		return "sister";
+	} else if(areSisters(slave2, slave1) == 3) {
+		return "half-sister";
+	} else {
+		return "some unknown blood connection";
+	}
+}
 
 /*:: pregJS [script]*/
 
@@ -1460,6 +1309,83 @@ window.bellyAdjective = function(slave) {
 		}
 	} else {
 		return '';
+	}
+}
+
+/* calculates and returns expected ovum count during conception*/
+window.setPregType = function(actor) {
+	/* IMHO rework is posssible. Can be more interesting to play, if this code will take in account more body conditions - age, fat, food, hormone levels, etc. */
+	
+	var ovum = 1;
+	var fertilityStack = 0;	// adds an increasing bonus roll for stacked fertility drugs
+
+	if(actor.broodmother < 1) { /* Broodmothers should be not processed here. Necessary now.*/
+		if(typeof actor.readyOva == "number" && actor.readyOva != 0) {
+			ovum = actor.readyOva;  /*just single override; for delayed impregnation cases */
+		} else if(actor.ID == -1) {
+			if(actor.birthMaster > 0) { // Predisposed to twins
+				if(actor.fertDrugs == 1) {
+					ovum += jsEither([1, 1, 2, 2, 2, 2, 3, 3]);
+				} else {
+					ovum += jsEither([0, 0, 0, 1, 1, 1, 1, 1, 1, 2]);
+				}
+				if(actor.forcedFertDrugs > 0) {
+					ovum += jsEither([1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4]);
+				}
+			} else {
+				if(actor.fertDrugs == 1) {
+					ovum += jsEither([0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3]);
+				} else {
+					ovum += jsEither([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+				}
+				if(actor.forcedFertDrugs > 0) {
+					ovum += jsEither([0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4]);
+				}
+			}
+		} else if(actor.pregType == 0) {
+			ovum += jsEither([0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);	//base chance for twins
+			if(actor.hormones == 2) {
+				ovum += jsEither([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2]);
+				fertilityStack++;
+			}
+			if(actor.hormoneBalance >= 400) {
+				ovum += jsEither([0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 3]);
+				fertilityStack++;
+			}
+			if(actor.diet == "fertility") {
+				ovum += jsEither([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
+				fertilityStack++;
+			}
+			if(State.variables.masterSuitePregnancyFertilitySupplements == 1 && ((actor.assignment == "serve in the master suite" || actor.assignment == "be your Concubine"))) {
+				ovum += jsEither([0, 0, 0, 1, 1, 2, 2, 2, 3, 3]);
+				fertilityStack++;
+				fertilityStack++;
+			}
+			if(actor.drugs == "super fertility drugs") {
+				ovum += jsEither([1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5]);
+				fertilityStack++;
+				fertilityStack++;
+				fertilityStack++;
+				fertilityStack++;
+				fertilityStack++;
+			} else if(actor.drugs == "fertility drugs") {
+				ovum += jsEither([0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3]);
+				fertilityStack++;
+			}
+			if(State.variables.seeHyperPreg == 1) {
+				if(actor.drugs == "super fertility drugs") {
+					ovum += jsRandom(0, fertilityStack*2);
+				} else {
+					ovum += jsRandom(0, fertilityStack);
+				}
+			} else {
+				ovum += jsRandom(0, fertilityStack);
+				if(ovum > 12) {
+					ovum = jsRandom(6,12);
+				}
+			}
+		}
+		return ovum;
 	}
 }
 
@@ -1776,7 +1702,7 @@ window.Job = Object.freeze({
 	SERVANT: 'work as a servant', SERVER: 'be a servant', STEWARD: 'be the Stewardess', CLUB: 'serve in the club', DJ: 'be the DJ',
 	JAIL: 'be confined in the cellblock', WARDEN: 'be the Wardeness', CLINIC: 'get treatment in the clinic', NURSE: 'be the Nurse',
 	HGTOY: 'live with your Head Girl', SCHOOL: 'learn in the schoolroom', TEACHER: 'be the Schoolteacher', SPA: 'rest in the spa', ATTEND: 'be the Attendant'});
-window.PersonalAttention = Object.freeze({TRADE: 'trading', WAR: 'warfare', SLAVEING: 'slaving', ENGINEERING: 'engineering', MEDICINE: 'medicine', MAID: 'upkeep'});
+window.PersonalAttention = Object.freeze({TRADE: 'trading', WAR: 'warfare', SLAVEING: 'slaving', ENGINEERING: 'engineering', MEDICINE: 'medicine', MAID: 'upkeep', HACKING: 'hacking'});
 
 window.getCost = function(array) {
 	var rulesCost = State.variables.rulesCost;
@@ -2038,6 +1964,8 @@ window.getCost = function(array) {
 		costs += 10000*State.variables.AgeEffectOnTrainerPricingPC;
 	} else if(State.variables.personalAttention === PersonalAttention.MEDICINE) {
 		costs += 10000*State.variables.AgeEffectOnTrainerPricingPC;
+	} else if(State.variables.personalAttention === PersonalAttention.HACKING) {
+			costs += 10000*State.variables.AgeEffectOnTrainerPricingPC;
 	}
 	}
 
@@ -2210,7 +2138,7 @@ window.getSlaveCost = function(s) {
 			cost += foodCost * s.pregType * (s.pregControl === 'speed up' ? 3 : 1);
 		}
 	}
-	if(s.diet === 'XX' || s.diet === 'XY') {
+	if(s.diet === 'XX' || s.diet === 'XY' || s.diet === 'fertility') {
 		cost += 25;
 	} else if(s.diet === 'cleansing') {
 		cost += 50;
@@ -3637,7 +3565,6 @@ window.numberWithCommas = function(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-
 window.jsRandom = function(min,max) {
     return Math.floor(Math.random()*(max-min+1)+min);
 }
@@ -3655,6 +3582,17 @@ window.jsRandomMany = function (arr, count) {
 window.jsEither = function(choices) {
 	var index = Math.floor(Math.random() * choices.length);
 	return choices[index];
+}
+
+//This function is alternative to clone - usage needed if nested objects present. Slower but result is separate object tree, not with reference to source object.
+window.deepCopy = function (o) {
+   var output, v, key;
+   output = Array.isArray(o) ? [] : {};
+   for (key in o) {
+       v = o[key];
+       output[key] = (typeof v === "object") ? deepCopy(v) : v;
+   }
+   return output;
 }
 
 /*
@@ -3705,6 +3643,49 @@ Macro.add('span', {
 			.appendTo(this.output);
 	}
 });
+
+window.hashChoice = function hashChoice(obj) {
+	let randint = Math.floor(Math.random()*hashSum(obj));
+	let ret;
+	Object.keys(obj).some(key => {
+		if (randint < obj[key]) {
+			ret = key;
+			return true;
+		} else {
+			randint -= obj[key];
+			return false;
+		}
+	});
+	return ret;
+};
+
+window.hashSum = function hashSum(obj) {
+	let sum = 0;
+	Object.keys(obj).forEach(key => { sum += obj[key]; });
+	return sum;
+};
+
+window.arr2obj = function arr2obj(arr) {
+	const obj = {};
+	arr.forEach(item => { obj[item] = 1; });
+	return obj;
+};
+
+window.hashPush = function hashPush(obj, ...rest) {
+	rest.forEach(item => {
+		if (obj[item] === undefined) obj[item] = 1;
+		else obj[item] += 1;
+	});
+};
+
+window.weightedArray2HashMap = function weightedArray2HashMap(arr) {
+	const obj = {};
+	arr.forEach(item => {
+		if (obj[item] === undefined) obj[item] = 1;
+		else obj[item] += 1;
+	})
+	return obj;
+};
 
 /*:: EventSelectionJS [script]*/
 
@@ -5220,6 +5201,16 @@ if(eventSlave.fetish != "mindbroken") {
 			}
 		}
 	}
+	
+	if(eventSlave.vagina == 0) {
+		if(eventSlave.devotion > 50) {
+			if(eventSlave.trust > 20) {
+				if(eventSlave.speechRules != "restrictive") {
+					State.variables.RESSevent.push("devoted virgin");
+				}
+			}
+		}
+	}
 
 	if(eventSlave.anus == 0) {
 		if(eventSlave.devotion > 50) {
@@ -5275,7 +5266,9 @@ if(eventSlave.fetish != "mindbroken") {
 
 	if(eventSlave.aphrodisiacs > 1 || eventSlave.inflationType == "aphrodisiac") {
 		if(eventSlave.speechRules == "restrictive" && eventSlave.releaseRules !== "permissive") {
-			State.variables.RESSevent.push("extreme aphrodisiacs");
+			if(eventSlave.amp != 1) {
+				State.variables.RESSevent.push("extreme aphrodisiacs");
+			}
 		}
 	}
 
@@ -5287,10 +5280,12 @@ if(eventSlave.fetish != "mindbroken") {
 
 	if(eventSlave.releaseRules != "restrictive") {
 		if(eventSlave.dick > 4) {
-			if(canAchieveErection(eventSlave)) {
-				if(eventSlave.belly < 10000) {
-					if(eventSlave.dickAccessory != "chastity" && eventSlave.dickAccessory != "combined chastity") {
-						State.variables.RESSevent.push("slave dick huge");
+			if(eventSlave.amp != 1){
+				if(canAchieveErection(eventSlave)) {
+					if(eventSlave.belly < 10000) {
+						if(eventSlave.dickAccessory != "chastity" && eventSlave.dickAccessory != "combined chastity") {
+							State.variables.RESSevent.push("slave dick huge");
+						}
 					}
 				}
 			}
@@ -6424,6 +6419,16 @@ if(eventSlave.fetish != "mindbroken") {
 			}
 		}
 	}
+	
+	if(eventSlave.vagina == 0) {
+		if(eventSlave.devotion > 50) {
+			if(eventSlave.trust > 20) {
+				if(eventSlave.speechRules != "restrictive") {
+					State.variables.RESSevent.push("devoted virgin");
+				}
+			}
+		}
+	}
 
 	if(eventSlave.anus == 0) {
 		if(eventSlave.devotion > 50) {
@@ -6451,7 +6456,9 @@ if(eventSlave.fetish != "mindbroken") {
 
 	if(eventSlave.aphrodisiacs > 1 || eventSlave.inflationType == "aphrodisiac") {
 		if(eventSlave.speechRules == "restrictive" && eventSlave.releaseRules !== "permissive") {
-			State.variables.RESSevent.push("extreme aphrodisiacs");
+			if(eventSlave.amp != 1) {
+				State.variables.RESSevent.push("extreme aphrodisiacs");
+			}
 		}
 	}
 
@@ -6463,10 +6470,12 @@ if(eventSlave.fetish != "mindbroken") {
 
 	if(eventSlave.releaseRules != "restrictive") {
 		if(eventSlave.dick > 4) {
-			if(canAchieveErection(eventSlave)) {
-				if(eventSlave.belly < 10000) {
-					if(eventSlave.dickAccessory != "chastity" && eventSlave.dickAccessory != "combined chastity") {
-						State.variables.RESSevent.push("slave dick huge");
+			if(eventSlave.amp != 1){
+				if(canAchieveErection(eventSlave)) {
+					if(eventSlave.belly < 10000) {
+						if(eventSlave.dickAccessory != "chastity" && eventSlave.dickAccessory != "combined chastity") {
+							State.variables.RESSevent.push("slave dick huge");
+						}
 					}
 				}
 			}
@@ -6817,6 +6826,1511 @@ window.slimPass = function(slave) {
 	return slimPass;
 }
 
+window.sameAssignmentP = function sameAssignmentP(A, B) {
+	return A.assignment === B.assignment
+}
+
+window.haveRelationP = function haveRelationP(slave, target) {
+	return slave.relationTarget === target.ID
+}
+
+window.haveRelationshipP = function haveRelationshipP(slave, target) {
+	return slave.relationshipTarget === target.ID
+}
+
+window.isRivalP = function isRivalP(slave, target) {
+	return slave.rivalryTarget === target.ID
+}
+
+window.supremeRaceP = function supremeRaceP(slave) {
+	return SugarCube.State.variables.arcologies[0].FSSupremacistRace === slave.race
+}
+
+window.inferiorRaceP = function inferiorRaceP(slave) {
+	return SugarCube.State.variables.arcologies[0].FSSubjugationistRace === slave.race
+}
+
+/*:: wombJS [script]*/
+
+/*
+This is womb processor/simulator script. It's take care about calculation of belly sizes based on individual foetus sizes, 
+with full support of broodmothers implant random turning on and off possibility. Also this can be expanded to store more parents data in each individual fetus in future.
+Design limitations:
+- Mother can't gestate children with different speeds at same time. All speed changes apply to all fetuses.
+- Sizes of inividual fetuses updated only on call of WombGetVolume - not every time as called WombProgress. This is for better overail code speed.
+- For broodmothers we need actual "new ova release" code now. But it's possible to control how many children will be added each time, and so - how much children is ready to birth each time.
+
+Usage from sugarcube code (samples):
+
+WombInit($slave) - before first pregnancy, at slave creation, of as backward compatibility update.
+
+WombImpregnate($slave, $fetus_count, $fatherID, $initial_age) - should be added after normal impregnation code, with already calcualted fetus count. ID of father - can be used in future for prcess children from different fathers in one pregnancy. Initial age normally 1 (as .preg normally set to 1), but can be raised if needed. Also should be called at time as broodmother implant add another fetus(es), or if new fetuses added from other sources in future (transplanting maybe?)
+
+WombProgress($slave, $time_to_add_to_fetuses) - after code that update $slave.preg, time to add should be the same.
+
+$isReady = WombBirthReady($slave, $birth_ready_age) - how many children ready to be birthed if their time to be ready is $birth_ready_age (40 is for normal length pregnancy). Return int - count of ready to birth children, or 0 if no ready exists. 
+
+$children = WombBirth($slave, $birth_ready_age) - for actual birth. Return array with fetuses objects that birthed (can be used in future) and remove them from womb array of $slave. Should be called at actual birth code in sugarcube. fetuses that not ready remained in womb (array).
+
+WombFlush($slave) - clean womb (array). Can be used at broodmother birthstorm or abortion situations in game. But birthstorm logicaly should use WombBirth($slave, 35) or so before - some children in this event is live capable, others is not.
+
+$slave.bellyPreg = WombGetWolume($slave) - return double, with current womb volume in CC - for updating $slave.bellyPreg, or if need to update individual fetuses sizes.
+*/
+
+window.WombInit = function(actor) //Init womb system.
+{
+    
+    if (!Array.isArray(actor.womb))
+    {   
+       //alert("creating new womb"); //debugging
+	   actor.womb = [];
+    }
+
+//    console.log("broodmother:" + typeof actor.broodmother);
+    
+    if ( typeof actor.broodmother != "number" )
+    {
+          actor.broodmother = 0;
+          actor.broodmotherFetuses = 0;
+    }
+    
+    if ( typeof actor.readyOva != "number" )
+    {
+          actor.readyOva = 0;
+    }
+
+    if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother == 0) //backward compatibility setup. Fully accurate for normal pregnancy only.
+    {
+        WombImpregnate(actor, actor.pregType, actor.pregSource, actor.preg);
+    }
+    else if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother > 0 && actor.broodmotherOnHold < 1) //sorry but for already present broodmothers it's impossible to calculate fully, aproximation used.
+    {
+        var i, pw = actor.preg, bCount, bLeft;
+        if (pw > 40)
+            pw = 40; //to avoid disaster.
+        bCount = Math.floor(actor.pregType/pw);
+        bLeft = actor.pregType - (bCount*pw);
+        if (pw > actor.pregType)
+        {
+            pw = actor.pregType // low children count broodmothers not supported here. It's emergency/backward compatibility code, and they not in game anyway. So minimum is 1 fetus in week.
+            actor.preg = pw; // fixing initial pregnancy week.
+        }
+        for (i=0; i<pw; i++)
+        {
+            WombImpregnate(actor, bCount, actor.pregSource, i); // setting fetuses for every week, up to 40 week at max.
+        }
+
+        if (bLeft > 0)
+        {
+            WombImpregnate(actor, bLeft, actor.pregSource, i+1); // setting up leftower of fetuses.
+        }
+    }
+}
+
+window.WombImpregnate = function(actor, fCount, fatherID, age)
+{
+    var i;
+    var tf;
+    for (i=0; i<fCount; i++)
+    {
+	tf = {}; //new Object
+    tf.age = age; //initial age
+    tf.fatherID = fatherID; //We can store who is father too.
+	tf.sex = Math.round(Math.random())+1; // 1 = male, 2 = female. For possible future usage, just as concept now.
+    tf.volume = 1; //Initial, to create property. Updated with actual data after WombGetVolume call.
+
+    try {
+            if (actor.womb.length == 0)
+            {
+                actor.pregWeek = age;
+                actor.preg = age;
+            }
+
+	        actor.womb.push(tf);
+        }catch(err){
+            WombInit(actor);
+            actor.womb.push(tf);
+            alert("WombImpregnate warning - " + actor.slaveName+" "+err);
+        }
+
+    }
+    
+}
+
+window.WombProgress = function(actor, ageToAdd)
+{
+    var i, ft;
+    ageToAdd = Math.ceil(ageToAdd*10)/10;
+    try {
+            for (i in actor.womb)
+            {
+                ft = actor.womb[i];
+                ft.age += ageToAdd;
+            }
+    }catch(err){
+            WombInit(actor);
+            alert("WombProgress warning - " + actor.slaveName+" "+err);
+    }
+}
+
+window.WombBirth = function(actor, readyAge)
+{
+    try{
+        actor.womb.sort(function (a, b){return b.age - a.age}); //For normal processing fetuses that more old should be first. Now - they are.
+        }catch(err){
+            WombInit(actor);
+            alert("WombBirth warning - " + actor.slaveName+" "+err);       
+        }
+
+    var birthed = [];    
+    var ready = WombBirthReady(actor, readyAge);
+    var i;
+
+    for (i=0; i<ready; i++) //here can't be used "for .. in .." syntax.
+    {
+        birthed.push(actor.womb.shift());
+    }
+
+    return birthed;
+}
+
+window.WombFlush = function(actor)
+{
+    actor.womb = [];
+}
+
+window.WombBirthReady = function(actor, readyAge)
+{
+
+    var i, ft;
+    var readyCnt = 0;
+    try {
+        for (i in actor.womb)
+        {
+            ft = actor.womb[i];
+            if (ft.age >= readyAge)
+                  readyCnt++;
+        }
+    }catch(err){
+        WombInit(actor);
+        alert("WombBirthReady warning - " + actor.slaveName+" "+err);    
+
+        return 0;
+    }
+
+    return readyCnt;
+}
+
+window.WombGetVolume = function(actor) //most code from pregJS.tw with minor adaptation.
+{
+    var i, ft;
+    var gestastionWeek;
+    var phi = 1.618;
+    var targetLen;
+    var wombSize = 0;
+    
+    try{
+
+        for (i in actor.womb)
+        {
+            ft = actor.womb[i];
+            gestastionWeek = ft.age;
+            
+            if (gestastionWeek <= 32) 
+            {
+                targetLen = (0.00006396 * Math.pow(gestastionWeek, 4)) - (0.005501 * Math.pow(gestastionWeek, 3)) + (0.161 * Math.pow(gestastionWeek, 2)) - (0.76 * gestastionWeek) + 0.208;
+            } 
+            else if (gestastionWeek <= 106) 
+            {
+                targetLen = (-0.0000004675 * Math.pow(gestastionWeek, 4)) + (0.0001905 * Math.pow(gestastionWeek, 3)) - (0.029 * Math.pow(gestastionWeek, 2)) + (2.132 * gestastionWeek) - 16.575;
+            } 
+            else 
+            {
+                targetLen = (-0.00003266 * Math.pow(gestastionWeek,2)) + (0.076 * gestastionWeek) + 43.843;
+            }
+
+            ft.volume = ((4 / 3) * (Math.PI) * (phi / 2) * (Math.pow((targetLen / 2), 3)));
+        
+            wombSize += ft.volume;
+        }
+    }catch(err){
+        WombInit(actor);
+        alert("WombGetVolume warning - " + actor.slaveName + " " + err);       
+    }
+  
+    if (wombSize < 0) //catch for strange cases, to avoid messing with outside code.
+        wombSize = 0;
+
+    return wombSize;
+}
+
+window.WombUpdatePregVars = function(actor) {
+
+    actor.womb.sort(function (a, b){return b.age - a.age});
+    if (actor.womb.length > 0)
+    {
+        if (actor.preg > 0 && actor.womb[0].age > 0)
+        {
+            actor.preg = actor.womb[0].age;
+        }
+
+        actor.pregType = actor.womb.length;
+        
+        actor.bellyPreg = WombGetVolume(actor);
+
+    }
+
+}
+
+window.WombMinPreg = function(actor)
+{
+    actor.womb.sort(function (a, b){return b.age - a.age});
+
+    if (actor.womb.length > 0) 
+        return actor.womb[actor.womb.length-1].age;
+    else
+        return 0;
+}
+
+window.WombMaxPreg = function(actor)
+{
+    actor.womb.sort(function (a, b){return b.age - a.age});
+    if (actor.womb.length > 0) 
+        return actor.womb[0].age;
+    else
+        return 0;
+}
+
+window.WombNormalizePreg = function(actor)
+{
+//    console.log("New actor: " + actor.slaveName + " ===============" + actor.name);
+    WombInit(actor);
+
+    if (actor.womb.length == 0 && actor.broodmother >= 1) // this is broodmother on hold.
+    {
+        actor.pregType = 0; 
+        actor.pregKnown = 0;
+        
+        if (actor.preg >= 0)
+            actor.preg = 0.1; //to avoid legacy code conflicts - broodmother on hold can't be impregnated, but she not on normal contraceptives. So we set this for special case.
+        
+        if (actor.pregSource > 0)
+            actor.pregSource = 0;
+
+        if (actor.pregWeek > 0) 
+            actor.pregWeek = 0;
+            
+        actor.broodmotherCountDown = 0;
+    }
+    
+    if (actor.womb.length > 0)
+    {
+        var max = WombMaxPreg(actor);
+//        console.log("max: " + max);
+//        console.log(".preg: "+ actor.preg);
+        if (actor.pregWeek < 1 )
+            actor.pregWeek = 1
+
+        if (max < actor.preg)
+        {
+            WombProgress(actor, actor.preg - max);
+//            console.log("progressin womb");
+        }
+        else if ( max > actor.preg)
+        {
+            actor.preg = max;
+//            console.log("advancing .preg");
+        }
+
+        actor.pregType = actor.womb.length;
+        actor.pregSource = actor.womb[0].fatherID;
+    } 
+    else if (actor.womb.length == 0 && actor.broodmother < 1) //not broodmother
+    {
+//        console.log("preg fixing");
+        actor.pregType = 0;
+        actor.pregKnown = 0;
+        
+        if (actor.preg > 0)
+            actor.preg = 0;
+        
+        if (actor.pregSource > 0)
+            actor.pregSource = 0;
+
+        if (actor.pregWeek > 0) // We can't properly set postpartum here, but can normalize obvious error with forgotten property.
+            actor.pregWeek = 0;
+    }
+
+    actor.bellyPreg = WombGetVolume(actor);
+}
+
+window.WombZeroID = function(actor, id)
+{
+    WombInit(actor);
+    var i, ft;
+    for (i in actor.womb)
+    {
+        ft = actor.womb[i];
+        if (ft.fatherID == id)
+            ft.fatherID = 0;
+    }
+
+    WombNormalizePreg(actor);
+}
+
+/*:: clothingSelectionJS [script]*/
+
+window.todaysOutfit = function(slave) {
+
+	var ArcologyZero = State.variables.arcologies[0];
+	var player = State.variables.PC;
+	var clothing = [];
+	var wardrobeAssignment = [];
+	var wardrobeFS = [];
+	var wardrobeTastes = [];
+	var selection;
+
+	/*for the time being, this will use female pronouns until the system is updated.*/
+
+	if(slave.fetish == 'mindbroken') {
+		if(ArcologyZero.FSChattelReligionist > 0) {
+			selection = {text: "she commonly sees others wearing chattel habits and is drawn to doing so herself.", clothes: "a chattel habit"};
+		} else {
+			clothing.push('panties');
+			if(ArcologyZero.FSEgyptianRevivalist > 0) {
+				clothing.push('egyptian');
+			} else if(ArcologyZero.FSRomanRevivalist > 0) {
+				clothing.push('roman');
+			} else if(ArcologyZero.FSAztecRevivalist > 0) {
+				clothing.push('aztec');
+			} else if(ArcologyZero.FSEdoRevivalist > 0) {
+				clothing.push('edo');
+			} else if(ArcologyZero.FSArabianRevivalist > 0) {
+				clothing.push('arabic');
+			} else if(ArcologyZero.FSChineseRevivalist > 0) {
+				clothing.push('chinese');
+			}
+			if(ArcologyZero.FSGenderFundamentalist > 0) {
+				clothing.push('genderFund');
+			}
+			if(ArcologyZero.FSPaternalist > 0) {
+				clothing.push('paternalist');
+			} else if(ArcologyZero.FSDegradationist > 0) {
+				clothing.push('degradationist');
+			}
+			if(ArcologyZero.FSMaturityPreferentialist > 0) {
+				clothing.push('mature');
+			} else if(ArcologyZero.FSYouthPreferentialist > 0) {
+				clothing.push('youth');
+			}
+			if(ArcologyZero.FSPhysicalIdealist > 0) {
+				clothing.push('physicalIdealist');
+			}
+			if(ArcologyZero.FSPastoralist > 0) {
+				clothing.push('pastoralist');
+			}
+			if(ArcologyZero.FSBodyPurist > 0) {
+				clothing.push('bodyPurist');
+			}
+			clothing = jsEither(clothing);
+			switch(clothing) {
+			case 'egyptian':
+				selection = {text: "she commonly sees others wearing nothing but jewelry and is drawn to doing so herself.", clothes: "slutty jewelry"};
+				break;
+			case 'roman':
+				selection = {text: "she commonly sees others wearing togas and is drawn to doing so herself.", clothes: "a toga"};
+				break;
+			case 'aztec':
+				selection = {text: "she commonly sees others wearing huipils and is drawn to doing so herself.", clothes: "a huipil"};
+				break;
+			case 'edo':
+				selection = {text: "she commonly sees others wearing kimonos and is drawn to doing so herself.", clothes: "a kimono"};
+				break;
+			case 'arabic':
+				selection = {text: "she commonly sees others wearing silk and is drawn to doing so herself.", clothes: "harem gauze"};
+				break;
+			case 'chinese':
+				selection = {text: "she commonly sees others wearing qipaos and is drawn to doing so herself.", clothes: "a slutty qipao"};
+				break;
+			case 'genderFund':
+				if(jsRandom(1,2) == 1) {
+					selection = {text: "she commonly sees cheerleaders around and instinctually follows along.", clothes: jsEither(['a cheerleader outfit', 'a schoolgirl outfit'])};
+				} else {
+					selection = {text: "she commonly sees bunnies around and instinctually follows along.", clothes: "a bunny outfit"};
+				}
+				break;
+			case 'paternalist':
+				selection = {text: "she commonly sees others wearing clothing and is drawn to doing so herself.", clothes: "conservative clothing"};
+				break;
+			case 'degradationist':
+				selection = {text: "she commonly sees others wearing chains and is drawn to doing so herself.", clothes: jsEither(['chains', 'uncomfortable straps', 'shibari ropes'])};
+				break;
+			case 'mature':
+				selection = {text: "she commonly sees others wearing suits and is drawn to doing so herself.", clothes: jsEither(['slutty business attire', 'a nice maid outfit', 'a military uniform', 'nice business attire'])};
+				break;
+			case 'youth':
+				selection = {text: "she commonly sees schoolgirls around and instinctually follows along.", clothes: jsEither(['a schoolgirl outfit', 'a cheerleader outfit'])};
+				break;
+			case 'physicalIdealist':
+				selection = {text: "she commonly sees naked girls around and seldom realizes they are coated in oil.", clothes: jsEither(['body oil', 'no clothing', 'no clothing'])};
+				break;
+			case 'pastoralist':
+				selection = {text: "she commonly sees cowgirls around and instinctually follows along.", clothes: "Western clothing"};
+				break;
+			case 'bodyPurist':
+				selection = {text: "she commonly sees others wearing tight, form-fitting clothes and is drawn to doing so herself.", clothes: jsEither(['a leotard', 'a string bikini', 'a slave gown', 'a comfortable bodysuit', 'restrictive latex', 'clubslut netting', 'a leotard', 'a halter top dress'])};
+				break;
+			default:
+				selection = {text: "she chooses to put on underwear, the reasons lost to her, and moves on.", clothes: "attractive lingerie"};
+				break;
+			}
+		}
+	} else if(slave.devotion <= 20) {
+		clothing.push({text: "She uses the ability to select outfits to cover up with comfortable cut-offs and a t-shirt,", clothes: "cutoffs and a t-shirt"});
+		if(isItemAccessible("conservative clothing")) {
+			wardrobeAssignment.push({text: "She uses the ability to select outfits to cover up with the most conservative clothing she can find.", clothes: "conservative clothing"});
+		}
+		if(isItemAccessible("a kimono")) {
+			wardrobeAssignment.push({text: "She uses the ability to select outfits to cover herself with a kimono.", clothes: "a kimono"});
+		}
+		if(isItemAccessible("stretch pants and a crop-top")) {
+			wardrobeAssignment.push({text: "She uses the ability to select outfits to cover up with stretch pants and a crop-top, though she wishes it didn't have lewd comments printed on it.", clothes: "stretch pants and a crop-top"});
+		}
+		selection = jsEither(clothing);
+	} else {
+		if(ArcologyZero.FSChattelReligionist > 0) {
+			clothing.push({text: "and wears a chattel habit to conform to your arcology's culture.", clothes: "a chattel habit"});
+		}
+		/*Chooses clothes according to assignment (no exceptions)*/
+		else if(slave.assignment == "be the Nurse") {
+			if(slave.energy > 95 || slave.need > 100) {
+				wardrobeAssignment.push({text: "and wears a slutty nurse outfit to make it clear just how much this nurse needs her daily lay.", clothes: "a slutty nurse outfit"});
+			} else if(slave.energy > 80) {
+				wardrobeAssignment.push({text: "and wears a slutty nurse outfit to show off her body and arouse her patients.", clothes: "a slutty nurse outfit"});
+				wardrobeAssignment.push({text: "and wears a nice nurse outfit to look professional before her patients.", clothes: "a nice nurse outfit"});
+				wardrobeAssignment.push({text: "and wears a slutty nurse outfit to show to a little skin as she cares for her patients.", clothes: "a slutty nurse outfit"});
+			} else {
+				wardrobeAssignment.push({text: "and wears a nice nurse outfit to look professional before her patients.", clothes: "a nice nurse outfit"});
+				wardrobeAssignment.push({text: "and wears a slutty nurse outfit to show to a little skin as she cares for her patients.", clothes: "a slutty nurse outfit"});
+			}
+		} else if(slave.assignment == "be the Madam") {
+			if(slave.energy > 95 || slave.need > 100) {
+				wardrobeAssignment.push({text: "and wears a slutty suit to be certain nothing blocks her from getting the sex she needs.", clothes: "slutty business attire"});
+			} else if(slave.energy > 80) {
+				wardrobeAssignment.push({text: "and wears a nice suit to show she means business.", clothes: "nice business attire"});
+				wardrobeAssignment.push({text: "and wears a slutty suit to entice and arouse while still looking managerial.", clothes: "slutty business attire"});
+				wardrobeAssignment.push({text: "and wears a slutty suit to entice and arouse while still looking managerial.", clothes: "slutty business attire"});
+			} else {
+				wardrobeAssignment.push({text: "and wears a nice suit to show she means business.", clothes: "nice business attire"});
+				wardrobeAssignment.push({text: "and wears a slutty suit to entice and arouse while still looking managerial.", clothes: "slutty business attire"});
+			}
+		} else if(slave.assignment == "be the Milkmaid") {
+			if(slave.energy > 95 || slave.need > 100) {
+				if(isItemAccessible("body oil")) {
+					wardrobeAssignment.push({text: "and coats herself with oil to better slip between her cows as she pleasures them.", clothes: "body oil"});
+				}
+				wardrobeAssignment.push({text: "but goes nude to not be slowed down while moving between her charges.", clothes: "no clothing"});
+			} else {
+				wardrobeAssignment.push({text: "and wears a sturdy maid outfit, since anything else might be damaged by her hard work with the cows.", clothes: "a nice maid outfit"});
+				wardrobeAssignment.push({text: "and decides to call it casual friday and wear nothing but cutoffs and a t-shirt. Not like the cows will mind.", clothes: "cutoffs and a t-shirt"});
+				wardrobeAssignment.push({text: "and opts to don a cheerleader outfit to help cheer the cows on.", clothes: "a cheerleader outfit"});
+				wardrobeAssignment.push({text: "and dresses up as a succubus since she'll be drawing plenty of fluids.", clothes: "a succubus outfit"});
+				wardrobeAssignment.push({text: "and slips into some spats and a tanktop since she feels a workout coming on.", clothes: "spats and a tank top"});
+				if(isItemAccessible("Western clothing")) {
+					wardrobeAssignment.push({text: "and wears an appropriate cowgirl outift. Her bare ass walking past is sure to amuse her charges.", clothes: "Western clothing"});
+				}
+				if(isItemAccessible("stretch pants and a crop-top")) {
+					wardrobeAssignment.push({text: "and slips into some comfy stretch pants to relax as she works the cows.", clothes: "stretch pants and a crop-top"});
+				}
+				if(State.variables.cumSlaves > 2) {
+					wardrobeAssignment.push({text: "and wears a slutty nurse outfit to help keep her charges hard.", clothes: "a slutty nurse outfit"});
+					wardrobeAssignment.push({text: "and wears nothing but sexy lingerie to help keep her charges hard.", clothes: "attractive lingerie"});
+					wardrobeAssignment.push({text: "and wears the skimpiest bikini on hand to help keep her charges hard.", clothes: "a string bikini"});
+					if(isItemAccessible("body oil")) {
+						wardrobeAssignment.push({text: "and coats herself in oil for her charges to savor.", clothes: "body oil"});
+					}
+				}
+			}
+		} else if(slave.assignment == "be your Head Girl") {
+			wardrobeAssignment.push({text: "and wears a military uniform to give her that extra touch of authority.", clothes: "a military uniform"});
+			wardrobeAssignment.push({text: "and wears a handsome suit to give her that extra touch of authority.", clothes: "nice business attire"});
+			if(canPenetrate(slave)){
+				wardrobeAssignment.push({text: "and wears a slutty suit to make it perfectly clear that her dick is her main tool in her job.", clothes: "slutty business attire"});
+			}
+		} else if(slave.assignment == "be the Schoolteacher") {
+			wardrobeAssignment.push({text: "and wears a handsome suit to give her that teacherly authority.", clothes: "nice business attire"});
+			wardrobeAssignment.push({text: "and wears a slutty suit to give her an air of authority will keeping all eyes focused on her.", clothes: "slutty business attire"});
+			wardrobeAssignment.push({text: "and wears a schoolgirl outfit to help keep her charges focused on her.", clothes: "a schoolgirl outfit"});
+			wardrobeAssignment.push({text: "and dresses up as a succubus to give her sex lessons an extra kick.", clothes: "a succubus outfit"});
+			if(isItemAccessible("conservative clothing")) {
+				wardrobeAssignment.push({text: "and wears conservative clothes to not detract from this week's lesson.", clothes: "conservative clothing"});
+			}
+			if(isItemAccessible("a toga")) {
+				wardrobeAssignment.push({text: "and wraps herself in a toga to model herself after the philosophers of yore.", clothes: "a toga"});
+			}
+			if(isItemAccessible("a maternity dress") && slave.belly >= 10000) {
+				wardrobeAssignment.push({text: "and settles for a comfortable maternity dress to support her middle while she lectures in front of the class all week.", clothes: "a maternity dress"});
+			}
+		} else if(slave.assignment == "be the Wardeness") {
+			wardrobeAssignment.push({text: "and dons battledress, the better to intimidate the prisoners.", clothes: "battledress"});
+			wardrobeAssignment.push({text: "and slips into a scalemail bikini, the better to intimidate the prisoners.", clothes: "a scalemail bikini"});
+			wardrobeAssignment.push({text: "and dons a scandalous habit to make it perfectly clear that crossing this nun will result in sexual punishment.", clothes: "a fallen nun's habit"});
+			if(isItemAccessible("stretch pants and a crop-top")) {
+				wardrobeAssignment.push({text: "and decides to take it easy by slipping into some stretch pants. They come off just as quickly as they come on, just in case.", clothes: "stretch pants and a crop-top"});
+			}
+		} else if(slave.assignment == "be the Attendant") {
+			wardrobeAssignment.push({text: "and wears a string bikini, since it's all she can wear that won't be ruined by all the moisture in the spa.", clothes: "a string bikini"});
+			wardrobeAssignment.push({text: "but decides to go nude, since she'll be spending so much time in the water.", clothes: "no clothing"});
+		} else if(slave.assignment == "rest") {
+			wardrobeAssignment.push({text: "and wears a comfortable t-shirt and cutoffs to relax.", clothes: "cutoffs and a t-shirt"});
+			wardrobeAssignment.push({text: "and slips into some attractive lingerie to enjoy herself as she unwinds.", clothes: "attractive lingerie"});
+			wardrobeAssignment.push({text: "but decides that clothing takes too much work and would rather sleep nude.", clothes: "no clothing"});
+			if(isItemAccessible("stretch pants and a crop-top")) {
+				wardrobeAssignment.push({text: "and slips into some comfy stretch pants to relax.", clothes: "stretch pants and a crop-top"});
+			}
+			if(isItemAccessible("attractive lingerie for a pregnant woman") && slave.belly >= 1500) {
+				wardrobeAssignment.push({text: "and slips into some attractive lingerie to enjoy herself as she unwinds.", clothes: "attractive lingerie for a pregnant woman"});
+			}
+			if(slave.fetish == "submissive") {
+				wardrobeAssignment.push({text: "and decides the best way to relax is tied up nice and tight.", clothes: "shibari ropes"});
+			}
+		} else if(slave.assignment == "get milked" || slave.assignment == "work in the dairy") {
+			wardrobeAssignment.push({text: "and wears sturdy lingerie to offer the best support to her sore, milk-filled udders.", clothes: "attractive lingerie"});
+			if(isItemAccessible("attractive lingerie for a pregnant woman") && slave.belly >= 1500) {
+				wardrobeAssignment.push({text: "and wears lingerie designed for milky mothers.", clothes: "attractive lingerie for a pregnant woman"});
+			}
+			if(isItemAccessible("a maternity dress") && slave.belly >= 10000) {
+				wardrobeAssignment.push({text: "and chooses a maternity dress since it is easy to free her breasts from.", clothes: "a maternity dress"});
+			}
+			wardrobeAssignment.push({text: "and wears a string bikini for easy access to her udders.", clothes: "a string bikini"});
+			if(slave.lactation > 1) {
+				wardrobeAssignment.push({text: "but goes nude. There's no time for clothing, her udders need to be drained now!", clothes: "no clothing"});
+			}
+			wardrobeAssignment.push({text: "and dons a slutty outfit. If her breasts are going to hang out, might as well wear something to complement them.", clothes: "a slutty outfit"});
+		} else if(slave.assignment == "guard you") {
+			wardrobeAssignment.push({text: "and wears a bodysuit to show off her curves without hindering her deadliness.", clothes: "a comfortable bodysuit"});
+			wardrobeAssignment.push({text: "and wears a military uniform to look the part of the honor guard.", clothes: "a military uniform"});
+			wardrobeAssignment.push({text: "and wears a nice suit to make it clear you mean business.", clothes: "nice business attire"});
+			wardrobeAssignment.push({text: "and wears a scalemail bikini to make herself look fierce.", clothes: "a scalemail bikini"});
+			if(isItemAccessible("a kimono")) {
+				wardrobeAssignment.push({text: "and wears a nice kimono to add an air of elegance to your presence.", clothes: "a kimono"});
+			}
+		} else {
+			/*Chooses clothes according to assignment (exceptions allowed)*/
+			if(slave.assignment == "recruit girls") {
+				wardrobeAssignment.push({text: "and wears a flattering mini dress to appear sexy and carefree before those desperately seeking a better life.", clothes: "a mini dress"});
+				wardrobeAssignment.push({text: "and wears a cutoffs and a t-shirt to appear sexy and carefree before those desperately seeking a better life.", clothes: "cutoffs and a t-shirt"});
+				wardrobeAssignment.push({text: "and wears a nice suit to appear trustworthy before those desperately seeking a better life.", clothes: "nice business attire"});
+				wardrobeAssignment.push({text: "and wears a schoolgirl outfit to appear sexy and carefree before those desperately seeking a better life.", clothes: "a schoolgirl outfit"});
+				wardrobeAssignment.push({text: "and wears an opulent gown to showcase your wealth before those desperately seeking a better life.", clothes: "a ball gown"});
+				wardrobeAssignment.push({text: "and dresses as a succubus to attempt to lure any potential catches.", clothes: "a succubus outfit"});
+				if(isItemAccessible("harem gauze")) {
+					wardrobeAssignment.push({text: "and dons her finest silks to showcase the luxuries waiting would-be slaves.", clothes: "harem gauze"});
+				}
+				if(isItemAccessible("stretch pants and a crop-top")) {
+					wardrobeAssignment.push({text: "and wears comfortable stretch pants to and crop-top to appear carefree before those desperately seeking a better life.", clothes: "stretch pants and a crop-top"});
+				}
+				if(isItemAccessible("conservative clothing")) {
+					wardrobeAssignment.push({text: "and wears normal clothing to suggest to those desperately seeking a better life that they can find it here with you.", clothes: "conservative clothing"});
+				}
+			} else if(slave.assignment == "be the DJ") {
+				wardrobeAssignment.push({text: "and wears clubslut netting to look like the perfect easy club girl.", clothes: "clubslut netting"});
+				wardrobeAssignment.push({text: "and wears cutoffs and a t-shirt to look like the perfect easy club girl.", clothes: "cutoffs and a t-shirt"});
+				wardrobeAssignment.push({text: "and wears the slutty outfit she can find to look like the perfect easy club girl.", clothes: "a slutty outfit"});
+				wardrobeAssignment.push({text: "and wears nothing but slutty jewelry since she loves the way it jingles to her moves.", clothes: "slutty jewelry"});
+				wardrobeAssignment.push({text: "and wears a skin tight bodysuit so nothing gets in the way of her moves.", clothes: "a comfortable bodysuit"});
+				if(slave.boobs > 1000) {
+					wardrobeAssignment.push({text: "but decides to go naked and let her girls bounce free as she dances.", clothes: "no clothing"});
+				}
+				if(isItemAccessible("harem gauze")) {
+					wardrobeAssignment.push({text: "and wears the finest available silks to give her moves a sensual grace.", clothes: "harem gauze"});
+				}
+			} else if(slave.assignment == "be your Concubine") {
+				wardrobeAssignment.push({text: "and goes naked, since it's her honored role to be the chief object of your desire.", clothes: "no clothing"});
+				wardrobeAssignment.push({text: "and dresses as a slutty nurse as your genitals are always in need of her special treatment.", clothes: "a slutty nurse outfit"});
+				wardrobeAssignment.push({text: "and dresses as a schoolgirl in the hopes that you teach her how to be a woman.", clothes: "a schoolgirl outfit"});
+				wardrobeAssignment.push({text: "and dresses as a cheerleader so she may cheer you on as you blow her mind.", clothes: "a cheerleader outfit"});
+				if(player.dick == 1) {
+					wardrobeAssignment.push({text: "and dresses as a slutty maid as you always come home with a stiff package that needs a thorough polishing.", clothes: "a slutty maid outfit"});
+				}
+				wardrobeAssignment.push({text: "and, since you personally see that she never goes hungry, she dresses like the sex demoness she is.", clothes: "a succubus outfit"});
+				if(isItemAccessible("attractive lingerie for a pregnant woman") && slave.belly >= 10000 && slave.pregSource == -1) {
+					wardrobeAssignment.push({text: "and chooses attractive lingerie to showcase the body you've given her in the hopes that you ravish her.", clothes: "attractive lingerie for a pregnant woman"});
+				}
+				if(slave.toyHole == "dick" && canPenetrate(slave)) {
+					wardrobeAssignment.push({text: "and slips into a scalemail bikini so she can act the role of your conqueror as she bends you over.", clothes: "a scalemail bikini"});
+				}
+			} else if(slave.assignment == "be a subordinate slave") {
+				wardrobeAssignment.push({text: "but gives up and goes naked after the other slaves constantly tear whatever she's wearing off her.", clothes: "no clothing"});
+				if(isItemAccessible("Western clothing")) {
+					wardrobeAssignment.push({text: "and chooses a pair of crotchless chaps so your other slaves don't have to waste time undressing her.", clothes: "Western clothing"});
+				}
+				if(slave.fetish == "submissive") {
+					wardrobeAssignment.push({text: "and chooses to slip on a pair of spats and a tanktop in the hopes that she gets to be a violated schoolgirl.", clothes: "spats and a tank top"});
+					wardrobeAssignment.push({text: "and chooses to slip on a schoolgirl outfit in the hope that she gets held down and raped.", clothes: "a schoolgirl outfit"});
+					wardrobeAssignment.push({text: "and chooses to wear the sluttiest outfit available to make it clear what she wants done to her.", clothes: "a slutty outfit"});
+				}
+			} else if(slave.assignment == "work a glory hole") {
+				wardrobeAssignment.push({text: "but doesn't bother wearing anything, since no one can see her clothing when she's immured inside a glory hole.", clothes: "no clothing"});
+			} else if(slave.assignment == "take classes" || slave.assignment == "learn in the schoolroom") {
+				wardrobeAssignment.push({text: "and wears a schoolgirl outfit, since it seems most appropriate.", clothes: "a schoolgirl outfit"});
+				wardrobeAssignment.push({text: "and wears a cheerleader outfit, since she might as well be one of the popular girls.", clothes: "a cheerleader outfit"});
+				if(isItemAccessible("conservative clothing")) {
+					wardrobeAssignment.push({text: "and wears normal clothing to not distract from her lessons.", clothes: "conservative clothing"});
+				}
+			} else if((slave.assignment == "whore") || (slave.assignment == "work in the brothel")) {
+				 if(slave.belly >= 5000 && isItemAccessible("attractive lingerie for a pregnant woman")) {
+					wardrobeAssignment.push({text: "and wears pretty lingerie to show off her merchandise and accentuate her pregnancy while still looking a little classy.", clothes: "attractive lingerie for a pregnant woman"});
+				}
+				wardrobeAssignment.push({text: "and wears pretty lingerie to show off her merchandise and still look a little classy.", clothes: "attractive lingerie"});
+				if(isItemAccessible("harem gauze")) {
+					wardrobeAssignment.push({text: "and dresses herself with harem gauze to add an exotic charm to her display.", clothes: "harem gauze"});
+				}
+				if(isItemAccessible("a kimono")) {
+					wardrobeAssignment.push({text: "and wraps herself in a kimono to add some elegance to her display.", clothes: "a kimono"});
+				}
+				wardrobeAssignment.push({text: "and adorns herself in fine dress to show off how much of a high class whore she is.", clothes: "a slave gown"});
+				wardrobeAssignment.push({text: "and dresses herself in a slutty suit to show she's in it for the ¤.", clothes: "slutty business attire"});
+				wardrobeAssignment.push({text: "and wears a flattering mini dress to really strut her stuff.", clothes: "a mini dress"});
+			} else if(slave.assignment == "serve the public" || slave.assignment == "serve in the club") {
+				wardrobeAssignment.push({text: "and wears string lingerie to look fun and fuckable.", clothes: "a string bikini"});
+				wardrobeAssignment.push({text: "and throws together the sluttiest outfit since if you're going to slut you might as well go all out.", clothes: "a slutty outfit"});
+				wardrobeAssignment.push({text: "and tosses on a slutty suit that screams she needs a good fuck after a long day.", clothes: "slutty business attire"});
+				wardrobeAssignment.push({text: "and dresses up as a slutty nurse. She knows just how to fix penile swelling", clothes: "a slutty nurse outfit"});
+				wardrobeAssignment.push({text: "and wears a cheerleader outfit to look energetic and fuckable.", clothes: "a cheerleader outfit"});
+				if(isItemAccessible("a bunny outfit")) {
+					wardrobeAssignment.push({text: "and slips into a teddy to add some class to her post.", clothes: "a bunny outfit"});
+				}
+				wardrobeAssignment.push({text: "and dresses up as a succubus to clearly advertise her promiscuity.", clothes: "a succubus outfit"});
+				if(slave.bellyPreg >= 10000) {
+					wardrobeAssignment.push({text: "and struggles into a schoolgirl outfit. Her gravid belly just screams that she is a slutty little student who cares more for dick than lessons.", clothes: "a succubus outfit"});
+				}
+			} else if(slave.assignment == "be a servant" || slave.assignment == "work as a servant") {
+				if(slave.energy > 95 || slave.need > 100) {
+					wardrobeAssignment.push({text: "and wears a skimpy maid outfit hoping that someone sneaks up behind her as she works and fulfills her desires.", clothes: "a slutty maid outfit"});
+				} else if(slave.energy > 80) {
+					wardrobeAssignment.push({text: "and wears a skimpy maid outfit to tempt anyone watching her work.", clothes: "a slutty maid outfit"});
+					wardrobeAssignment.push({text: "and wears a sturdy maid outfit, since anything else might be damaged by her hard work around the penthouse.", clothes: "a nice maid outfit"});
+					wardrobeAssignment.push({text: "and wears a skimpy maid outfit to tempt anyone watching her work.", clothes: "a slutty maid outfit"});
+				} else {
+					wardrobeAssignment.push({text: "and wears a sturdy maid outfit, since anything else might be damaged by her hard work around the penthouse.", clothes: "a nice maid outfit"});
+					wardrobeAssignment.push({text: "and wears a skimpy maid outfit to tempt anyone watching her work.", clothes: "a slutty maid outfit"});
+				}
+			}
+			
+			/* Chooses clothes according to FS*/
+			if(ArcologyZero.FSEgyptianRevivalist > 0) {
+				wardrobeFS.push({text: "and complements it with golden bangles, since no clothing is necessary for a sex slave in your warm and sunny arcology.", clothes: "slutty jewelry"});
+			} else if(ArcologyZero.FSRomanRevivalist > 0) {
+				wardrobeFS.push({text: "and wears a toga to take part in your Roman revivalism.", clothes: "a toga"});
+			} else if(ArcologyZero.FSEdoRevivalist > 0) {
+				wardrobeFS.push({text: "and wears a kimono, overjoyed that such lovely clothing is now appropriate.", clothes: "a kimono"});
+			} else if(ArcologyZero.FSArabianRevivalist > 0) {
+				wardrobeFS.push({text: "and wears a harem outfit to look like a slave girl fit for a Sultan.", clothes: "harem gauze"});
+			} else if(ArcologyZero.FSChineseRevivalist > 0) {
+				wardrobeFS.push({text: "and wears a brief qipao to show off and look Chinese at the same time.", clothes: "a slutty qipao"});
+			} else if(ArcologyZero.FSAztecRevivalist > 0) {
+				wardrobeFS.push({text: "and drapes a huipil over herself to fit in with your Aztec revivalism.", clothes: "a huipil"});
+			}
+			if(ArcologyZero.FSGenderFundamentalist > 0) {
+				wardrobeFS.push({text: "and wears a cheerleader outfit to look like a hot slut.", clothes: "a cheerleader outfit"});
+				wardrobeFS.push({text: "and wears a bunny outfit to look like a slut from the glory days.", clothes: "a bunny outfit"});
+				if(slave.bellyPreg >= 5000) {
+					wardrobeFS.push({text: "but decides to wear nothing at all; she's already pregnant, so she just needs to be barefoot and naked to complete her look.", clothes: "no clothing"});
+				}
+			} else if(ArcologyZero.FSGenderRadicalist > 0) {
+				wardrobeFS.push({text: "and eagerly slips into a skimpy maid outfit so she can take advantage of its short skirt and her lack of underwear", clothes: "a slutty maid outfit"});
+				wardrobeFS.push({text: "and wears a cheerleader outfit that clearly shows off her ass.", clothes: "a cheerleader outfit"});
+				wardrobeFS.push({text: "and settles for some sexy succubutt.", clothes: "a succubus outfit"});
+			}
+			if(ArcologyZero.FSPaternalist > 0) {
+				wardrobeFS.push({text: "and wears conservative clothing, as permitted by your paternalism.", clothes: "conservative clothing"});
+				if(isItemAccessible("stretch pants and a crop-top")) {
+					wardrobeAssignment.push({text: "and wears the most comfortable stretch pants she can find.", clothes: "stretch pants and a crop-top"});
+				}
+			} else if(ArcologyZero.FSDegradationist > 0) {
+				wardrobeFS.push({text: "and wears chains, to degrade herself as required by your societal goals.", clothes: "chains"});
+			}
+			if(ArcologyZero.FSMaturityPreferentialist > 0) {
+				if(slave.visualAge >= 30) {
+					wardrobeFS.push({text: "and wears a slutty suit to look like the ideal horny older woman.", clothes: "slutty business attire"});
+				} else {
+					wardrobeFS.push({text: "and wears a formal suit to look more mature.", clothes: "nice business attire"});
+				}
+			} else if(ArcologyZero.FSYouthPreferentialist > 0) {
+				wardrobeFS.push({text: "and wears a schoolgirl outfit to look younger.", clothes: "a schoolgirl outfit"});
+				wardrobeFS.push({text: "and wears a cheerleader outfit to look younger and more energetic.", clothes: "a cheerleader outfit"});
+				wardrobeFS.push({text: "and wears spats and a tank top to look younger and more energetic.", clothes: "spats and a tank top"});
+			}
+			if(ArcologyZero.FSPhysicalIdealist > 0) {
+				wardrobeFS.push({text: "and coats herself in body oil to show off how she's part of your physical idealism.", clothes: "body oil"});
+				wardrobeFS.push({text: "and slips into some spats for her next workout.", clothes: "spats and a tank top"});
+			} else if(ArcologyZero.FSHedonisticDecadence > 0) {
+				wardrobeFS.push({text: "and throws on a very casual getup.", clothes: "stretch pants and a crop-top"});
+				wardrobeFS.push({text: "but decides against putting forth the effort and goes nude.", clothes: "no clothing"});
+			}
+			if(ArcologyZero.FSPastoralist > 0) {
+				wardrobeFS.push({text: "and wears Western clothing, since she thinks it fits with pastoralism.", clothes: "Western clothing"});
+				if(slave.lactation > 0) {
+					wardrobeFS.push({text: "and dresses up as a slutty wet nurse.", clothes: "a slutty nurse outfit"});
+				}
+				wardrobeFS.push({text: "but decides to let her breasts be free. Clothes will just get in the way.", clothes: "no clothing"});
+			}
+			if(ArcologyZero.FSBodyPurist > 0) {
+				wardrobeFS.push({text: "and wears a leotard to show off the purity of her body.", clothes: "a leotard"});
+				wardrobeFS.push({text: "but decides her body is too nice to hide with clothing.", clothes: "no clothing"});
+			} else if(ArcologyZero.FSTransormationFetishest > 0) {
+				if(isItemAccessible("body oil")) {
+					wardrobeAssignment.push({text: "and coats her assets in body oil to give them some extra shine.", clothes: "body oil"});
+				}
+				wardrobeFS.push({text: "and decides squeezing into a latex suit will only complement her unnatural appearance.", clothes: "restrictive latex"});
+			}
+			if(ArcologyZero.FSAssetExpansioninst > 0) {
+				wardrobeFS.push({text: "and decides to dress up like a young man's wet dream.", clothes: "a succubus outfit"});
+				wardrobeFS.push({text: "and decides to wear a skimpy bikini to make her assets look even larger.", clothes: "a string bikini"});
+				wardrobeFS.push({text: "and decides to throw together a slutty outfit that highlight her assets.", clothes: "a slutty outfit"});
+			} else if(ArcologyZero.FSSlimnessEnthusiast > 0) {
+				if(slave.boobs < 300) {
+					wardrobeFS.push({text: "and wears s string bikini to show off just how flat she is.", clothes: "a string bikini"});
+				}
+				if(slave.boobs < 600 && slave.butt < 3) {
+					wardrobeFS.push({text: "and wears a leotard to show off her lithe body.", clothes: "a leotard"});
+					wardrobeFS.push({text: "and wears a form fitting bodysuit to show off her lithe figure.", clothes: "a comfortable bodysuit"});
+					wardrobeFS.push({text: "and wears spats to hug her tight butt.", clothes: "spats and a tank top"});
+				} else {
+					wardrobeFS.push({text: "and squeezes into a form fitting bodysuit in the hopes that it squishes down her assets.", clothes: "restrictive latex"});
+				}
+			}
+			
+			/*Chooses clothes according to fetishes, quirks, etc.*/
+			if(slave.attrXY > 70) {
+				if(slave.attrKnown == 1) {
+					wardrobeTastes.push({text: "and wears a schoolgirl outfit to show off a some T&A to attract boys.", clothes: "a schoolgirl outfit"});
+					wardrobeTastes.push({text: "and wears nothing but pretty lingerie to attract boys.", clothes: "attractive lingerie"});
+					wardrobeTastes.push({text: "and selects a slutty outfit that's sure to have men drooling.", clothes: "a slutty outfit"});
+					if(slave.butt > 3){
+						wardrobeTastes.push({text: "and slips on some cuttoffs that are sure to have men checking out her ass.", clothes: "cutoffs and a t-shirt"});
+					}
+					if(isItemAccessible("a bunny outfit")) {
+						wardrobeAssignment.push({text: "and slips into a bunny outfit that she knows will have men lining up.", clothes: "a bunny outfit"});
+					}
+					if(slave.boobs > 800) {
+						wardrobeTastes.push({text: "and dresses up as a busty succubus that pulls eyes the her chest and leaves pants feeling tight.", clothes: "a succubus outfit"});
+					}
+				} else {
+					wardrobeTastes.push({text: "and selects a schoolgirl outfit that shows off some T&A.", clothes: "a schoolgirl outfit"});
+					wardrobeTastes.push({text: "and wears pretty lingerie that shows off her body.", clothes: "attractive lingerie"});
+					wardrobeTastes.push({text: "and selects a slutty outfit that's sure to draw attention.", clothes: "a slutty outfit"});
+					if(slave.butt > 3){
+						wardrobeTastes.push({text: "and slips on some cuttoffs that shows off her ass.", clothes: "cutoffs and a t-shirt"});
+					}
+					if(isItemAccessible("a bunny outfit")) {
+						wardrobeAssignment.push({text: "and slips into a bunny outfit that hugs her curves.", clothes: "a bunny outfit"});
+					}
+					if(slave.boobs > 800) {
+						wardrobeTastes.push({text: "and dresses up as a busty succubus that's sure to draw eyes.", clothes: "a succubus outfit"});
+					}
+				}
+			}
+			if(slave.attrXX > 70) {
+				if(slave.attrKnown == 1) {
+					wardrobeTastes.push({text: "and wears a fashionable gown, since girls appreciate nice clothes.", clothes: "a slave gown"});
+					wardrobeTastes.push({text: "and wears nothing but pretty lingerie to give the girls a show.", clothes: "attractive lingerie"});
+					wardrobeTastes.push({text: "and wears a nice suit, since girls appreciate nice clothes.", clothes: "nice business attire"});
+				} else {
+					wardrobeTastes.push({text: "and wears a fashionable gown.", clothes: "a slave gown"});
+					wardrobeTastes.push({text: "and wears pretty lingerie that shows off her body.", clothes: "attractive lingerie"});
+					wardrobeTastes.push({text: "and wears a nice suit, the reasons not entirely clear to you.", clothes: "nice business attire"});
+				}
+			}
+			
+			/* need */
+			if(slave.need > 90) {
+				wardrobeTastes.push({text: "but goes naked. She needs sex now and clothing will only get in the way.", clothes: "no clothing"});
+				wardrobeTastes.push({text: "and throws on a slutty suit. She hopes that it gets the point across that she needs sex now.", clothes: "slutty business attire"});
+				wardrobeTastes.push({text: "and dons a slutty nurse outfit. She's been infected and the only cure is a strong dicking.", clothes: "a slutty nurse outfit"});
+				wardrobeTastes.push({text: "and dresses up as a slutty maid. Maybe if she does her job poorly enough, someone will bend her over and fuck some sense into her.", clothes: "a slutty maid outfit"});
+				wardrobeTastes.push({text: "and dresses up as a succubus in the hopes it screams that she needs sex now.", clothes: "a succubus outfit"});
+			}
+			
+			/* quirks n flaws */
+			if(slave.behavioralQuirk == "sinful") {
+				wardrobeTastes.push({text: "and dresses up like a succubus because it makes $object feel naughty.", clothes: "a succubus outfit"});
+			} else if(slave.behavioralQuirk == "fitness") {
+				wardrobeTastes.push({text: "and wears spats and a tank top to give herself a sporty look.", clothes: "spats and a tank top"});
+			}
+
+			/* age stuff */
+			if(slave.actualAge < 10) {
+				wardrobeTastes.push({text: "and puts on a pretty dress so she can be a princess.", clothes: "a ball gown"});
+				wardrobeTastes.push({text: "and dresses up like a cheerleader since she thinks it looks cute.", clothes: "a cheerleader outfit"});
+				if(isItemAccessible("a kimono")) {
+					wardrobeAssignment.push({text: "and wraps herself in a kimono, since it feels so good on her skin.", clothes: "a kimono"});
+				}
+			}
+			
+			/* fetishes */
+			if(slave.fetishKnown == 1) {
+				if(slave.fetish == "submissive") {
+					wardrobeTastes.push({text: "and wears restrictive latex to encourage others to dominate her.", clothes: "restrictive latex"});
+					wardrobeTastes.push({text: "and wears shibari ropes to encourage others to dominate her.", clothes: "shibari ropes"});
+				} else if(slave.fetish == "dom") {
+					wardrobeTastes.push({text: "and wears a handsome suit, since she likes other slaves to look up to her.", clothes: "nice business attire"});
+					wardrobeTastes.push({text: "and wears a full body latex catsuit to look the part of the whip cracking domme.", clothes: "a latex catsuit"});
+				} else if(slave.fetish == "masochist") {
+					wardrobeTastes.push({text: "and wears painfully restrictive bondage gear, since she likes the torment.", clothes: "uncomfortable straps"});
+					if(isItemAccessible("chains")) {
+						wardrobeAssignment.push({text: "and wears painfully tight chains, since she likes the torment.", clothes: "chains"});
+					}
+				} else if(slave.fetish == "sadist") {
+					wardrobeTastes.push({text: "and wears an elegant gown, since she thinks it makes her look the part of the femme fatale.", clothes: "a slave gown"});
+					wardrobeTastes.push({text: "and wears a scalemail bikini, since she thinks it makes her look fierce.", clothes: "a scalemail bikini"});
+				} else if(slave.fetish == "cumslut") {
+					wardrobeTastes.push({text: "and wears cut-offs and a t-shirt, because the fun yet relatively conservative outfit seems to encourage others to ask her for blowjobs.", clothes: "cutoffs and a t-shirt"});
+				} else if(slave.fetish == "humiliation") {
+					wardrobeTastes.push({text: "and wears leather straps with rings over her private parts because she enjoys the embarrassment such a humiliating outfit causes her.", clothes: "uncomfortable straps"});
+				} else if(slave.fetish == "buttslut") {
+					wardrobeTastes.push({text: "and wears nothing other than slutty bangles, because she likes to catch the eye without putting anything between cocks and her rear end.", clothes: "slutty jewelry"});
+				} else if(slave.fetish == "pregnancy") {
+					wardrobeTastes.push({text: "and wears a short maid dress, because she wants to look motherly and fuckable at the same time.", clothes: "a slutty maid outfit"});
+					if(isItemAccessible("a maternity dress") && canGetPregnant(slave)) {
+						wardrobeAssignment.push({text: "and wears a maternity dress in the hope someone fills out its middle.", clothes: "a maternity dress"});
+					}
+				} else if(slave.fetish == "boobs") {
+					wardrobeAssignment.push({text: "and wears a cheerleader outfit, since she loves the way it hugs her tits as she moves.", clothes: "a cheerleader outfit"});
+				}
+			} else {
+				if(slave.fetish == "submissive") {
+					wardrobeTastes.push({text: "and strangely opts for restrictive latex.", clothes: "restrictive latex"});
+					wardrobeTastes.push({text: "and strangely opts for shibari ropes.", clothes: "shibari ropes"});
+				} else if(slave.fetish == "dom") {
+					wardrobeTastes.push({text: "and wears a handsome suit; she seems to think highly of herself in it.", clothes: "nice business attire"});
+					wardrobeTastes.push({text: "and wears a full body latex catsuit; there is a strange look on her face as she wears it.", clothes: "a latex catsuit"});
+				} else if(slave.fetish == "masochist") {
+					wardrobeTastes.push({text: "and strangely opts for painfully restrictive bondage gear.", clothes: "uncomfortable straps"});
+					if(isItemAccessible("chains")) {
+						wardrobeAssignment.push({text: "and strangely opts for painfully tight chains.", clothes: "chains"});
+					}
+				} else if(slave.fetish == "sadist") {
+					wardrobeTastes.push({text: "and wears an elegant gown for some reason.", clothes: "a slave gown"});
+					wardrobeTastes.push({text: "and wears a scalemail bikini; an odd choice.", clothes: "a scalemail bikini"});
+				} else if(slave.fetish == "cumslut") {
+					wardrobeTastes.push({text: "and wears cut-offs and a t-shirt; she can't stop licking her lips.", clothes: "cutoffs and a t-shirt"});
+				} else if(slave.fetish == "humiliation") {
+					wardrobeTastes.push({text: "and strangely opts for leather straps with rings over her private parts.", clothes: "uncomfortable straps"});
+				} else if(slave.fetish == "buttslut") {
+					wardrobeTastes.push({text: "and wears nothing other than slutty bangles, an odd choice; her ass is completely exposed.", clothes: "slutty jewelry"});
+				} else if(slave.fetish == "pregnancy") {
+					wardrobeTastes.push({text: "and wears a short maid dress; you frequently notice her observing her stomach.", clothes: "a slutty maid outfit"});
+					if(isItemAccessible("a maternity dress") && canGetPregnant(slave)) {
+						wardrobeAssignment.push({text: "and wears a maternity dress even though she isn't pregnant.", clothes: "a maternity dress"});
+					}
+				} else if(slave.fetish == "boobs") {
+					wardrobeAssignment.push({text: "and wears a cheerleader outfit; she seems to enjoy jiggling her breasts in it.", clothes: "a cheerleader outfit"});
+				}
+			}
+
+			/* energy */
+			if(slave.energy > 95) {
+				wardrobeTastes.push({text: "but goes nude, since as a nympho she gets plenty of attention anyway, and considers clothes an unnecessary hindrance.", clothes: "no clothing"});
+			}
+
+			/* pregnancy */
+			if(slave.belly >= 5000) {
+				wardrobeTastes.push({text: "and wears pretty lingerie to show off her merchandise while giving her protruding belly plenty of room to hang free.", clothes: "attractive lingerie"});
+				if(isItemAccessible("attractive lingerie for a pregnant woman") && slave.energy > 70) {
+					wardrobeTastes.push({text: "and wears pretty lingerie to show off her merchandise and accentuate her pregnancy while giving it plenty of room to hang free.", clothes: "attractive lingerie for a pregnant woman"});
+				} else if(isItemAccessible("a maternity dress")) {
+					wardrobeTastes.push({text: "and wears a conservative dress with plenty of give for her belly to stretch it.", clothes: "a maternity dress"});
+				}
+				wardrobeTastes.push({text: "and wears string lingerie to look fun and fuckable while giving her protruding belly plenty of room to hang free.", clothes: "a string bikini"});
+			} else {
+				wardrobeTastes.push({text: "and wears string lingerie to show off her body.", clothes: "a string bikini"});
+			}
+		}
+		/*Separated in three categories in case you want to, say, increase the probability of choosing _wardrobeAssignment to look more professional*/
+		if(wardrobeAssignment.length > 0) {
+			for (var i = 0; i < wardrobeAssignment.length; i++) {
+				clothing.push(wardrobeAssignment[i]);
+			}
+		}
+		if(wardrobeFS.length > 0) {
+			for (var i = 0; i < wardrobeFS.length; i++) {
+				clothing.push(wardrobeFS[i]);
+			}
+		}
+		if(wardrobeTastes.length > 0) {
+			for (var i = 0; i < wardrobeTastes.length; i++) {
+				clothing.push(wardrobeTastes[i]);
+			}
+		}
+		selection = jsEither(clothing);
+	}
+
+	return selection;
+}
+
+window.todaysShoes = function(slave) {
+	var ArcologyZero = State.variables.arcologies[0];
+	var player = State.variables.PC;
+	var shoes = [];
+	
+	if(slave.fetish == 'mindbroken') {
+		if(slave.amp != 1 && slave.heels == 1) {
+			shoes.push({text: "She finds she can inexplicably walk if she wears heels; a daily lesson for her, as she forgets shortly after leaving.", shoes: jsEither(["heels", "extreme heels", "boots"])});
+		}
+		shoes.push({text: "She vaguely remembers putting things on her feet, so she does.", shoes: jsEither(["heels", "extreme heels", "boots", "flats"])});
+		shoes.push({text: "She entered without shoes, and will leave the same.", shoes: "none"});
+	} else if(slave.devotion <= 20) {
+		if(slave.heels == 0) {
+			shoes.push({text: "and wears comfortable flats,", shoes: "flats"});
+		} else {
+			shoes.push({text: "and angrily wears the heels she needs to walk,", shoes: "heels"});
+		}
+	} else {
+		if(slave.fetishKnown == 1 && slave.fetish == "dom") {
+			shoes.push({text: "She wears boots to look like a proper dominant.", shoes: "boots"});
+		} else if(slave.fetishKnown == 1 && slave.fetish == "sadist") {
+			shoes.push({text: "She wears boots, since she thinks they make her look dangerous.", shoes: "boots"});
+		} else if(slave.fetishKnown == 1 && slave.fetish == "masochist") {
+			shoes.push({text: "She wears painfully tall heels, since she enjoys the twinge of pain with each step.", shoes: "extreme heels"});
+		} else if(slave.heels == 1) {
+			shoes.push({text: "She wears the heels she needs to walk.", shoes: "heels"});
+		} else if(slave.fetishKnown == 1 && slave.fetish == "pregnancy" && slave.bellyPreg >= 500) {
+			shoes.push({text: "She goes barefoot to complement her pregnancy.", shoes: "none"});
+		} else if(slave.fetishKnown == 1 && slave.fetish == "none") {
+			shoes.push({text: "She wears comfortable flats, since she doesn't have a fetish to show off.", shoes: "flats"});
+		} else if(slave.actualAge < 13){
+			shoes.push({text: "She puts on boots so she can stomp around.", shoes: "boots"});
+			shoes.push({text: "She playfully puts on heels to be like all the other girls.", shoes: "heels"});
+			shoes.push({text: "She wears flats as they are comfortable and easy to take on and off.", shoes: "flats"});
+			shoes.push({text: "Going barefoot is fun, so no shoes for her.", shoes: "none"});
+		} else {
+			shoes.push({text: "She wears heels to strut her stuff.", shoes: "heels"});
+			shoes.push({text: "She wears comfortable flats to take it easy.", shoes: "flats"});
+			shoes.push({text: "She goes barefoot to show off her toes.", shoes: "none"});
+		}
+	}
+	return jsEither(shoes);
+}
+
+window.todaysCollar = function(slave) {
+	var ArcologyZero = State.variables.arcologies[0];
+	var player = State.variables.PC;
+	var neck = [];
+	
+	if(slave.fetish == 'mindbroken') {
+		
+	} else if(slave.devotion <= 20) {
+		
+	} else {
+		if(ArcologyZero.FSEgyptianRevivalist > 0) {
+			neck.push({text: "dons a wesekh to support your ancient Egyptian pretensions,", collar: "ancient Egyptian"});
+		}
+		if(slave.fetish == "masochist") {
+			neck.push({text: "dons a tight steel collar around her neck,", collar: "tight steel"});
+			neck.push({text: "dons a painful leather collar,", collar: "uncomfortable leather"});
+			neck.push({text: "dons a painfully tight neck corset,", collar: "satin choker"});
+		} else if(slave.fetish == "pregnancy" && (canGetPregnant(slave) || slave.pregKnown == 1)) {
+			neck.push({text: "dons a digital display that tells everything about her womb,", collar: "preg biometrics"});
+		} else if(slave.fetish == "boobs" && slave.boobs >= 1000) {
+			neck.push({text: "dons a cowbell to draw attention to her luscious udders,", collar: "leather with cowbell"});
+		}
+		neck.push({text: "decides her neck needs no accenting,", collar: "none"});
+		neck.push({text: "dons some pretty jewelry,", collar: "pretty jewelry"});
+		neck.push({text: "dons a lovely gold collar,", collar: "heavy gold"});
+		neck.push({text: "dons a simple silk ribbon around her neck,", collar: "silk ribbon"});
+	}
+	return jsEither(neck);
+}
+
+window.todaysCorset = function(slave) {
+	var ArcologyZero = State.variables.arcologies[0];
+	var player = State.variables.PC;
+	var belly = [];
+	var empathyBellies = ["a small empathy belly", "a medium empathy belly", "a large empathy belly", "a huge empathy belly"];
+	
+	if(slave.fetish == 'mindbroken') {
+		if(ArcologyZero.FSRepopulationFocus > 0 && slave.belly < 1500) {
+			if(slave.weight > 130) {
+				belly.push({text: "She notices the fake bellies; since every girl she has ever met has a rounded middle, it's only natural she is compelled to wear one. She struggles to fit it around her huge gut, only stopping when another slave takes it away from her so she moves on and stops blocking the wardrobe with her fat ass.", bellyAccessory: "none"});
+			} else {
+				belly.push({text: "She notices the fake bellies; since every girl she has ever met has a rounded middle, it's only natural she is compelled to wear one.", bellyAccessory: jsEither(["a small empathy belly", "a medium empathy belly", "a large empathy belly", "a huge empathy belly"])});
+			}
+		} else {
+			belly.push({text: "", bellyAccessory: slave.bellyAccessory}); /*compatiblity for no output, will likely get deprecated in the future as content is added*/
+		}
+	} else if(slave.devotion <= 20) {
+		
+	} else {
+		if(ArcologyZero.FSRepopulationFocus > 0 && slave.belly < 1500 && slave.sexualFlaw != "breeder") {
+			if(slave.weight > 130) {
+				belly.push({text: "struggles to fit a fake pregnant belly around her gut before giving up and hoping she can pass as fecund,", bellyAccessory: "none"});
+			} else {
+				belly.push({text: "straps on a fake pregnant belly to fit in with all the other pregnant girls,", bellyAccessory: jsEither(["a small empathy belly", "a medium empathy belly", "a large empathy belly", "a huge empathy belly"])});
+			}
+		} else if(slave.belly < 1500 && slave.fetish == "pregnancy" && isItemAccessible("a small empathy belly") && slave.sexualFlaw != "breeder" && slave.weight <= 130) {
+			if(slave.fetishStrength <= 30) {
+				belly.push({text: "straps on a 1st trimester belly to sate her curiosity,", bellyAccessory: "a small empathy belly"});
+				belly.push({text: "straps on a 2nd trimester belly to sate her curiosity,", bellyAccessory: "a medium empathy belly"});
+				belly.push({text: "straps on a 3rd trimester belly to sate her curiosity,", bellyAccessory: "a large empathy belly"});
+			} else if(slave.fetishStrength <= 95) {
+				belly.push({text: "straps on a 3rd trimester belly to satisfy her pregnancy fetish,", bellyAccessory: "a large empathy belly"});
+			} else if(slave.fetishStrength > 95) {
+				belly.push({text: "straps on the largest belly she can find to satisfy her pregnancy fetish,", bellyAccessory: "a huge empathy belly"});
+			}
+		} else if(empathyBellies.includes(slave.bellyAccessory) && slave.fetish != "pregnancy") {
+			belly.push({text: "removes her fake belly, since she dislikes it,", bellyAccessory: "none"});
+		} else if(empathyBellies.includes(slave.bellyAccessory) && slave.sexualFlaw == "breeder") {
+			belly.push({text: "pulls her fake belly off, disgusted by it,", bellyAccessory: "none"});
+		} else {
+			belly.push({text: "", bellyAccessory: slave.bellyAccessory}); /*compatiblity for no output, will likely get deprecated in the future as content is added*/
+		}
+	}
+	return jsEither(belly);
+}
+
+/*:: FResult [script]*/
+
+// this is a port of the FResult widget
+// it has been broken up into several functions, because it grew too long
+// it has been wrapped in a closure so as not to polute the global namespace
+// and so that nested functions are only evaluated once
+
+window.FResult = (function() {
+	"use strict";
+	// we can't initialise our global variables on load, because SugarCube.State isn't initialised
+	// instead, declare them and initialise on run time
+	let V, incest_bonus;
+	function FResult(slave) {
+		V = State.variables;
+		incest_bonus = V.arcologies[0].FSEgyptianRevivalist > 20 || V.arcologies[0].FSEgyptianRevivalistIncestPolicy === 1;
+		
+		calcUseWeights(slave);
+		if (!slave.fuckdoll)
+			calcNotFuckdoll(slave);
+		else
+			V.FResult += slave.fuckdoll/10;
+		
+		V.FResult += Math.max(0, slave.aphrodisiacs) * 2;
+
+		if (slave.inflationType === "aphrodisiac")
+			V.FResult += slave.inflation*4;
+
+		if (slave.lactation > 0)
+			V.FResult += 1;
+
+		if (V.seeAge === 1)
+			calcAge(slave);
+		if (slave.fetish === "mindbroken")
+			V.FResult = Math.trunc(V.FResult*0.4);
+		else
+			V.FResult = Math.trunc(V.FResult*0.7);
+
+		if (slave.pregWeek < 0)
+			V.FResult -= Math.trunc(V.FResult*slave.pregWeek/10); // reduced the most just after birth
+
+		calcAmputation(slave);
+
+		if (V.arcologies[0].FSHedonisticDecadence > 20)
+			calcHedonismWeight(slave);
+		if (V.FResult < 2) {
+			if (supremeRaceP(slave))
+				V.FResult = 0;
+			else
+				V.FResult = 2;
+		}
+	}
+
+	function calcUseWeights(slave) {
+		V.FResult = (3 - slave.anus)+(slave.muscles/30);
+		if (slave.muscles < -95)
+			V.FResult -= 5;
+		else if (slave.muscle < -30)
+			V.FResult -= 2;
+
+		V.seed = V.oralUseWeight + V.vaginalUseWeight + V.analUseWeight;
+		if (V.seed <= 0) return;
+
+		V.FResult += (6+slave.tonguePiercing) * (V.oralUseWeight/V.seed) * (slave.oralSkill/30);
+		if (slave.sexualFlaw === "cum addict")
+			V.FResult += (V.oralUseWeight/V.seed) * (slave.oralSkill/30);
+		if (canDoVaginal(slave)) {
+			V.FResult += 6 * (V.vaginalUseWeight/V.seed) * (slave.vaginalSkill/30);
+			V.FResult += (3 - slave.vagina);
+			V.FResult += slave.vaginaLube;
+		}
+		if (canDoAnal(slave)) {
+			V.FResult += 6 * (V.analUseWeight/V.seed) * (slave.analSkill/30);
+			if (slave.sexualFlaw === "anal addict")
+				V.FResult += (V.analUseWeight/V.seed) * (slave.analSkill/30);
+			if (slave.inflationType === "aphrodisiac")
+				V.FResult += (V.analUseWeight/V.seed) * (slave.inflation * 3);
+		}
+	}
+
+	function calcWorksWithRelatives(slave) {
+		V.slaves.forEach(islave => {
+			if (isParentP(slave, islave) && sameAssignmentP(slave, islave)) {
+				V.FResult += 1;
+				if (incest_bonus) V.FResult += 1;
+			}
+			if (areSisters(slave, islave) > 0 && sameAssignmentP(slave, islave)) {
+				V.FResult += 1;
+				if (incest_bonus) V.FResult += 1;
+			}
+		});
+	}
+
+	function calcWorksWithRelativesVanilla(slave) {
+		const fre = V.slaves.findIndex(s => {
+			return haveRelationP(slave, s) && sameAssignmentP(slave, s);
+		});
+		if (fre !== -1) {
+			V.FResult += 2;
+			if (incest_bonus) V.FResult += 2;
+		}
+	}
+
+	function calcWorksWithRelationship(slave) {
+		const fre = V.slaves.findIndex(s => {
+			return haveRelationshipP(slave, s) && sameAssignmentP(slave, s);
+		});
+		if (fre !== -1) V.FResult += 1;
+	}
+	
+	function calcWorksWithRival(slave) {
+		const en = V.slaves.findIndex(s => {
+			return isRivalP(slave, s) && sameAssignmentP(slave, s);
+		});
+		if (en !== -1) V.FResult -= 1;
+	}
+
+	function calcHInjectionsDiet(slave) {
+		if (slave.drugs === "male hormone injections" || slave.drugs === "female hormone injections")
+			V.FResult -= 10;
+		if (slave.diet === "XXY")
+			V.FResult += 2;
+		else if (slave.diet === "XY" || slave.diet === "XX")
+			V.FResult += 1;
+		else if (slave.diet === "cum production")
+			V.FResult += 1;
+		else if (slave.diet === "fertility")
+			V.FResult += 1;
+	}
+	function calcPreg(slave) {
+		if (V.arcologies[0].FSRepopulationFocus > 20) {
+			if (slave.preg > 10) V.FResult += 2;
+			else V.FResult -= 2;
+		} else if (V.arcologies[0].FSRestart > 20) {
+			if (slave.bellyPreg >= 500 && slave.breedingMark === 1)
+				V.FResult += 1;
+			else if (slave.preg > 10)
+				V.FResult -= 10;
+			else
+				V.FResult += 0;
+		}
+	}
+
+	function calcRace(slave) {
+		if (V.arcologies[0].FSSupremacist !== "unset" && supremeRaceP(slave))
+			V.FResult -= (V.arcologies[0].FSSupremacist/5) + (V.arcologies[0].FSSupremacistLawME*10);
+		if (V.arcologies[0].FSSubjugationist !== "unset" && inferiorRaceP(slave))
+			V.FResult += (V.arcologies[0].FSSubjugationist/10) + (V.arcologies[0].FSSubjugationistLawME);
+	}
+
+	function calcSexAttributes(slave) {
+		if (slave.clitPiercing > 2) V.FResult += 1;
+		if (slave.fetishKnown === 1 && slave.fetishStrength > 60 && slave.fetish != "none")
+			V.FResult += slave.fetishStrength/5;
+		
+		if (slave.attrKnown === 1) {
+			V.FResult += Math.trunc(slave.attrXX/20);
+			V.FResult += Math.trunc(slave.attrXY/20);
+			if (slave.energy > 95) V.FResult += 3;
+			else if (slave.energy > 80) V.FResult += 2;
+			else if (slave.energy > 60) V.FResult += 1;
+			else if (slave.energy <= 20) V.FResult -= 2;
+			else if (slave.energy <= 40) V.FResult -= 1;
+		}
+		if (slave.sexualFlaw !== "none") V.FResult -= 2;
+		if (slave.sexualQuirk !== "none") V.FResult += 2;
+		if (slave.behavioralFlaw !== "none") V.FResult -= 2;
+		if (slave.behavioralQuirk !== "none") V.FResult += 2;
+	}
+
+	function calcCareer(slave) {
+		if (setup.whoreCareers.includes(slave.career))
+			V.FResult += 1;
+		else if (slave.oralCount + slave.analCount + slave.vaginalCount + slave.mammaryCount + slave.penetrativeCount > 1000)
+			V.FResult += 1;
+	}
+
+	function calcSight(slave) {
+		if (!canSee(slave)) V.FResult -= 3;
+		else if (slave.eyes <= -1) {
+			if (slave.eyewear !== "corrective glasses" && slave.eyewear !== "corrective contacts")
+				V.FResult -= 1;
+		} else if (slave.eyewear === "blurring glasses")
+			V.FResult -= 1;
+		else if (slave.eyewear === "blurring contacts")
+			V.FResult -= 1;
+	}
+
+	function calcEgyptianBonus(slave) {
+		if (V.racialVarieties === undefined) V.racialVarieties = [];
+		V.seed = 0;
+		V.racialVarieties.forEach(race => {
+			if (slave.race === race) V.seed = 1;
+		});
+		if (V.seed === 0)
+			V.racialVarieties.push(slave.race);
+	}
+
+	function calcYouthBonus(slave) {
+		if (slave.visualAge < 30) {
+			if (slave.actualAge > 30)
+				V.FResult += 5; // experienced for her apparent age
+			if (slave.physicalAge > 30)
+				V.FResult -= slave.physicalAge/2; // too old :(
+		}
+	}
+
+	function calcMatureBonus(slave) {
+		if (slave.visualAge >= 30 && slave.actualAge >= 30 && slave.physicalAge < slave.visualAge)
+			V.FResult += Math.min((slave.physicalAge - slave.visualAge) * 2, 20); // looks and acts mature, but has a body that just won't quit
+	}
+
+	function calcNotFuckdoll(slave) {
+		if (V.familyTesting === 1 && totalRelatives(slave) > 0)
+			calcWorksWithRelatives(slave);
+		else if(!V.familyTesting && slave.relation !==0)
+			calcWorksWithRelativesVanilla(slave);
+		if (slave.relationship > 0) calcWorksWithRelationship(slave);
+		if (slave.rivalry !== 0) calcWorksWithRival(slave);
+		calcHInjectionsDiet(slave);
+		calcPreg(slave);
+		calcRace(slave);
+		calcSexAttributes(slave);
+		calcCareer(slave);
+		calcSight(slave);
+		if (V.arcologies[0].FSEgyptianRevivalist !== "unset")
+			calcEgyptianBonus(slave);
+		if (V.arcologies[0].FSYouthPreferentialist !== "unset")
+			calcYouthBonus(slave);
+		else if (V.arcologies[0].FSMaturityPreferentialist !== "unset")
+			calcMatureBonus(slave);
+	}
+	
+	function calcAge(slave) {
+		if ((V.arcologies[0].FSRepopulationFocus !== "unset" || V.arcologies[0].FSGenderFundamentalist !== "unset") && slave.physicalAge === V.minimumSlaveAge && slave.physicalAge === V.fertilityAge && canGetPregnant(slave)) {
+			V.FResult += 1;
+			if (slave.birthWeek === 0) V.FResult += V.FResult;
+			else if (slave.birthWeek < 4) V.FResult += 0.2*V.FResult;
+		} else if (slave.physicalAge === V.minimumSlaveAge) {
+			V.FResult += 1;
+			if (slave.birthWeek === 0 ) V.FResult += 0.5*V.FResult;
+			else if (slave.birthWeek < 4) V.FResult += 0.1*V.FResult;
+		} else if (slave.physicalAge === V.fertilityAge && canGetPregnant(slave) && (V.arcologies[0].FSRepopulationFocus !== "unset" || V.arcologies[0].FSGenderFundamentalist !== "unset")) {
+			V.FResult += 1;
+			if (slave.birthWeek === 0)
+				V.FResult += 0.5*V.FResult;
+			else if (slave.birthWeek < 4)
+				V.FResult += 0.1*V.FResult;
+		}
+	}
+	
+	function calcAmputation(slave) {
+		switch(slave.amp) {
+		case 0:
+			break;
+		case 1:
+			V.FResult -= 2;
+			break;
+		case -2:
+			break;
+		case -5:
+			break;
+		default:
+			V.FResult -= 1;
+		}
+	}
+	
+	function calcHedonismWeight(slave) {
+		if (slave.weight < 10)
+			V.FResult -= 2;
+		else if (slave.weight > 190)
+			V.FResult -= 5; // too fat
+	}
+	return FResult;
+})();
+
+/*:: RA JS [script]*/
+
+window.ruleApplied = function(slave, ID) {
+	if (!slave || !slave.currentRules)
+		return null;
+	return slave.currentRules.includes(ID);
+};
+
+window.ruleSlaveSelected = function(slave, rule) {
+	if (!slave || !rule || !rule.selectedSlaves)
+		return false;
+	return rule.selectedSlaves.includes(slave.ID);
+};
+
+window.ruleSlaveExcluded = function(slave, rule) {
+	if (!slave || !rule || !rule.excludedSlaves)
+		return false;
+	return rule.excludedSlaves.includes(slave.ID);
+};
+
+window.ruleAssignmentSelected = function(slave, rule) {
+	if (!slave || !rule || (!rule.assignment && !rule.facility))
+		return false;
+	var assignment = rule.assignment.concat(expandFacilityAssignments(rule.facility));
+	return assignment.includes(slave.assignment);
+}
+
+window.ruleAssignmentExcluded = function(slave, rule) {
+	if (!slave || !rule || (!rule.excludeAssignment && !rule.excludeFacility))
+		return false;
+	var excludeAssignment = rule.excludeAssignment.concat(expandFacilityAssignments(rule.excludeFacility));
+	return excludeAssignment.includes(slave.assignment);
+}
+
+window.hasSurgeryRule = function(slave, rules) {
+	if (!slave || !rules || !slave.currentRules)
+		return false;
+
+	for (var d = rules.length-1; d >= 0; d--) {
+		if (ruleApplied(slave, rules[d].ID)) {
+			if (rules[d].autoSurgery > 0) {
+				return true;
+			}
+		}
+	}
+	return false;
+};
+
+window.hasRuleFor = function(slave, rules, what) {
+	if (!slave || !rules || !slave.currentRules)
+		return false;
+
+	for (var d = rules.length-1; d >= 0; d--) {
+		if (ruleApplied(slave, rules[d].ID)) {
+			if (rules[d][what] !== "no default setting") {
+				return true;
+			}
+		}
+	}
+	return false;
+};
+
+window.hasHColorRule = function(slave, rules) {
+	return hasRuleFor(slave, rules, "hColor");
+}
+
+window.hasHStyleRule = function(slave, rules) {
+	return hasRuleFor(slave, rules, "hStyle");
+};
+
+window.hasEyeColorRule = function(slave, rules) {
+	return hasRuleFor(slave, rules, "eyeColor");
+};
+
+window.lastPregRule = function(slave, rules) {
+	if (!slave || !rules)
+		return null;
+	if (!slave.currentRules)
+		return false;
+
+	for (var d = rules.length-1; d >= 0; d--) {
+		if (ruleApplied(slave, rules[d].ID)) {
+			if (rules[d].preg == -1) {
+				return true;
+			}
+		}
+	}
+
+	return null;
+};
+
+window.autoSurgerySelector = function(slave, ruleset)
+{
+
+	var appRules = ruleset.filter(function(rule){
+			return (rule.autoSurgery == 1) && this.currentRules.contains(rule.ID);
+		}, slave);
+
+	var surgery = {eyes: "no default setting", lactation: "no default setting", cosmetic: "nds", accent: "no default setting", shoulders: "no default setting", shouldersImplant: "no default setting", boobs: "no default setting", hips: "no default setting", hipsImplant: "no default setting", butt: "no default setting", faceShape: "no default setting", lips: "no default setting", holes: "nds", bodyhair: "nds", hair: "nds", bellyImplant: "no default setting"};
+	var i, key, ruleSurgery;
+
+	for (i in appRules)
+	{
+		ruleSurgery = appRules[i].surgery;
+		for (key in ruleSurgery)
+		{
+			if (ruleSurgery[key] != "no default setting" || ruleSurgery[key] != "nds")
+			{	
+				surgery[key] = ruleSurgery[key];
+			}
+		}
+	}
+
+	return surgery;
+}
+
+window.mergeRules = function(rules) {
+    var combinedRule = {};
+
+    for (var i = 0; i < rules.length; i++) {
+        for (var prop in rules[i]) {
+            // A rule overrides any preceding ones if,
+            //   * there are no preceding ones,
+            //   * or it sets autoBrand,
+            //   * or it does not set autoBrand and is not "no default setting"
+            var applies = (
+                combinedRule[prop] === undefined
+                || (prop === "autoBrand" && rules[i][prop])
+                || (prop !== "autoBrand" && rules[i][prop] !== "no default setting")
+            );
+
+            if (applies)
+            {
+
+            	//Objects in JS in operations "=" pass by reference, so we need a completely new object to avoid messing up previous rules.
+            	if ("object" == typeof rules[i][prop] && "object" != typeof combinedRule[prop])
+            		combinedRule[prop] = new Object();
+
+            	//If we already have object - now we will process its properties, but object itself should be skipped.
+            	if ("object" != typeof combinedRule[prop])
+                	combinedRule[prop] = rules[i][prop];
+
+            	/*Some properties of rules now have second level properties. We need to check it, and change ones in combinedRule. (Good example - growth drugs. Breasts, butt, etc...) */
+            	if ( "object" == typeof rules[i][prop])
+    	        {
+	            	for (var subprop in rules[i][prop])
+    	        	{
+    	           		var subapplies = (
+            	    	combinedRule[prop][subprop] === undefined
+                			|| (rules[i][prop][subprop] !== "no default setting")
+	            		);
+
+		            	if (subapplies)
+    		            	combinedRule[prop][subprop] = rules[i][prop][subprop];
+    		        }
+
+            	}
+           	}
+
+        }
+
+    }
+
+    return combinedRule;
+}
+
 /*:: DTreeJS [script]*/
 /* This is the minified version of lodash, d3 and dTree */
 ;
@@ -7158,7 +8672,7 @@ window.renderFamilyTree = function(slaves, filterID) {
 	}
 };
 
-window.buildFamilyTree = function(slaves = SugarCube.State.variables.slaves, filterID) {
+window.buildFamilyTree = function(slaves = State.variables.slaves, filterID) {
 	var family_graph = {
 		nodes: [],
 		links: []
@@ -7176,20 +8690,20 @@ window.buildFamilyTree = function(slaves = SugarCube.State.variables.slaves, fil
 	var kids = {};
 
 	var fake_pc = {
-		slaveName: SugarCube.State.variables.PC.name + '(You)',
-		mother: SugarCube.State.variables.PC.mother,
-		father: SugarCube.State.variables.PC.father,
-		dick: SugarCube.State.variables.PC.dick,
-		vagina: SugarCube.State.variables.PC.vagina,
-		ID: SugarCube.State.variables.PC.ID
+		slaveName: State.variables.PC.name + '(You)',
+		mother: State.variables.PC.mother,
+		father: State.variables.PC.father,
+		dick: State.variables.PC.dick,
+		vagina: State.variables.PC.vagina,
+		ID: State.variables.PC.ID
 	};
 	var charList = [fake_pc];
 	charList.push.apply(charList, slaves);
-	charList.push.apply(charList, SugarCube.State.variables.tanks);
+	charList.push.apply(charList, State.variables.tanks);
 
 	var unborn = {};
-	for(var i = 0; i < SugarCube.State.variables.tanks.length; i++) {
-		unborn[SugarCube.State.variables.tanks[i].ID] = true;
+	for(var i = 0; i < State.variables.tanks.length; i++) {
+		unborn[State.variables.tanks[i].ID] = true;
 	}
 
 	for(var i  = 0; i < charList.length; i++) {
@@ -7631,3 +9145,18 @@ window.extractHairColor = function(hColor) {
 	}
 	return colorCode;
 };
+
+/*SFJS [script]*/
+
+window.simpleWorldEconomyCheck = function() {
+	var n1 = 4;
+	var n2 = 3;
+	var n3 = 2;
+	if(State.variables.economy === .5) {
+		return n1;
+	} else if(State.variables.economy === 1.5) {
+		return n3;
+	} else {
+		return n2;
+	}
+}

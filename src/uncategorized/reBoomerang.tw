@@ -3,6 +3,7 @@
 <<set $nextButton = "Continue", $nextLink = "RIE Eligibility Check", $returnTo = "RIE Eligibility Check", $showEncyclopedia = 1, $encyclopedia = "Enslaving People">>
 
 <<set $activeSlave = $boomerangSlave, $boomerangSlave = 0, _weeks = $boomerangWeeks, _pregWeeks = $boomerangWeeks, $boomerangWeeks = 0, _buyer = $boomerangBuyer, $boomerangBuyer = 0>>
+<<SetBellySize $activeSlave>>
 
 Your work is interrupted by $assistantName with an alert from the entrance to the penthouse.
 <<if $assistant>>
@@ -16,6 +17,24 @@ brings up the relevant feeds. There's a naked body crumpled pathetically against
 
 <<set $activeSlave.collar = "none", $activeSlave.choosesOwnClothes = 0, $activeSlave.clothes = "no clothing", $activeSlave.buttplug = "none", $activeSlave.vaginalAccessory = "none", $activeSlave.dickAccessory = "none">>
 <<set $activeSlave.health = random(-40,-25)>>
+
+/* ------------------ pregnancy setup start here----------------- */
+
+<<set WombProgress($activeSlave, _pregWeeks)>> /* In all cases should be done */
+<<set WombUpdatePregVars($activeSlave)>>
+<<if $activeSlave.broodmother > 0>> /* Broomother implant is assumed as removed.*/
+	<<set $activeSlave.preg = -1, $activeSlave.birthsTotal += WombBirthReady($activeSlave, 37), $activeSlave.pregType = 0, $activeSlave.pregSource = 0, $activeSlave.pregWeek = 0, $activeSlave.pregKnown = 0, $activeSlave.broodmother == 0, $activeSlave.broodmotherFetuses = 0>>
+	<<set WombFlush($activeSlave)>>
+<<elseif WombBirthReady($activeSlave, 40) > 0 >> /* normal birth case, partial birthers not supported*/
+	<<set $activeSlave.preg = -1, $activeSlave.birthsTotal += WombBirthReady($activeSlave, 40), $activeSlave.pregType = 0, $activeSlave.pregSource = 0, $activeSlave.pregWeek = 0, $activeSlave.pregKnown = 0>>
+	<<set WombFlush($activeSlave)>>
+<<else>>/* still pregnant slave */
+	<<set $activeSlave.preg = WombMaxPreg($activeSlave)>> /*most ready fetus is a base*/
+	<<set $activeSlave.pregWeek = WombMaxPreg($activeSlave)>> /*most ready fetus is a base*/
+<</if>> 
+<<SetBellySize $activeSlave>> /*In any case it's useful to do.*/
+
+/* old code, commented out.
 <<if $activeSlave.broodmother > 0>>
 	<<set $activeSlave.preg = -1, $activeSlave.birthsTotal += $activeSlave.pregType, $activeSlave.pregType = 0, $activeSlave.pregSource = 0, $activeSlave.pregWeek = 0, $activeSlave.pregKnown = 0, $activeSlave.broodmother == 0>>
 	<<SetBellySize $activeSlave>>
@@ -28,6 +47,13 @@ brings up the relevant feeds. There's a naked body crumpled pathetically against
 	<</if>>
 	<<SetBellySize $activeSlave>>
 <</if>>
+*/
+
+/* ------------------ pregnancy setup end here----------------- 
+	As no broodmother cases in code below, it's no need to setup every case of impregnantion through new system. Backup mechanic will do it for normal pregnancies.
+*/
+
+
 <<if ($activeSlave.hStyle != "shaved" && $activeSlave.bald != 1)>>
 	<<if ($activeSlave.hLength < 150)>>
 		<<set $activeSlave.hLength += _weeks>>
@@ -132,7 +158,7 @@ brings up the relevant feeds. There's a naked body crumpled pathetically against
 <<case "degradationist arcology">>
 	"It wa<<s>> horrible." You sold her to a Degradationist arcology; it's nothing short of incredible that she managed to get back here. She must have sold and traded herself without hesitation.
 	<<if $activeSlave.ovaries>>
-		<<set $activeSlave.ovaries = 0, $activeSlave.preg = 0, $activeSlave.pregType = 0, $activeSlave.vagina = 4, $activeSlave.pregWeek = 0, $activeSlave.pregKnown = 0>>
+		<<set $activeSlave.ovaries = 0, $activeSlave.preg = 0, WombFlush($activeSlave), $activeSlave.pregType = 0, $activeSlave.vagina = 4, $activeSlave.pregWeek = 0, $activeSlave.pregKnown = 0>>
 		<<SetBellySize $activeSlave>>
 		"They f-fixed me, t-to '<<s>>ave on maintenan<<c>>e of my cunt,'
 	<<elseif $activeSlave.balls>>
@@ -355,12 +381,43 @@ It isn't obvious how she managed to escape, though no doubt you could review the
 			<</for>>
 		<</if>>
 	<<else>>
+		<<if $boomerangStats.boomerangRelation > 0>>
+			<<set _reb = $slaves.findIndex(function(s) { return s.ID == $boomerangStats.boomerangRelation; })>>
+			<<if _reb != -1>>
+				<<if $activeSlave.relation == "mother">>
+					<<set $slaves[_reb].relation = "daughter">>
+				<<elseif $activeSlave.relation == "daughter">>
+					<<set $slaves[_reb].relation = "mother">>
+				<<else>>
+					<<set $slaves[_reb].relation = $activeSlave.relation>>
+				<</if>>
+				<<set $slaves[_reb].relationshipTarget = $activeSlave.ID>>
+			<<else>>
+				<<set $activeSlave.relation = 0, $activeSlave.relationTarget = 0>>
+			<</if>>
+		<</if>>
 		<<if $boomerangStats.boomerangPregSources.length > 0>>
 			<<for _reb = 0; _reb < $slaves.length; _reb++>>
 				<<if $boomerangStats.boomerangPregSources.includes($slaves[_reb].ID) && $slaves[_reb].preg > 0 && $slaves[_reb].pregSource == 0>>
 					<<set $slaves[_reb].pregSource = $activeSlave.ID>>
 				<</if>>
 			<</for>>
+		<</if>>
+	<</if>>
+	<<if $boomerangStats.boomerangRelationship > 0>>
+		<<set _reb = $slaves.findIndex(function(s) { return s.ID == $boomerangStats.boomerangRelationship; })>>
+		<<if _reb != -1>>
+			<<set $slaves[_reb].relationship = $activeSlave.relationship, $slaves[_reb].relationshipTarget = $activeSlave.ID>>
+		<<else>>
+			<<set $activeSlave.relationship = 0, $activeSlave.relationshipTarget = 0>>
+		<</if>>
+	<</if>>
+	<<if $boomerangStats.boomerangRivalry > 0>>
+		<<set _reb = $slaves.findIndex(function(s) { return s.ID == $boomerangStats.boomerangRivalry; })>>
+		<<if _reb != -1>>
+			<<set $slaves[_reb].rivalry = $activeSlave.rivalry, $slaves[_reb].rivalryTarget = $activeSlave.ID>>
+		<<else>>
+			<<set $activeSlave.rivalry = 0, $activeSlave.rivalryTarget = 0>>
 		<</if>>
 	<</if>>
 	<<set $boomerangStats = 0>>
