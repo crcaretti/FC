@@ -4135,7 +4135,7 @@
 		<</if>>
 	<</if>> /* closes .preg >= 10 */
 
-	<<if ($slaves[$i].preg > 0 && $slaves[$i].pregType == 0)>> //Catch for strange cases - now with checking.
+	<<if ($slaves[$i].preg > 0 && $slaves[$i].pregType == 0)>> /*Catch for strange cases - now with checking.*/
 	 	<<set $slaves[$i].pregType = setPregType($slaves[$i])>>
 	 	<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, $slaves[$i].pregSource, $slaves[$i].preg)>>
 	<</if>>
@@ -4289,15 +4289,13 @@
 		<<set $slaves[$i].pregType = setPregType($slaves[$i])>>
 		<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, $HeadGirl.ID, 1)>>
 		<<set $activeSlave = $slaves[$i]>><<if $slaves[$i].mpreg == 1>><<AnalVCheck 10>><<else>><<VaginalVCheck 10>><</if>><<set $slaves[$i] = $activeSlave>>
-		<<for $j = 0; $j < $slaves.length; $j++>>
-			<<if $HeadGirl.ID == $slaves[$j].ID>>
-				<<set $slaves[$j] = $HeadGirl>>
-				<<break>>
-			<</if>>
-		<</for>>
+		<<set _saLTE = $slaves.findIndex(function(s) { return s.ID == $HeadGirl.ID; })>>
+		<<if _saLTE != -1>>
+			<<set $slaves[_saLTE] = $HeadGirl>>
+		<</if>>
 
 	<</if>> /* closes HG impregnation */
-<<elseif (_conceptionSeed > 50)>>
+<<elseif _conceptionSeed > (50-($reproductionFormula*10))>>
 	<<switch $slaves[$i].assignment>>
 	<<case "rest" "stay confined" "be confined in the cellblock">>
 		/* these assignments are safe from random impregnation */
@@ -4953,18 +4951,16 @@
 		<</if>>
 		<<if $slaves[$i].pregKnown == 1>>
 			<<if $slaves[$i].pregSource > 0>>
-				<<for $j = 0; $j < $slaves.length; $j++>>
-				<<if $slaves[$i].pregSource == $slaves[$j].ID>>
-					<<if $slaves[$i].race != $slaves[$j].race>>
-						Society @@.red;strongly disapproves@@ of your allowing a pure $arcologies[0].FSSupremacistRace slave to be miscegenated by $slaves[$j].slaveName.
+				<<set _saLTE = $slaves.find(function(s) { return $slaves[$i].pregSource == s.ID; })>>
+				<<if def _saLTE>>
+					<<if $slaves[$i].race != _saLTE.race>>
+						Society @@.red;strongly disapproves@@ of your allowing a pure $arcologies[0].FSSupremacistRace slave to be miscegenated by _saLTE.slaveName.
 						<<FSChangePorn "Supremacist" -2>>
 					<<else>>
 						Society @@.green;strongly approves@@ of your using slave breeders like $slaves[$i].slaveName to propagate the $arcologies[0].FSSupremacistRace race.
 						<<FSChangePorn "Supremacist" 2>>
 					<</if>>
-					<<break>>
 				<</if>>
-				<</for>>
 			<</if>>
 		<</if>>
 		<<if $slaves[$i].fuckdoll > 0>>
