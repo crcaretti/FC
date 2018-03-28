@@ -4916,58 +4916,7 @@ is now _combinedRule.hLength cm long.
  % Does not use or modify $currentRule
  %/
 <<widget "CheckAutoRulesActivate">>
-	<<if (ndef $args[0].currentRules) || ($args[0].currentRules.length < 1)>>
-		<<set $args[0].currentRules = []>>
-	<</if>>
-
-	<<set _leaders = [$HeadGirl, $Bodyguard, $Recruiter, $Concubine, $Nurse, $Attendant, $Madam, $DJ, $Milkmaid, $Stewardess, $Schoolteacher, $Wardeness]>>
-
-	<<for _r = 0; _r < $defaultRules.length; _r++>>
-		<<set _currentRule = $defaultRules[_r], _rule = _r+1>>
-
-		<<set _ruleAppliesToThisSlave = evalExpr(_currentRule.condition, $args[0])>>
-
-		<<if _ruleAppliesToThisSlave && _currentRule.excludeSpecialSlaves>>
-			<<for _L = 0; _L < _leaders.length; _L++>>
-		<<if (def _leaders[_L].ID && _leaders[_L].ID == $args[0].ID)>>
-					<<set _ruleAppliesToThisSlave = false>>
-					<<break>>
-				<</if>>
-			<</for>>
-		<</if>>
-
-		/% check exclusion/inclusion %/
-		<<if _ruleAppliesToThisSlave>>
-	    <<if (_currentRule.assignment.length > 0 || _currentRule.facility.length > 0)>>
-		<<set _ruleAppliesToThisSlave = ruleAssignmentSelected($args[0], _currentRule)>>
-	    <<elseif (_currentRule.excludeAssignment.length > 0 || _currentRule.excludeFacility.length > 0)>>
-		<<set _ruleAppliesToThisSlave = !ruleAssignmentExcluded($args[0], _currentRule)>>
-			<</if>>
-
-	    /% We then check if a slave is specifically included or
-	     % excluded.  This takes precedence over any assignment
-	     % checks.
-			 %/
-	    <<if (_currentRule.selectedSlaves.length > 0)>>
-				<<set _ruleAppliesToThisSlave = ruleSlaveSelected($args[0], _currentRule)>>
-	    <<elseif (_currentRule.excludedSlaves.length > 0)>>
-				<<set _ruleAppliesToThisSlave = !ruleSlaveExcluded($args[0], _currentRule)>>
-			<</if>>
-		<</if>>
-
-		<<if _ruleAppliesToThisSlave>>
-			<<if !ruleApplied($args[0], _currentRule.ID)>> /* rule applies now, but did not apply before */
-				<<set $args[0].currentRules.push(_currentRule.ID)>>
-				<br>//@@.tan;Rule _rule (_currentRule.name) now applies to $args[0].slaveName, who is assigned to $args[0].assignment.@@//
-			<</if>>
-		<<elseif ruleApplied($args[0], _currentRule.ID)>> /* rule does not apply now, but did before */
-			<<RARemoveRule $args[0] _currentRule>>    /* prints message and calls RAFacilityRemove */
-		<</if>>
-	<</for>>
-
-	/* done checking/applying/removing rules - sort this slave's updated applied rules to match the current priority order in the rules assistant */
-	<<set $args[0].currentRules = $args[0].currentRules.sort(function(a, b) { return a-b; });>>
-
+	<<= CheckAutoRulesActivate($args[0]) >>
 <</widget>>
 
 /*
