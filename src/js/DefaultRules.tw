@@ -8,7 +8,7 @@ window.DefaultRules = (function() {
 
 	function DefaultRules(slave) {
 		let combinedRule = MergeRules(slave)
-		if (combinedRule.set === undefined) return r // no rules apply
+		if (Object.keys(combinedRule).length === 0) return r // no rules apply
 		AssignJobToSlave(slave, combinedRule)
 		ProcessFuckdoll(slave, combinedRule)
 		return r
@@ -21,12 +21,10 @@ window.DefaultRules = (function() {
 			rule = clone(rule)
 			
 			// skip inapplicable rules 
-			if (!ruleApplied(slave, rule))
-				return
+			if (!ruleApplied(slave, rule)) return
 			ProcessAssignments(rule)
 
 			// merge the current rule (possibly modified by the code above) into the combined rule 
-			// <br>+++ currentRule <<print JSON.stringify(rule)>><br>	
 			combinedRule = mergeRules([combinedRule, rule])
 		})
 		return combinedRule
@@ -46,7 +44,7 @@ window.DefaultRules = (function() {
 				break
 
 			case "live with your Head Girl":
-				if (($HGSuiteSlaves < 1 && slave.indentureRestrictions <= 0)) break
+				if ((V.HGSuiteSlaves < 1 && slave.indentureRestrictions <= 0)) break
 				else {
 					RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 					delete rule.setAssignment
@@ -54,7 +52,7 @@ window.DefaultRules = (function() {
 				break
 
 			case "be confined in the arcade":
-				if (($arcadeSlaves < $arcade && slave.indentureRestrictions <= 0 && slave.breedingMark != 1)) true;
+				if ((V.arcadeSlaves < V.arcade && slave.indentureRestrictions <= 0 && slave.breedingMark != 1)) true;
 				else {
 					RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 					delete rule.setAssignment
@@ -62,7 +60,7 @@ window.DefaultRules = (function() {
 				break
 
 			case "serve in the master suite":
-				if (($masterSuiteSlaves < $masterSuite && (slave.devotion > 20 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)))) true
+				if ((V.masterSuiteSlaves < V.masterSuite && (slave.devotion > 20 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)))) true
 				else {
 					RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 					delete rule.setAssignment
@@ -70,7 +68,7 @@ window.DefaultRules = (function() {
 				break
 
 			case "get treatment in the clinic":
-				if (($clinicSlaves < $clinic && (slave.health < 20 || (slave.chem > 15 && $Nurse != 0 && $clinicUpgradeFilters == 1)) || ((slave.bellyImplant > -1) && ($bellyImplants == 1)) || slave.preg > 1)) true
+				if ((V.clinicSlaves < V.clinic && (slave.health < 20 || (slave.chem > 15 && V.Nurse != 0 && V.clinicUpgradeFilters == 1)) || ((slave.bellyImplant > -1) && (V.bellyImplants == 1)) || slave.preg > 1)) true
 				else {
 					RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 					delete rule.setAssignment
@@ -78,7 +76,7 @@ window.DefaultRules = (function() {
 				break
 
 			case "rest in the spa":
-				if (($spaSlaves < $spa) && (slave.health < 20) || (slave.trust < 60) || (slave.devotion <= 60) || (slave.fetish == "mindbroken") && (slave.devotion >= -20)) true
+				if ((V.spaSlaves < V.spa) && (slave.health < 20) || (slave.trust < 60) || (slave.devotion <= 60) || (slave.fetish == "mindbroken") && (slave.devotion >= -20)) true
 				else {
 					RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 					delete rule.setAssignment
@@ -86,7 +84,7 @@ window.DefaultRules = (function() {
 				break
 
 			case "work in the brothel":
-				if (($brothelSlaves < $brothel && (slave.devotion > 50 || slave.trust > 50 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)) && slave.breedingMark != 1)) true
+				if ((V.brothelSlaves < V.brothel && (slave.devotion > 50 || slave.trust > 50 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)) && slave.breedingMark != 1)) true
 				else {
 					RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 					delete rule.setAssignment
@@ -94,7 +92,7 @@ window.DefaultRules = (function() {
 				break
 
 			case "serve in the club":
-				if (($clubSlaves < $club && (slave.devotion > 50 || slave.trust > 50 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)) && slave.breedingMark != 1)) true
+				if ((V.clubSlaves < V.club && (slave.devotion > 50 || slave.trust > 50 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)) && slave.breedingMark != 1)) true
 				else {
 					RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 					delete rule.setAssignment
@@ -102,27 +100,27 @@ window.DefaultRules = (function() {
 				break
 
 			case "work in the dairy":
-				if (($dairy > $dairySlaves+$bioreactorsXY+$bioreactorsXX+$bioreactorsHerm+$bioreactorsBarren)) {
-					if ((slave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) true
-					else if (((slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || (slave.breedingMark == 1 && $dairyRestriantsSettings > 0) || (($dairyPregSetting > 0) && ((slave.bellyImplant != -1) || (slave.broodmother != 0)))) true
+				if ((V.dairy > V.dairySlaves+V.bioreactorsXY+V.bioreactorsXX+V.bioreactorsHerm+V.bioreactorsBarren)) {
+					if ((slave.indentureRestrictions > 0) && (V.dairyRestraintsSetting > 1)) true
+					else if (((slave.indentureRestrictions > 1) && (V.dairyRestraintsSetting > 0)) || (slave.breedingMark == 1 && V.dairyRestriantsSettings > 0) || ((V.dairyPregSetting > 0) && ((slave.bellyImplant != -1) || (slave.broodmother != 0)))) true
 					else {
-						if ((slave.lactation > 0 || (($dairySlimMaintainUpgrade == 0 || $dairySlimMaintain == 0) && (slave.boobs > 300 || slave.dick == 0 || $dairyImplantsSetting == 1) && $dairyImplantsSetting != 2)) || (slave.balls > 0))
-							if ((slave.devotion > 20) || ((slave.devotion >= -50) && (slave.trust < -20)) || (slave.trust < -50) || (slave.amp == 1) || ($dairyRestraintsUpgrade == 1))
-								if (($dairyStimulatorsSetting < 2) || (slave.anus > 2) || ($dairyPrepUpgrade == 1))
-									if (($dairyPregSetting < 2) || (slave.vagina > 2) || (slave.ovaries == 0) || ($dairyPrepUpgrade == 1)) true
+						if ((slave.lactation > 0 || ((V.dairySlimMaintainUpgrade == 0 || V.dairySlimMaintain == 0) && (slave.boobs > 300 || slave.dick == 0 || V.dairyImplantsSetting == 1) && V.dairyImplantsSetting != 2)) || (slave.balls > 0)) {
+							if ((slave.devotion > 20) || ((slave.devotion >= -50) && (slave.trust < -20)) || (slave.trust < -50) || (slave.amp == 1) || (V.dairyRestraintsUpgrade == 1)) {
+								if ((V.dairyStimulatorsSetting < 2) || (slave.anus > 2) || (V.dairyPrepUpgrade == 1)) {
+									if ((V.dairyPregSetting < 2) || (slave.vagina > 2) || (slave.ovaries == 0) || (V.dairyPrepUpgrade == 1)) true
 									else {
 										RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 										delete rule.setAssignment
 									}
-								else {
+								} else {
 									RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 									delete rule.setAssignment
 								}
-							else {
+							} else {
 								RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 								delete rule.setAssignment
 							}
-						else {
+						} else {
 							RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 							delete rule.setAssignment
 						}
@@ -131,7 +129,7 @@ window.DefaultRules = (function() {
 				break
 
 			case "work as a servant":
-				if (($servantsQuartersSlaves < $servantsQuarters && canSee(slave) && canWalk(slave) && (slave.devotion >= -20 || slave.trust < -20 || (slave.devotion >= -50 && slave.trust <= 20)))) true
+				if ((V.servantsQuartersSlaves < V.servantsQuarters && canSee(slave) && canWalk(slave) && (slave.devotion >= -20 || slave.trust < -20 || (slave.devotion >= -50 && slave.trust <= 20)))) true
 				else {
 					RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 					delete rule.setAssignment
@@ -139,8 +137,8 @@ window.DefaultRules = (function() {
 				break
 
 			case "learn in the schoolroom":
-				if (($schoolroomSlaves < $schoolroom && slave.fetish != "mindbroken" && (slave.devotion >= -20 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20))))
-					if ((slave.intelligenceImplant < 1) || (slave.voice != 0 && slave.accent+$schoolroomUpgradeLanguage > 2) || (slave.oralSkill <= 10+$schoolroomUpgradeSkills*20) || (slave.whoreSkill <= 10+$schoolroomUpgradeSkills*20) || (slave.entertainSkill <= 10+$schoolroomUpgradeSkills*20) || (slave.analSkill < 10+$schoolroomUpgradeSkills*20) || ((slave.vagina >= 0) && (slave.vaginalSkill < 10+$schoolroomUpgradeSkills*20))) true
+				if ((V.schoolroomSlaves < V.schoolroom && slave.fetish != "mindbroken" && (slave.devotion >= -20 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20))))
+					if ((slave.intelligenceImplant < 1) || (slave.voice != 0 && slave.accent+V.schoolroomUpgradeLanguage > 2) || (slave.oralSkill <= 10+V.schoolroomUpgradeSkills*20) || (slave.whoreSkill <= 10+V.schoolroomUpgradeSkills*20) || (slave.entertainSkill <= 10+V.schoolroomUpgradeSkills*20) || (slave.analSkill < 10+V.schoolroomUpgradeSkills*20) || ((slave.vagina >= 0) && (slave.vaginalSkill < 10+V.schoolroomUpgradeSkills*20))) true
 					else {
 						RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 						delete rule.setAssignment
@@ -152,7 +150,7 @@ window.DefaultRules = (function() {
 				break
 
 			case "be confined in the cellblock":
-				if (($cellblockSlaves < $cellblock && ((slave.devotion < -20 && slave.trust >= -20) || (slave.devotion < -50 && slave.trust >= -50)))) true
+				if ((V.cellblockSlaves < V.cellblock && ((slave.devotion < -20 && slave.trust >= -20) || (slave.devotion < -50 && slave.trust >= -50)))) true
 				else {
 					RAFacilityRemove(slave,rule) // before deleting rule.setAssignment 
 					delete rule.setAssignment
@@ -197,7 +195,7 @@ window.DefaultRules = (function() {
 					delete rule.setAssignment
 
 			default:
-				r += `<span class="red">raWidgets missing case for assignment '${rule.setAssignment}'</span>.`
+				r += `<span class="red">raWidgets missing case for assignment 'V.{rule.setAssignment}'</span>.`
 				break
 		}
 	}
@@ -208,46 +206,46 @@ window.DefaultRules = (function() {
 			if (((rule.setAssignment == "choose her own job" && !slave.choosesOwnAssignment) || rule.setAssignment != slave.assignment)) {
 				switch (rule.setAssignment) {
 					case "live with your Head Girl":
-						r = `<br>slave.slaveName has been automatically assigned to live in your Head Girl's private suite.`
+						r = `<br>${slave.slaveName} has been automatically assigned to live in your Head Girl's private suite.`
 						break
 					case "be confined in the arcade":
-						r = `<br>slave.slaveName has been automatically assigned to be confined in $arcadeName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to be confined in ${V.arcadeName}.`
 						break
 					case "serve in the master suite":
-						r = `<br>slave.slaveName has been automatically assigned to $masterSuiteName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to {V.masterSuiteName}.`
 						break
 					case "get treatment in the clinic":
-						r = `<br>slave.slaveName has been automatically assigned to get treatment in $clinicName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to get treatment in {V.clinicName}.`
 						break
 					case "rest in the spa":
-						r = `<br>slave.slaveName has been automatically assigned to rest in $spaName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to rest in ${V.spaName}.`
 						break
 					case "work in the brothel":
-						r = `<br>slave.slaveName has been automatically assigned to work in $brothelName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to work in ${V.brothelName}.`
 						break
 					case "serve in the club":
-						r = `<br>slave.slaveName has been automatically assigned to serve in $clubName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to serve in ${V.clubName}.`
 						break
 					case "work in the dairy":
-						r = `<br>slave.slaveName has been automatically assigned to be milked in $dairyName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to be milked in ${V.dairyName}.`
 						break
 					case "work as a servant":
-						r = `<br>slave.slaveName has been automatically assigned to work in $servantsQuartersName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to work in ${V.servantsQuartersName}.`
 						break
 					case "work as a servant":
-						r = `<br>slave.slaveName has been automatically assigned to work in $servantsQuartersName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to work in ${V.servantsQuartersName}.`
 						break
 					case "learn in the schoolroom":
-						r = `<br>slave.slaveName has been automatically assigned to study in $schoolroomName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to study in ${V.schoolroomName}.`
 						break
 					case "be confined in the cellblock":
-						r = `<br>slave.slaveName has been automatically assigned to be confined in $cellblockName.`
+						r = `<br>${slave.slaveName} has been automatically assigned to be confined in ${V.cellblockName}.`
 						break
 					case "choose her own job":
-						r = `<br>slave.slaveName is now allowed to select her own assignments.`
+						r = `<br>${slave.slaveName} is now allowed to select her own assignments.`
 						break
 					default:
-						r = `<br>slave.slaveName has been automatically assigned to rule.setAssignment.`
+						r = `<br>${slave.slaveName} has been automatically assigned to rule.setAssignment.`
 						break
 				}
 				assignJob(slave, rule.setAssignment)
