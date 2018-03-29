@@ -10,7 +10,9 @@ window.DefaultRules = (function() {
 		let combinedRule = MergeRules(slave)
 		if (Object.keys(combinedRule).length === 0) return r // no rules apply
 		AssignJobToSlave(slave, combinedRule)
-		ProcessFuckdoll(slave, combinedRule)
+		if(slave.fuckdoll === 0)
+			ProcessNonFuckdoll(slave, combinedRule)
+		ProcessBellyImplant(slave, combinedRule)
 		return r
 	}
 
@@ -253,409 +255,508 @@ window.DefaultRules = (function() {
 		}
 	}
 
-	function ProcessFuckdoll(slave, rule) {
-		// apply rules to slaves which are fuckdolls
+	function ProcessNonFuckdoll(slave, rule) {
+		// apply rules to slaves which aren't fuckdolls
+		ProcessClothing(slave, rule)
+		ProcessCollar(slave, rule)
+		ProcessEyewear(slave, rule)
+		ProcessDildos(slave, rule)
+		ProcessDickAccessories(slave, rule)
+		ProcessAnalAccessories(slave, rule)
+		ProcessShoes(slave, rule)
+		ProcessBellyAccessories(slave, rule)
 	}
 
-	return DefaultRules
-})()
+	function ProcessClothing(slave, rule) {
+		// apply clothes to slave
+		if ((rule.clothes !== undefined) && (rule.clothes !== "no default setting")) {
+			if ((rule.clothes == "choosing her own clothes")) {
+				if ((slave.choosesOwnClothes == 0)) {
+					slave.clothes = "choosing her own clothes"
+					slave.choosesOwnClothes = 1
+					r += `<br>${slave.slaveName} is now allowed to choose her own clothes.`
+				}
+			} else if ((slave.clothes !== rule.clothes)) {
+				slave.clothes = rule.clothes
+				slave.choosesOwnClothes = 0
+				r += `<br>${slave.slaveName} is now wearing ${slave.clothes}.`
+			}
+		}
+	}
 
-//
-// Call as <<DefaultRules SlaveObject>>
-// Does not use or modify $currentRule
-/*
-<<widget "DefaultRules">>
-	<<if (def _combinedRule.clothes)>>
-		<<if $args[0].fuckdoll == 0>>
-			<<if (def _combinedRule.clothes) && (_combinedRule.clothes !== "no default setting")>>
-				<<if (_combinedRule.clothes == "choosing her own clothes")>>
-					<<if ($args[0].choosesOwnClothes == 0)>>
-						<<set $args[0].clothes = "choosing her own clothes">>
-						<<set $args[0].choosesOwnClothes = 1>>
-						<br>$args[0].slaveName is now allowed to choose her own clothes.
-					<</if>>
-				<<elseif ($args[0].clothes !== _combinedRule.clothes)>>
-					<<set $args[0].clothes = _combinedRule.clothes>>
-					<<set $args[0].choosesOwnClothes = 0>>
-					<br>$args[0].slaveName is now wearing $args[0].clothes.
-				<</if>>
-			<</if>>
+	function ProcessCollar(slave, rule) {
+		// apply collar to slave
+		if ((rule.collar !== undefined) && (rule.collar != "no default setting")) {
+			if ((slave.collar !== rule.collar)) {
+				r += '<br>'
+				if ((rule.collar == "preg biometrics" && slave.preg <= -1)) {
+					slave.collar = "none"
+					r += `${slave.slaveName} can not utilize preg biometrics.`
+				} else if ((rule.collar == "massive dildo gag" && slave.oralSkill <= 50)) {
+					slave.collar = "none"
+					r += `${slave.slaveName} lacks the oral skill to successfully keep the massive dildo gag in her throat.`
+				} else
+					slave.collar = rule.collar
+				if ((slave.collar == "none"))
+					r += `${slave.slaveName} has been given no collar.`
+				else
+					r += `${slave.slaveName} has been given a slave.collar collar.`
+			}
+		}
+	}
 
-			<<if (def _combinedRule.collar) && (_combinedRule.collar != "no default setting")>>
-				<<if ($args[0].collar !== _combinedRule.collar)>>
-					<br>
-					<<if (_combinedRule.collar == "preg biometrics" && $args[0].preg <= -1)>>
-						<<set $args[0].collar = "none">>
-						$args[0].slaveName can not utilize preg biometrics.
-					<<elseif (_combinedRule.collar == "massive dildo gag" && $args[0].oralSkill <= 50)>>
-						<<set $args[0].collar = "none">>
-						$args[0].slaveName lacks the oral skill to successfully keep the massive dildo gag in her throat.
-					<<else>>
-						<<set $args[0].collar = _combinedRule.collar>>
-					<</if>>
-					<<if ($args[0].collar == "none")>>
-						$args[0].slaveName has been given no collar.
-					<<else>>
-						$args[0].slaveName has been given a $args[0].collar collar.
-					<</if>>
-				<</if>>
-			<</if>>
+	function ProcessEyewear(slave, rule) {
+		// apply glasses, contacts to slave
+		if ((rule.eyewear !== undefined) && (rule.eyewear !== "no default setting")) {
+			switch (rule.eyewear) {
+				case "correct with glasses":
+					if (slave.eyes == -1) {
+						if (slave.eyewear != "corrective glasses") {
+							slave.eyewear = "corrective glasses"
+							V.cash -= V.modCost
+							r += `<br>${slave.slaveName} has been given corrective glasses.`
+						}
+					} else {
+						if (slave.eyewear != "none") {
+							slave.eyewear = "none"
+							r += `<br>${slave.slaveName}'s eyewear has been removed.`
+						}
+					}
+					break
 
-			<<if (def _combinedRule.eyewear) && (_combinedRule.eyewear !== "no default setting")>>
-				<<switch _combinedRule.eyewear>>
-					<<case "correct with glasses">>
-						<<if $args[0].eyes == -1>>
-							<<if $args[0].eyewear != "corrective glasses">>
-								<<set $args[0].eyewear = "corrective glasses">>
-								<<set $cash -= $modCost>>
-								<br>$args[0].slaveName has been given corrective glasses.
-							<</if>>
-						<<else>>
-							<<if $args[0].eyewear != "none">>
-								<<set $args[0].eyewear = "none">>
-								<br>$args[0].slaveName's eyewear has been removed.
-							<</if>>
-						<</if>>
+				case "correct with contacts":
+					if (slave.eyes == -1) {
+						if (slave.eyewear != "corrective contacts") {
+							slave.eyewear = "corrective contacts"
+							V.cash -= V.modCost
+							r += `<br>${slave.slaveName} has been given corrective contacts.`
+						}
+					} else {
+						if (slave.eyewear != "none") {
+							slave.eyewear = "none"
+							r += `<br>${slave.slaveName}'s eyewear has been removed.`
+						}
+					}
+					break
 
-					<<case "correct with contacts">>
-						<<if $args[0].eyes == -1>>
-							<<if $args[0].eyewear != "corrective contacts">>
-								<<set $args[0].eyewear = "corrective contacts">>
-								<<set $cash -= $modCost>>
-								<br>$args[0].slaveName has been given corrective contacts.
-							<</if>>
-						<<else>>
-							<<if $args[0].eyewear != "none">>
-								<<set $args[0].eyewear = "none">>
-								<br>$args[0].slaveName's eyewear has been removed.
-							<</if>>
-						<</if>>
+				case "blur with glasses":
+					if (slave.eyes > -1) {
+						if (slave.eyewear != "blurring glasses") {
+							slave.eyewear = "blurring glasses"
+							V.cash -= V.modCost
+							r += `<br>${slave.slaveName} has been given blurring glasses.`
+						}
+					} else {
+						if (slave.eyewear != "none") {
+							slave.eyewear = "none"
+							r += `<br>${slave.slaveName}'s eyewear has been removed.`
+						}
+					}
+					break
 
-					<<case "blur with glasses">>
-						<<if $args[0].eyes > -1>>
-							<<if $args[0].eyewear != "blurring glasses">>
-								<<set $args[0].eyewear = "blurring glasses">>
-								<<set $cash -= $modCost>>
-								<br>$args[0].slaveName has been given blurring glasses.
-							<</if>>
-						<<else>>
-							<<if $args[0].eyewear != "none">>
-								<<set $args[0].eyewear = "none">>
-								<br>$args[0].slaveName's eyewear has been removed.
-							<</if>>
-						<</if>>
+				case "blur with contacts":
+					if (slave.eyes > -1) {
+						if (slave.eyewear != "blurring contacts") {
+							slave.eyewear = "blurring contacts"
+							V.cash -= V.modCost
+							r += `<br>${slave.slaveName} has been given blurring contacts.`
+						}
+					} else {
+						if (slave.eyewear != "none") {
+							slave.eyewear = "none"
+							r += `<br>Since ${slave.slaveName}'s eyewear has been removed.`
+						}
+					}
+					break
 
-					<<case "blur with contacts">>
-						<<if $args[0].eyes > -1>>
-							<<if $args[0].eyewear != "blurring contacts">>
-								<<set $args[0].eyewear = "blurring contacts">>
-								<<set $cash -= $modCost>>
-								<br>$args[0].slaveName has been given blurring contacts.
-							<</if>>
-						<<else>>
-							<<if $args[0].eyewear != "none">>
-								<<set $args[0].eyewear = "none">>
-								<br>Since $args[0].slaveName's eyewear has been removed.
-							<</if>>
-						<</if>>
+				case "universal glasses":
+					if (slave.eyes == -1) {
+						if (slave.eyewear != "corrective glasses") {
+							slave.eyewear = "corrective glasses"
+							V.cash -= V.modCost
+							r += `<br>${slave.slaveName} has been given corrective glasses.`
+						}
+					} else {
+						if (slave.eyewear != "glasses") {
+							slave.eyewear = "glasses"
+							V.cash -= V.modCost
+							r += `<br>${slave.slaveName} has been given decorative glasses.`
+						}
+					}
+					break
 
-					<<case "universal glasses">>
-						<<if $args[0].eyes == -1>>
-							<<if $args[0].eyewear != "corrective glasses">>
-								<<set $args[0].eyewear = "corrective glasses">>
-								<<set $cash -= $modCost>>
-								<br>$args[0].slaveName has been given corrective glasses.
-							<</if>>
-						<<else>>
-							<<if $args[0].eyewear != "glasses">>
-								<<set $args[0].eyewear = "glasses">>
-								<<set $cash -= $modCost>>
-								<br>$args[0].slaveName has been given decorative glasses.
-							<</if>>
-						<</if>>
+				default:
+					if (slave.eyewear != "none") {
+						slave.eyewear = "none"
+						r += `<br>${slave.slaveName}'s eyewear has been removed.`
+					}
+					break
+			}
+		}
+	}
 
-					<<default>>
-						<<if $args[0].eyewear != "none">>
-							<<set $args[0].eyewear = "none">>
-							<br>$args[0].slaveName's eyewear has been removed.
-						<</if>>
-				<</switch>>
-			<</if>>
+	function ProcessDildos(slave, rule) {
+		// apply vaginal dildos to slave
+		if (slave.vagina == 0)
+			ProcessVVirginDildos(slave, rule)
+		else if ((slave.vagina > 0) && (slave.anus == 0))
+			ProcessAVirginDildos(slave, rule)
+		else if (slave.vagina > 0)
+			ProcessNonVirginDildos(slave, rule)
+	}
 
-			<<if $args[0].vagina == 0>>
-				<<if (def _combinedRule.virginAccessory) && (_combinedRule.virginAccessory !== "no default setting")>>
-					<<if $args[0].vaginalAccessory !== _combinedRule.virginAccessory>>
-						<<set $args[0].vaginalAccessory = _combinedRule.virginAccessory>>
-						<<switch $args[0].vaginalAccessory>>
-							<<case "huge dildo">>
-								<br>$args[0].slaveName is a virgin and has been given a
-								<<if $args[0].vagina >= 2>>
-									massive dildo to permanently gape her cunt.
-								<<else>>
-									large dildo for her pussy, since it must be stretched before it can accommodate a huge one.
-									<<set $args[0].vaginalAccessory = "large dildo">>
-								<</if>>
-							<<case "long dildo">>
-								<<if $activeSlave.breedingMark == 1>>
-									<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin $args[0].slaveName has been given a standard length dildo for her pussy.
-									<<set $args[0].vaginalAccessory = "dildo">>
-								<</if>>
-							<<case "long, large dildo">>
-								<<if $activeSlave.breedingMark == 1>>
-									<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin $args[0].slaveName has been given a standard length large dildo for her pussy.
-									<<set $args[0].vaginalAccessory = "large dildo">>
-								<</if>>
-							<<case "long, huge dildo">>
-								<<if $activeSlave.breedingMark == 1>>
-									<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin $args[0].slaveName has been given a standard length huge dildo for her pussy.
-									<<set $args[0].vaginalAccessory = "huge dildo">>
-								<<else>>
-									<br>$args[0].slaveName is a virgin and has been given a
-									<<if $args[0].vagina >= 2>>
-										massive and oversized dildo to permanently gape her cunt.
-									<<else>>
-										long, large dildo for her pussy, since it must be stretched before it can accommodate a huge one.
-										<<set $args[0].vaginalAccessory = "long, large dildo">>
-									<</if>>
-								<</if>>
-							<<case "none">>
-								<br>$args[0].slaveName is a virgin and has been instructed not to use a vaginal accessory.
-							<<default>>
-								<br>$args[0].slaveName is a virgin and has been given a $args[0].vaginalAccessory for her pussy.
-						<</switch>>
-					<</if>>
-				<</if>>
-			<<elseif ($args[0].vagina > 0) && ($args[0].anus == 0)>>
-				<<if (def _combinedRule.aVirginAccessory) && (_combinedRule.aVirginAccessory !== "no default setting")>>
-					<<if $args[0].vaginalAccessory !== _combinedRule.aVirginAccessory>>
-						<<set $args[0].vaginalAccessory = _combinedRule.aVirginAccessory>>
-						<<switch $args[0].vaginalAccessory>>
-							<<case "huge dildo">>
-								<br>$args[0].slaveName is a virgin and has been given a
-								<<if $args[0].vagina >= 2>>
-									massive dildo to permanently gape her cunt.
-								<<else>>
-									large dildo for her pussy, since it must be stretched before it can accommodate a huge one.
-									<<set $args[0].vaginalAccessory = "large dildo">>
-								<</if>>
-							<<case "long dildo">>
-								<<if $activeSlave.breedingMark == 1>>
-									<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin $args[0].slaveName has been given a standard length dildo for her pussy.
-									<<set $args[0].vaginalAccessory = "dildo">>
-								<</if>>
-							<<case "long, large dildo">>
-								<<if $activeSlave.breedingMark == 1>>
-									<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin $args[0].slaveName has been given a standard length large dildo for her pussy.
-									<<set $args[0].vaginalAccessory = "large dildo">>
-								<</if>>
-							<<case "long, huge dildo">>
-								<<if $activeSlave.breedingMark == 1>>
-									<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin $args[0].slaveName has been given a standard length huge dildo for her pussy.
-									<<set $args[0].vaginalAccessory = "huge dildo">>
-								<<else>>
-									<br>$args[0].slaveName is a virgin and has been given a
-									<<if $args[0].vagina >= 2>>
-										massive and oversized dildo to permanently gape her cunt.
-									<<else>>
-										long, large dildo for her pussy, since it must be stretched before it can accommodate a huge one.
-										<<set $args[0].vaginalAccessory = "long, large dildo">>
-									<</if>>
-								<</if>>
-							<<case "none">>
-								<br>$args[0].slaveName is a virgin and has been instructed not to use a vaginal accessory.
-							<<default>>
-								<br>$args[0].slaveName is a virgin and has been given a $args[0].vaginalAccessory for her pussy.
-						<</switch>>
-					<</if>>
-				<</if>>
-			<<elseif $args[0].vagina > 0>>
-				<<if (def _combinedRule.vaginalAccessory) && (_combinedRule.vaginalAccessory !== "no default setting")>>
-					<<if $args[0].vaginalAccessory !== _combinedRule.vaginalAccessory>>
-						<<set $args[0].vaginalAccessory = _combinedRule.vaginalAccessory>>
-						<<switch $args[0].vaginalAccessory>>
-							<<case "huge dildo">>
-								<br>$args[0].slaveName has been given a
-								<<if $args[0].vagina >= 2>>
-									massive dildo to permanently gape her cunt.
-								<<else>>
-									large dildo for her pussy, since it must be stretched before it can accommodate a huge one.
-									<<set $args[0].vaginalAccessory = "large dildo">>
-								<</if>>
-							<<case "long dildo">>
-								<<if $activeSlave.breedingMark == 1>>
-									<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so $args[0].slaveName has been given a standard length dildo for her pussy.
-									<<set $args[0].vaginalAccessory = "dildo">>
-								<</if>>
-							<<case "long, large dildo">>
-								<<if $activeSlave.breedingMark == 1>>
-									<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so $args[0].slaveName has been given a standard length large dildo for her pussy.
-									<<set $args[0].vaginalAccessory = "large dildo">>
-								<</if>>
-							<<case "long, huge dildo">>
-								<<if $activeSlave.breedingMark == 1>>
-									<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so $args[0].slaveName has been given a standard length huge dildo for her pussy.
-									<<set $args[0].vaginalAccessory = "huge dildo">>
-								<<else>>
-									<br>$args[0].slaveName has been given a
-									<<if $args[0].vagina >= 2>>
-										massive and oversized dildo to permanently gape her cunt.
-									<<else>>
-										long, large dildo for her pussy, since it must be stretched before it can accommodate a huge one.
-										<<set $args[0].vaginalAccessory = "long, large dildo">>
-									<</if>>
-								<</if>>
-							<<case "none">>
-								<br>$args[0].slaveName has been instructed not to use a vaginal accessory.
-							<<default>>
-								<br>$args[0].slaveName has been given a $args[0].vaginalAccessory for her pussy.
-						<</switch>>
-					<</if>>
-				<</if>>
-			<</if>>
+	function ProcessVVirginDildos(slave, rule) {
+		// apply vaginal dildos to varginal virgins
+		if ((rule.virginAccessory !== undefined) && (rule.virginAccessory !== "no default setting")) {
+			if (slave.vaginalAccessory !== rule.virginAccessory) {
+				slave.vaginalAccessory = rule.virginAccessory
+				switch (slave.vaginalAccessory) {
+					case "huge dildo":
+						r += `<br>${slave.slaveName} is a virgin and has been given a`
+						if (slave.vagina >= 2)
+							r += `massive dildo to permanently gape her cunt.`
+						else {
+							r += `large dildo for her pussy, since it must be stretched before it can accommodate a huge one.`
+							slave.vaginalAccessory = "large dildo"
+						}
+						break
 
-			<<if ($args[0].dick > 0)>>
-				<<if $args[0].anus == 0>>
-					<<if (def _combinedRule.aVirginDickAccessory) && (_combinedRule.aVirginDickAccessory !== "no default setting")>>
-						<<if ($args[0].dickAccessory !== _combinedRule.aVirginDickAccessory)>>
-							<<set $args[0].dickAccessory = _combinedRule.aVirginDickAccessory>>
-							<<if $args[0].dickAccessory == "none">>
-								<br>$args[0].slaveName is a virgin and has been instructed not to wear a dick accessory.
-							<<else>>
-								<br>$args[0].slaveName is a virgin and has been given a $args[0].dickAccessory accessory for her cock.
-							<</if>>
-						<</if>>
-					<</if>>
-				<<else>>
-					<<if (def _combinedRule.dickAccessory) && (_combinedRule.dickAccessory !== "no default setting")>>
-						<<if ($args[0].dickAccessory !== _combinedRule.dickAccessory)>>
-							<<set $args[0].dickAccessory = _combinedRule.dickAccessory>>
-							<<if $args[0].dickAccessory == "none">>
-								<br>$args[0].slaveName has been instructed not to wear a dick accessory.
-							<<else>>
-								<br>$args[0].slaveName has been given a $args[0].dickAccessory accessory for her cock.
-							<</if>>
-						<</if>>
-					<</if>>
-				<</if>>
-			<</if>>
+					case "long dildo":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length dildo for her pussy.`
+							slave.vaginalAccessory = "dildo"
+						}
+						break
 
-			<<if ($args[0].vaginalAccessory !== "anal chastity") && ($args[0].vaginalAccessory !== "combined chastity") && ($args[0].dickAccessory !== "anal chastity") && ($args[0].dickAccessory !== "combined chastity")>>
-				<<if $args[0].anus == 0>>
-					<<if (def _combinedRule.aVirginButtplug) && (_combinedRule.aVirginButtplug !== "no default setting")>>
-						<<if ($args[0].buttplug !== _combinedRule.aVirginButtplug)>>
-							<<set $args[0].buttplug = _combinedRule.aVirginButtplug>>
-							<<switch $args[0].buttplug>>
-								<<case "huge plug">>
-									<br>$args[0].slaveName is an anal virgin and has been given a
-									<<if ($args[0].anus >= 2)>>
-										massive plug to permanently gape her asshole.
-									<<else>>
-										<<set $args[0].buttplug = "large plug">>
-										large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.
-									<</if>>
-								<<case "long plug">>
-									<<if $activeSlave.breedingMark == 1>>
-										<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so the anal virgin $args[0].slaveName has been given a standard length plug for her anus.
-										<<set $args[0].buttplug = "plug">>
-									<</if>>
-								<<case "long, large plug">>
-									<<if $activeSlave.breedingMark == 1>>
-										<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so the anal virgin $args[0].slaveName has been given a standard length large plug for her anus.
-										<<set $args[0].buttplug = "large plug">>
-									<</if>>
-								<<case "long, huge plug">>
-									<<if $activeSlave.breedingMark == 1>>
-										<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so the anal virgin $args[0].slaveName has been given a standard length huge plug for her anus.
-										<<set $args[0].buttplug = "huge plug">>
-									<<else>>
-										<br>$args[0].slaveName is an anal virgin and has been given a
-										<<if $args[0].anus >= 2>>
-											massive and oversized plug to permanently gape her asshole.
-										<<else>>
-											long, large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.
-											<<set $args[0].buttplug = "long, large plug">>
-										<</if>>
-									<</if>>
-								<<case "none">>
-									<br>$args[0].slaveName is an anal virgin and has been instructed not to use an anal accessory.
-								<<default>>
-									<br>$args[0].slaveName is an anal virgin and has been given a $args[0].buttplug for her asshole.
-							<</switch>>
-						<</if>>
-					<</if>>
-				<<else>>
-					<<if (def _combinedRule.buttplug) && (_combinedRule.buttplug !== "no default setting")>>
-						<<if ($args[0].buttplug !== _combinedRule.buttplug)>>
-							<<set $args[0].buttplug = _combinedRule.buttplug>>
-							<<switch $args[0].buttplug>>
-								<<case "huge plug">>
-									<br>$args[0].slaveName has been given a
-									<<if ($args[0].anus >= 2)>>
-										massive plug to permanently gape her asshole.
-									<<else>>
-										<<set $args[0].buttplug = "large plug">>
-										large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.
-									<</if>>
-								<<case "long plug">>
-									<<if $activeSlave.breedingMark == 1>>
-										<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so $args[0].slaveName has been given a standard length plug for her anus.
-										<<set $args[0].buttplug = "plug">>
-									<</if>>
-								<<case "long, large plug">>
-									<<if $activeSlave.breedingMark == 1>>
-										<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so $args[0].slaveName has been given a standard length large plug for her anus.
-										<<set $args[0].buttplug = "large plug">>
-									<</if>>
-								<<case "long, huge plug">>
-									<<if $activeSlave.breedingMark == 1>>
-										<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so $args[0].slaveName has been given a standard length huge plug for her anus.
-										<<set $args[0].buttplug = "huge plug">>
-									<<else>>
-										<br>$args[0].slaveName has been given a
-										<<if $args[0].anus >= 2>>
-											massive and oversized plug to permanently gape her asshole.
-										<<else>>
-											long, large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.
-											<<set $args[0].buttplug = "long, large plug">>
-										<</if>>
-									<</if>>
-								<<case "none">>
-									<br>$args[0].slaveName has been instructed not to use an anal accessory.
-								<<default>>
-									<br>$args[0].slaveName has been given a $args[0].buttplug for her asshole.
-							<</switch>>
-						<</if>>
-					<</if>>
-				<</if>>
-			<</if>>
+					case "long, large dildo":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length large dildo for her pussy.`
+							slave.vaginalAccessory = "large dildo"
+						}
+						break
 
-			<<if (def _combinedRule.shoes) && (_combinedRule.shoes !== "no default setting")>>
-				<<if ($args[0].shoes !== _combinedRule.shoes)>>
-					<<if ($args[0].amp != 1)>>
-						<<set $args[0].shoes = _combinedRule.shoes>>
-						<br>$args[0].slaveName's shoes have been set to $args[0].shoes.
-					<</if>>
-				<</if>>
-			<</if>>
+					case "long, huge dildo":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length huge dildo for her pussy.`
+							slave.vaginalAccessory = "huge dildo"
+						} else {
+							r += `<br>slave.slaveName is a virgin and has been given a`
+							if (slave.vagina >= 2)
+								r += `massive and oversized dildo to permanently gape her cunt.`
+							else {
+								r += `long, large dildo for her pussy, since it must be stretched before it can accommodate a huge one.`
+								slave.vaginalAccessory = "long, large dildo"
+							}
+						}
+						break
 
-			<<if (def _combinedRule.bellyAccessory) && (_combinedRule.bellyAccessory !== "no default setting")>>
-				<<if ($args[0].bellyAccessory !== _combinedRule.bellyAccessory)>>
-					<<if ($args[0].belly >= 1500 || $args[0].weight >= 130) && setup.fakeBellies.includes(_combinedRule.bellyAccessory)>>
-						<br>$args[0].slaveName's natural belly is too big to properly wear an empathy belly.
-						<<set $args[0].bellyAccessory = "none">>
-					<<else>>
-						<<set $args[0].bellyAccessory = _combinedRule.bellyAccessory>>
-						<<if $args[0].bellyAccessory == "none">>
-							<br>$args[0].slaveName has been instructed not to wear a torso accessory.
-						<<else>>
-							<br>$args[0].slaveName has been given $args[0].bellyAccessory to wear.
-						<</if>>
-					<</if>>
-				<</if>>
-			<</if>>
+					case "none":
+						r += `<br>${slave.slaveName} is a virgin and has been instructed not to use a vaginal accessory.`
+						break
 
-		<</if>> // CLOSES FUCKDOLL CHECK 
+					default:
+						r += `<br>${slave.slaveName} is a virgin and has been given a slave.vaginalAccessory for her pussy.`
+						break
+				}
+			}
+		}
+	}
 
+	function ProcessAVirginDildos(slave, rule) {
+		// apply vaginal dildos to anal virgins
+		if ((rule.aVirginAccessory !== undefined) && (rule.aVirginAccessory !== "no default setting")) {
+			if (slave.vaginalAccessory !== rule.aVirginAccessory) {
+				slave.vaginalAccessory = rule.aVirginAccessory
+				switch (slave.vaginalAccessory) {
+					case "huge dildo":
+						r += `<br>${slave.slaveName} is a virgin and has been given a`
+						if (slave.vagina >= 2)
+							r += `massive dildo to permanently gape her cunt.`
+						else {
+							r += `large dildo for her pussy, since it must be stretched before it can accommodate a huge one.`
+							slave.vaginalAccessory = "large dildo"
+						}
+						break
+
+					case "long dildo":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length dildo for her pussy.`
+							slave.vaginalAccessory = "dildo"
+						}
+						break
+
+					case "long, large dildo":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length large dildo for her pussy.`
+							slave.vaginalAccessory = "large dildo"
+						}
+						break
+
+					case "long, huge dildo":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length huge dildo for her pussy.`
+							slave.vaginalAccessory = "huge dildo"
+						} else {
+							r += `<br>${slave.slaveName} is a virgin and has been given a`
+							if (slave.vagina >= 2)
+								r += `massive and oversized dildo to permanently gape her cunt.`
+							else {
+								r += `long, large dildo for her pussy, since it must be stretched before it can accommodate a huge one.`
+								slave.vaginalAccessory = "long, large dildo"
+							}
+						}
+						break
+
+					case "none":
+						r += `<br>slave.slaveName is a virgin and has been instructed not to use a vaginal accessory.`
+						break
+
+					default:
+						r += `<br>slave.slaveName is a virgin and has been given a slave.vaginalAccessory for her pussy.`
+						break
+				}
+			}
+		}
+	}
+
+	function ProcessNonVirginDildos(slave, rule) {
+		// apply vaginal dildos to non-virgins
+		if ((rule.vaginalAccessory !== undefined) && (rule.vaginalAccessory !== "no default setting")) {
+			if (slave.vaginalAccessory !== rule.vaginalAccessory) {
+				slave.vaginalAccessory = rule.vaginalAccessory
+				switch (slave.vaginalAccessory) {
+					case "huge dildo":
+						r += `<br>${slave.slaveName} has been given a`
+						if (slave.vagina >= 2)
+							r += `massive dildo to permanently gape her cunt.`
+						else {
+							r += `large dildo for her pussy, since it must be stretched before it can accommodate a huge one.`
+							slave.vaginalAccessory = "large dildo"
+						}
+						break
+
+					case "long dildo":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so ${slave.slaveName} has been given a standard length dildo for her pussy.`
+							slave.vaginalAccessory = "dildo"
+						}
+						break
+
+					case "long, large dildo":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so ${slave.slaveName} has been given a standard length large dildo for her pussy.`
+							slave.vaginalAccessory = "large dildo"
+						}
+						break
+
+					case "long, huge dildo":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so ${slave.slaveName} has been given a standard length huge dildo for her pussy.`
+							slave.vaginalAccessory = "huge dildo"
+						} else {
+							r += `<br>${slave.slaveName} has been given a`
+							if (slave.vagina >= 2)
+								r += `massive and oversized dildo to permanently gape her cunt.`
+							else {
+								r += `long, large dildo for her pussy, since it must be stretched before it can accommodate a huge one.`
+								slave.vaginalAccessory = "long, large dildo"
+							}
+						}
+					case "none":
+						r += `<br>${slave.slaveName} has been instructed not to use a vaginal accessory.`
+						break
+
+					default:
+						r += `<br>${slave.slaveName} has been given a slave.vaginalAccessory for her pussy.`
+						break
+				}
+			}
+		}
+	}
+
+	function ProcessDickAccessories(slave, rule) {
+		// apply dick accessories to slave
+		if ((slave.dick > 0)) {
+			if (slave.anus == 0) {
+				if ((rule.aVirginDickAccessory !== undefined) && (rule.aVirginDickAccessory !== "no default setting")) {
+					if ((slave.dickAccessory !== rule.aVirginDickAccessory)) {
+						slave.dickAccessory = rule.aVirginDickAccessory
+						if (slave.dickAccessory == "none")
+							r += `<br>${slave.slaveName} is a virgin and has been instructed not to wear a dick accessory.`
+						else
+							r += `<br>${slave.slaveName} is a virgin and has been given a ${slave.dickAccessory} accessory for her cock.`
+					}
+				}
+			} else {
+				if ((rule.dickAccessory !== undefined) && (rule.dickAccessory !== "no default setting")) {
+					if ((slave.dickAccessory !== rule.dickAccessory)) {
+						slave.dickAccessory = rule.dickAccessory
+						if (slave.dickAccessory == "none")
+							r += `<br>${slave.slaveName} has been instructed not to wear a dick accessory.`
+						else
+							r += `<br>${slave.slaveName} has been given a slave.dickAccessory accessory for her cock.`
+					}
+				}
+			}
+		}
+	}
+
+	function ProcessShoes(slave, rule) {
+		// apply shoes to slave
+		if ((rule.shoes !== undefined) && (rule.shoes !== "no default setting")) {
+			if ((slave.shoes !== rule.shoes)) {
+				if ((slave.amp != 1)) {
+					slave.shoes = rule.shoes
+					r += `<br>${slave.slaveName}'s shoes have been set to ${slave.shoes}.`
+				}
+			}
+		}
+	}
+
+	function ProcessBellyAccessories(slave, rule) {
+		// apply belly accessories to slave
+		if ((rule.bellyAccessory !== undefined) && (rule.bellyAccessory !== "no default setting")) {
+			if ((slave.bellyAccessory !== rule.bellyAccessory)) {
+				if ((slave.belly >= 1500 || slave.weight >= 130) && setup.fakeBellies.includes(rule.bellyAccessory)) {
+					r += `<br>${slave.slaveName}'s natural belly is too big to properly wear an empathy belly.`
+					slave.bellyAccessory = "none"
+				} else {
+					slave.bellyAccessory = rule.bellyAccessory
+					if (slave.bellyAccessory == "none")
+						r += `<br>${slave.slaveName} has been instructed not to wear a torso accessory.`
+					else
+						r += `<br>${slave.slaveName} has been given ${slave.bellyAccessory} to wear.`
+				}
+			}
+		}
+	}
+
+	function ProcessAnalAccessories(slave, rule) {
+		// apply buttplugs to slave
+		if ((slave.vaginalAccessory !== "anal chastity") && (slave.vaginalAccessory !== "combined chastity") && (slave.dickAccessory !== "anal chastity") && (slave.dickAccessory !== "combined chastity")) {
+			if (slave.anus == 0)
+				ProcessAnalVirginButtplugs(slave, rule)
+			else
+				ProcessNonVirginButtplugs(slave, rule)
+		}
+	}
+
+	function ProcessAnalVirginButtplugs(slave, rule) {
+		// apply buttplugs to virgins
+		if ((rule.aVirginButtplug !== undefined) && (rule.aVirginButtplug !== "no default setting")) {
+			if ((slave.buttplug !== rule.aVirginButtplug)) {
+				slave.buttplug = rule.aVirginButtplug
+				switch (slave.buttplug) {
+					case "huge plug":
+						r += `<br>${slave.slaveName} is an anal virgin and has been given a`
+						if ((slave.anus >= 2))
+							r += `massive plug to permanently gape her asshole.`
+						else {
+							slave.buttplug = "large plug"
+							r += `large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.`
+						}
+						break
+
+					case "long plug":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so the anal virgin ${slave.slaveName} has been given a standard length plug for her anus.`
+							slave.buttplug = "plug"
+						}
+						break
+
+					case "long, large plug":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so the anal virgin ${slave.slaveName} has been given a standard length large plug for her anus.`
+							slave.buttplug = "large plug"
+						}
+						break
+
+					case "long, huge plug":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so the anal virgin ${slave.slaveName} has been given a standard length huge plug for her anus.`
+							slave.buttplug = "huge plug"
+						} else {
+							r += `<br>slave.slaveName is an anal virgin and has been given a`
+							if (slave.anus >= 2)
+								r += `massive and oversized plug to permanently gape her asshole.`
+							else {
+								r += `long, large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.`
+								slave.buttplug = "long, large plug"
+							}
+						}
+						break
+
+					case "none":
+						r += `<br>${slave.slaveName} is an anal virgin and has been instructed not to use an anal accessory.`
+						break
+
+					default:
+						r += `<br>${slave.slaveName} is an anal virgin and has been given a slave.buttplug for her asshole.`
+						break
+				}
+			}
+		}
+	}
+
+	function ProcessNonVirginButtplugs(slave, rule) {
+		// apply buttplugs to non-virgins
+		if ((rule.buttplug !== undefined) && (rule.buttplug !== "no default setting")) {
+			if ((slave.buttplug !== rule.buttplug)) {
+				slave.buttplug = rule.buttplug
+				switch (slave.buttplug) {
+					case "huge plug":
+						r += `<br>${slave.slaveName} has been given a`
+						if ((slave.anus >= 2))
+							r += `massive plug to permanently gape her asshole.`
+						else {
+							slave.buttplug = "large plug"
+							r += `large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.`
+						}
+						break
+
+					case "long plug":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so ${slave.slaveName} has been given a standard length plug for her anus.`
+							slave.buttplug = "plug"
+						}
+						break
+						
+					case "long, large plug":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so ${slave.slaveName} has been given a standard length large plug for her anus.`
+							slave.buttplug = "large plug"
+						}
+						break
+
+					case "long, huge plug":
+						if (V.activeSlave.breedingMark == 1) {
+							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so ${slave.slaveName} has been given a standard length huge plug for her anus.`
+							slave.buttplug = "huge plug"
+						} else {
+							r += `<br>${slave.slaveName} has been given a`
+							if (slave.anus >= 2)
+								r += `massive and oversized plug to permanently gape her asshole.`
+							else {
+								r += `long, large buttplug for her asshole, since it must be stretched before it can accommodate a huge one.`
+								slave.buttplug = "long, large plug"
+							}
+						}
+						break
+
+					case "none":
+						r += `<br>${slave.slaveName} has been instructed not to use an anal accessory.`
+						break
+
+					default:
+						r += `<br>${slave.slaveName} has been given a slave.buttplug for her asshole.`
+						break
+				}
+			}
+		}
+	}
+
+	function ProcessBellyImplant(slave, rule) {
+		// TODO move whatever belly implant changing does to here
 		// Here is belly implant size control, it's used in Surgery Degradation passage to setup devotion and trust changes. 
 		<<if (def _combinedRule.bellyImplantVol) && $args[0].bellyImplant >= 0 && _combinedRule.bellyImplantVol >= 0>>
 			<<set _tmpNextL = $nextLink, _tmpNextB = $nextButton, _as = $activeSlave, $activeSlave = $args[0]>> // this is hack to use Surgery Degradation without breaking normal End Week routine 
@@ -691,7 +792,18 @@ window.DefaultRules = (function() {
 				$args[0].slaveName is not healthy enough to safely adjust her belly implant.
 			<</if>>
 			<<set $nextLink = _tmpNextL, $nextButton = _tmpNextB, $activeSlave = _as>>
-		<</if>>
+		<</if>>	
+	}
+
+	return DefaultRules
+})()
+
+//
+// Call as <<DefaultRules SlaveObject>>
+// Does not use or modify $currentRule
+/*
+<<widget "DefaultRules">>
+	<<if (def _combinedRule.clothes)>>
 
 		// < -------------------------------------------------------------------------Drug Assignment -------------------------------------------------------------------------------------------> 
 		// Fertility 
