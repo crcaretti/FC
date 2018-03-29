@@ -1627,6 +1627,10 @@ Other drugs: // Will be overriden by hormones and other drugs where applicable./
 	''designed to promote hermaphrodite development.''
 <<elseif $currentRule.diet == "cleansing">>
 	''designed to promote health.''
+<<elseif $currentRule.diet == "fertility">>
+	''designed to promote ovulation''
+<<elseif $currentRule.diet == "cum production">>
+	''designed to promote cum production''
 <<else>>
 	''no default setting.''
 <</if>>
@@ -1891,7 +1895,7 @@ Diet support for growth drugs:
  % Call as <<RASaveRule>>
  %/
 <<widget "RASaveRule">>
-<<replace #saveresult>>
+<<replace .saveresult>>
 <<for _t = 0; _t < $defaultRules.length; _t++>>
 	<<if ($currentRule.ID != $defaultRules[_t].ID)>>
 		<<continue>>
@@ -1910,7 +1914,7 @@ Diet support for growth drugs:
 	<</if>>
 
 	<<set $defaultRules[_t] = $currentRule>>
-	//Rule $r saved//
+	//Rule '$currentRule.name' saved//
 	<<break>>
 <</for>>
 <</replace>>
@@ -1921,8 +1925,8 @@ Diet support for growth drugs:
  % Call as <<RAChangeSave>>
  %/
 <<widget "RAChangeSave">>
-<<replace #saveresult>>
-<<link "Save Rule $r">>
+<<replace .saveresult>>
+<<link "Save Rule '$currentRule.name'">>
 	<<RASaveRule>>
 <</link>>
 <</replace>>
@@ -2460,12 +2464,22 @@ Your brand design is ''$brandDesign.''
 		''invasive.''
 	<<elseif ($currentRule.surgery.cosmetic == 1)>>
 		''subtle.''
-	<<else>>
+	<<elseif $currentRule.surgery.cosmetic == 0>>
 		''none.''
+	<<else>>
+		''off.''
 	<</if>>
 
 	<br>
 
+	<<if ($currentRule.surgery.cosmetic !== "nds")>>
+		<<link "No default setting">>
+			<<set $currentRule.surgery.cosmetic = "nds">>
+			<<RASurgeryChangeCosmetic>>
+		<</link>> |
+	<<else>>
+		Off |
+	<</if>>
 	<<if ($currentRule.surgery.cosmetic !== 0)>>
 		<<link "None">>
 			<<set $currentRule.surgery.cosmetic = 0>>
@@ -2731,17 +2745,17 @@ Your brand design is ''$brandDesign.''
 	<<elseif ($currentRule.surgery.holes == 1)>>
 		''hole tightening'' will be applied.
 	<<else>>
-		''none.''
+		''No default setting.''
 	<</if>>
 
 	<br>
-	<<if ($currentRule.surgery.holes != 0)>>
-		<<link "Off">>
-		<<set $currentRule.surgery.holes = 0>>
+	<<if ($currentRule.surgery.holes != "nds")>>
+		<<link "No default setting">>
+		<<set $currentRule.surgery.holes = "nds">>
 		<<RASurgeryChangeHoles>>
 		<</link>> |
 	<<else>>
-		Off |
+		No default setting |
 	<</if>>
 	<<if ($currentRule.surgery.holes != 1)>>
 		<<link "Tightening">>
@@ -2776,9 +2790,9 @@ Your brand design is ''$brandDesign.''
 	<</if>>
 
 	<br>
-	<<if ($currentRule.surgery.bodyhair != 0)>>
+	<<if ($currentRule.surgery.bodyhair != "nds")>>
 		<<link "No default setting">>
-		<<set $currentRule.surgery.bodyhair = 0>>
+		<<set $currentRule.surgery.bodyhair = "nds">>
 		<<RASurgeryBodyHair>>
 		<</link>> |
 	<<else>>
@@ -2820,9 +2834,9 @@ Your brand design is ''$brandDesign.''
 	<</if>>
 
 	<br>
-	<<if ($currentRule.surgery.hair != 0)>>
+	<<if ($currentRule.surgery.hair != "nds")>>
 		<<link "No default setting">>
-		<<set $currentRule.surgery.hair = 0>>
+		<<set $currentRule.surgery.hair = "nds">>
 		<<RASurgeryHair>>
 		<</link>> |
 	<<else>>
@@ -3105,6 +3119,7 @@ Your brand design is ''$brandDesign.''
 	<</switch>>
 
 	/% merge the current rule (possibly modified by the code above) into the combined rule %/
+	/* <br>+++ currentRule <<print JSON.stringify(_currentRule)>><br>	*/
 	<<set _combinedRule = mergeRules([_combinedRule, _currentRule])>>
 
 <</for>> /* done merging rules; from here onwards, we should only use _combinedRule */
@@ -4119,6 +4134,35 @@ Your brand design is ''$brandDesign.''
 			<<if (($args[0].diet !== "cleansing") && ($args[0].health < 100))>>
 				<<set $args[0].diet = "cleansing">>
 				<br>$args[0].slaveName has been put on a diet of cleansers.
+			<</if>>
+		<<elseif (_combinedRule.diet == "fertility")>>
+			<<if canGetPregnant($args[0])>>
+				<<if ($args[0].diet !== "fertility")>>
+					<<set $args[0].diet = "fertility">>
+					<br>$args[0].slaveName has been put on a diet to enhance fertilty.
+				<</if>>
+			<<else>>
+				<<if ($args[0].diet !== "healthy")>>
+					<<set $args[0].diet = "healthy">>
+					<<if $args[0].pregKnown == 0 && $args[0].preg > 0>>
+						<br>$args[0].slaveName has been put on a standard diet since tests reveal she has become pregnant.
+						<<set $args[0].pregKnown = 1>>
+					<<else>>
+						<br>$args[0].slaveName has been put on a standard diet since she is currently unable to become pregnant.
+					<</if>>
+				<</if>>
+			<</if>>
+		<<elseif (_combinedRule.diet == "cum production")>>
+			<<if ($args[0].balls > 0)>>
+				<<if ($args[0].diet !== "cum production")>>
+					<<set $args[0].diet = "cum production">>
+					<br>$args[0].slaveName has been put on a diet to promote cum production.
+				<</if>>
+			<<else>>
+				<<if ($args[0].diet !== "healthy")>>
+					<<set $args[0].diet = "healthy">>
+					<br>$args[0].slaveName has been put on a standard diet since she is no longer able to produce cum.
+				<</if>>
 			<</if>>
 		<</if>>
 	<</if>>

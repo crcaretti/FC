@@ -194,6 +194,9 @@
 <<if ndef $args[0].broodmotherCountDown>>
 	<<set $args[0].broodmotherCountDown = 0>>
 <</if>>
+<<if ndef $args[0].laborCount>>
+	<<set $args[0].laborCount = $args[0].birthsTotal>>
+<</if>>
 
 <<if ndef $args[0].pregKnown>>
 	<<if $args[0].preg > 0>>
@@ -417,7 +420,7 @@ In order to be eligible to be bred, the potential breeding bitch must first sati
 	<br>She must be in good health.
 <</if>>
 <<if $arcologies[0].FSBodyPurist > 20>>
-	<br>Her genome must be damage free.
+	<br>She must have low carcinogen levels.
 	<br>She must be implant free.
 <</if>>
 <<if $arcologies[0].FSMaturityPreferentialist > 20>>
@@ -477,9 +480,9 @@ $activeSlave.slaveName is up for review:
 	<<set $passing-->>
 <</if>>
 <<if $activeSlave.chem <= $activeStandard.chem>>
-	<br>She @@.lime;PASSED@@ the genome damage test.
+	<br>She @@.lime;PASSED@@ the carcinogen test.
 <<else>>
-	<br>She @@.red;FAILED@@ the genome damage test.
+	<br>She @@.red;FAILED@@ the carcinogen test.
 	<<set $passing-->>
 <</if>>
 <<if $activeSlave.addict >= $activeStandard.addict>>
@@ -1896,13 +1899,13 @@ Of $possessive $slaves[$i].pregType child<<if $slaves[$i].pregType > 1>>ren<</if
 		s.nationality = setup.nationalityPoolSelector[Object.keys(setup.nationalityPoolSelector).random()].random();
 		/* Check for a pre-set race and if the nationality fits, else regenerate */
 		if(s.race && validRaces.includes(s.race)) {
-			while(setup.raceSelector[s.nationality] && !setup.raceSelector[s.nationality].includes(s.race)) {
+			while(setup.raceSelector[s.nationality] && !(s.race in setup.raceSelector[s.nationality])) {
 				s.nationality = setup.nationalityPoolSelector[Object.keys(setup.nationalityPoolSelector).random()].random();
 			}
 		}
 	}
 	if(!s.race || !validRaces.includes(s.race)) {
-		s.race = (setup.raceSelector[s.nationality] || setup.raceSelector[""]).random();
+		s.race = hashChoice(setup.raceSelector[s.nationality] || setup.raceSelector[""]);
 	}
 	if(!s.birthSurname) {
 		s.birthSurname = (setup.surnamePoolSelector[s.nationality + "." + s.race]
@@ -1910,35 +1913,4 @@ Of $possessive $slaves[$i].pregType child<<if $slaves[$i].pregType > 1>>ren<</if
 			|| setup.whiteAmericanSlaveSurnames).random();
 	}
 })>>
-<</widget>>
-
-/%
-Call as <<HSM>>
-%/
-<<widget "HSM">>
-	<<if ndef $PC.hacking>>
-		<<set $PC.hacking = 1, $HackingSkillMultiplier = 1>>
-	<<elseif $PC.hacking <= -100>>
-		<<set $HackingSkillMultiplier = 1.5>>
-	<<elseif $PC.hacking <= -75>>
-		<<set $HackingSkillMultiplier = 1.35>>
-	<<elseif $PC.hacking <= -50>>
-		<<set $HackingSkillMultiplier = 1.25>>
-	<<elseif $PC.hacking <= -25>>
-		<<set $HackingSkillMultiplier = 1.15>>
-	<<elseif $PC.hacking < 0>>
-		<<set $HackingSkillMultiplier = 1.10>>
-	<<elseif $PC.hacking <= 10>>
-		<<set $HackingSkillMultiplier = 1>>
-	<<elseif $PC.hacking <= 25>>
-		<<set $HackingSkillMultiplier = .95>>
-	<<elseif $PC.hacking <= 50>>
-		<<set $HackingSkillMultiplier = .90>>
-	<<elseif $PC.hacking <= 75>>
-		<<set $HackingSkillMultiplier = .85>>
-	<<elseif $PC.hacking < 100>>
-		<<set $HackingSkillMultiplier = .80>>
-	<<elseif $PC.hacking >= 100>>
-		<<set $HackingSkillMultiplier = .75>>
-	<</if>>
 <</widget>>
