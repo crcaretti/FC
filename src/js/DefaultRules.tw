@@ -3,17 +3,32 @@
 // this code applies RA rules onto slaves
 
 window.DefaultRules = (function() {
-	const V = State.variables
+	let V
 	let r = ""
 
 	function DefaultRules(slave) {
+		let V = State.variables
 		let combinedRule = MergeRules(slave)
 		if (Object.keys(combinedRule).length === 0) return r // no rules apply
 		AssignJobToSlave(slave, combinedRule)
-		if(slave.fuckdoll === 0)
-			ProcessNonFuckdoll(slave, combinedRule)
+		if(slave.fuckdoll === 0) {
+			ProcessClothing(slave, rule)
+			ProcessCollar(slave, rule)
+			ProcessEyewear(slave, rule)
+			ProcessDildos(slave, rule)
+			ProcessDickAccessories(slave, rule)
+			ProcessAnalAccessories(slave, rule)
+			ProcessShoes(slave, rule)
+			ProcessBellyAccessories(slave, rule)
+		}
 		ProcessBellyImplant(slave, combinedRule)
-		ProcessDrugs(slave, combinedRule)
+		if (isFertile(slave))
+			ProcessFertilityDrugs(slave, rule)
+		ProcessAssetGrowthDrugs(slave, rule)
+		ProcessOtherDrugs(slave, rule)
+		ProcessDiet(slave, rule)
+		ProcessCuratives(slave, rule)
+		ProcessAphrodisiacs(slave, rule)
 		return r
 	}
 
@@ -254,18 +269,6 @@ window.DefaultRules = (function() {
 				assignJob(slave, rule.setAssignment)
 			}
 		}
-	}
-
-	function ProcessNonFuckdoll(slave, rule) {
-		// apply rules to slaves which aren't fuckdolls
-		ProcessClothing(slave, rule)
-		ProcessCollar(slave, rule)
-		ProcessEyewear(slave, rule)
-		ProcessDildos(slave, rule)
-		ProcessDickAccessories(slave, rule)
-		ProcessAnalAccessories(slave, rule)
-		ProcessShoes(slave, rule)
-		ProcessBellyAccessories(slave, rule)
 	}
 
 	function ProcessClothing(slave, rule) {
@@ -829,13 +832,6 @@ window.DefaultRules = (function() {
 		}
 	}
 
-	function ProcessDrugs(slave, rule) {
-		// assigns drugs to slave
-		if (isFertile(slave))
-			ProcessFertilityDrugs(slave, rule)
-		ProcessAssetGrowthDrugs(slave, rule)
-	}
-
 	function ProcessFertilityDrugs(slave, rule) {
 		// Fertility 
 		if ((rule.preg !== undefined) && (rule.preg !== "no default setting")) {
@@ -897,38 +893,48 @@ window.DefaultRules = (function() {
 			return
 		}
 		if (slave.assignmentVisible) { // More resource intensive version with prioritizing. Possible to give this a toggle rather than basing it on visibility. 
-			_priorities = []
+			let _priorities = []
 			if (rule.growth.boobs != "no default setting") {
+				let _priority
 				if (slave.boobs < rule.growth.boobs) {
-					_priority = {drug: "breast injections", weight: (rule.growth.boobs-slave.boobs)/rule.growth.boobs}, _priorities.push(_priority)
+					_priority = {drug: "breast injections", weight: (rule.growth.boobs-slave.boobs)/rule.growth.boobs}
+					_priorities.push(_priority)
 				} else if ((slave.boobs > rule.growth.boobs+200) && slave.weight < 100 && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
 					_priority = {drug: "breast redistributors", weight: (1+((slave.boobs-slave.boobsImplant-rule.growth.boobs)/rule.growth.boobs))}, _priorities.push(_priority)
 				}
 			}
 			if (rule.growth.butt != "no default setting") {
+				let _priority
 				if (slave.butt < rule.growth.butt) {
-					_priority = {drug: "butt injections", weight: (rule.growth.butt-slave.butt)/rule.growth.butt}, _priorities.push(_priority)
+					_priority = {drug: "butt injections", weight: (rule.growth.butt-slave.butt)/rule.growth.butt}
+					_priorities.push(_priority)
 				} else if ((Math.trunc(slave.butt) > rule.growth.butt) && slave.weight < 100 && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
 					_priority = {drug: "butt redistributors", weight: (1+((slave.butt-slave.buttImplant-rule.growth.butt)/rule.growth.butt))}, _priorities.push(_priority)
 				}
 			}
 			if (rule.growth.lips != "no default setting") {
+				let _priority
 				if (slave.lips < rule.growth.lips) {
-					_priority = {drug: "lip injections", weight: (rule.growth.lips-slave.lips)/rule.growth.lips}, _priorities.push(_priority)
+					_priority = {drug: "lip injections", weight: (rule.growth.lips-slave.lips)/rule.growth.lips}
+					_priorities.push(_priority)
 				} else if ((slave.lips > rule.growth.lips) && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
 					_priority = {drug: "lip atrophiers", weight: (1+((slave.lips-slave.lipsImplant-rule.growth.lips)/rule.growth.lips))}, _priorities.push(_priority)
 				}
 			}
 			if (rule.growth.dick != "no default setting" && slave.dick) {
+				let _priority
 				if (slave.dick < rule.growth.dick) {
-					_priority = {drug: "penis enhancement", weight: (rule.growth.dick-slave.dick)/rule.growth.dick}, _priorities.push(_priority)
+					_priority = {drug: "penis enhancement", weight: (rule.growth.dick-slave.dick)/rule.growth.dick}
+					_priorities.push(_priority)
 				} else if ((slave.dick > rule.growth.dick) && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
 					_priority = {drug: "penis atrophiers", weight: (1+((slave.dick-rule.growth.dick)/rule.growth.dick))}, _priorities.push(_priority)
 				}
 			}
 			if (rule.growth.balls != "no default setting" && slave.balls) {
+				let _priority
 				if (slave.balls < rule.growth.balls) {
-					_priority = {drug: "testicle enhancement", weight: (rule.growth.balls-slave.balls)/rule.growth.balls}, _priorities.push(_priority)
+					_priority = {drug: "testicle enhancement", weight: (rule.growth.balls-slave.balls)/rule.growth.balls}
+					_priorities.push(_priority)
 				} else if ((slave.balls > rule.growth.balls) && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
 					_priority = {drug: "testicle atrophiers", weight: (1+((slave.balls-rule.growth.balls)/rule.growth.balls))}, _priorities.push(_priority)
 				}
@@ -953,32 +959,31 @@ window.DefaultRules = (function() {
 			} else if (_priorities.length > 0) {
 				if (slave.drugs != _priorities[0].drug) {
 					slave.drugs = _priorities[0].drug
-					<br>slave.slaveName has been put on
-					if (rule.growth.intensity && slave.drugs != "lip injections" && slave.health > 0)
+					r += `<br>${slave.slaveName} has been put on `
+					if (rule.growth.intensity && slave.drugs != "lip injections" && slave.health > 0) {
 						slave.drugs = "intensive " + slave.drugs
-						slave.drugs, since she's healthy enough to take them, and
-					else
-						slave.drugs, since
-					<</if>>
-					that is the only part of her body that does not meet the targeted size.
+						r += `${slave.drugs}, since she's healthy enough to take them, and `
+					} else
+						r += `${slave.drugs}, since `
+					r += `that is the only part of her body that does not meet the targeted size.`
 				}
 				return
-			} else if (growth_drugs.includes(slave.drugs)) {
+			} else if (growth_drugs.has(slave.drugs)) {
 				slave.drugs = "no drugs"
-				<br>slave.slaveName's body has met all relevant growth targets, so her pharmaceutical regime has been ended.
+				r += `<br>${slave.slaveName}'s body has met all relevant growth targets, so her pharmaceutical regime has been ended.`
 				return
 			}
 		} else {
+			let _hyper
 			if (V.arcologies[0].FSAssetExpansionistResearch == 1)
 				_hyper = "hyper "
 			else
 				_hyper = ""
-			<</if>>
 			if (rule.growth.boobs != "no default setting") {
 				if (slave.boobs < rule.growth.boobs) {
 					if (slave.drugs != _hyper + "breast injections") {
 						slave.drugs = _hyper + "breast injections"
-						<br>slave.slaveName has been put on slave.drugs.
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 					}
 					return
 				}
@@ -987,7 +992,7 @@ window.DefaultRules = (function() {
 				if (slave.butt < rule.growth.butt) {
 					if (slave.drugs != _hyper + "butt injections") {
 						slave.drugs = _hyper + "butt injections"
-						<br>slave.slaveName has been put on slave.drugs.
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 					}
 					return
 				}
@@ -996,7 +1001,7 @@ window.DefaultRules = (function() {
 				if (slave.lips < rule.growth.lips) {
 					if (slave.drugs != "lip injections") {
 						slave.drugs = "lip injections"
-						<br>slave.slaveName has been put on slave.drugs.
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 					}
 					return
 				}
@@ -1005,7 +1010,7 @@ window.DefaultRules = (function() {
 				if (slave.dick < rule.growth.dick) {
 					if (slave.drugs != _hyper + "penis enhancement") {
 						slave.drugs = _hyper + "penis enhancement"
-						<br>slave.slaveName has been put on slave.drugs.
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 					}
 					return
 				}
@@ -1014,7 +1019,7 @@ window.DefaultRules = (function() {
 				if (slave.balls < rule.growth.balls) {
 					if (slave.drugs != _hyper + "testicle enhancement") {
 						slave.drugs = _hyper + "testicle enhancement"
-						<br>slave.slaveName has been put on slave.drugs.
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 					}
 					return
 				}
@@ -1024,7 +1029,7 @@ window.DefaultRules = (function() {
 					if (slave.boobs-slave.boobsImplant > rule.growth.boobs+200 && slave.weight < 100) {
 						if (slave.drugs != "breast redistributors") {
 							slave.drugs = "breast redistributors"
-							<br>slave.slaveName has been put on slave.drugs.
+							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 						}
 						return
 					}
@@ -1033,7 +1038,7 @@ window.DefaultRules = (function() {
 					if (Math.trunc(slave.butt-slave.buttImplant) > rule.growth.butt && slave.weight < 100) {
 						if (slave.drugs != "butt redistributors") {
 							slave.drugs = "butt redistributors"
-							<br>slave.slaveName has been put on slave.drugs.
+							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 						}
 						return
 					}
@@ -1042,7 +1047,7 @@ window.DefaultRules = (function() {
 					if (slave.lips-slave.lipsImplant > rule.growth.lips) {
 						if (slave.drugs != "lip atrophiers") {
 							slave.drugs = "lip atrophiers"
-							<br>slave.slaveName has been put on slave.drugs.
+							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 						}
 						return
 					}
@@ -1051,7 +1056,7 @@ window.DefaultRules = (function() {
 					if (slave.dick > rule.growth.dick) {
 						if (slave.drugs != "penis atrophiers") {
 							slave.drugs = "penis atrophiers"
-							<br>slave.slaveName has been put on slave.drugs.
+							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 						}
 						return
 					}
@@ -1060,370 +1065,373 @@ window.DefaultRules = (function() {
 					if (slave.balls > rule.growth.balls) {
 						if (slave.drugs != "testicle atrophiers") {
 							slave.drugs = "testicle atrophiers"
-							<br>slave.slaveName has been put on slave.drugs.
+							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
 						}
 						return
 					}
 				}
 			}
-			if ((growth_drugs.includes(slave.drugs))) {
+			if (growth_drugs.has(slave.drugs)) {
 				slave.drugs = "no drugs"
-				<br>slave.slaveName has met all relevant growth targets, so her pharmaceutical regime has been ended.
+				r += `<br>${slave.slaveName} has met all relevant growth targets, so her pharmaceutical regime has been ended.`
 				return
 			}
 		}
 	}
 
-	return DefaultRules
-})()
-
-//
-// Call as <<DefaultRules SlaveObject>>
-// Does not use or modify $currentRule
-/*
-<<widget "DefaultRules">>
-	<<if (def _combinedRule.clothes)>>
-		// < -------------------------------------------------------------------------Drug Assignment -------------------------------------------------------------------------------------------> 
-
+	function ProcessOtherDrugs(slave, rule) {
 		// Other Drugs 
-		<<set _tempDrugsDrugs = ["psychosuppressants", "no drugs", "steroids", "hormone enhancers", "hormone blockers", "anti-aging cream", "growth stimulants", "sag-B-gone", "male hormone injections", "female hormone injections", "none"]>>
-		<<if _tempDrugsDrugs.includes(_combinedRule.drug)>>
-			<<if _tempDrugsDrugs.includes($args[0].drugs) && ($args[0].drugs != _combinedRule.drug)>>
-				<<switch _combinedRule.drug>>
-				<<case "anti-aging cream">>
-					<<if $args[0].visualAge > 18>>
-						<<set $args[0].drugs = _combinedRule.drug >>
-						<br> $args[0].slaveName has been put on $args[0].drugs.
-					<<else>>
-						<<set $args[0].drugs = "no drugs" >>
-						<br> $args[0].slaveName can not benefit from her assigned drug and has been defaulted to $args[0].drugs.
-					<</if>>
-				<<case "growth stimulants">>
-					<<if $args[0].height < 274 && $args[0].height < Math.clamp((Height.mean($args[0]) * 1.25),0,274)>>
-						<<set $args[0].drugs = _combinedRule.drug >>
-						<br> $args[0].slaveName has been put on $args[0].drugs.
-					<<else>>
-						<<set $args[0].drugs = "no drugs" >>
-						<br> $args[0].slaveName can not benefit from her assigned drug and has been defaulted to $args[0].drugs.
-					<</if>>
-				<<case "sag-B-gone">>
-					<<if $args[0].boobs > 250 && $args[0].boobShape != "saggy">>
-						<<set $args[0].drugs = _combinedRule.drug >>
-						<br> $args[0].slaveName has been put on $args[0].drugs.
-					<<else>>
-						<<set $args[0].drugs = "no drugs" >>
-						<br> $args[0].slaveName can not benefit from her assigned drug and has been defaulted to $args[0].drugs.
-					<</if>>
-				<<case "female hormone injections">>
-					<<if $args[0].breedingMark != 1 && ($args[0].ovaries == 1 || $args[0].mpreg == 1) && $args[0].pubertyXX == 0>>
-						<<set $args[0].drugs = _combinedRule.drug >>
-						<br> $args[0].slaveName has been put on $args[0].drugs.
-					<<else>>
-						<<set $args[0].drugs = "no drugs" >>
-						<br> $args[0].slaveName can not benefit from her assigned drug and has been defaulted to $args[0].drugs.
-					<</if>>
-				<<case "male hormone injections">>
-					<<if $args[0].breedingMark != 1 && $args[0].balls > 0 && $args[0].pubertyXY == 0>>
-						<<set $args[0].drugs = _combinedRule.drug >>
-						<br> $args[0].slaveName has been put on $args[0].drugs.
-					<<else>>
-						<<set $args[0].drugs = "no drugs" >>
-						<br> $args[0].slaveName can not benefit from her assigned drug and has been defaulted to $args[0].drugs.
-					<</if>>
-				<<default>>
-					<<set $args[0].drugs = _combinedRule.drug >>
-					<br> $args[0].slaveName has been put on $args[0].drugs.
-				<</switch>>
-			<</if>>
-		<</if>>
+		const drugs = new Set(["psychosuppressants", "no drugs", "steroids", "hormone enhancers", "hormone blockers", "anti-aging cream", "growth stimulants", "sag-B-gone", "male hormone injections", "female hormone injections", "none"])
+		if (drugs.has(rule.drug)) {
+			if (drugs.has(slave.drugs) && (slave.drugs != rule.drug)) {
+				switch (rule.drug) {
+				case "anti-aging cream":
+					if (slave.visualAge > 18) {
+						slave.drugs = rule.drug 
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
+					} else {
+						slave.drugs = "no drugs" 
+						r += `<br>${slave.slaveName} can not benefit from her assigned drug and has been defaulted to ${slave.drugs}.`
+					}
+					break
 
+				case "growth stimulants":
+					if (slave.height < 274 && slave.height < Math.clamp((Height.mean(slave) * 1.25),0,274)) {
+						slave.drugs = rule.drug 
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
+					} else {
+						slave.drugs = "no drugs" 
+						r += `<br>${slave.slaveName} can not benefit from her assigned drug and has been defaulted to ${slave.drugs}.`
+					}
+					break
+
+				case "sag-B-gone":
+					if (slave.boobs > 250 && slave.boobShape != "saggy") {
+						slave.drugs = rule.drug 
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
+					} else {
+						slave.drugs = "no drugs" 
+						r += `<br>${slave.slaveName} can not benefit from her assigned drug and has been defaulted to ${slave.drugs}.`
+					}
+					break
+
+				case "female hormone injections":
+					if (slave.breedingMark != 1 && (slave.ovaries == 1 || slave.mpreg == 1) && slave.pubertyXX == 0) {
+						slave.drugs = rule.drug 
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
+					} else {
+						slave.drugs = "no drugs" 
+						r += `<br>${slave.slaveName} can not benefit from her assigned drug and has been defaulted to ${slave.drugs}.`
+					}
+					break
+
+				case "male hormone injections":
+					if (slave.breedingMark != 1 && slave.balls > 0 && slave.pubertyXY == 0) {
+						slave.drugs = rule.drug 
+						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
+					} else {
+						slave.drugs = "no drugs" 
+						r += `<br>${slave.slaveName} can not benefit from her assigned drug and has been defaulted to ${slave.drugs}.`
+					}
+					break
+
+				default:
+					slave.drugs = rule.drug 
+					r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
+					break
+				}
+			}
+		}
+	}
+
+	function ProcessDiet(slave, rule) {
 		// Diet Setting 
-		<<if (def _combinedRule.diet) && (_combinedRule.diet !== "no default setting")>>
-			<<if ($args[0].boobs >= 1600) && ($args[0].muscles <= 5) && ($args[0].amp != 1) && ((_combinedRule.muscles == "no default setting") || (_combinedRule.muscles == 0))>>
-				<<if ($args[0].diet !== "muscle building")>>
-					<<set $args[0].diet = "muscle building">>
-					<br>$args[0].slaveName has big tits and no back muscles, so she's been assigned to gain some.
-				<</if>>
-			<<elseif ($args[0].boobs >= 1600) && ($args[0].muscles > 5) && ($args[0].diet == "muscle building") && ((_combinedRule.muscles == "no default setting") || (_combinedRule.muscles == 0))>>
-				<<set $args[0].diet = "healthy">>
-				<br>$args[0].slaveName has huge boobs, but she already has the back muscles to bear them, so she's been assigned to stop working out so hard.
-			<<elseif (_combinedRule.dietGrowthSupport == 1) && (($args[0].drugs == "breast injections") || ($args[0].drugs == "butt injections")) && ($args[0].weight <= 95)>>
-				<<if $args[0].diet !== "fattening">>
-					<<set $args[0].diet = "fattening">>
-					<br>$args[0].slaveName is on drugs designed to expand major body parts, so she's been put on a fattening diet to provide her body as much fuel for growth as possible.
-				<</if>>
-			<<else>>
-				<<if (_combinedRule.diet == 0)>>
-					<<if ($args[0].weight > 10)>>
-						<<if ($args[0].diet !== "restricted")>>
-							<<set $args[0].diet = "restricted">>
-							<br>$args[0].slaveName is too fat so her diet has been set to restricted.
-						<</if>>
-						<<if ($arcologies[0].FSSlimnessEnthusiastResearch == 1 && ($args[0].drugs == "no drugs" || $args[0].drugs == "none"))>>
-							<<set $args[0].drugs = "appetite suppressors">>
-							<br>$args[0].slaveName is too fat so she will be given weight loss pills.
-						<</if>>
-					<<elseif ($args[0].weight < -10)>>
-						<<if ($args[0].diet !== "fattening")>>
-							<<set $args[0].diet = "fattening">>
-							<br>$args[0].slaveName is too skinny so her diet has been set to fattening.
-						<</if>>
-						<<if ($args[0].drugs == "appetite suppressors")>>
-							<<set $args[0].drugs = "no drugs">>
-							<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
-						<</if>>
-					<<elseif (def _combinedRule.muscles) && (_combinedRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
-						<<if ($args[0].muscles >= _combinedRule.muscles+8)>>
-							<<if ($args[0].diet !== "slimming")>>
-								<<set $args[0].diet = "slimming">>
-								<br>$args[0].slaveName has been put on a slimming exercise regime.
-							<</if>>
-						<<elseif ($args[0].muscles <= _combinedRule.muscles-2)>>
-							<<if ($args[0].diet !== "muscle building")>>
-								<<set $args[0].diet = "muscle building">>
-								<br>$args[0].slaveName has been put on a muscle building exercise regime.
-							<</if>>
-						<<else>>
-							<<if ($args[0].diet !== "healthy")>>
-								<<set $args[0].diet = "healthy">>
-								<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
-							<</if>>
-						<</if>>
-					<<else>>
-						<<if ($args[0].diet !== "healthy")>>
-							<<set $args[0].diet = "healthy">>
-							<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
-						<</if>>
-					<</if>>
-				<<elseif (_combinedRule.diet == 30)>>
-					<<if ($args[0].weight > 30)>>
-						<<if ($args[0].diet !== "restricted")>>
-							<<set $args[0].diet = "restricted">>
-							<br>$args[0].slaveName is too fat so her diet has been set to restricted.
-						<</if>>
-						<<if ($arcologies[0].FSSlimnessEnthusiastResearch == 1 && ($args[0].drugs == "no drugs" || $args[0].drugs == "none"))>>
-							<<set $args[0].drugs = "appetite suppressors">>
-							<br>$args[0].slaveName is too fat so she will be given weight loss pills.
-						<</if>>
-					<<elseif ($args[0].weight < 20)>>
-						<<if ($args[0].diet !== "fattening")>>
-							<<set $args[0].diet = "fattening">>
-							<br>$args[0].slaveName is too skinny so her diet has been set to fattening.
-						<</if>>
-						<<if ($args[0].drugs == "appetite suppressors")>>
-							<<set $args[0].drugs = "no drugs">>
-							<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
-						<</if>>
-					<<elseif (def _combinedRule.muscles) && (_combinedRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
-						<<if ($args[0].muscles >= _combinedRule.muscles+8)>>
-							<<if ($args[0].diet !== "slimming")>>
-								<<set $args[0].diet = "slimming">>
-								<br>$args[0].slaveName has been put on a slimming exercise regime.
-							<</if>>
-						<<elseif ($args[0].muscles <= _combinedRule.muscles-2)>>
-							<<if ($args[0].diet !== "muscle building")>>
-								<<set $args[0].diet = "muscle building">>
-								<br>$args[0].slaveName has been put on a muscle building exercise regime.
-							<</if>>
-						<<else>>
-							<<if ($args[0].diet !== "healthy")>>
-								<<set $args[0].diet = "healthy">>
-								<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
-							<</if>>
-							<<if ($args[0].drugs == "appetite suppressors")>>
-								<<set $args[0].drugs = "no drugs">>
-								<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
-							<</if>>
-						<</if>>
-					<<else>>
-						<<if ($args[0].diet !== "healthy")>>
-							<<set $args[0].diet = "healthy">>
-							<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
-						<</if>>
-						<<if ($args[0].drugs == "appetite suppressors")>>
-							<<set $args[0].drugs = "no drugs">>
-							<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
-						<</if>>
-					<</if>>
-				<<elseif (_combinedRule.diet == -30)>>
-					<<if ($args[0].weight > -15)>>
-						<<if ($args[0].diet !== "restricted")>>
-							<<set $args[0].diet = "restricted">>
-							<br>$args[0].slaveName is too fat so her diet has been set to restricted.
-						<</if>>
-						<<if ($arcologies[0].FSSlimnessEnthusiastResearch == 1 && ($args[0].drugs == "no drugs" || $args[0].drugs == "none"))>>
-							<<set $args[0].drugs = "appetite suppressors">>
-							<br>$args[0].slaveName is too fat so she will be given weight loss pills.
-						<</if>>
-					<<elseif ($args[0].weight < -30)>>
-						<<if ($args[0].diet !== "fattening")>>
-							<<set $args[0].diet = "fattening">>
-							<br>$args[0].slaveName is too skinny so her diet has been set to fattening.
-						<</if>>
-						<<if ($args[0].drugs == "appetite suppressors")>>
-							<<set $args[0].drugs = "no drugs">>
-							<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
-						<</if>>
-					<<elseif (def _combinedRule.muscles) && (_combinedRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
-						<<if ($args[0].muscles >= _combinedRule.muscles+8)>>
-							<<if ($args[0].diet !== "slimming")>>
-								<<set $args[0].diet = "slimming">>
-								<br>$args[0].slaveName has been put on a slimming exercise regime.
-							<</if>>
-						<<elseif ($args[0].muscles <= _combinedRule.muscles-2)>>
-							<<if ($args[0].diet !== "muscle building")>>
-								<<set $args[0].diet = "muscle building">>
-								<br>$args[0].slaveName has been put on a muscle building exercise regime.
-							<</if>>
-						<<else>>
-							<<if ($args[0].diet !== "healthy")>>
-								<<set $args[0].diet = "healthy">>
-								<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
-							<</if>>
-							<<if ($args[0].drugs == "appetite suppressors")>>
-								<<set $args[0].drugs = "no drugs">>
-								<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
-							<</if>>
-						<</if>>
-					<<else>>
-						<<if ($args[0].diet !== "healthy")>>
-							<<set $args[0].diet = "healthy">>
-							<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
-						<</if>>
-						<<if ($args[0].drugs == "appetite suppressors")>>
-							<<set $args[0].drugs = "no drugs">>
-							<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
-						<</if>>
-					<</if>>
-				<<elseif (_combinedRule.diet == "attractive")>>
-					<<if (($args[0].weight > 95) || (($args[0].weight > 30) && ($args[0].hips < 2)))>>
-						<<if ($args[0].diet !== "restricted")>>
-							<<set $args[0].diet = "restricted">>
-							<br>$args[0].slaveName is too fat so her diet has been set to restricted.
-						<</if>>
-						<<if ($arcologies[0].FSSlimnessEnthusiastResearch == 1 && ($args[0].drugs == "no drugs" || $args[0].drugs == "none"))>>
-							<<set $args[0].drugs = "appetite suppressors">>
-							<br>$args[0].slaveName is too fat so she will be given weight loss pills.
-						<</if>>
-					<<elseif (($args[0].weight < -95) || (($args[0].weight < -30) && ($args[0].hips > -2)))>>
-						<<if ($args[0].diet !== "fattening")>>
-							<<set $args[0].diet = "fattening">>
-							<br>$args[0].slaveName is too skinny so her diet has been set to fattening.
-						<</if>>
-						<<if ($args[0].drugs == "appetite suppressors")>>
-							<<set $args[0].drugs = "no drugs">>
-							<br>$args[0].slaveName is too skinny so she will no longer be given weight loss pills.
-						<</if>>
-					<<elseif (def _combinedRule.muscles) && (_combinedRule.muscles !== "no default setting") && ($args[0].amp != 1)>>
-						<<if ($args[0].muscles >= _combinedRule.muscles+8)>>
-							<<if ($args[0].diet !== "slimming")>>
-								<<set $args[0].diet = "slimming">>
-								<br>$args[0].slaveName has been put on a slimming exercise regime.
-							<</if>>
-						<<elseif ($args[0].muscles <= _combinedRule.muscles-2)>>
-							<<if ($args[0].diet !== "muscle building")>>
-								<<set $args[0].diet = "muscle building">>
-								<br>$args[0].slaveName has been put on a muscle building exercise regime.
-							<</if>>
-						<<else>>
-							<<if ($args[0].diet !== "healthy")>>
-								<<set $args[0].diet = "healthy">>
-								<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
-							<</if>>
-							<<if ($args[0].drugs == "appetite suppressors")>>
-								<<set $args[0].drugs = "no drugs">>
-								<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
-							<</if>>
-						<</if>>
-					<<else>>
-						<<if ($args[0].diet !== "healthy")>>
-							<<set $args[0].diet = "healthy">>
-							<br>$args[0].slaveName is at the target weight, so her diet has been normalized.
-						<</if>>
-						<<if ($args[0].drugs == "appetite suppressors")>>
-							<<set $args[0].drugs = "no drugs">>
-							<br>$args[0].slaveName is at the target weight, so she will no longer be given weight loss pills.
-						<</if>>
-					<</if>>
-				<<elseif (_combinedRule.diet == "XX")>>
-					<<if ($args[0].diet !== "XX")>>
-						<<set $args[0].diet = "XX">>
-						<br>$args[0].slaveName has been put on a diet that favors feminine development.
-					<</if>>
-				<<elseif (_combinedRule.diet == "XY")>>
-					<<if ($args[0].diet !== "XY")>>
-						<<set $args[0].diet = "XY">>
-						<br>$args[0].slaveName has been put on a diet that favors masculine development.
-					<</if>>
-				<<elseif (_combinedRule.diet == "XXY")>>
-					<<if $args[0].balls > 0 && ($args[0].ovaries == 1 || $args[0].mpreg == 1)>>
-						<<if ($args[0].diet !== "XXY")>>
-							<<set $args[0].diet = "XXY">>
-							<br>$args[0].slaveName has been put on a diet that enhances a herm's unique sexuality.
-						<</if>>
-					<<else>>
-						<<if ($args[0].diet !== "healthy")>>
-							<<set $args[0].diet = "healthy">>
-							<br>$args[0].slaveName has been put on a standard diet since she is not a hermaphrodite.
-						<</if>>
-					<</if>>
-				<<elseif (_combinedRule.diet == "cleansing")>>
-					<<if (($args[0].diet !== "cleansing") && ($args[0].health < 100))>>
-						<<set $args[0].diet = "cleansing">>
-						<br>$args[0].slaveName has been put on a diet of cleansers.
-					<</if>>
-				<<elseif (_combinedRule.diet == "fertility")>>
-					<<if canGetPregnant($args[0])>>
-						<<if ($args[0].diet !== "fertility")>>
-							<<set $args[0].diet = "fertility">>
-							<br>$args[0].slaveName has been put on a diet to enhance fertilty.
-						<</if>>
-					<<else>>
-						<<if ($args[0].diet !== "healthy")>>
-							<<set $args[0].diet = "healthy">>
-							<<if $args[0].pregKnown == 0 && $args[0].preg > 0>>
-								<br>$args[0].slaveName has been put on a standard diet since tests reveal she has become pregnant.
-								<<set $args[0].pregKnown = 1>>
-							<<else>>
-								<br>$args[0].slaveName has been put on a standard diet since she is currently unable to become pregnant.
-							<</if>>
-						<</if>>
-					<</if>>
-				<<elseif (_combinedRule.diet == "cum production")>>
-					<<if ($args[0].balls > 0)>>
-						<<if ($args[0].diet !== "cum production")>>
-							<<set $args[0].diet = "cum production">>
-							<br>$args[0].slaveName has been put on a diet to promote cum production.
-						<</if>>
-					<<else>>
-						<<if ($args[0].diet !== "healthy")>>
-							<<set $args[0].diet = "healthy">>
-							<br>$args[0].slaveName has been put on a standard diet since she is no longer able to produce cum.
-						<</if>>
-					<</if>>
-				<</if>>
-			<</if>>
-		<<elseif (def _combinedRule.muscles) && (_combinedRule.muscles !== "no default setting") && ($args[0].amp != 1)>> // no diet rule, muscles only 
-			<<if ($args[0].muscles >= _combinedRule.muscles+8)>>
-				<<if ($args[0].diet !== "slimming")>>
-					<<set $args[0].diet = "slimming">>
-					<br>$args[0].slaveName has been put on a slimming exercise regime.
-				<</if>>
-			<<elseif ($args[0].muscles <= _combinedRule.muscles-2)>>
-				<<if ($args[0].diet !== "muscle building")>>
-					<<set $args[0].diet = "muscle building">>
-					<br>$args[0].slaveName has been put on a muscle building exercise regime.
-				<</if>>
-			<<else>>
-				<<if ($args[0].diet !== "healthy")>>
-					<<set $args[0].diet = "healthy">>
-					<br>$args[0].slaveName has achieved the target musculature, so her exercise regime has been normalized.
-				<</if>>
-			<</if>>
-		<</if>>
+		if ((rule.diet !== undefined) && (rule.diet !== "no default setting")) {
+			if ((slave.boobs >= 1600) && (slave.muscles <= 5) && (slave.amp != 1) && ((rule.muscles == "no default setting") || (rule.muscles == 0))) {
+				if ((slave.diet !== "muscle building")) {
+					slave.diet = "muscle building"
+					r += `<br>${slave.slaveName} has big tits and no back muscles, so she's been assigned to gain some.`
+				}
+			} else if ((slave.boobs >= 1600) && (slave.muscles > 5) && (slave.diet == "muscle building") && ((rule.muscles == "no default setting") || (rule.muscles == 0))) {
+				slave.diet = "healthy"
+				r += `<br>${slave.slaveName} has huge boobs, but she already has the back muscles to bear them, so she's been assigned to stop working out so hard.`
+			} else if ((rule.dietGrowthSupport == 1) && ((slave.drugs == "breast injections") || (slave.drugs == "butt injections")) && (slave.weight <= 95)) {
+				if (slave.diet !== "fattening") {
+					slave.diet = "fattening"
+					r += `<br>${slave.slaveName} is on drugs designed to expand major body parts, so she's been put on a fattening diet to provide her body as much fuel for growth as possible.`
+				}
+			} else {
+				if ((rule.diet == 0)) {
+					if ((slave.weight > 10)) {
+						if ((slave.diet !== "restricted")) {
+							slave.diet = "restricted"
+							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`
+						}
+						if (($arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
+							slave.drugs = "appetite suppressors"
+							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`
+						}
+					} else if ((slave.weight < -10)) {
+						if ((slave.diet !== "fattening")) {
+							slave.diet = "fattening"
+							r += `<br>${slave.slaveName} is too skinny so her diet has been set to fattening.`
+						}
+						if ((slave.drugs == "appetite suppressors")) {
+							slave.drugs = "no drugs"
+							r += `<br>${slave.slaveName} is too skinny so she will no longer be given weight loss pills.`
+						}
+					} else if ((rule.muscles !== undefined) && (rule.muscles !== "no default setting") && (slave.amp != 1)) {
+						if ((slave.muscles >= rule.muscles+8)) {
+							if ((slave.diet !== "slimming")) {
+								slave.diet = "slimming"
+								r += `<br>${slave.slaveName} has been put on a slimming exercise regime.`
+							}
+						} else if ((slave.muscles <= rule.muscles-2)) {
+							if ((slave.diet !== "muscle building")) {
+								slave.diet = "muscle building"
+								r += `<br>${slave.slaveName} has been put on a muscle building exercise regime.`
+							}
+						} else {
+							if ((slave.diet !== "healthy")) {
+								slave.diet = "healthy"
+								r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`
+							}
+						}
+					} else {
+						if ((slave.diet !== "healthy")) {
+							slave.diet = "healthy"
+							r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`
+						}
+					}
+				} else if ((rule.diet == 30)) {
+					if ((slave.weight > 30)) {
+						if ((slave.diet !== "restricted")) {
+							slave.diet = "restricted"
+							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`
+						}
+						if (($arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
+							slave.drugs = "appetite suppressors"
+							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`
+						}
+					} else if ((slave.weight < 20)) {
+						if ((slave.diet !== "fattening")) {
+							slave.diet = "fattening"
+							r += `<br>${slave.slaveName} is too skinny so her diet has been set to fattening.`
+						}
+						if ((slave.drugs == "appetite suppressors")) {
+							slave.drugs = "no drugs"
+							r += `<br>${slave.slaveName} is too skinny so she will no longer be given weight loss pills.`
+						}
+					} else if ((rule.muscles !== undefined) && (rule.muscles !== "no default setting") && (slave.amp != 1)) {
+						if ((slave.muscles >= rule.muscles+8)) {
+							if ((slave.diet !== "slimming")) {
+								slave.diet = "slimming"
+								r += `<br>${slave.slaveName} has been put on a slimming exercise regime.`
+							}
+						} else if ((slave.muscles <= rule.muscles-2)) {
+							if ((slave.diet !== "muscle building")) {
+								slave.diet = "muscle building"
+								r += `<br>${slave.slaveName} has been put on a muscle building exercise regime.`
+							}
+						} else {
+							if ((slave.diet !== "healthy")) {
+								slave.diet = "healthy"
+								r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`
+							}
+							if ((slave.drugs == "appetite suppressors")) {
+								slave.drugs = "no drugs"
+								r += `<br>${slave.slaveName} is at the target weight, so she will no longer be given weight loss pills.`
+							}
+						}
+					} else {
+						if ((slave.diet !== "healthy")) {
+							slave.diet = "healthy"
+							r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`
+						}
+						if ((slave.drugs == "appetite suppressors")) {
+							slave.drugs = "no drugs"
+							r += `<br>${slave.slaveName} is at the target weight, so she will no longer be given weight loss pills.`
+						}
+					}
+				} else if ((rule.diet == -30)) {
+					if ((slave.weight > -15)) {
+						if ((slave.diet !== "restricted")) {
+							slave.diet = "restricted"
+							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`
+						}
+						if (($arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
+							slave.drugs = "appetite suppressors"
+							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`
+						}
+					} else if ((slave.weight < -30)) {
+						if ((slave.diet !== "fattening")) {
+							slave.diet = "fattening"
+							r += `<br>${slave.slaveName} is too skinny so her diet has been set to fattening.`
+						}
+						if ((slave.drugs == "appetite suppressors")) {
+							slave.drugs = "no drugs"
+							r += `<br>${slave.slaveName} is too skinny so she will no longer be given weight loss pills.`
+						}
+					} else if ((rule.muscles !== undefined) && (rule.muscles !== "no default setting") && (slave.amp != 1)) {
+						if ((slave.muscles >= rule.muscles+8)) {
+							if ((slave.diet !== "slimming")) {
+								slave.diet = "slimming"
+								r += `<br>${slave.slaveName} has been put on a slimming exercise regime.`
+							}
+						} else if ((slave.muscles <= rule.muscles-2)) {
+							if ((slave.diet !== "muscle building")) {
+								slave.diet = "muscle building"
+								r += `<br>${slave.slaveName} has been put on a muscle building exercise regime.`
+							}
+						} else {
+							if ((slave.diet !== "healthy")) {
+								slave.diet = "healthy"
+								r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`
+							}
+							if ((slave.drugs == "appetite suppressors")) {
+								slave.drugs = "no drugs"
+								r += `<br>${slave.slaveName} is at the target weight, so she will no longer be given weight loss pills.`
+							}
+						}
+					} else {
+						if ((slave.diet !== "healthy")) {
+							slave.diet = "healthy"
+							r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`
+						}
+						if ((slave.drugs == "appetite suppressors")) {
+							slave.drugs = "no drugs"
+							r += `<br>${slave.slaveName} is at the target weight, so she will no longer be given weight loss pills.`
+						}
+					}
+				} else if ((rule.diet == "attractive")) {
+					if (((slave.weight > 95) || ((slave.weight > 30) && (slave.hips < 2)))) {
+						if ((slave.diet !== "restricted")) {
+							slave.diet = "restricted"
+							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`
+						}
+						if (($arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
+							slave.drugs = "appetite suppressors"
+							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`
+						}
+					} else if (((slave.weight < -95) || ((slave.weight < -30) && (slave.hips > -2)))) {
+						if ((slave.diet !== "fattening")) {
+							slave.diet = "fattening"
+							r += `<br>${slave.slaveName} is too skinny so her diet has been set to fattening.`
+						}
+						if ((slave.drugs == "appetite suppressors")) {
+							slave.drugs = "no drugs"
+							r += `<br>${slave.slaveName} is too skinny so she will no longer be given weight loss pills.`
+						}
+					} else if ((rule.muscles !== undefined) && (rule.muscles !== "no default setting") && (slave.amp != 1)) {
+						if ((slave.muscles >= rule.muscles+8)) {
+							if ((slave.diet !== "slimming")) {
+								slave.diet = "slimming"
+								r += `<br>${slave.slaveName} has been put on a slimming exercise regime.`
+							}
+						} else if ((slave.muscles <= rule.muscles-2)) {
+							if ((slave.diet !== "muscle building")) {
+								slave.diet = "muscle building"
+								r += `<br>${slave.slaveName} has been put on a muscle building exercise regime.`
+							}
+						} else {
+							if ((slave.diet !== "healthy")) {
+								slave.diet = "healthy"
+								r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`
+							}
+							if ((slave.drugs == "appetite suppressors")) {
+								slave.drugs = "no drugs"
+								r += `<br>${slave.slaveName} is at the target weight, so she will no longer be given weight loss pills.`
+							}
+						}
+					} else {
+						if ((slave.diet !== "healthy")) {
+							slave.diet = "healthy"
+							r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`
+						}
+						if ((slave.drugs == "appetite suppressors")) {
+							slave.drugs = "no drugs"
+							r += `<br>${slave.slaveName} is at the target weight, so she will no longer be given weight loss pills.`
+						}
+					}
+				} else if ((rule.diet == "XX")) {
+					if ((slave.diet !== "XX")) {
+						slave.diet = "XX"
+						r += `<br>${slave.slaveName} has been put on a diet that favors feminine development.`
+					}
+				} else if ((rule.diet == "XY")) {
+					if ((slave.diet !== "XY")) {
+						slave.diet = "XY"
+						r += `<br>${slave.slaveName} has been put on a diet that favors masculine development.`
+					}
+				} else if ((rule.diet == "XXY")) {
+					if (slave.balls > 0 && (slave.ovaries == 1 || slave.mpreg == 1)) {
+						if ((slave.diet !== "XXY")) {
+							slave.diet = "XXY"
+							r += `<br>${slave.slaveName} has been put on a diet that enhances a herm's unique sexuality.`
+						}
+					} else {
+						if ((slave.diet !== "healthy")) {
+							slave.diet = "healthy"
+							r += `<br>${slave.slaveName} has been put on a standard diet since she is not a hermaphrodite.`
+						}
+					}
+				} else if ((rule.diet == "cleansing")) {
+					if (((slave.diet !== "cleansing") && (slave.health < 100))) {
+						slave.diet = "cleansing"
+						r += `<br>${slave.slaveName} has been put on a diet of cleansers.`
+					}
+				} else if ((rule.diet == "fertility")) {
+					if (canGetPregnant(slave)) {
+						if ((slave.diet !== "fertility")) {
+							slave.diet = "fertility"
+							r += `<br>${slave.slaveName} has been put on a diet to enhance fertilty.`
+						}
+					} else {
+						if ((slave.diet !== "healthy")) {
+							slave.diet = "healthy"
+							if (slave.pregKnown == 0 && slave.preg > 0) {
+								r += `<br>${slave.slaveName} has been put on a standard diet since tests reveal she has become pregnant.`
+								slave.pregKnown = 1
+							} else {
+								r += `<br>${slave.slaveName} has been put on a standard diet since she is currently unable to become pregnant.`
+							}
+						}
+					}
+				} else if ((rule.diet == "cum production")) {
+					if ((slave.balls > 0)) {
+						if ((slave.diet !== "cum production")) {
+							slave.diet = "cum production"
+							r += `<br>${slave.slaveName} has been put on a diet to promote cum production.`
+						}
+					} else {
+						if ((slave.diet !== "healthy")) {
+							slave.diet = "healthy"
+							r += `<br>${slave.slaveName} has been put on a standard diet since she is no longer able to produce cum.`
+						}
+					}
+				}
+			}
+		} else if ((rule.muscles !== undefined) && (rule.muscles !== "no default setting") && (slave.amp != 1)) { // no diet rule, muscles only 
+			if ((slave.muscles >= rule.muscles+8)) {
+				if ((slave.diet !== "slimming")) {
+					slave.diet = "slimming"
+					r += `<br>${slave.slaveName} has been put on a slimming exercise regime.`
+				}
+			} else if ((slave.muscles <= rule.muscles-2)) {
+				if ((slave.diet !== "muscle building")) {
+					slave.diet = "muscle building"
+					r += `<br>${slave.slaveName} has been put on a muscle building exercise regime.`
+				}
+			} else {
+				if ((slave.diet !== "healthy")) {
+					slave.diet = "healthy"
+					r += `<br>${slave.slaveName} has achieved the target musculature, so her exercise regime has been normalized.`
+				}
+			}
+		}
+	}
 
-		// <-------------------------------------------------------------- End of Drugs ----------------------------------------------------------------------------------------------> 
-
+	function ProcessCuratives(slave, rule) {
 		<<if (def _combinedRule.curatives) && (_combinedRule.curatives != "no default setting")>>
 			<<if $args[0].curatives != _combinedRule.curatives>>
 				<<if _combinedRule.curatives == 2>>
@@ -1442,46 +1450,58 @@ window.DefaultRules = (function() {
 				<</if>>
 			<</if>>
 		<</if>>
+	}
 
+	function ProcessAphrodisiacs(slave, rule) {
 		<<if (def _combinedRule.aphrodisiacs) && (_combinedRule.aphrodisiacs != "no default setting")>>
-		<<if $args[0].aphrodisiacs != _combinedRule.aphrodisiacs>>
-			<br>$args[0].slaveName has been	<<if _combinedRule.aphrodisiacs > 0>>put on the proper<<else>>taken off<</if>> aphrodisiacs.
-			<<set $args[0].aphrodisiacs = _combinedRule.aphrodisiacs>>
+			<<if $args[0].aphrodisiacs != _combinedRule.aphrodisiacs>>
+				<br>$args[0].slaveName has been	<<if _combinedRule.aphrodisiacs > 0>>put on the proper<<else>>taken off<</if>> aphrodisiacs.
+				<<set $args[0].aphrodisiacs = _combinedRule.aphrodisiacs>>
+			<</if>>
 		<</if>>
-		<</if>>
+	}
 
+	return DefaultRules
+})()
+
+//
+// Call as <<DefaultRules SlaveObject>>
+// Does not use or modify $currentRule
+/*
+<<widget "DefaultRules">>
+	<<if (def _combinedRule.clothes)>>
 		<<if ($args[0].dick > 0)>>
-		<<if ($args[0].balls == 0)>>
-		<<if (def _combinedRule.gelding) && (_combinedRule.gelding !== "no default setting")>>
-		<<if ($args[0].hormones !== _combinedRule.gelding)>>
-			<<set _oldHormones = $args[0].hormones, $args[0].hormones = _combinedRule.gelding>>
-			<<if $args[0].indentureRestrictions >= 2>>
-				<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
+			<<if ($args[0].balls == 0)>>
+				<<if (def _combinedRule.gelding) && (_combinedRule.gelding !== "no default setting")>>
+					<<if ($args[0].hormones !== _combinedRule.gelding)>>
+						<<set _oldHormones = $args[0].hormones, $args[0].hormones = _combinedRule.gelding>>
+						<<if $args[0].indentureRestrictions >= 2>>
+							<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
+						<</if>>
+						<<if $args[0].hormones != _oldHormones>>
+							<br>$args[0].slaveName is a gelding, so she has been put on the appropriate hormonal regime.
+						<</if>>
+					<</if>>
+				<</if>>
+			<<elseif ($args[0].balls > 0)>>
+				<<if (def _combinedRule.XY) && (_combinedRule.XY !== "no default setting")>>
+					<<if ($args[0].hormones !== _combinedRule.XY)>>
+						<<if ($args[0].assignment != "recruit girls")>>
+							<<if ($args[0].assignment != "be the Wardeness")>>
+								<<if ($args[0].assignment != "be the Madam")>>
+									<<set _oldHormones = $args[0].hormones, $args[0].hormones = _combinedRule.XY>>
+									<<if $args[0].indentureRestrictions >= 2>>
+										<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
+									<</if>>
+									<<if $args[0].hormones != _oldHormones>>
+										<br>$args[0].slaveName is a shemale, so she has been put on the appropriate hormonal regime.
+									<</if>>
+								<</if>>
+							<</if>>
+						<</if>>
+					<</if>>
+				<</if>>
 			<</if>>
-			<<if $args[0].hormones != _oldHormones>>
-				<br>$args[0].slaveName is a gelding, so she has been put on the appropriate hormonal regime.
-			<</if>>
-		<</if>>
-		<</if>>
-		<<elseif ($args[0].balls > 0)>>
-		<<if (def _combinedRule.XY) && (_combinedRule.XY !== "no default setting")>>
-		<<if ($args[0].hormones !== _combinedRule.XY)>>
-		<<if ($args[0].assignment != "recruit girls")>>
-		<<if ($args[0].assignment != "be the Wardeness")>>
-		<<if ($args[0].assignment != "be the Madam")>>
-			<<set _oldHormones = $args[0].hormones, $args[0].hormones = _combinedRule.XY>>
-			<<if $args[0].indentureRestrictions >= 2>>
-				<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
-			<</if>>
-			<<if $args[0].hormones != _oldHormones>>
-				<br>$args[0].slaveName is a shemale, so she has been put on the appropriate hormonal regime.
-			<</if>>
-		<</if>>
-		<</if>>
-		<</if>>
-		<</if>>
-		<</if>>
-		<</if>>
 		<</if>>
 
 		<<if ($args[0].vagina > -1) && ($args[0].dick == 0) && (def _combinedRule.XX) && (_combinedRule.XX !== "no default setting")>>
@@ -1521,51 +1541,51 @@ window.DefaultRules = (function() {
 		<<if $args[0].fuckdoll == 0>>
 
 		<<if (def _combinedRule.livingRules) && (_combinedRule.livingRules !== "no default setting")>>
-		<<if setup.facilityCareers.includes($args[0].assignment)>>
-			<br>$args[0].slaveName's living standards are controlled by her assignment.
-		<<elseif (($args[0].assignment == "be your Head Girl") && ($HGSuite == 1)) || (($args[0].assignment == "guard you") && ($dojo > 1))>>
-			<br>$args[0].slaveName has a private room.
-		<<elseif ($args[0].fetish == "mindbroken")>>
-			<<if ($args[0].livingRules !== "spare")>>
-			<<set $args[0].livingRules = "spare">>
-			<br>Since $args[0].slaveName is mindbroken her living standard has been set to spare.
-			<</if>>
-		<<elseif $args[0].livingRules !== _combinedRule.livingRules>>
-			<<if _combinedRule.livingRules !== "luxurious">>
-				<<if $roomsPopulation <= $rooms-0.5>>
+			<<if setup.facilityCareers.includes($args[0].assignment)>>
+				<br>$args[0].slaveName's living standards are controlled by her assignment.
+			<<elseif (($args[0].assignment == "be your Head Girl") && ($HGSuite == 1)) || (($args[0].assignment == "guard you") && ($dojo > 1))>>
+				<br>$args[0].slaveName has a private room.
+			<<elseif ($args[0].fetish == "mindbroken")>>
+				<<if ($args[0].livingRules !== "spare")>>
+				<<set $args[0].livingRules = "spare">>
+				<br>Since $args[0].slaveName is mindbroken her living standard has been set to spare.
+				<</if>>
+			<<elseif $args[0].livingRules !== _combinedRule.livingRules>>
+				<<if _combinedRule.livingRules !== "luxurious">>
+					<<if $roomsPopulation <= $rooms-0.5>>
+						<<set $args[0].livingRules = _combinedRule.livingRules>>
+						<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
+						<<if $args[0].relationship >= 4>><<set $roomsPopulation += 0.5>><<else>><<set $roomsPopulation += 1>><</if>>
+					<<else>>
+						<<set $args[0].livingRules = "normal">>
+						<br>$args[0].slaveName's living standard has been set to normal, since there is no room for her to occupy.
+					<</if>>
+				<<else>>
 					<<set $args[0].livingRules = _combinedRule.livingRules>>
 					<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
-					<<if $args[0].relationship >= 4>><<set $roomsPopulation += 0.5>><<else>><<set $roomsPopulation += 1>><</if>>
-				<<else>>
-					<<set $args[0].livingRules = "normal">>
-					<br>$args[0].slaveName's living standard has been set to normal, since there is no room for her to occupy.
 				<</if>>
-			<<else>>
-				<<set $args[0].livingRules = _combinedRule.livingRules>>
-				<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
 			<</if>>
-		<</if>>
 		<</if>>
 
 		<<if (def _combinedRule.speechRules) && (_combinedRule.speechRules !== "no default setting")>>
-		<<if ($args[0].fetish == "mindbroken")>>
-			<<if ($args[0].speechRules !== "restrictive")>>
-			<<set $args[0].speechRules = "restrictive">>
-			<br>Since $args[0].slaveName is mindbroken her speech rules have been set to restrictive.
+			<<if ($args[0].fetish == "mindbroken")>>
+				<<if ($args[0].speechRules !== "restrictive")>>
+				<<set $args[0].speechRules = "restrictive">>
+				<br>Since $args[0].slaveName is mindbroken her speech rules have been set to restrictive.
+				<</if>>
+			<<elseif ($args[0].speechRules !== _combinedRule.speechRules)>>
+				<<set $args[0].speechRules = _combinedRule.speechRules>>
+				<br>$args[0].slaveName's speech rules have been set to _combinedRule.speechRules.
 			<</if>>
-		<<elseif ($args[0].speechRules !== _combinedRule.speechRules)>>
-			<<set $args[0].speechRules = _combinedRule.speechRules>>
-			<br>$args[0].slaveName's speech rules have been set to _combinedRule.speechRules.
-		<</if>>
 		<</if>>
 
 		<<if ($args[0].fetish !== "mindbroken")>>
-		<<if (def _combinedRule.relationshipRules) && (_combinedRule.relationshipRules !== "no default setting")>>
-		<<if ($args[0].relationshipRules !== _combinedRule.relationshipRules )>>
-			<<set $args[0].relationshipRules = _combinedRule.relationshipRules >>
-			<br>$args[0].slaveName's relationship rules have been set to _combinedRule.relationshipRules.
-		<</if>>
-		<</if>>
+			<<if (def _combinedRule.relationshipRules) && (_combinedRule.relationshipRules !== "no default setting")>>
+				<<if ($args[0].relationshipRules !== _combinedRule.relationshipRules )>>
+					<<set $args[0].relationshipRules = _combinedRule.relationshipRules >>
+					<br>$args[0].slaveName's relationship rules have been set to _combinedRule.relationshipRules.
+				<</if>>
+			<</if>>
 		<</if>>
 
 		<<if (def _combinedRule.releaseRules) && (_combinedRule.releaseRules !== "no default setting")>>
