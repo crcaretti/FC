@@ -9,7 +9,9 @@ window.DefaultRules = (function() {
 	function DefaultRules(slave) {
 		let V = State.variables
 		let combinedRule = MergeRules(slave)
+
 		if (Object.keys(combinedRule).length === 0) return r // no rules apply
+
 		AssignJobToSlave(slave, combinedRule)
 		if(slave.fuckdoll === 0) {
 			ProcessClothing(slave, rule)
@@ -29,6 +31,20 @@ window.DefaultRules = (function() {
 		ProcessDiet(slave, rule)
 		ProcessCuratives(slave, rule)
 		ProcessAphrodisiacs(slave, rule)
+		ProcessPenisHormones(slave, rule)
+		ProcessFemaleHormones(slave, rule)
+		ProcessPregnancyDrugs(slave, rule)
+		if(slave.fuckdoll === 0) {
+			ProcessLivingStandard(slave, rule)
+			ProcessSpeech(slave, rule)
+			ProcessRelationship(slave, rule)
+			ProcessRelease(slave, rule)
+			ProcessPunishment(slave, rule)
+			ProcessReward(slave, rule)
+		}
+		ProcessDietCum(slave, rule)
+		ProcessDietMilk(slave, rule)
+		ProcessTeeth(slave, rule)
 		return r
 	}
 
@@ -1167,7 +1183,7 @@ window.DefaultRules = (function() {
 							slave.diet = "restricted"
 							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`
 						}
-						if (($arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
+						if ((V.arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
 							slave.drugs = "appetite suppressors"
 							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`
 						}
@@ -1209,7 +1225,7 @@ window.DefaultRules = (function() {
 							slave.diet = "restricted"
 							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`
 						}
-						if (($arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
+						if ((V.arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
 							slave.drugs = "appetite suppressors"
 							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`
 						}
@@ -1259,7 +1275,7 @@ window.DefaultRules = (function() {
 							slave.diet = "restricted"
 							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`
 						}
-						if (($arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
+						if ((V.arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
 							slave.drugs = "appetite suppressors"
 							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`
 						}
@@ -1309,7 +1325,7 @@ window.DefaultRules = (function() {
 							slave.diet = "restricted"
 							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`
 						}
-						if (($arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
+						if ((V.arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
 							slave.drugs = "appetite suppressors"
 							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`
 						}
@@ -1432,33 +1448,240 @@ window.DefaultRules = (function() {
 	}
 
 	function ProcessCuratives(slave, rule) {
-		<<if (def _combinedRule.curatives) && (_combinedRule.curatives != "no default setting")>>
-			<<if $args[0].curatives != _combinedRule.curatives>>
-				<<if _combinedRule.curatives == 2>>
-					<<if $args[0].health > 100>>
-						<<if ($args[0].curatives != 1)>>
-						<br>$args[0].slaveName has been	put on preventatives, since curatives cannot improve her health further.
-						<<set $args[0].curatives = 1>>
-						<</if>>
-					<<else>>
-						<br>$args[0].slaveName has been	put on curatives.
-						<<set $args[0].curatives = _combinedRule.curatives>>
-					<</if>>
-				<<else>>
-					<br>$args[0].slaveName has been	<<if _combinedRule.curatives > 0>>put on preventatives<<else>>taken off health drugs<</if>>.
-					<<set $args[0].curatives = _combinedRule.curatives>>
-				<</if>>
-			<</if>>
-		<</if>>
+		if ((rule.curatives !== undefined) && (rule.curatives != "no default setting")) {
+			if (slave.curatives != rule.curatives) {
+				if (rule.curatives == 2) {
+					if (slave.health > 100) {
+						if ((slave.curatives != 1)) {
+							r += `<br>${slave.slaveName} has been put on preventatives, since curatives cannot improve her health further.`
+							slave.curatives = 1
+						}
+					} else {
+						r += `<br>${slave.slaveName} has been put on curatives.`
+						slave.curatives = rule.curatives
+					}
+				} else {
+					r += `<br>${slave.slaveName} has been ${rule.curatives > 0 ? `put on preventatives` : `taken off health drugs`}`
+					slave.curatives = rule.curatives
+				}
+			}
+		}
 	}
 
 	function ProcessAphrodisiacs(slave, rule) {
-		<<if (def _combinedRule.aphrodisiacs) && (_combinedRule.aphrodisiacs != "no default setting")>>
-			<<if $args[0].aphrodisiacs != _combinedRule.aphrodisiacs>>
-				<br>$args[0].slaveName has been	<<if _combinedRule.aphrodisiacs > 0>>put on the proper<<else>>taken off<</if>> aphrodisiacs.
-				<<set $args[0].aphrodisiacs = _combinedRule.aphrodisiacs>>
-			<</if>>
-		<</if>>
+		if ((rule.aphrodisiacs !== undefined) && (rule.aphrodisiacs != "no default setting")) {
+			if (slave.aphrodisiacs != rule.aphrodisiacs) {
+				r += `<br>${slave.slaveName} has been ${rule.aphrodisiacs > 0 ? `put on the proper` : `taken off`} aphrodisiacs.`
+				slave.aphrodisiacs = rule.aphrodisiacs
+			}
+		}
+	}
+
+	function ProcessPenisHormones(slave, rule) {
+		if ((slave.dick > 0)) {
+			if ((slave.balls == 0)) {
+				if ((rule.gelding !== undefined) && (rule.gelding !== "no default setting")) {
+					if ((slave.hormones !== rule.gelding)) {
+						const _oldHormones = slave.hormones
+						slave.hormones = rule.gelding
+						if (slave.indentureRestrictions >= 2) {
+							slave.hormones = Math.clamp(slave.hormones, -1, 1)
+						}
+						if (slave.hormones != _oldHormones) {
+							r += `<br>${slave.slaveName} is a gelding, so she has been put on the appropriate hormonal regime.`
+						}
+					}
+				}
+			} else if ((slave.balls > 0)) {
+				if ((rule.XY !== undefined) && (rule.XY !== "no default setting")) {
+					if ((slave.hormones !== rule.XY)) {
+						if ((slave.assignment != "recruit girls")) {
+							if ((slave.assignment != "be the Wardeness")) {
+								if ((slave.assignment != "be the Madam")) {
+									_oldHormones = slave.hormones, slave.hormones = rule.XY
+									if (slave.indentureRestrictions >= 2) {
+										slave.hormones = Math.clamp(slave.hormones, -1, 1)
+									}
+									if (slave.hormones != _oldHormones) {
+										r += `<br>${slave.slaveName} is a shemale, so she has been put on the appropriate hormonal regime.`
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	function ProcessFemaleHormones(slave, rule) {
+		if ((slave.vagina > -1) && (slave.dick == 0) && (rule.XX !== undefined) && (rule.XX !== "no default setting")) {
+			if ((slave.hormones !== rule.XX)) {
+				const _oldHormones = slave.hormones
+				slave.hormones = rule.XX
+				if (slave.indentureRestrictions >= 2) {
+					slave.hormones = Math.clamp(slave.hormones, -1, 1)
+				}
+				if (slave.hormones != _oldHormones) {
+					r == `<br>${slave.slaveName} is a female, so she has been put on the appropriate hormonal regime.`
+				}
+			}
+		}
+	}
+
+	function ProcessPregnancyDrugs(slave, rule) {
+		if (slave.pregKnown == 1 && rule.pregSpeed != "nds" && slave.breedingMark != 1 && slave.indentureRestrictions < 1 && slave.broodmother == 0) {
+			if (rule.pregSpeed == "slow" && slave.preg < 35) {
+				slave.pregControl = "slow gestation"
+				r += `<br>slave.slaveName is pregnant, so she has been put on the gestation slowing agents.`
+			} else if (rule.pregSpeed == "fast" && slave.preg < 35 && slave.health > -50) {
+				slave.pregControl = "speed up"
+				r += `<br>slave.slaveName is pregnant, so she has been put on rapid gestation  agents. CAUTION! Can be dangerous. Clinic supervision is recommended.`
+			} else if (rule.pregSpeed == "suppress" && slave.preg > 34 && slave.health > -50) {
+				slave.pregControl = "labor supressors"
+				r += `<br>slave.slaveName is ready to birth, so she has been put on labor suppressing agents.`
+			} else if (rule.pregSpeed == "stimulate" && slave.preg >= 37 && slave.health > -50) {
+				slave.labor = 1,slave.induce = 1,V.birthee = 1
+				r += `<br>slave.slaveName is ready to birth, so her labor has been stimulated.`
+			} else if (rule.pregSpeed == "fast" && slave.pregControl == "speed up" && slave.health <= -50) {
+				slave.pregControl = "none"
+				r += `<br>slave.slaveName is on rapid gestation agents and dangerously unhealthy, so her agent regimen has been stopped.`
+			} else if (rule.pregSpeed == "suppress" && slave.pregControl == "labor supressors" && slave.health <= -50) {
+				slave.pregControl = "none"
+				r += `<br>slave.slaveName is on labor supression agents and unhealthy, so her agent regimen has been stopped.`
+			}
+		}
+	}
+
+	function ProcessLivingStandard(slave, rule) {
+		if ((rule.livingRules !== undefined) && (rule.livingRules !== "no default setting")) {
+			if (setup.facilityCareers.includes(slave.assignment)) {
+				r += `<br>${slave.slaveName}'s living standards are controlled by her assignment.`
+			} else if (((slave.assignment == "be your Head Girl") && (V.HGSuite == 1)) || ((slave.assignment == "guard you") && (V.dojo > 1))) {
+				r += `<br>${slave.slaveName} has a private room.`
+			} else if ((slave.fetish == "mindbroken")) {
+				if ((slave.livingRules !== "spare")) {
+					slave.livingRules = "spare"
+					r += `<br>Since ${slave.slaveName} is mindbroken her living standard has been set to spare.`
+				}
+			} else if (slave.livingRules !== rule.livingRules) {
+				if (rule.livingRules !== "luxurious") {
+					if (V.roomsPopulation <= V.rooms-0.5) {
+						slave.livingRules = rule.livingRules
+						r += `<br>${slave.slaveName}'s living standard has been set to ${rule.livingRules}.`
+						if (slave.relationship >= 4)
+							V.roomsPopulation += 0.5
+						else
+							V.roomsPopulation += 1
+					} else {
+						slave.livingRules = "normal"
+						r += `<br>${slave.slaveName}'s living standard has been set to normal, since there is no room for her to occupy.`
+					}
+				} else {
+					slave.livingRules = rule.livingRules
+					r += `<br>${slave.slaveName}'s living standard has been set to ${rule.livingRules}.`
+				}
+			}
+		}
+	}
+
+	function ProcessSpeech(slave, rule) {
+		if ((rule.speechRules !== undefined) && (rule.speechRules !== "no default setting")) {
+			if ((slave.fetish == "mindbroken")) {
+				if ((slave.speechRules !== "restrictive")) {
+					slave.speechRules = "restrictive"
+					r += `<br>Since ${slave.slaveName} is mindbroken her speech rules have been set to restrictive.`
+				}
+			} else if ((slave.speechRules !== rule.speechRules)) {
+				slave.speechRules = rule.speechRules
+				r += `<br>${slave.slaveName}'s speech rules have been set to ${rule.speechRules}.`
+			}
+		}
+	}
+
+	function ProcessRelationship(slave, rule) {
+		if ((slave.fetish !== "mindbroken")) {
+			if ((rule.relationshipRules !== undefined) && (rule.relationshipRules !== "no default setting")) {
+				if ((slave.relationshipRules !== rule.relationshipRules )) {
+					slave.relationshipRules = rule.relationshipRules 
+					r += `<br>${slave.slaveName}'s relationship rules have been set to ${rule.relationshipRules}.`
+				}
+			}
+		}
+	}
+
+	function ProcessRelease(slave, rule) {
+		if ((rule.releaseRules !== undefined) && (rule.releaseRules !== "no default setting")) {
+			let _release = 0
+			if (rule.releaseRules === "restrictive" &&
+				!(["serve the public", "serve in the club", "whore", "work in the brothel", "please you", "serve in the master suite", "be a subordinate slave", "work a glory hole", "be confined in the arcade", "get milked", "work in the dairy", "be your Head Girl"].contains(slave.assignment)))
+				_release = 1
+			else
+				_release = 1
+			if ((slave.fetish == "mindbroken") && (slave.releaseRules !== "permissive")) {
+				slave.releaseRules = "permissive"
+				r += `<br>Since ${slave.slaveName} is mindbroken her masturbation rules have been set to permissive.`
+			} else if ((slave.amp === 1 || slave.fuckdoll > 0) && (slave.releaseRules === "masturbation")) {
+				slave.releaseRules = "restrictive"
+				r += `<br>Since ${slave.slaveName} is unable to masturbate, her masturbation rules have been set to restrictive.`
+			} else if ((_release != 0) && (slave.releaseRules !== rule.releaseRules)) {
+				slave.releaseRules = rule.releaseRules
+				r += `<br>${slave.slaveName}'s masturbation rules have been set to ${rule.releaseRules}.`
+			}
+		}
+	}
+
+	function ProcessPunishment(slave, rule) {
+		if ((rule.standardPunishment !== undefined) && (rule.standardPunishment !== "no default setting")) {
+			if ((slave.standardPunishment !== rule.standardPunishment)) {
+				slave.standardPunishment = rule.standardPunishment 
+				r += `<br>${slave.slaveName}'s typical punishment has been updated to ${rule.standardPunishment}.`
+			}
+		}
+	}
+
+	function ProcessReward(slave, rule) {
+		if ((rule.standardReward !== undefined) && (rule.standardReward !== "no default setting")) {
+			if ((slave.standardReward !== rule.standardReward)) {
+				slave.standardReward = rule.standardReward 
+				r += `<br>${slave.slaveName}'s typical reward has been updated to ${rule.standardReward}.`
+			}
+		}
+	}
+
+	function ProcessDietCum(slave, rule) {
+		if ((rule.dietCum !== undefined) && (rule.dietCum !== "no default setting")) {
+			if (slave.dietCum != rule.dietCum) {
+				slave.dietCum = rule.dietCum
+				if (slave.dietCum == 2) {
+					r += `<br>${slave.slaveName} has been put on a diet based on cum.`
+					slave.dietMilk = 0
+				}
+				if (slave.dietCum == 1)
+					r += `<br>${slave.slaveName} has had cum added to her diet.`
+				else
+					r += `<br>${slave.slaveName} has had cum removed from her diet.`
+			}
+		}
+	}
+
+	function ProcessDietMilk(slave, rule) {
+		if ((rule.dietMilk !== undefined) && (rule.dietMilk !== "no default setting")) {
+			if (slave.dietMilk != rule.dietMilk) {
+				slave.dietMilk = rule.dietMilk
+				if (slave.dietMilk == 2) {
+					r += `<br>${slave.slaveName} has been put on a diet based on human milk.`
+					slave.dietCum = 0
+				}
+				if (slave.dietMilk == 1)
+					r += `<br>${slave.slaveName} has had human milk added to her diet.`
+				else
+					r += `<br>${slave.slaveName} has had human milk removed from her diet.`
+			}
+		}
+	}
+
+	function ProcessTeeth(slave, rule) {
 	}
 
 	return DefaultRules
@@ -1470,214 +1693,6 @@ window.DefaultRules = (function() {
 /*
 <<widget "DefaultRules">>
 	<<if (def _combinedRule.clothes)>>
-		<<if ($args[0].dick > 0)>>
-			<<if ($args[0].balls == 0)>>
-				<<if (def _combinedRule.gelding) && (_combinedRule.gelding !== "no default setting")>>
-					<<if ($args[0].hormones !== _combinedRule.gelding)>>
-						<<set _oldHormones = $args[0].hormones, $args[0].hormones = _combinedRule.gelding>>
-						<<if $args[0].indentureRestrictions >= 2>>
-							<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
-						<</if>>
-						<<if $args[0].hormones != _oldHormones>>
-							<br>$args[0].slaveName is a gelding, so she has been put on the appropriate hormonal regime.
-						<</if>>
-					<</if>>
-				<</if>>
-			<<elseif ($args[0].balls > 0)>>
-				<<if (def _combinedRule.XY) && (_combinedRule.XY !== "no default setting")>>
-					<<if ($args[0].hormones !== _combinedRule.XY)>>
-						<<if ($args[0].assignment != "recruit girls")>>
-							<<if ($args[0].assignment != "be the Wardeness")>>
-								<<if ($args[0].assignment != "be the Madam")>>
-									<<set _oldHormones = $args[0].hormones, $args[0].hormones = _combinedRule.XY>>
-									<<if $args[0].indentureRestrictions >= 2>>
-										<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
-									<</if>>
-									<<if $args[0].hormones != _oldHormones>>
-										<br>$args[0].slaveName is a shemale, so she has been put on the appropriate hormonal regime.
-									<</if>>
-								<</if>>
-							<</if>>
-						<</if>>
-					<</if>>
-				<</if>>
-			<</if>>
-		<</if>>
-
-		<<if ($args[0].vagina > -1) && ($args[0].dick == 0) && (def _combinedRule.XX) && (_combinedRule.XX !== "no default setting")>>
-			<<if ($args[0].hormones !== _combinedRule.XX)>>
-				<<set _oldHormones = $args[0].hormones, $args[0].hormones = _combinedRule.XX>>
-				<<if $args[0].indentureRestrictions >= 2>>
-					<<set $args[0].hormones = Math.clamp($args[0].hormones, -1, 1)>>
-				<</if>>
-				<<if $args[0].hormones != _oldHormones>>
-					<br>$args[0].slaveName is a female, so she has been put on the appropriate hormonal regime.
-				<</if>>
-			<</if>>
-		<</if>>
-
-		<<if $args[0].pregKnown == 1 && _combinedRule.pregSpeed != "nds" && $args[0].breedingMark != 1 && $args[0].indentureRestrictions < 1 && $args[0].broodmother == 0>>
-			<<if _combinedRule.pregSpeed == "slow" && $args[0].preg < 35>>
-				<<set $args[0].pregControl = "slow gestation">>
-				<br>$args[0].slaveName is pregnant, so she has been put on the gestation slowing agents.
-			<<elseif _combinedRule.pregSpeed == "fast" && $args[0].preg < 35 && $args[0].health > -50>>
-				<<set $args[0].pregControl = "speed up">>
-				<br>$args[0].slaveName is pregnant, so she has been put on rapid gestation  agents. CAUTION! Can be dangerous. Clinic supervision is recommended.
-			<<elseif _combinedRule.pregSpeed == "suppress" && $args[0].preg > 34 && $args[0].health > -50>>
-				<<set $args[0].pregControl = "labor supressors">>
-				<br>$args[0].slaveName is ready to birth, so she has been put on labor suppressing agents.
-			<<elseif _combinedRule.pregSpeed == "stimulate" && $args[0].preg >= 37 && $args[0].health > -50>>
-				<<set $args[0].labor = 1,$args[0].induce = 1,$birthee = 1>>
-				<br>$args[0].slaveName is ready to birth, so her labor has been stimulated.
-			<<elseif _combinedRule.pregSpeed == "fast" && $args[0].pregControl == "speed up" && $args[0].health <= -50>>
-				<<set $args[0].pregControl = "none">>
-				<br>$args[0].slaveName is on rapid gestation agents and dangerously unhealthy, so her agent regimen has been stopped.
-			<<elseif _combinedRule.pregSpeed == "suppress" && $args[0].pregControl == "labor supressors" && $args[0].health <= -50>>
-				<<set $args[0].pregControl = "none">>
-				<br>$args[0].slaveName is on labor supression agents and unhealthy, so her agent regimen has been stopped.
-			<</if>>
-		<</if>>
-
-		<<if $args[0].fuckdoll == 0>>
-
-		<<if (def _combinedRule.livingRules) && (_combinedRule.livingRules !== "no default setting")>>
-			<<if setup.facilityCareers.includes($args[0].assignment)>>
-				<br>$args[0].slaveName's living standards are controlled by her assignment.
-			<<elseif (($args[0].assignment == "be your Head Girl") && ($HGSuite == 1)) || (($args[0].assignment == "guard you") && ($dojo > 1))>>
-				<br>$args[0].slaveName has a private room.
-			<<elseif ($args[0].fetish == "mindbroken")>>
-				<<if ($args[0].livingRules !== "spare")>>
-				<<set $args[0].livingRules = "spare">>
-				<br>Since $args[0].slaveName is mindbroken her living standard has been set to spare.
-				<</if>>
-			<<elseif $args[0].livingRules !== _combinedRule.livingRules>>
-				<<if _combinedRule.livingRules !== "luxurious">>
-					<<if $roomsPopulation <= $rooms-0.5>>
-						<<set $args[0].livingRules = _combinedRule.livingRules>>
-						<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
-						<<if $args[0].relationship >= 4>><<set $roomsPopulation += 0.5>><<else>><<set $roomsPopulation += 1>><</if>>
-					<<else>>
-						<<set $args[0].livingRules = "normal">>
-						<br>$args[0].slaveName's living standard has been set to normal, since there is no room for her to occupy.
-					<</if>>
-				<<else>>
-					<<set $args[0].livingRules = _combinedRule.livingRules>>
-					<br>$args[0].slaveName's living standard has been set to _combinedRule.livingRules.
-				<</if>>
-			<</if>>
-		<</if>>
-
-		<<if (def _combinedRule.speechRules) && (_combinedRule.speechRules !== "no default setting")>>
-			<<if ($args[0].fetish == "mindbroken")>>
-				<<if ($args[0].speechRules !== "restrictive")>>
-				<<set $args[0].speechRules = "restrictive">>
-				<br>Since $args[0].slaveName is mindbroken her speech rules have been set to restrictive.
-				<</if>>
-			<<elseif ($args[0].speechRules !== _combinedRule.speechRules)>>
-				<<set $args[0].speechRules = _combinedRule.speechRules>>
-				<br>$args[0].slaveName's speech rules have been set to _combinedRule.speechRules.
-			<</if>>
-		<</if>>
-
-		<<if ($args[0].fetish !== "mindbroken")>>
-			<<if (def _combinedRule.relationshipRules) && (_combinedRule.relationshipRules !== "no default setting")>>
-				<<if ($args[0].relationshipRules !== _combinedRule.relationshipRules )>>
-					<<set $args[0].relationshipRules = _combinedRule.relationshipRules >>
-					<br>$args[0].slaveName's relationship rules have been set to _combinedRule.relationshipRules.
-				<</if>>
-			<</if>>
-		<</if>>
-
-		<<if (def _combinedRule.releaseRules) && (_combinedRule.releaseRules !== "no default setting")>>
-			<<set _release = 0>>
-			<<if (_combinedRule.releaseRules == "restrictive")>>
-				<<if ($args[0].assignment != "serve the public")>>
-					<<if ($args[0].assignment != "serve in the club")>>
-						<<if ($args[0].assignment != "whore")>>
-							<<if ($args[0].assignment != "work in the brothel")>>
-								<<if ($args[0].assignment != "please you")>>
-									<<if ($args[0].assignment != "serve in the master suite")>>
-										<<if ($args[0].assignment != "be a subordinate slave")>>
-											<<if ($args[0].assignment != "work a glory hole")>>
-												<<if ($args[0].assignment != "be confined in the arcade")>>
-													<<if ($args[0].assignment != "get milked") || (($args[0].fetish != "boobs") || ($args[0].energy <= 95))>>
-														<<if ($args[0].assignment != "work in the dairy") || (($args[0].fetish != "boobs") || ($args[0].energy <= 95))>>
-															<<if ($args[0].assignment != "get milked") || $args[0].balls == 0>>
-																<<if ($args[0].assignment != "work in the dairy") || $args[0].balls == 0>>
-																	<<if ($args[0].assignment != "be your Head Girl")>>
-																		<<set _release = 1>>
-																	<</if>>
-																<</if>>
-															<</if>>
-														<</if>>
-													<</if>>
-												<</if>>
-											<</if>>
-										<</if>>
-									<</if>>
-								<</if>>
-							<</if>>
-						<</if>>
-					<</if>>
-				<</if>>
-			<<else>>
-				<<set _release = 1>>
-			<</if>>
-			<<if ($args[0].fetish == "mindbroken") && ($args[0].releaseRules !== "permissive")>>
-				<<set $args[0].releaseRules = "permissive">>
-				<br>Since $args[0].slaveName is mindbroken her masturbation rules have been set to permissive.
-			<<elseif ($args[0].amp === 1 || $args[0].fuckdoll > 0) && ($args[0].releaseRules === "masturbation")>>
-				<<set $args[0].releaseRules = "restrictive">>
-				<br>Since $args[0].slaveName is unable to masturbate, her masturbation rules have been set to restrictive.
-			<<elseif (_release != 0) && ($args[0].releaseRules !== _combinedRule.releaseRules)>>
-			<<set $args[0].releaseRules = _combinedRule.releaseRules>>
-			<br>$args[0].slaveName's masturbation rules have been set to _combinedRule.releaseRules.
-			<</if>>
-		<</if>>
-
-		<<if (def _combinedRule.standardPunishment) && (_combinedRule.standardPunishment !== "no default setting")>>
-			<<if ($args[0].standardPunishment !== _combinedRule.standardPunishment)>>
-				<<set $args[0].standardPunishment = _combinedRule.standardPunishment >>
-				<br>$args[0].slaveName's typical punishment has been updated to _combinedRule.standardPunishment.
-			<</if>>
-		<</if>>
-
-		<<if (def _combinedRule.standardReward) && (_combinedRule.standardReward !== "no default setting")>>
-			<<if ($args[0].standardReward !== _combinedRule.standardReward)>>
-				<<set $args[0].standardReward = _combinedRule.standardReward >>
-				<br>$args[0].slaveName's typical reward has been updated to _combinedRule.standardReward.
-			<</if>>
-		<</if>>
-
-		<</if>> // CLOSES FUCKDOLL CHECK 
-
-		<<if (def _combinedRule.dietCum) && (_combinedRule.dietCum !== "no default setting")>>
-			<<if $args[0].dietCum != _combinedRule.dietCum>>
-				<<set $args[0].dietCum = _combinedRule.dietCum>>
-				<<if $args[0].dietCum == 2>>
-					<br>$args[0].slaveName has been put on a diet based on cum.
-					<<set $args[0].dietMilk = 0>>
-				<<elseif $args[0].dietCum == 1>>
-					<br>$args[0].slaveName has had cum added to her diet.
-				<<else>>
-					<br>$args[0].slaveName has had cum removed from her diet.
-				<</if>>
-			<</if>>
-		<</if>>
-
-		<<if (def _combinedRule.dietMilk) && (_combinedRule.dietMilk !== "no default setting")>>
-			<<if $args[0].dietMilk != _combinedRule.dietMilk>>
-				<<set $args[0].dietMilk = _combinedRule.dietMilk>>
-				<<if $args[0].dietMilk == 2>>
-					<br>$args[0].slaveName has been put on a diet based on human milk.
-					<<set $args[0].dietCum = 0>>
-				<<elseif $args[0].dietMilk == 1>>
-					<br>$args[0].slaveName has had human milk added to her diet.
-				<<else>>
-					<br>$args[0].slaveName has had human milk removed from her diet.
-				<</if>>
-			<</if>>
-		<</if>>
 
 		<<if (def _combinedRule.teeth) && (_combinedRule.teeth !== "no default setting")>>
 			<<if (_combinedRule.teeth == "universal")>>
