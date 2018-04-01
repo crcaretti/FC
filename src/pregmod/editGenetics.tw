@@ -1,15 +1,24 @@
 :: Edit Genetics [nobr]
+
 <html>
 <script type="text/x-template" id="birthFullNameTmpl">
-	<% if(["Chinese", "Japanese", "Korean", "Cambodian", "Vietnamese", "Hungarian"].includes(s.nationality)) {
-		%><% if(s.birthSurname || s.surname) {	%><%- s.birthSurname || s.surname%> <% } %><b><u><%- s.birthName || s.name %></u></b><%
+	<% if(State.variables.surnameOrder != 1) {
+		%><% if(["Cambodian", "Chinese", "Hungarian", "Japanese", "Korean", "Mongolian", "Taiwanese", "Vietnamese"].includes(s.nationality)) {
+			%><% if(s.birthSurname || s.surname) {	%><%- s.birthSurname || s.surname%> <% } %><b><u><%- s.birthName || s.name %></u></b><%
+		} else {
+			%><b><u><%- s.birthName || s.name %></u></b><% if(s.birthSurname || s.surname) { %> <%- s.birthSurname || s.surname %><% } %><%
+		} %><%
 	} else {
 		%><b><u><%- s.birthName || s.name %></u></b><% if(s.birthSurname || s.surname) { %> <%- s.birthSurname || s.surname %><% } %><%
 	} %>
 </script>
 <script type="text/x-template" id="currentFullNameTmpl">
-	<% if(["Chinese", "Japanese", "Korean", "Cambodian", "Vietnamese", "Hungarian"].includes(s.nationality)) {
-		%><% if(s.slaveSurname) {	%><%- s.slaveSurname %> <% } %><b><u><%- s.slaveName %></u></b><%
+	<% if(State.variables.surnameOrder != 1) {
+		%><% if(["Cambodian", "Chinese", "Hungarian", "Japanese", "Korean", "Mongolian", "Taiwanese", "Vietnamese"].includes(s.nationality)) {
+			%><% if(s.slaveSurname) {	%><%- s.slaveSurname %> <% } %><b><u><%- s.slaveName %></u></b><%
+		} else {
+			%><b><u><%- s.slaveName %></u></b><% if(s.slaveSurname) { %> <%- s.slaveSurname %><% } %><%
+		} %><%
 	} else {
 		%><b><u><%- s.slaveName %></u></b><% if(s.slaveSurname) { %> <%- s.slaveSurname %><% } %><%
 	} %>
@@ -124,7 +133,7 @@
 		}[String(karyotype).toUpperCase()] || 'unknown/not viable';
 	};
 	tmpl.ageDesc = function(slave) {
-		var age = slave.actualAge + (slave.birthWeek + SugarCube.State.variables.week - slave.weekAcquired) / 52.0;
+		var age = slave.actualAge + (slave.birthWeek + State.variables.week - slave.weekAcquired) / 52.0;
 		var years = Math.floor(age);
 		var months = Math.floor((age - years) * 12);
 		return (years > 0 ? years + 'y ' + months + 'm' : months + 'm');
@@ -166,7 +175,7 @@
 			'7': 'gigantic', '8': 'titanic', '9': 'absurd', '10': 'inhuman', '11': 'hypertrophied'}[s] || 'unknown') + ' (' + Number(s) + ')';
 	};
 	tmpl.testesDesc = function(s) {
-		return ({'0': 'none', '1': 'vestigal', '2': 'small', '3': 'average', '4': 'big', '5': 'huge', '6': 'enormous',
+		return ({'0': 'none', '1': 'vestigial', '2': 'small', '3': 'average', '4': 'big', '5': 'huge', '6': 'enormous',
 			'7': 'hypertrophied', '8': 'hypertrophied', '9': 'hypertrophied', '10': 'hypertrophied'}[s] || 'unknown') + ' (' + Number(s) + ')';
 	};
 	tmpl.hormonalCat = new Categorizer([-Infinity, 'heavy male'], [-49, 'male'], [-24, 'natural'], [25, 'female'], [50, 'heavy female']);
@@ -176,7 +185,7 @@
 			res.push('Immune system damaged (' + slave.chem.toFixed(0) + ').');
 		}
 		if(slave.addict > 0) {
-			res.push('Addicted to aphrodisiaca (' + slave.addict.toFixed(0) + ').');
+			res.push('Addicted to aphrodisiacs (' + slave.addict.toFixed(0) + ').');
 		}
 		return res.join(' ');
 	};
@@ -191,9 +200,9 @@
 		if(id === 0) { return '<i>unknown</i>'; }
 		if(id === -1) {
 			/* The PC */
-			return tmpl.birthFullName(SugarCube.State.variables.PC) + ' (PC)';
+			return tmpl.birthFullName(State.variables.PC) + ' (PC)';
 		} else {
-			var parent = SugarCube.State.variables.genePool.find(function(s) { return s.ID === id; });
+			var parent = State.variables.genePool.find(function(s) { return s.ID === id; });
 			return (parent ? tmpl.birthFullName(parent) : '<i>missing</i>') + ' (' + id + ')';
 		}
 	};
