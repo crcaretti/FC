@@ -7,19 +7,19 @@
 <<switch $Event>>
 <<case "bad curatives">>
 
-<<set $activeSlave = 0>>
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].curatives > 1 || $slaves[$i].inflationType == "curative">>
-	<<set $slaves[$i].health -= random(1,2)>>
-	<<set $activeSlave = $slaves[$i]>>
-	<</if>>
-<</for>>
-<<if $activeSlave == 0>>
+<<set _genPlot = $slaves.findIndex(function(s) { return s.curatives > 1 || s.inflationType == "curative"; })>>
+<<if _genPlot != -1>>
+	<<run $slaves.forEach(function(s) {
+		if (s.curatives > 1 || s.inflationType == "curative") {
+			s.health -= Math.floor(Math.random() * 2 + 1);
+		}
+	})>>
+<<else>>
 	<<goto "Random Nonindividual Event">>
 <</if>>
 <<set $cash += 500*$slaves.length>>
 
-Early one morning, you hear convulsive dry heaving coming from one of the bathrooms. On investigation, it seems that $activeSlave.slaveName woke up feeling terribly nauseous. She's in no danger, but you've hardly checked her over before more slaves stagger in. Every one of your slaves on curatives has been struck by the mysterious malady and has @@.red;sickened.@@
+Early one morning, you hear convulsive dry heaving coming from one of the bathrooms. On investigation, it seems that $slaves[_genPlot].slaveName woke up feeling terribly nauseous. She's in no danger, but you've hardly checked her over before more slaves stagger in. Every one of your slaves on curatives has been struck by the mysterious malady and has @@.red;sickened.@@
 <br><br>
 It doesn't take much investigation before you find other slaveowners reporting the same thing. Elementary detective work fingers a particular drug supplier as the culprit, and before long the unfortunate Pharmaceutical concern is drowning under a rain of harsh public comment and harsher private contract warfare. As the day wears on, the poor slaves feel a bit better, but begin to report discomfort in their breasts. Apparently the problem has to do with contamination of the curative production line with A-HGH production reactants.
 <br><br>
@@ -27,18 +27,18 @@ The firm promptly pays @@.yellowgreen;fair compensation@@ for the minor damage t
 
 <<case "bad breasts">>
 
-<<set $activeSlave = 0>>
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if $slaves[$i].drugs == "breast injections" || $slaves[$i].drugs == "intensive breast injections" || $slaves[$i].drugs == "hyper breast injections">>
-	<<set $slaves[$i].health -= random(1,2)>>
-	<<set $activeSlave = $slaves[$i]>>
-	<</if>>
-<</for>>
-<<if $activeSlave == 0>>
+<<set _genPlot = $slaves.findIndex(function(s) { return ["breast injections", "intensive breast injections", "hyper breast injections"].includes(s.drugs); })>>
+<<if _genPlot != -1>>
+	<<run $slaves.forEach(function(s) {
+		if (["breast injections", "intensive breast injections", "hyper breast injections"].includes(s.drugs)) {
+			s.health -= Math.floor(Math.random() * 2 + 1);
+		}
+	})>>
+<<else>>
 	<<goto "Random Nonindividual Event">>
 <</if>>
 
-Early one morning, you hear heaving coming from one of the bathrooms.  On investigation, it seems that $activeSlave.slaveName woke up feeling terribly nauseous.  She's in no danger, but you've hardly checked her over before more slaves stagger in.  Every one of your slaves on breast focused A-HGH has been struck by the mysterious malady and has @@.red;sickened.@@
+Early one morning, you hear heaving coming from one of the bathrooms.  On investigation, it seems that $slaves[_genPlot].slaveName woke up feeling terribly nauseous.  She's in no danger, but you've hardly checked her over before more slaves stagger in.  Every one of your slaves on breast focused A-HGH has been struck by the mysterious malady and has @@.red;sickened.@@
 <br><br>
 It doesn't take much investigation before you find other slaveowners reporting the same thing.  Elementary detective work fingers a particular drug supplier as the culprit, and before long the unfortunate Pharmaceutical concern is drowning under a rain of harsh public comment and harsher private contract warfare.  As the day wears on, the poor slaves feel much better, and appear positively glowing.  However, their breasts swell slightly and their bellies bulge, pointing to the issue being the contamination of the A-HGH production line with fertility agents.
 <br><br>
@@ -562,14 +562,14 @@ A screen opposite your desk springs to life, <<if $assistant == 0>>showing your 
 <<link "Free breast growth is acceptable">>
 	<<replace "#result">>
 	Since you're not displeased with the breast expansion, you accept the health compensation and even make discreet inquiries to see of the effect can perhaps be replicated. Unfortunately, it seems that the result that occurred was as much due to luck as anything else. The process cannot be safely marketed.
-	<<for $i = 0; $i < $slaves.length; $i++>>
-		<<if $slaves[$i].curatives > 1>>
-		<<set $slaves[$i].boobs += 100*random(1,10)>>
-		<</if>>
-		<<if $slaves[$i].inflationType == "curative">>
-			<<set $slaves[$i].boobs += 300*random(1,10)*$slaves[$i].inflation>>
-		<</if>>
-	<</for>>
+	<<run $slaves.forEach(function(s) {
+		if (s.curatives > 1) {
+			s.boobs += Math.floor(Math.random() * 10 + 1) * 100;
+		}
+		if (s.inflationType == "curative") {
+			s.boobs += Math.floor(Math.random() * 10 + 1) * 300 * s.inflation;
+		} 
+	})>>
 	<</replace>>
 <</link>>
 <br><<link "Demand further compensation">>
@@ -593,9 +593,9 @@ A screen opposite your desk springs to life, <<if $assistant == 0>>showing your 
 		<<if ($slaves[$i].drugs == "breast injections") && canGetPregnant($slaves[$i])>>
 			<<set $slaves[$i].preg = 1>>
 			<<set $slaves[$i].pregType = random(10,25)>>
-			<<set $activeSlave.pregKnown = 1>>
-			<<set $activeSlave.pregWeek = 1>>
-			<<SetBellySize $activeSlave>>
+			<<set $slaves[$i].pregKnown = 1>>
+			<<set $slaves[$i].pregWeek = 1>>
+			<<SetBellySize $slaves[$i]>>
 		<<elseif $slaves[$i].drugs == "breast injections">>
 			<<set $slaves[$i].lactation = 1>>
 			<<if $slaves[$i].hips < 1>>
@@ -614,9 +614,9 @@ A screen opposite your desk springs to life, <<if $assistant == 0>>showing your 
 		<<elseif $slaves[$i].drugs == "intensive breast injections" && canGetPregnant($slaves[$i])>>
 			<<set $slaves[$i].preg = 1>>
 			<<set $slaves[$i].pregType = random(15,35)>>
-			<<set $activeSlave.pregKnown = 1>>
-			<<set $activeSlave.pregWeek = 1>>
-			<<SetBellySize $activeSlave>>
+			<<set $slaves[$i].pregKnown = 1>>
+			<<set $slaves[$i].pregWeek = 1>>
+			<<SetBellySize $slaves[$i]>>
 		<<elseif $slaves[$i].drugs == "intensive breast injections">>
 			<<set $slaves[$i].lactation = 1>>
 			<<if $slaves[$i].hips < 1>>
@@ -635,9 +635,9 @@ A screen opposite your desk springs to life, <<if $assistant == 0>>showing your 
 		<<elseif ($slaves[$i].drugs == "hyper breast injections") && canGetPregnant($slaves[$i])>>
 			<<set $slaves[$i].preg = 1>>
 			<<set $slaves[$i].pregType = random(20,45)>>
-			<<set $activeSlave.pregKnown = 1>>
-			<<set $activeSlave.pregWeek = 1>>
-			<<SetBellySize $activeSlave>>
+			<<set $slaves[$i].pregKnown = 1>>
+			<<set $slaves[$i].pregWeek = 1>>
+			<<SetBellySize $slaves[$i]>>
 		<<elseif $slaves[$i].drugs == "hyper breast injections">>
 			<<set $slaves[$i].lactation = 1>>
 			<<if $slaves[$i].hips < 1>>
@@ -666,11 +666,11 @@ A screen opposite your desk springs to life, <<if $assistant == 0>>showing your 
 <br><<link "Force surgical repairs and compensation">>
 	<<replace "#result">>
 	The hapless manufacturer eventually goes bankrupt.  However, you do manage to force surgical correction of the pregnancies before they do.  As additional compensation, they agree to naturally enhance your afflicted slaves busts knowing full well that most buyers are not interested in slaves that have been knocked up.  At the managers expense, your slaves move through a top-flight surgeons care and are pregnancy free and sporting @@.lime;larger breasts@@.
-	<<for $i = 0; $i < $slaves.length; $i++>>
-		<<if $slaves[$i].drugs == "breast injections">>
-			<<set $slaves[$i].boobs += 100*(random(1,10))>>
-		<</if>>
-	<</for>>
+	<<run $slaves.forEach(function(s) {
+		if (s.drugs == "breast injections") {
+			s.boobs += Math.floor(Math.random() * 10 + 1) * 100;
+		}
+	})>>
 	<</replace>>
 <</link>>
 
@@ -992,8 +992,8 @@ A screen opposite your desk springs to life, <<if $assistant == 0>>showing your 
 <<set $PAid = 0>>
 <<link "Sell your captures immediately">>
 	<<replace "#result">>
-	<<for _i = 0; _i < _newSlaves.length; _i++>>
-		<<slaveCost _newSlaves[_i]>>
+	<<for _genPlot = 0; _genPlot < _newSlaves.length; _genPlot++>>
+		<<slaveCost _newSlaves[_genPlot]>>
 		<<set $cash += $slaveCost>>
 	<</for>>
 	Prisoners @@.green;sold.@@
@@ -1001,8 +1001,8 @@ A screen opposite your desk springs to life, <<if $assistant == 0>>showing your 
 <</link>>
 <br><<link "Enslave them all">>
 	<<replace "#result">>
-	<<for _i = 0; _i < _newSlaves.length; _i++>>
-		<<AddSlave _newSlaves[_i]>> /* skip New Slave Intro - TODO: use Bulk Slave Intro */
+	<<for _genPlot = 0; _genPlot < _newSlaves.length; _genPlot++>>
+		<<AddSlave _newSlaves[_genPlot]>> /* skip New Slave Intro - TODO: use Bulk Slave Intro */
 	<</for>>
 	You simply enslave all of the escapees yourself. These slaves will more than make up for the costs you expended, in the long run.
 	<</replace>>
