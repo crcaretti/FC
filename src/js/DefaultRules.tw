@@ -7,12 +7,12 @@ window.DefaultRules = (function() {
 	let r = ""
 
 	function DefaultRules(slave) {
-		let V = State.variables
-		let combinedRule = MergeRules(slave)
+		V = State.variables
+		let rule = MergeRules(slave)
 
-		if (Object.keys(combinedRule).length === 0) return r // no rules apply
+		if (Object.keys(rule).length === 0) return r // no rules apply
 
-		AssignJobToSlave(slave, combinedRule)
+		AssignJobToSlave(slave, rule)
 		if(slave.fuckdoll === 0) {
 			ProcessClothing(slave, rule)
 			ProcessCollar(slave, rule)
@@ -23,7 +23,7 @@ window.DefaultRules = (function() {
 			ProcessShoes(slave, rule)
 			ProcessBellyAccessories(slave, rule)
 		}
-		ProcessBellyImplant(slave, combinedRule)
+		ProcessBellyImplant(slave, rule)
 		if (isFertile(slave))
 			ProcessFertilityDrugs(slave, rule)
 		ProcessAssetGrowthDrugs(slave, rule)
@@ -57,7 +57,7 @@ window.DefaultRules = (function() {
 		// merge all rules applying on a slave into one big rule
 		let combinedRule = {}
 		V.defaultRules.forEach(rule => {
-			rule = clone(rule)
+			rule = Object.assign({}, rule.set)
 			
 			// skip inapplicable rules 
 			if (!ruleApplied(slave, rule)) return
@@ -910,54 +910,54 @@ window.DefaultRules = (function() {
 		if ((slave.drugs == "super fertility drugs" || slave.drugs == "fertility drugs") && isFertile(slave)) {
 			r += `<br>slave.slaveName is on slave.drugs and will not be considered for drug enhancement until that regime is complete.`
 			return
-		} else if ((rule.growth.boobs == "no default setting" && rule.growth.butt == "no default setting" && rule.growth.lips == "no default setting" && rule.growth.dick == "no default setting" && rule.growth.dick == "no default setting" && rule.growth.balls == "no default setting")) {
+		} else if ((rule.growth_boobs == "no default setting" && rule.growth_butt == "no default setting" && rule.growth_lips == "no default setting" && rule.growth_dick == "no default setting" && rule.growth_dick == "no default setting" && rule.growth_balls == "no default setting")) {
 			return
 		}
 		if (slave.assignmentVisible) { // More resource intensive version with prioritizing. Possible to give this a toggle rather than basing it on visibility. 
 			let _priorities = []
-			if (rule.growth.boobs != "no default setting") {
+			if (rule.growth_boobs != "no default setting") {
 				let _priority
-				if (slave.boobs < rule.growth.boobs) {
-					_priority = {drug: "breast injections", weight: (rule.growth.boobs-slave.boobs)/rule.growth.boobs}
+				if (slave.boobs < rule.growth_boobs) {
+					_priority = {drug: "breast injections", weight: (rule.growth_boobs-slave.boobs)/rule.growth_boobs}
 					_priorities.push(_priority)
-				} else if ((slave.boobs > rule.growth.boobs+200) && slave.weight < 100 && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
-					_priority = {drug: "breast redistributors", weight: (1+((slave.boobs-slave.boobsImplant-rule.growth.boobs)/rule.growth.boobs))}, _priorities.push(_priority)
+				} else if ((slave.boobs > rule.growth_boobs+200) && slave.weight < 100 && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
+					_priority = {drug: "breast redistributors", weight: (1+((slave.boobs-slave.boobsImplant-rule.growth_boobs)/rule.growth_boobs))}, _priorities.push(_priority)
 				}
 			}
-			if (rule.growth.butt != "no default setting") {
+			if (rule.growth_butt != "no default setting") {
 				let _priority
-				if (slave.butt < rule.growth.butt) {
-					_priority = {drug: "butt injections", weight: (rule.growth.butt-slave.butt)/rule.growth.butt}
+				if (slave.butt < rule.growth_butt) {
+					_priority = {drug: "butt injections", weight: (rule.growth_butt-slave.butt)/rule.growth_butt}
 					_priorities.push(_priority)
-				} else if ((Math.trunc(slave.butt) > rule.growth.butt) && slave.weight < 100 && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
-					_priority = {drug: "butt redistributors", weight: (1+((slave.butt-slave.buttImplant-rule.growth.butt)/rule.growth.butt))}, _priorities.push(_priority)
+				} else if ((Math.trunc(slave.butt) > rule.growth_butt) && slave.weight < 100 && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
+					_priority = {drug: "butt redistributors", weight: (1+((slave.butt-slave.buttImplant-rule.growth_butt)/rule.growth_butt))}, _priorities.push(_priority)
 				}
 			}
-			if (rule.growth.lips != "no default setting") {
+			if (rule.growth_lips != "no default setting") {
 				let _priority
-				if (slave.lips < rule.growth.lips) {
-					_priority = {drug: "lip injections", weight: (rule.growth.lips-slave.lips)/rule.growth.lips}
+				if (slave.lips < rule.growth_lips) {
+					_priority = {drug: "lip injections", weight: (rule.growth_lips-slave.lips)/rule.growth_lips}
 					_priorities.push(_priority)
-				} else if ((slave.lips > rule.growth.lips) && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
-					_priority = {drug: "lip atrophiers", weight: (1+((slave.lips-slave.lipsImplant-rule.growth.lips)/rule.growth.lips))}, _priorities.push(_priority)
+				} else if ((slave.lips > rule.growth_lips) && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
+					_priority = {drug: "lip atrophiers", weight: (1+((slave.lips-slave.lipsImplant-rule.growth_lips)/rule.growth_lips))}, _priorities.push(_priority)
 				}
 			}
-			if (rule.growth.dick != "no default setting" && slave.dick) {
+			if (rule.growth_dick != "no default setting" && slave.dick) {
 				let _priority
-				if (slave.dick < rule.growth.dick) {
-					_priority = {drug: "penis enhancement", weight: (rule.growth.dick-slave.dick)/rule.growth.dick}
+				if (slave.dick < rule.growth_dick) {
+					_priority = {drug: "penis enhancement", weight: (rule.growth_dick-slave.dick)/rule.growth_dick}
 					_priorities.push(_priority)
-				} else if ((slave.dick > rule.growth.dick) && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
-					_priority = {drug: "penis atrophiers", weight: (1+((slave.dick-rule.growth.dick)/rule.growth.dick))}, _priorities.push(_priority)
+				} else if ((slave.dick > rule.growth_dick) && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
+					_priority = {drug: "penis atrophiers", weight: (1+((slave.dick-rule.growth_dick)/rule.growth_dick))}, _priorities.push(_priority)
 				}
 			}
-			if (rule.growth.balls != "no default setting" && slave.balls) {
+			if (rule.growth_balls != "no default setting" && slave.balls) {
 				let _priority
-				if (slave.balls < rule.growth.balls) {
-					_priority = {drug: "testicle enhancement", weight: (rule.growth.balls-slave.balls)/rule.growth.balls}
+				if (slave.balls < rule.growth_balls) {
+					_priority = {drug: "testicle enhancement", weight: (rule.growth_balls-slave.balls)/rule.growth_balls}
 					_priorities.push(_priority)
-				} else if ((slave.balls > rule.growth.balls) && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
-					_priority = {drug: "testicle atrophiers", weight: (1+((slave.balls-rule.growth.balls)/rule.growth.balls))}, _priorities.push(_priority)
+				} else if ((slave.balls > rule.growth_balls) && (V.arcologies[0].FSSlimnessEnthusiastResearch == 1)) {
+					_priority = {drug: "testicle atrophiers", weight: (1+((slave.balls-rule.growth_balls)/rule.growth_balls))}, _priorities.push(_priority)
 				}
 			}
 			if (_priorities.length > 1) {
@@ -965,7 +965,7 @@ window.DefaultRules = (function() {
 				if (slave.drugs != _priorities[0].drug) {
 					slave.drugs = _priorities[0].drug
 					r += `<br>${slave.slaveName} has been put on `
-					if (rule.growth.intensity && slave.drugs != "lip injections" && slave.health > 0) {
+					if (rule.growth_intensity && slave.drugs != "lip injections" && slave.health > 0) {
 						slave.drugs = "intensive " + slave.drugs
 						r += `${slave.drugs}, since she's healthy enough to take them, and `
 					} else {
@@ -981,7 +981,7 @@ window.DefaultRules = (function() {
 				if (slave.drugs != _priorities[0].drug) {
 					slave.drugs = _priorities[0].drug
 					r += `<br>${slave.slaveName} has been put on `
-					if (rule.growth.intensity && slave.drugs != "lip injections" && slave.health > 0) {
+					if (rule.growth_intensity && slave.drugs != "lip injections" && slave.health > 0) {
 						slave.drugs = "intensive " + slave.drugs
 						r += `${slave.drugs}, since she's healthy enough to take them, and `
 					} else
@@ -1000,8 +1000,8 @@ window.DefaultRules = (function() {
 				_hyper = "hyper "
 			else
 				_hyper = ""
-			if (rule.growth.boobs != "no default setting") {
-				if (slave.boobs < rule.growth.boobs) {
+			if (rule.growth_boobs != "no default setting") {
+				if (slave.boobs < rule.growth_boobs) {
 					if (slave.drugs != _hyper + "breast injections") {
 						slave.drugs = _hyper + "breast injections"
 						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
@@ -1009,8 +1009,8 @@ window.DefaultRules = (function() {
 					return
 				}
 			}
-			if (rule.growth.butt != "no default setting") {
-				if (slave.butt < rule.growth.butt) {
+			if (rule.growth_butt != "no default setting") {
+				if (slave.butt < rule.growth_butt) {
 					if (slave.drugs != _hyper + "butt injections") {
 						slave.drugs = _hyper + "butt injections"
 						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
@@ -1018,8 +1018,8 @@ window.DefaultRules = (function() {
 					return
 				}
 			}
-			if (rule.growth.lips != "no default setting") {
-				if (slave.lips < rule.growth.lips) {
+			if (rule.growth_lips != "no default setting") {
+				if (slave.lips < rule.growth_lips) {
 					if (slave.drugs != "lip injections") {
 						slave.drugs = "lip injections"
 						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
@@ -1027,8 +1027,8 @@ window.DefaultRules = (function() {
 					return
 				}
 			}
-			if (rule.growth.dick != "no default setting" && slave.dick) {
-				if (slave.dick < rule.growth.dick) {
+			if (rule.growth_dick != "no default setting" && slave.dick) {
+				if (slave.dick < rule.growth_dick) {
 					if (slave.drugs != _hyper + "penis enhancement") {
 						slave.drugs = _hyper + "penis enhancement"
 						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
@@ -1036,8 +1036,8 @@ window.DefaultRules = (function() {
 					return
 				}
 			}
-			if (rule.growth.balls != "no default setting" && slave.balls) {
-				if (slave.balls < rule.growth.balls) {
+			if (rule.growth_balls != "no default setting" && slave.balls) {
+				if (slave.balls < rule.growth_balls) {
 					if (slave.drugs != _hyper + "testicle enhancement") {
 						slave.drugs = _hyper + "testicle enhancement"
 						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
@@ -1046,8 +1046,8 @@ window.DefaultRules = (function() {
 				}
 			}
 			if (V.arcologies[0].FSSlimnessEnthusiastResearch == 1) {
-				if (rule.growth.boobs != "no default setting") {
-					if (slave.boobs-slave.boobsImplant > rule.growth.boobs+200 && slave.weight < 100) {
+				if (rule.growth_boobs != "no default setting") {
+					if (slave.boobs-slave.boobsImplant > rule.growth_boobs+200 && slave.weight < 100) {
 						if (slave.drugs != "breast redistributors") {
 							slave.drugs = "breast redistributors"
 							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
@@ -1055,8 +1055,8 @@ window.DefaultRules = (function() {
 						return
 					}
 				}
-				if (rule.growth.butt != "no default setting") {
-					if (Math.trunc(slave.butt-slave.buttImplant) > rule.growth.butt && slave.weight < 100) {
+				if (rule.growth_butt != "no default setting") {
+					if (Math.trunc(slave.butt-slave.buttImplant) > rule.growth_butt && slave.weight < 100) {
 						if (slave.drugs != "butt redistributors") {
 							slave.drugs = "butt redistributors"
 							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
@@ -1064,8 +1064,8 @@ window.DefaultRules = (function() {
 						return
 					}
 				}
-				if (rule.growth.lips != "no default setting") {
-					if (slave.lips-slave.lipsImplant > rule.growth.lips) {
+				if (rule.growth_lips != "no default setting") {
+					if (slave.lips-slave.lipsImplant > rule.growth_lips) {
 						if (slave.drugs != "lip atrophiers") {
 							slave.drugs = "lip atrophiers"
 							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
@@ -1073,8 +1073,8 @@ window.DefaultRules = (function() {
 						return
 					}
 				}
-				if (rule.growth.dick != "no default setting" && slave.dick) {
-					if (slave.dick > rule.growth.dick) {
+				if (rule.growth_dick != "no default setting" && slave.dick) {
+					if (slave.dick > rule.growth_dick) {
 						if (slave.drugs != "penis atrophiers") {
 							slave.drugs = "penis atrophiers"
 							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`
@@ -1082,8 +1082,8 @@ window.DefaultRules = (function() {
 						return
 					}
 				}
-				if (rule.growth.balls != "no default setting" && slave.balls) {
-					if (slave.balls > rule.growth.balls) {
+				if (rule.growth_balls != "no default setting" && slave.balls) {
+					if (slave.balls > rule.growth_balls) {
 						if (slave.drugs != "testicle atrophiers") {
 							slave.drugs = "testicle atrophiers"
 							r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`

@@ -422,12 +422,27 @@ window.printError = function(exprStr, error) {
 }
 */
 
+window.mergeRules = function mergeRules(rules) {
+	const combinedRule = {};
+	rules.forEach(rule => {
+		// A rule overrides any preceding ones if,
+		//   * there are no preceding ones,
+		//   * or it sets autoBrand,
+		//   * or it does not set autoBrand and is not "no default setting"
+		Object.keys(rule).forEach(key => {
+			const applies = (combinedRule[key] === undefined ||
+				(key === "autoBrand" && rule[key]) ||
+				(key !== "autoBrand" && rule[key] !== "no default setting"));
+			if (!applies) return
+			combinedRule[key] = rule[key]
+		})
+	})
+}
+
 // return if a rule is applied on a slave
 window.ruleApplied = function(slave, rule) {
 	return slave.currentRules.includes(rule.ID);
 };
-
-
 
 // checks if any rules apply on the slave, and applies them
 window.CheckAutoRulesActivate = function CheckAutoRulesActivate(slave) {
@@ -450,11 +465,10 @@ window.CheckAutoRulesActivate = function CheckAutoRulesActivate(slave) {
 // remove the RA rule from the slave
 window.RARemoveRule = function RARemoveRule(slave, rule) {
 	let r = ""
-	const idx = slave.currentRules.indexOf(
 	slave.currentRules.some((rule, i) => {
 		if (rule.ID === rule) {
 			slave.currentRules.splice(i, 1)
-			r += `<br><span class="tan">Rule ${rule.ID} (${rule.name}) no longer applies to {slave.slaveName}, who is assignmed to ${slave.assignment}</span>`
+			r += `<br><span class="tan">Rule ${rule.ID} (${rule.name}) no longer applies to ${slave.slaveName}, who is assignmed to ${slave.assignment}</span>`
 			r += RAFacilityRemove(slave, rule.set)
 			return true
 		} else return false
@@ -491,7 +505,7 @@ window.RAFacilityRemove = function RAFacilityRemove(slave, rule) {
 
 	case "work in the dairy":
 		if (slave.assignment === rule.setAssignment) {
-			r += `<br>${slave.slaveName} has been removed from ${V.dairyName} and has been assigned to $rule.removalAssignment}.`
+			r += `<br>${slave.slaveName} has been removed from ${V.dairyName} and has been assigned to ${rule.removalAssignment}.`
 			assignJob(slave, rule.removalAssignment)
 		}
 		break;
@@ -718,3 +732,4 @@ window.growAdvSelectorSlim = function(slave, rule) {
 
 	return ret;
 }
+*/
