@@ -1,0 +1,163 @@
+:: Rules Assistant Options [script]
+
+// rewrite of the rules assistant options page in javascript
+// uses an object-oriented widget pattern
+// wrapped in a closure so as not to polute the global namespace
+// the widgets are generic enough to be reusable; if similar user interfaces are ported to JS, we could move the classes to the global scope
+
+window.rulesAssistantOptions = (function() {
+	"use strict"
+	
+	let V
+	let r = ""
+	let root
+
+	function rulesAssistantOptions() {
+		V = State.variables
+		V.nextButton = "Back to Main"
+		V.nextLink = "Main"
+		V.returnTo = "Main"
+		V.showEncyclopedia = 1
+		V.encyclopedia = "Personal Assistant"
+		
+		root = new Element(document.querySelector("#passage-rules-assistant"))
+		let tmp = document.createElement("p")
+		tmp.innerHTML = `${propertTitle()}, I will review your slaves and make changes that will have a beneficial effect. Apologies, ${properTitle()}, but this function is... not fully complete. It may have some serious limitations. Please use the 'no default setting' option to identify areas I should not address.`
+		root.appendChild(new Element(tmp))
+	}
+
+	// helper function returning PC's title
+	function properTitle() {
+		if (V.PC.customTitle) return V.PC.customTitle
+		else if (V.PC.title !== 0) return "Sir"
+		else return "Ma'am"
+	}
+
+	// the Element class wraps around a DOM element and adds extra functionality
+	// this is safer than extending DOM objects directly
+	// it also turns DOM manipulation into an implementation detail
+	class Element {
+		constructor(...args) {
+			this.parent = null
+			this.element = this.render(...args)
+			this.children = []
+		}
+
+		appendChild(child) {
+			child.parent = this
+			this.children.push(child)
+			this.element.appendChild(child.element)
+		}
+
+		// return the first argument to simplify creation of basic container items
+		render(...args) {
+			return args[0]
+		}
+	}
+
+	// list of clickable elements
+	// has a short explanation (the prefix) and a value display
+	// value display can optionally be an editable text input field
+	// it can be "bound" to a variable by setting its "onchange" method
+	class List extends Element {
+		constructor(prefix, textinput=false) {
+			super(prefix, textarea)
+			this.selectedItem = null
+			this.value = this.element.querySelector(".rajs-value")
+		}
+		
+		render(prefix, textinput) {
+			const elem = document.createElement("div")
+			const prefix = document.createElement("span")
+			prefix.innerHTML = prefix
+			let value
+			if (textinput) {
+				value = document.createElement("input")
+				value.classList.add("rajs-value")
+				// call the variable binding when the input field is no longer being edited, and when the enter key is pressed
+				value.onfocusout = () => { this.propagateChange() }
+				value.onkeypress = (e) => { if (e.keyCode === 13) this.propagateChange() }
+			} else {
+				value = document.createElement("strong")
+			}
+			value.setAttribute("type", "text")
+			elem.appendChild(prefix)
+			elem.appendChild(value)
+			elem.classList.add("rajs-list")
+			return elem
+		}
+		
+		selectItem(item) {
+			if (this.selectedItem) this.selectedItem.deselect()
+			this.selectedItem = item
+			setValue(item.setValue)
+			this.propagateChange()
+		}
+
+		setValue(what) {
+			if (this.value.tagName === "input")
+				this.value.value = what
+			else
+				this.value.innerHTML = what
+		}
+
+		getValue(what) {
+			return (this.value.tagName === "input" ? this.parse(this.value.value) : this.value.innerHTML)
+		}
+
+		// customisable input field parser / sanity checker
+		parse(what) { return what }
+
+		propagateChange() {
+			if (this.onchange instanceof Function)
+				this.onchange(this.getValue())
+		}
+			
+	}
+
+	// a clickable item of a list
+	class ListItem extends Element {
+		constructor(displayvalue, setvalue) {
+			super(displayvalue)
+			this.setvalue = setvalue
+			this.selected = false
+		}
+		
+		render(displayvalue) {
+			const elem = document.createElement("span")
+			elem.classList.add("rajs-listitem")
+			elem.innerHTML = displayvalue
+			elem.onclick = () => { return this.select() }
+			return elem
+		}
+
+		select() {
+			if (this.selected) return false
+			this.parent.selectItem(this)
+			this.elem.classList.add("selected")
+			this.selected = true
+		}
+
+		deselect() {
+			this.elem.classList.remove("selected")
+			this.selected = false
+		}
+	}
+
+	// a way to organise lists with too many elements in subsections
+	// children are bound to the master list
+	class ListSubSection extends Element {
+		render(label) {
+			const elem document.createElement("em")
+			elem.innerText = label + ":"
+			return elem
+		}
+		
+		appendChild(child) {
+			super.appendChild(child)
+			child.parent = this.parent
+		}
+	}
+
+	return rulesAssistantOptions
+})()
