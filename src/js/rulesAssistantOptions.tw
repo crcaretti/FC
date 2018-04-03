@@ -27,8 +27,13 @@ window.rulesAssistantOptions = (function() {
 		const root = new Root(tmp)
 	}
 
+	function onreturn(e, cb) {
+		if (e.keyCode === 13) cb()
+	}
+
+	// create a new rule and reload
 	function newRule(root) {
-		const id = V.defaultRules.length === 0? 1: V.defaultRules[V.defaultRules.length-1].ID + 1
+		const id = generateNewID()
 		v.defaultRules.push({
 			ID: id,
 			name: `Rule ${id}`,
@@ -143,9 +148,40 @@ window.rulesAssistantOptions = (function() {
 				bellyImplantVol: -1,
 			}
 		})
+		V.currentRule = V.defaultRules[V.defaultRules.length-1]
 		reload(root)
 	}
 
+	function removeRule(root) {
+		const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule.ID)
+		V.defaultRules.splice(idx, 1)
+		V.currentRule = idx < V.defaultRules.length ? idx : V.defaultRules.length - 1
+		reload(root)
+	}
+
+	function lowerPriority(root) {
+		if (V.defaultRules.length === 1) return // nothing to swap with
+		const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule.ID)
+		if (idx === 0) return // no lower rule
+		arraySwap(V.defaultRules, idx, idx-1)
+		reload(root)
+	}
+
+	function higherPriority(root) {
+		if (V.defaultRules.length === 1) return // nothing to swap with
+		const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule.ID)
+		if (idx === V.defaultRules.length - 1) return // no higher rule
+		arraySwap(V.defaultRules, idx, idx+1)
+		reload(root)
+	}
+
+	function changeName(name, root) {
+		if (name === V.currentRule.name) return
+		V.currentRule = name
+		reload(root)
+	}
+
+	// reload the passage
 	function reload(root) {
 		root.element.remove()
 		rulesAssistantOptions()
@@ -194,7 +230,7 @@ window.rulesAssistantOptions = (function() {
 				value.classList.add("rajs-value")
 				// call the variable binding when the input field is no longer being edited, and when the enter key is pressed
 				value.onfocusout = () => { this.propagateChange() }
-				value.onkeypress = (e) => { if (e.keyCode === 13) this.propagateChange() }
+				value.onkeypress = (e) => { onreturn(e, () => { this.propagateChange() })}
 			} else {
 				value = document.createElement("strong")
 			}
@@ -228,15 +264,38 @@ window.rulesAssistantOptions = (function() {
 
 		propagateChange() {
 			if (this.onchange instanceof Function)
-				this.onchange(this.getValue())
+				this.onchange(this.getValue(), this.selectedItem.data)
 		}
+	}
+
+	const parse = {
+		integer(string) {
+			let n = parseInt(string, 10)
+			return n === NaN? 0: n
+		},
+		boobs(string) {
+			return Math.clamp(parse.integer(n), 0, 48000)
+		},
+		butt(string) {
+			return Math.clamp(parse.integer(n), 0, 10)
+		},
+		lips(string) {
+			return Math.clamp(parse.integer(n), 0, 100)
+		},
+		dick(string) {
+			return Math.clamp(parse.integer(n), 0, 10)
+		},
+		balls(string) {
+			return Math.clamp(parse.integer(n), 0, 10)
+		},
 	}
 
 	// a clickable item of a list
 	class ListItem extends Element {
-		constructor(displayvalue, setvalue) {
+		constructor(displayvalue, setvalue, data) {
 			super(displayvalue)
-			this.setvalue = setvalue
+			this.setvalue = setvalue ? setvalue : displayvalue
+			this.data = this.setvalue ? this.setvalue : displayvalue
 			this.selected = false
 		}
 		
@@ -277,6 +336,7 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
+	// similar to list, but is just a collection of buttons
 	class Options extends Element {
 		constructor(elements=[]) {
 			elements.forEach(element => { this.appendChild(element) })
@@ -289,6 +349,7 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
+	// options equivalent of ListItem
 	class OptionsItem extends Element {
 		constructor(label, onclick) {
 			super(label)
@@ -303,6 +364,7 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
+	// rule import field
 	class NewRuleField extends Element {
 		constructor(root) {
 			super()
@@ -326,7 +388,7 @@ window.rulesAssistantOptions = (function() {
 			const text = this.textarea.value
 			try {
 				const rule = JSON.parse(text)
-				rule.ID = V.defaultRules.length === 0? rule.ID: V.defaultRules[V.defaultRules.length-1].ID + 1
+				if (!rule.ID) rule.ID = generateNewID()
 				reload(this.root)
 			} catch (e) {
 				alert(e)
@@ -334,22 +396,30 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
+	// the base element, parent of all elements
 	class Root extends Element {
+		constructor() {
+			super()
+			if(V.defaultRules.length === 0) {
+				const paragraph = document.createElement("p")
+				paragraph.innerHTML = "<strong>No rules</strong>"
+				this.appendChild(new Element(paragraph))
+				this.appendChild(new NoRules(this))
+				return
+			}
+			this.appendChild(new RuleSelector(this))
+			this.appendChild(new RuleOptions(this))
+		}
+
 		render(element) {
 			const greeting = document.createElement("p")
 			greeting.innerHTML = `<em>${properTitle()}, I will review your slaves and make changes that will have a beneficial effect. Apologies, ${properTitle()}, but this function is... not fully complete. It may have some serious limitations. Please use the 'no default setting' option to identify areas I should not address.</em>`
 			element.appendChild(greeting)
-	
-			if(V.defaultRules.length === 0) {
-				const paragraph = document.createElement("p")
-				paragraph.innerHTML = "<strong>No rules</strong>"
-				element.appendChild(paragraph)
-				element.appendChild(new NoRules(root))
-				return element
-			}
+			return element
 		}
 	}
 
+	// optoins displayed when there are no rules
 	class NoRules extends Options {
 		constructor(root) {
 			super()
@@ -358,6 +428,91 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(newrule)
 			const importrule = new OptionsItem("Import a rule", () => { this.root.appendChild(new NewRuleField()) })
 			this.appendChild(importrule)
+		}
+	}
+
+	// buttons for selecting the current rule
+	class RuleSelector extends List {
+		constructor(root) {
+			super("Current rule:")
+			if (!V.currentRule) V.currentRule = V.defaultRules[0]
+			V.defaultRules.forEach(rule => {
+				const item = new ListItem(rule.name, rule.name, rule)
+				this.appendChild(item)
+				if (rule.ID === V.currentRule.ID) item.select()
+			})
+			this.onchange = function (rulename, rule) {
+				V.currentRule = rule
+				reload(root)
+			}
+		}
+	}
+
+	// buttons for doing transformations on rules
+	class RuleOptions extends Options {
+		constructor(root) {
+			super()
+			this.appendChild(new OptionsItem("New Rule", () => newRule(root)))
+			this.appendChild(new OptionsItem("Remove Rule", () => removeRule(root)))
+			this.appendChild(new OptionsItem("Apply rules", () => this.appendChild(new ApplicationLog())))
+			this.appendChild(new OptionsItem("Lower Priotity", () => lowerPriority(root)))
+			this.appendChild(new OptionsItem("Higher Priority", () => higherPriority(root)))
+			this.appendChild(new OptionsItem("Rename", () => this.appendChild(new RenameField(root))))
+			this.appendChild(new OptionsItem("Export this rule", () => this.appendChild(new ExportField())))
+			this.appendChild(new OptionsItem("Export all rules", () => this.appendChild(new ExportField(true))))
+			this.appendChild(new OptionsItem("Import a rule", () => this.appendChild(new NewRuleField())))
+		}
+	}
+
+	class ApplicationLog extends Element {
+		render() {
+			const elem = document.createElement("div")
+			elem.innerHTML = DefaultRules()
+			return elem
+		}
+	}
+
+	class RenameField extends Element {
+		constructor(root) {
+			super()
+			this.element.onfocusout = () => changeName(this.element.value, root)
+			this.element.onkeypress = (e) => onreturn(e, () => changeName(this.element.value, root))
+		}
+
+		render() {
+			const elem = document.createElement("div")
+			elem.setAttribute("type", "text")
+			elem.setAttribute("value", V.currentRule.name)
+		}
+	}
+
+	// parent section for condition editing
+	class ConditionEditor extends Element {
+		constructor() {
+			super()
+			this.appendChild(new ConditionFunction())
+			this.appendChild(new AssignmentInclusion())
+			this.appendChild(new AssignmentExclusion())
+			this.appendChild(new FacilityInclusion())
+			this.appendChild(new SpecialExclusion())
+			this.appendChild(new SpecificInclusionExclusion())
+		}
+
+		render() {
+			const element = document.createElement("div")
+			return element
+		}
+	}
+
+	// parent section for effect editing
+	class EffectEditor extends Element {
+		constructor() {
+			// TODO
+		}
+
+		render() {
+			const element = document.createElement("div")
+			return element
 		}
 	}
 
