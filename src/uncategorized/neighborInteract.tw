@@ -2,11 +2,13 @@
 
 <<set $nextLink = "Manage Arcology", $nextButton = "Back">>
 
-<<for $i = 0; $i < $arcologies.length; $i++>>
-  <<if $arcologies[$i].direction == $activeArcology.direction>>
-	<<set $arcologies[$i] = $activeArcology>><<break>>
-  <</if>>
-<</for>>
+<<set _nei = $arcologies.findIndex(function(s) { return s.direction == $activeArcology.direction; })>>
+<<if _nei != -1>>
+	<<set $arcologies[_nei] = $activeArcology>>
+<<else>>
+	//Neighbor not found, something has gone wrong!//
+<</if>>
+
 
 <<if $buyArcologyDirection != 0>>
 <<for $i = 0; $i < $arcologies.length; $i++>>
@@ -63,6 +65,48 @@
 	<<break>>
 	<</if>>
 	<</for>>
+<</if>>
+
+<<if $PC.hacking > 0>>
+	<br>
+	<<if $arcologies[0].CyberEconomicTarget == -1>>
+		You are not engaged in cyber warfare against a neighboring arcology.
+	<<else>>
+		<<for $i = 0; $i < $arcologies.length; $i++>>
+		<<if $arcologies[$i].direction == $arcologies[0].CyberEconomicTarget>>
+		You have targeted ''$arcologies[$i].name'' for cyber economic warfare.
+		<<break>>
+		<</if>>
+		<</for>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;Its planned impacts will be
+		<<if $arcologies[0].CyberEconomic == 3>>
+		  ''widespread.'' [[Moderate|Neighbor Interact][$arcologies[0].CyberEconomic -= 1]]
+		<<elseif $arcologies[0].CyberEconomic == 2>>
+		  ''limited.'' [[Intensify|Neighbor Interact][$arcologies[0].CyberEconomic += 1]] | [[Moderate|Neighbor Interact][$arcologies[0].CyberEconomic -= 1]]
+		<<else>>
+		  ''nominal.'' [[Intensify|Neighbor Interact][$arcologies[0].CyberEconomic += 1]]
+		<</if>>
+	<</if>>
+
+	<br>
+	<<if $arcologies[0].CyberReputationTarget == -1>>
+		You are not engaged in character assassination against a neighboring arcology.
+	<<else>>
+		<<for $i = 0; $i < $arcologies.length; $i++>>
+		<<if $arcologies[$i].direction == $arcologies[0].CyberReputationTarget>>
+		You have targeted the leadership of ''$arcologies[$i].name'' for character assassination.
+		<<break>>
+		<</if>>
+		<</for>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;Its planned impacts will be
+		<<if $arcologies[0].CyberReputation == 3>>
+		  ''widespread.'' [[Moderate|Neighbor Interact][$arcologies[0].CyberReputation -= 1]]
+		<<elseif $arcologies[0].CyberReputation == 2>>
+		  ''limited.'' [[Intensify|Neighbor Interact][$arcologies[0].CyberReputation += 1]] | [[Moderate|Neighbor Interact][$arcologies[0].CyberReputation -= 1]]
+		<<else>>
+		  ''nominal.'' [[Intensify|Neighbor Interact][$arcologies[0].CyberReputation += 1]]
+		<</if>>
+	<</if>>
 <</if>>
 
 <br>
@@ -170,9 +214,16 @@
   <</if>>
 <</for>>
 
+<br>
+[[Target for economic warfare|Neighbor Interact][$arcologies[0].embargoTarget = $activeArcology.direction]] |
+<<if $PC.hacking > 0>>
+	[[Target for cyber economic warfare|Neighbor Interact][$arcologies[0].CyberEconomicTarget = $activeArcology.direction]]|
+	[[Target their leadership for character assassination|Neighbor Interact][$arcologies[0].CyberReputationTarget = $activeArcology.direction]]
+<</if>>
+
 <br>&nbsp;&nbsp;&nbsp;&nbsp;[[Target for economic warfare|Neighbor Interact][$arcologies[0].embargoTarget = $activeArcology.direction]]
 <<if $desc.length > 0>>
-  | [[Set as influence target|Neighbor Interact][$arcologies[0].influenceTarget = $activeArcology.direction]]
+	| [[Set as influence target|Neighbor Interact][$arcologies[0].influenceTarget = $activeArcology.direction]]
 <</if>>
 <br>&nbsp;&nbsp;&nbsp;&nbsp;You own ''$activeArcology.PCminority%'' of $activeArcology.name.
 <<set $seed = 500*Math.trunc($activeArcology.prosperity*(1+($activeArcology.demandFactor/100)))>>
@@ -310,10 +361,18 @@ A 1% interest in $activeArcology.name is worth <<print cashFormat($seed)>> and w
 <</if>>
 
 <<if $arcologies[0].embargoTarget != -1>>
-  <br>
-  [[Cancel economic warfare|Neighbor Interact][$arcologies[0].embargoTarget = -1]]
+	<br>
+	[[Cancel economic warfare|Neighbor Interact][$arcologies[0].embargoTarget = -1]]
 <</if>>
 <<if $arcologies[0].influenceTarget != -1>>
-  <br>
-  [[Stop trying to influence neighboring arcologies|Neighbor Interact][$arcologies[0].influenceTarget = -1]]
+	<br>
+	[[Stop trying to influence neighboring arcologies|Neighbor Interact][$arcologies[0].influenceTarget = -1]]
+<</if>>
+<<if $arcologies[0].CyberEconomicTarget != -1>>
+	<br>
+	[[Cancel cyber economic warfare|Neighbor Interact][$arcologies[0].CyberEconomicTarget = -1]]
+<</if>>
+<<if $arcologies[0].CyberReputationTarget != -1>>
+	<br>
+	[[Cancel character assassination|Neighbor Interact][$arcologies[0].CyberReputationTarget = -1]]
 <</if>>
