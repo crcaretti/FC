@@ -34,7 +34,7 @@ window.rulesAssistantOptions = (function() {
 	// create a new rule and reload
 	function newRule(root) {
 		const id = generateNewID()
-		v.defaultRules.push({
+		V.defaultRules.push({
 			ID: id,
 			name: `Rule ${id}`,
 			condition: {
@@ -215,7 +215,7 @@ window.rulesAssistantOptions = (function() {
 	// it can be "bound" to a variable by setting its "onchange" method
 	class List extends Element {
 		constructor(prefix, textinput=false) {
-			super(prefix, textarea)
+			super(prefix, textinput)
 			this.selectedItem = null
 			this.value = this.element.querySelector(".rajs-value")
 		}
@@ -274,19 +274,19 @@ window.rulesAssistantOptions = (function() {
 			return n === NaN? 0: n
 		},
 		boobs(string) {
-			return Math.clamp(parse.integer(n), 0, 48000)
+			return Math.clamp(parse.integer(string), 0, 48000)
 		},
 		butt(string) {
-			return Math.clamp(parse.integer(n), 0, 10)
+			return Math.clamp(parse.integer(string), 0, 10)
 		},
 		lips(string) {
-			return Math.clamp(parse.integer(n), 0, 100)
+			return Math.clamp(parse.integer(string), 0, 100)
 		},
 		dick(string) {
-			return Math.clamp(parse.integer(n), 0, 10)
+			return Math.clamp(parse.integer(string), 0, 10)
 		},
 		balls(string) {
-			return Math.clamp(parse.integer(n), 0, 10)
+			return Math.clamp(parse.integer(string), 0, 10)
 		},
 	}
 
@@ -361,6 +361,56 @@ window.rulesAssistantOptions = (function() {
 			elem.innerHTML = label
 			elem.onclick = () => { return this.onclick() }
 			return elem
+		}
+	}
+
+	class ButtonList extends Element {
+		render(label) {
+			const elem = document.createElement("div")
+			const labelel = document.createElement("span")
+			labelel.innerhTML = label += ":"
+			elem.appendChild(labelel)
+			return elem
+		}
+
+		getSelection() {
+			return (this.children
+				.filter(child => child.selected)
+				.map(child => child.setvalue)
+			)
+		}
+
+		onchange() { return }
+	}
+
+	class ButtonItem extends Element {
+		constructor(label, setvalue, selected=false) {
+			super(label, selected)
+			this.selected = selected
+			this.setvalue = setvalue ? setvalue : label
+		}
+
+		render(label, selected) {
+			const container = document.createElement("div")
+			container.classList.add("rajs-listitem")
+			
+			const labelel = document.createElement("span")
+			labelel.innerHTML = label
+
+			const button = document.createElement("input")
+			button.setAttribute("type", "checkbox")
+			button.checked = selected
+			button.onchange = () => this.onchange(button.checked)
+
+			container.appendChild(labelel)
+			container.appendChild(button)
+
+			return container
+		}
+
+		onchange(value) {
+			this.selected = value
+			parent.onchange(this)
 		}
 	}
 
@@ -486,13 +536,20 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
+	class ExportField extends Element {
+		render(all=false) {
+			const element = document.createElement("textarea")
+			element.value = all ? JSON.stringify(V.currentRule) : map(i => JSON.stringify(i), V.defaultRules).join("\n\n")
+			return element
+		}
+	}
+
 	// parent section for condition editing
 	class ConditionEditor extends Element {
 		constructor() {
 			super()
 			this.appendChild(new ConditionFunction())
 			this.appendChild(new AssignmentInclusion())
-			this.appendChild(new AssignmentExclusion())
 			this.appendChild(new FacilityInclusion())
 			this.appendChild(new SpecialExclusion())
 			this.appendChild(new SpecificInclusionExclusion())
@@ -501,6 +558,228 @@ window.rulesAssistantOptions = (function() {
 		render() {
 			const element = document.createElement("div")
 			return element
+		}
+	}
+
+	class ConditionFunction extends Element {
+		constructor() {
+			super()
+			this.fnlist = new List("Activation function:")
+			this.fneditor = null
+			["Never", "Always", "Custom"].forEach(i => this.fnlist.appendChild(i))
+			["Devotion", "Trust", "Health", "Sex drive", "Weight", "Age", "Body Age", "Visible Age", "Muscles", "Lactation", "Pregnancy", "Pregnancy Multiples", "Belly Implant", "Belly Size"].forEach(i => this.fnlist.appendChild(i, this.getAttribute(i)))
+			this.fnlist.onchange = () => this.fnchanged
+			
+			switch(V.currentRule.condition.function) {
+				case "Never":
+				case "Always":
+					break
+				case "Custom":
+					this.appendChild(new CustomEditor(V.currentRule.condition.data))
+					break
+				default:
+					this.appendChild(new RangeEditor(V.currentRule.condition.function, V.currentRule.condition.data))
+					break
+			}
+		}
+
+		render() {
+			return document.createElement("div")
+		}
+
+		getAttribute(what) {
+			return {
+				"Devotion": "devotion",
+				"Trust": "trust",
+				"Health": "health",
+				"Sex drive": "energy",
+				"weight": "weight",
+				"Age": "actualAge",
+				"Body Age": "physicalAge",
+				"Visible Age": "visualAge",
+				"Muscles": "muscles",
+				"Lactation": "lactation",
+				"Pregnancy": "preg",
+				"Pregnancy Multiples": "pregType",
+				"Belly implant": "bellyImplant",
+				"Belly Size": "belly",
+			}[what]
+		}
+
+		fnchanged(value) {
+			if (this.fneditor !== null) {
+				this.fneditor.element.remove()
+				this.fneditor = null
+			}
+			switch(value) {
+				case "Never":
+					V.currentRule.condition.function = false
+					V.currentRule.condition.data = {}
+					break
+				case "Always":
+					V.currentRule.condition.function = true
+					V.currentRule.condition.data = {}
+					break
+				case "Custom":
+					V.currentRule.condition.function = "custom"
+					V.currentRule.condition.data = {}
+					this.appendChild(new CustomEditor(V.currentRule.condition.data))
+					break
+				default:
+					V.currentRule.condition.function = "between"
+					V.currentRule.condition.data = { attribute: value, value: [null, null] }
+					this.appendChild(new RangeEditor(V.currentRule.condition.data))
+					break
+			}
+		}
+	}
+
+	class CustomEditor extends Element {
+		constructor(data) {
+			if (data.length === 0) data = "function(slave) { return slave.slaveName === 'Fancy Name'; }"
+			super(data)
+			this.elem.onfocusout = () => V.currentRule.data = this.elem.value
+		}
+
+		render(data) {
+			const elem = document.createElement("textarea")
+			elem.setAttribute(value, data)
+			return elem
+		}
+	}
+
+	class RangeEditor extends Element {
+		render(data) {
+			const elem = document.createElement("div")
+
+			const min = document.createElement("input")
+			min.setAttribute("type", "text")
+			min.value = data.between[0]
+			min.onkeypress = e => onreturn(e, () => this.setmin(min.value))
+			min.onfocusout = e => this.setmin(min.value)
+			elem.appendChild(min)
+
+			const max = document.createElement("input")
+			max.setAttribute("type", "text")
+			max.value = data.between[0]
+			max.onkeypress = e => onreturn(e, () => this.setmax(max.value))
+			max.onfocusout = e => this.setmax(max.value)
+			elem.appendChild(max)
+
+			const infobar = document.createElement("div")
+			infobar.innerHTML = this.info(data.attribute)
+			elem.appendChild(infobar)
+
+			return elem
+		}
+
+		parse(value) {
+			value = value.strip()
+			if (value === "null") value = null
+			else {
+				value = parseInt(value)
+				if (value === NaN) value = null
+			}
+			return value
+		}
+
+		setmin(value) {
+			V.currentRule.data.between[0] = this.parse(value)
+		}
+
+		setmax(value) {
+			V.currentRule.data.between[1] = this.parse(value)
+		}
+
+		info(attribute) {
+			return "TODO"
+		}
+	}
+
+	class AssignmentInclusion extends ButtonList() {
+		constructor() {
+			super("Apply to assignments")
+			["Rest", "Fucktoy", "Subordinate Slave", "House Servant", "Confined", "Whore", "Public Servant", "Classes", "Milked", "Gloryhole"].forEach(
+				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), V.currentRule.condition.assignment.includes(i))))
+		}
+
+		onchange() {
+			V.currentRule.condition.assignment = this.getSelection()
+		}
+
+		getAttribute(what) {
+			return {
+				"Rest": "rest",
+				"Fucktoy": "please you",
+				"Subordinate Slave": "be a subordinate slave",
+				"House Servant": "be a servant",
+				"Confined": "stay confined",
+				"Whore": "whore",
+				"Public Servant": "serve the public",
+				"Classes": "take classes",
+				"Milked": "get milked",
+				"Gloryhole": "work a glory hole",
+			}[what]
+		}
+	}
+
+	class FacilityInclusion extends ButtonList() {
+		constructor() {
+			super("Apply to assignments")
+			const facilities = []
+			if (V.HGSuite > 0) facilities.push("Head Girl Suite")
+			if (V.brothel > 0) facilities.push("Brothel")
+			if (V.club > 0) facilities.push("Club")
+			if (V.arcade > 0) facilities.push("Arcade")
+			if (V.dairy > 0) facilities.push("Dairy")
+			if (V.servantQuarters > 0) facilities.push("Servant Quarters")
+			if (V.masterSuite > 0) facilities.push("Master Suite")
+			if (V.schoolroom > 0) facilities.push("Schoolroom")
+			if (V.spa > 0) facilities.push("Spa")
+			if (V.clinic > 0) facilities.push("Clinic")
+			if (V.cellblock > 0) facilities.push("Cellblock")
+			facilities.forEach(
+				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), V.currentRule.condition.facility.includes(i))))
+		}
+
+		onchange(value) {
+			V.currentRule.condition.facility = this.getSelection()
+		}
+
+		getAttribute(what) {
+			return {
+				"Head Girl Suite": "live with your Head Girl",
+				"Brothel": "work in the brothel",
+				"Club": "serve in the club",
+				"Arcade": "be confined in the arcade",
+				"Dairy": "work in the dairy",
+				"Servant Quarters": "work as a servant",
+				"Master Suite": "serve in the master suite",
+				"Schoolroom": "learn in the schoolroom",
+				"Spa": "rest in the spa",
+				"Clinic": "get treatment in the clinic",
+				"Cellblock": "be confined in the cellblock",
+			}[what]
+		}
+	}
+
+	class SpecialExclusion extends List {
+		constructor() {
+			super("Exclude special slaves:")
+			const yes = new ListItem("Yes", "Yes", true)
+			const no = new ListItem("No", "No", false)
+			this.appendChild(yes)
+			this.appendChild(no)
+			if (V.currentRule.excludeSpecialSlaves) yes.select()
+			this.onchange = (label, value) => V.currentRule.excludeSpecialSlaves = value
+		}
+	}
+
+	class SpecificInclusionExclusion extends Options {
+		constructor() {
+			super()
+			this.appendChild(new OptionsItem("Limit to specific slaves", () => Engine.display("Rules Slave Select")))
+			this.appendChild(new OptionsItem("Exclude specific slaveS", () => Engine.display("Rules Slave Exclude")))
 		}
 	}
 
