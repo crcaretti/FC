@@ -248,6 +248,16 @@ window.rulesAssistantOptions = (function() {
 			this.propagateChange()
 		}
 
+		selectValue(what) {
+			this.children.some(child => {
+				if (child.data === what) {
+					child.select()
+					return true
+				}
+				else return false
+			})
+		}
+
 		setValue(what) {
 			if (this.value.tagName === "input")
 				this.value.value = what
@@ -294,8 +304,8 @@ window.rulesAssistantOptions = (function() {
 	class ListItem extends Element {
 		constructor(displayvalue, setvalue, data) {
 			super(displayvalue)
-			this.setvalue = setvalue ? setvalue : displayvalue
-			this.data = this.setvalue ? this.setvalue : displayvalue
+			this.setvalue = setvalue !== undefined ? setvalue : displayvalue
+			this.data = data !== undefined ? data : this.setvalue !== undefined ? this.setvalue : displayvalue
 			this.selected = false
 		}
 		
@@ -333,6 +343,7 @@ window.rulesAssistantOptions = (function() {
 		appendChild(child) {
 			super.appendChild(child)
 			child.parent = this.parent
+			this.parent.children.push(child)
 		}
 	}
 
@@ -786,12 +797,142 @@ window.rulesAssistantOptions = (function() {
 	// parent section for effect editing
 	class EffectEditor extends Element {
 		constructor() {
-			// TODO
+			super()
+			this.appendChild(new ClothesList())
+			this.appendChild(new CollarList())
 		}
 
 		render() {
 			const element = document.createElement("div")
 			return element
+		}
+	}
+
+	class ClothesList extends List {
+		constructor() {
+			super("Clothes")
+			this.appendChild(new ListItem("Select her own outfit", "choosing her own clothes"))
+
+			const nice = new ListSubSection()
+			this.appendChild(nice)
+
+			const nclothes = [
+				["No default clothes setting", "no default setting"],
+				["Bangles", "slutty jewelry"],
+				["Bodysuit", "a comfortable bodysuit"],
+				["Cheerleader outfit", "a cheerleader outfit"],
+				["Clubslut netting", "clubslut netting"],
+				["Cutoffs and a t-shirt", "cutoffs and a t-shirt"],
+				["Fallen nun", "a fallen nuns habit"],
+				["Halter top", "a halter top dress"],
+				["Hijab and abaya", "a hijab and abaya"],
+				["Latex catsuit", "a latex catsuit"],
+				["Leotard", "a leotard"],
+				["Maid (nice)", "a nice maid outfit"],
+				["Maid (slutty)", "a slutty maid outfit"],
+				["Military uniform", "a military uniform"],
+				["Mini dress", "a mini dress"],
+				["Nice lingerie", "attractive lingerie"],
+				["Nurse (nice)", "a nice nurse outfit"],
+				["Schoolgirl", "a schoolgirl outfit"],
+				["Silken ballgown", "a ball gown"],
+				["Skimpy battledress", "battledress"],
+				["Slave gown", "a slave gown"],
+				["Slutty outfit", "a slutty outfit"],
+				["String bikini", "a stirng bikini"],
+				["Scalemail bikini", "a scalemail bikini"],
+				["Succubus costume", "a succubus outfit"],
+				["Suit (nice)", "nice business sattire"],
+				["Suit (slutty", "slutty business attire"],
+				["Spats and tank top", "spats and a tank top"]
+			]
+			const fsnclothes = [
+				["Body oil (FS)", "body oil"],
+				["Bunny outfit (FS)", "a bunny outfit"],
+				["Chattel habit (FS)", "a chattel habit"],
+				["Conservative clothing (FS)", "conservative clothing"],
+				["Harem gauze (FS)", "harem gauze"],
+				["Huipil (FS)", "a huipil"],
+				["Kimono (FS)", "a kimono"],
+				["Maternity dress (FS)", "a maternity dress"],
+				["Maternity lingerie (FS)", "attractive lingerie for a pregnant woman"],
+				["Slutty qipao (FS)", "a slutty qipao"],
+				["Stretch pants and a crop-top (FS)", "stretch pants and a crop-top"],
+				["Toga (FS)", "a toga"],
+				["Western clothing (FS)", "Western clothing"],
+			]
+			nclothes.forEach(pair => nice.appendChild(new ListItem(...pair)))
+			fsnclothes.forEach(pair => { if (isItemAccessible(pair[1])) nice.appendChild(new ListItem(...pair))})
+			
+			harsh = new ListSubSection()
+			this.appendChild(harsh)
+
+			const hclothes = [
+				["Nude", "no clothing"]
+				["Penitent nun", "a penitent nuns habit"],
+				["Restrictive latex", "restrictive latex"],
+				["Shibari ropes", "shibari ropes"],
+				["Uncomfortable straps", "uncomfortable straps"]
+			]
+			const fshclothes = [
+				["Chains (FS)", "chains"],
+			]
+
+			hclothes.forEach(pair => nice.appendChild(new ListItem(...pair)))
+			fshclothes.forEach(pair => { if (isItemAccessible(pair[1])) nice.appendChild(new ListItem(...pair))})
+
+			this.selectValue(V.currentRule.set.clothes)
+			this.onchange = (label, value) => V.currentRule.set.clothes = value
+		}
+	}
+
+	class CollarList extends List {
+		constructor() {
+			super("Collar")
+			this.appendChild("No default collar setting", "no default setting")
+			this.appendChild("No collar", "none")
+
+			const nice = new ListSubSection("Nice")
+			this.appendChild(nice)
+
+			const ncollars = [
+				["Stylish leather", "stylish leather"],
+				["Satin choker", "satin choker"],
+				["Silken Ribbon", "silk ribbon"],
+				["Heavy Gold", "heavy gold"],
+				["Pretty jewelry", "pretty jewelry"],
+				["Cowbell", "leather with cowbell"]
+			]
+			if (V.seeAge !== 0)
+				ncollars.push(["Nice retirement counter", "nice retirement counter"])
+			const fsncollars = [
+				["Bowtie collar", "bowtie"],
+				["ancient Egyptian", "ancient Egyptian"],
+			]
+			ncollars.forEach(pair => nice.appendChild(new ListItem(...pair)))
+			fsncollars.forEach(pair => { if (isItemAccessible(pair[1])) nice.appendChild(new ListItem(...pair))})
+
+			const harsh = new ListSubSection("Harsh")
+			this.appendChild(harsh)
+
+			const hcollars = [
+				["Tight steel", "tight steel"],
+				["Uncomfortable leather", "uncomfortable leather"],
+				["Pregnancy biometrics", "preg biometrics"],
+				["Shock punishment", "shock punishment"],
+				["Dildo gag", "dildo gag"],
+				["Ball gag", "ball gag"],
+				["Bit gag", "bit gag"],
+				["Neck corset", "neck corset"],
+			]
+			if (V.seeAge !== 0)
+				harsh.appendChild(["Cruel retirement counter", "cruel retirement counter"])
+			if (V.toysBoughtGags === 1)
+				harsh.appendChild(["Massive dildo gag", "massive dildo gag"])
+			hcollars.forEach(pair => harsh.appendChild(...pair))
+
+			this.selectValue(V.currentRule.set.collar)
+			this.onchange = (label, value) => V.currentRule.set.collar = value
 		}
 	}
 
