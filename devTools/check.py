@@ -7,7 +7,7 @@ WARNING = '\033[93m'
 ENDC = '\033[0m'
 
 def myprint(*args):
-    print(WARNING, filename + ":", ENDC,*args)
+    print(WARNING, fileinput.filename() + ":", ENDC,*args)
 
 def yield_line_and_islastline(f):
     global filename
@@ -72,6 +72,7 @@ try:
 except UnicodeDecodeError as e:
     myprint(e)
     print("   Hint: In linux, you can get more details about unicode errors by running:")
-    print("     isutf8", filename) 
+    print("     isutf8", fileinput.filename())
+    print("   :Note it might be caused by ", filename)
 
 
