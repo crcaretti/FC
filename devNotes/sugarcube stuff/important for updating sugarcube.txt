@@ -1,11 +1,44 @@
-search for /* look here for changes */ in the header backup.
+There are two main changes here.
 
-,[{key:"_serialize",value:function(e)
+CHANGE 1: Speed up loading
+==========================
 
-return Object.freeze(Object.defineProperties({},{init:{value:e},create:{value:t}}))}()),SimpleStore.adapters.
+The first is to speed up loading the file.
+
+Edit the sugarcube header and change:
+
+    [{key:"_serialize",value:function(e) return Object.freeze
+
+Into this
+
+    [{key:"_serialize",value:function(e)
+    /* look here for changes */
+    {return JSON.stringify(e)}},{key:"_deserialize",value:function(e){return JSON.parse((!e || e[0]=="{")?e:LZString.decompressFromUTF16(e))}}]),e}();
+    /* changes end here */
+    return Object.freeze
+
+
+CHANGE 2: Remember scroll position
+==================================
+
+Edit the sugarcube header and change:
+
+    var t=jQuery(this);t.is("[aria-pressed]")&&t.attr("aria-pressed","true"===t.attr("aria-pressed")?"false":"true"),e.apply(this,arguments);
+
+into this:
+
+    var t=jQuery(this);
+    const dataPassage = t.attr('data-passage');
+               const savedYOffset = window.pageYOffset;
+               t.is("[aria-pressed]")&&t.attr("aria-pressed","true"===t.attr("aria-pressed")?"false":"true"),e.apply(this,arguments);
+               const doJump = function(){ window.scrollTo(0, savedYOffset); }
+               if ( dataPassage && (window.lastDataPassageLink === dataPassage))
+                       doJump();
+               else if (dataPassage && dataPassage.includes('Workaround')) {
+                       doJump(); /* Horrible hack to workaround the workaround... */
+                       setTimeout(doJump, 10); setTimeout(doJump, 100); setTimeout(doJump, 300);
+               }
+               window.lastDataPassageLink = dataPassage;
 
 
 
-
-
-/* look here for changes */{return JSON.stringify(e)}},{key:"_deserialize",value:function(e){return JSON.parse((!e || e[0]=="{")?e:LZString.decompressFromUTF16(e))}}]),e}();/* changes end here */
