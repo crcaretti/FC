@@ -223,8 +223,8 @@ window.rulesAssistantOptions = (function() {
 				value = document.createElement("input")
 				value.classList.add("rajs-value")
 				// call the variable binding when the input field is no longer being edited, and when the enter key is pressed
-				value.onfocusout = () => { this.propagateChange() }
-				value.onkeypress = (e) => { onreturn(e, () => { this.propagateChange() })}
+				value.onfocusout = () => { this.inputEdited() }
+				value.onkeypress = (e) => { onreturn(e, () => { this.inputEdited() })}
 			} else {
 				value = document.createElement("strong")
 			}
@@ -233,6 +233,11 @@ window.rulesAssistantOptions = (function() {
 			elem.appendChild(value)
 			elem.classList.add("rajs-list")
 			return elem
+		}
+
+		inputEdited() {
+			if (this.selectedItem) this.selectedItem.deselect()
+			this.propagateChange()
 		}
 		
 		selectItem(item) {
@@ -816,13 +821,59 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new VagAccVirginsList())
 			this.appendChild(new VagAccAVirginsList())
 			this.appendChild(new VagAccOtherList())
-			this.appendChild(new DickAccVirginsList())
-			this.appendChild(new DickAccOtherList())
+			if (V.seeDicks !== 0 || V.makeDicks !== 0) {
+				this.appendChild(new DickAccVirginsList())
+				this.appendChild(new DickAccOtherList())
+			}
 			this.appendChild(new ButtplugsVirginsList())
 			this.appendChild(new ButtplugsOtherList())
 			this.appendChild(new ImplantVolumeList())
 			this.appendChild(new AutosurgerySwitch())
 
+		}
+
+		render() {
+			return document.createElement("div")
+		}
+	}
+
+	class RegimenSection extends Element {
+		constructor() {
+			super()
+			this.appendChild(new GrowthList())
+			this.appendChild(new CurrativesList())
+			this.appendChild(new AphrodisiacList())
+			this.appendChild(new ContraceptiveList())
+			this.appendChild(new PregDrugsList())
+			this.appendChild(new FemaleHormonesList())
+			this.appendChild(new ShemaleHormonesList())
+			this.appendChild(new GeldingHormonesList())
+			this.appendChild(new OtherDrugsList())
+			this.appendChild(new DietList())
+			this.appendChild(new DietBaseList())
+			this.appendChild(new MuscleList())
+			this.appendChild(new BraceList())
+		}
+
+		render() {
+			return document.createElement("div")
+		}
+	}
+
+	class BehaviourSection extends List {
+		constructor() {
+			super()
+			this.appendChild(new LivingStandardList())
+			this.appendChild(new PunishmentList())
+			this.appendChild(new RewardList())
+			this.appendChild(new ReleaseList())
+			this.appendChild(new SmartFetishList())
+			this.appendChild(new SmartXYAttractionList())
+			this.appendChild(new SmartXXAttractionList())
+			this.appendChild(new SmartEnergyList())
+			this.appendChild(new SpeechList())
+			this.appendChild(new RelationshipList())
+			this.appendChild(new PornList())
 		}
 
 		render() {
@@ -987,7 +1038,7 @@ window.rulesAssistantOptions = (function() {
 
 	class VagAccVirginsList extends List {
 		constructor() {
-			super("Vaginal Accessories for Virgins")
+			super("Vaginal accessories for virgins")
 			const accs = []
 			setup.vaginalAccessories.forEach(acc => {
 				if (acc.fs === undefined && acc.rs === undefined)
@@ -1003,7 +1054,213 @@ window.rulesAssistantOptions = (function() {
 
 	class VagAccAVirginsList extends List {
 		constructor() {
+			super("Vaginal accessories for anal virgins")
+			const accs = []
+			setup.vaginalAccessories.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					accs.push([acc.name, acc.value])
+				else if (acc.rs === "buyBigDildos" && V.toysBoughtDildos === 1)
+					accs.push([acc.name + " (Purchased)", acc.value])
+			})
+			accs.forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.aVirginAccessory)
+			this.onchange = (label, value) => V.currentRule.set.aVirginAccessory = value
 		}
+	}
+
+	class VagAccOtherList extends List {
+		constructor() {
+			super("Vaginal accessories for other slaves")
+			const accs = []
+			setup.vaginalAccessories.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					accs.push([acc.name, acc.value])
+				else if (acc.rs === "buyBigDildos" && V.toysBoughtDildos === 1)
+					accs.push([acc.name + " (Purchased)", acc.value])
+			})
+			accs.forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.vaginalAccessory)
+			this.onchange = (label, value) => V.currentRule.set.vaginalAccessory = value
+		}
+	}
+
+	class DickAccVirginsList extends List {
+		constructor() {
+			super("Dick accessories for anal virgins")
+			setup.dickAccessories.forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.aVirginDickAccessory)
+			this.onchange = (label, value) => V.currentRule.set.aVirginDickAccessory = value
+		}
+	}
+
+	class DickAccOtherList extends List {
+		constructor() {
+			super("Dick accessories for other slaves")
+			setup.dickAccessories.forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.dickAccessory)
+			this.onchange = (label, value) => V.currentRule.set.dickAccessory = value
+		}
+	}
+
+	class ButtplugsVirginsList extends List {
+		constructor() {
+			super("Buttplugs for anal virgins")
+			const accs = []
+			setup.buttplugs.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					accs.push([acc.name, acc.value])
+				else if (acc.rs === "buyBigPlugs" && V.toysBoughtButtPlugs === 1)
+					accs.push([acc.name + " (Purchased)", acc.value])
+			})
+			accs.forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.aVirginButtplug)
+			this.onchange = (label, value) => V.currentRule.set.aVirginButtplug = value
+		}
+	}
+
+	class ButtplugsOtherList extends List {
+		constructor() {
+			super("Buttplugs for other slaves")
+			const accs = []
+			setup.buttplugs.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					accs.push([acc.name, acc.value])
+				else if (acc.rs === "buyBigPlugs" && V.toysBoughtButtPlugs === 1)
+					accs.push([acc.name + " (Purchased)", acc.value])
+			})
+			accs.forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.buttplug)
+			this.onchange = (label, value) => V.currentRule.set.buttplug = value
+		}
+	}
+
+	class ImplantVolumeList extends List {
+		constructor() {
+			super("Belly implant target volume (if present)")
+			const pairs = [
+				["No changes", -1],
+				["Empty implant", 0],
+				["Early pregnancy", 1500],
+				["Second trimester pregnancy", 5000],
+				["Full-term pregnancy", 15000],
+				["Full-term with twins", 30000],
+				["Full-term with triplets", 45000],
+				["Full-term with quadruplets", 60000],
+				["Full-term with quintuplets", 75000],
+				["Full-term with sextuplets", 90000],
+				["Full-term with septuplets", 105000],
+				["Full-term with octuplets", 120000]
+			]
+			pairs.forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.bellyImplantVol)
+			this.onchange = (label, value) => V.currentRule.set.bellyImplantVol = value
+		}
+	}
+
+	class AutosurgerySwitch extends List {
+		constructor() {
+			super("Assistant-applied implants (Autosurgery global switch)")
+			this.appendChild(new ListItem("Activate", "ACTIVE, STAND CLEAR", 1))
+			this.appendChild(new ListItem("Off", "off", 0))
+			this.selectValue(V.currentRule.set.autoSurgery)
+			this.onchange = (label, value) => V.currentRule.set.autoSurgery = value
+		}
+	}
+
+	class GrowthList extends Options {
+		constructor() {
+			super()
+			const pairs = [
+				["No default setting", () => this.nds()],
+				["Girlish figure", () => this.girlish()],
+				["Stacked figure", () => this.stacked()],
+				["Huge but functional", () => this.huge()],
+				["Unlimited", () => this.unlimited()],
+				["None", () => this.none()]
+			]
+			pairs.forEach(pair => this.appendChild(new OptionsItem(...pair)))
+			
+			this.breasts = new BreastGrowthList()
+			this.butts = new ButtGrowthList()
+			this.lips = new LipGrowthList()
+			this.dicks = new DickGrowthList()
+			this.balls = new BallGrowthList()
+
+			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => this.appendChild(i))
+		}
+
+		render() {
+			const elem = document.createElement("div")
+			const span = document.createElement("span")
+			span.innerHTML = "Growth hormone regimes for healthy slaves:"
+			elem.appendChild(span)
+			return elem
+		}
+
+		nds() {
+			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => {
+				i.setValue("no default change")
+				i.propagateChange()
+			})
+		}
+
+		girlish() {
+			this.breasts.setValue(350)
+			this.butts.setValue(2)
+			this.lips.setValue(25)
+			this.dicks.setValue(0)
+			this.balls.setValue(0)
+			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => i.propagateChange())
+		}
+
+		stacked() {
+			this.breasts.setValue(1000)
+			this.butts.setValue(4)
+			this.lips.setValue(25)
+			this.dicks.setValue(4)
+			this.balls.setValue(4)
+			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => i.propagateChange())
+		}
+
+		huge() {
+			this.breasts.setValue(9000)
+			this.butts.setValue(10)
+			this.lips.setValue(45)
+			this.dicks.setValue(6)
+			this.balls.setValue(6)
+			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => i.propagateChange())
+		}
+
+		unlimited() {
+			this.breasts.setValue(48000)
+			this.butts.setValue(10)
+			this.lips.setValue(100)
+			this.dicks.setValue(10)
+			this.balls.setValue(6)
+			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => i.propagateChange())
+		}
+
+		none() {
+			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => {
+				i.setValue(0)
+				i.propagateChange()
+			})
+		}
+	}
+
+	class BreastGrowthList extends List {
+	}
+
+	class ButtGrowthList extends List {
+	}
+
+	class LipGrowthList extends List {
+	}
+
+	class DickGrowthList extends List {
+	}
+
+	class BallGrowthList extends List {
 	}
 
 	return rulesAssistantOptions
