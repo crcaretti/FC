@@ -46,7 +46,7 @@ How to mod (basic doc):
 
 5. All modders will be wery grateful if any, who make some changes to game, with .html file also post his/her resulting src folder tree.
 
-6. For contributors to pregmod: if you don't use git, then you need to post yours version of src folder tree, not just produced FC_pregmod.html file!!! This html file can't be reverted to proper sources, and useless as contribution!
+6. For contributors to pregmod: if you don't use git, then you need to post your version of src folder tree, not just produced FC_pregmod.html file!!! This html file can't be reverted to proper sources, and useless as contribution!
 
 7. Git workflow:
     - Master branch is pregmod-master. Only Pregmodder can add something to it directly. Always contain his last public changes.
