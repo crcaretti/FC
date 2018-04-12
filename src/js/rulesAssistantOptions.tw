@@ -844,7 +844,8 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new CurrativesList())
 			this.appendChild(new AphrodisiacList())
 			this.appendChild(new ContraceptiveList())
-			this.appendChild(new PregDrugsList())
+			if (V.pregSpeedControl)
+				this.appendChild(new PregDrugsList())
 			this.appendChild(new FemaleHormonesList())
 			this.appendChild(new ShemaleHormonesList())
 			this.appendChild(new GeldingHormonesList())
@@ -1170,6 +1171,7 @@ window.rulesAssistantOptions = (function() {
 	class GrowthList extends Options {
 		constructor() {
 			super()
+			this.sublists = []
 			const pairs = [
 				["No default setting", () => this.nds()],
 				["Girlish figure", () => this.girlish()],
@@ -1183,10 +1185,15 @@ window.rulesAssistantOptions = (function() {
 			this.breasts = new BreastGrowthList()
 			this.butts = new ButtGrowthList()
 			this.lips = new LipGrowthList()
-			this.dicks = new DickGrowthList()
-			this.balls = new BallGrowthList()
+			this.sublists.push(this.breasts, this.butts, this.lips)
 
-			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => this.appendChild(i))
+			if (V.seeDicks > 0 || V.makeDicks > 0) {
+				this.dicks = new DickGrowthList()
+				this.balls = new BallGrowthList()
+				this.sublists.push(this.dicks, this.balls)
+			}
+
+			this.sublists.forEach(i => this.appendChild(i))
 		}
 
 		render() {
@@ -1208,40 +1215,40 @@ window.rulesAssistantOptions = (function() {
 			this.breasts.setValue(350)
 			this.butts.setValue(2)
 			this.lips.setValue(25)
-			this.dicks.setValue(0)
-			this.balls.setValue(0)
-			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => i.propagateChange())
+			if (this.dicks) this.dicks.setValue(0)
+			if (this.balls) this.balls.setValue(0)
+			this.sublists.forEach(i => i.propagateChange())
 		}
 
 		stacked() {
 			this.breasts.setValue(1000)
 			this.butts.setValue(4)
 			this.lips.setValue(25)
-			this.dicks.setValue(4)
-			this.balls.setValue(4)
-			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => i.propagateChange())
+			if (this.dicks) this.dicks.setValue(4)
+			if (this.balls) this.balls.setValue(4)
+			this.sublists.forEach(i => i.propagateChange())
 		}
 
 		huge() {
 			this.breasts.setValue(9000)
 			this.butts.setValue(10)
 			this.lips.setValue(45)
-			this.dicks.setValue(6)
-			this.balls.setValue(6)
-			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => i.propagateChange())
+			if (this.dicks) this.dicks.setValue(6)
+			if (this.balls) this.balls.setValue(6)
+			this.sublists.forEach(i => i.propagateChange())
 		}
 
 		unlimited() {
 			this.breasts.setValue(48000)
 			this.butts.setValue(10)
 			this.lips.setValue(100)
-			this.dicks.setValue(10)
-			this.balls.setValue(6)
-			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => i.propagateChange())
+			if (this.dicks) this.dicks.setValue(10)
+			if (this.balls) this.balls.setValue(6)
+			this.sublists.forEach(i => i.propagateChange())
 		}
 
 		none() {
-			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => {
+			this.sublists.forEach(i => {
 				i.setValue(0)
 				i.propagateChange()
 			})
@@ -1249,18 +1256,231 @@ window.rulesAssistantOptions = (function() {
 	}
 
 	class BreastGrowthList extends List {
+		constructor() {
+			super("Breasts", true)
+			[
+				["No default setting", "no default setting"],
+				["B Cup", 350],
+				["D Cup", 1000],
+				["Monstrous", 9000],
+				["Unlimited", 48000],
+				["None", 0]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.setValue(V.currentRule.set.growth_boobs)
+			this.onchange = (label, value) => V.currentRule.set.growth_boobs = value
+		}
 	}
 
 	class ButtGrowthList extends List {
+		constructor() {
+			super("Butts", true)
+			[
+				["No default setting", "no default setting"],
+				["Cute", 2],
+				["Big", 4],
+				["Huge", 6],
+				["Unlimited", 10],
+				["None", 0]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.setValue(V.currentRule.set.growth_butt)
+			this.onchange = (label, value) => V.currentRule.set.growth_butt = value
+		}
 	}
 
 	class LipGrowthList extends List {
+		constructor() {
+			super("Lips", true)
+			[
+				["No default setting", "no default setting"],
+				["Plump", 25],
+				["Beestung", 45],
+				["Facepussy", 100],
+				["None", 0]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.setValue(V.currentRule.set.growth_lips)
+			this.onchange = (label, value) => V.currentRule.set.growth_lips = value
+		}
 	}
 
 	class DickGrowthList extends List {
+		constructor() {
+			super("Dicks, if present", true)
+			[
+				["No default setting", "no default setting"],
+				["Above average", 4],
+				["Pornstar", 6],
+				["Unlimited", 10],
+				["None", 0]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.setValue(V.currentRule.set.growth_dick)
+			this.onchange = (label, value) => V.currentRule.set.growth_dick = value
+		}
 	}
 
 	class BallGrowthList extends List {
+		constructor() {
+			super("Balls, if present", true)
+			[
+				["No default setting", "no default setting"],
+				["Sizeable", 4],
+				["Cumslave", 6],
+				["Unlimited", 10],
+				["None", 0]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.setValue(V.currentRule.set.growth_balls)
+			this.onchange = (label, value) => V.currentRule.set.growth_balls = value
+		}
+	}
+
+	class CurrativesList extends List {
+		constructor() {
+			super("Health drugs")
+			[
+				["No default setting", "no default setting"],
+				["None", "none", 0],
+				["Preventatives", "preventatives", 1],
+				["Curatives", "curatives", 2]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.curatives)
+			this.onchange = (label, value) => V.currentRule.set.curatives = value
+		}
+	}
+
+	class AphrodisiacList extends List {
+		constructor() {
+			super("Aphrodisiacs")
+			[
+				["No default setting", "no default setting"],
+				["None", "none", 0],
+				["Standard", "standard", 1],
+				["Extreme", "extreme", 2],
+				["Anaphrodisiacs", "anaphrodisiacs", -1]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.aphrodisiacs)
+			this.onchange = (label, value) => V.currentRule.set.aphrodisiacs = value
+		}
+	}
+
+	class ContraceptiveList extends List {
+		constructor() {
+			super("Contraceptives for fertile slaves")
+			const drugs =  [
+				["No default setting", "no default setting"],
+				["Contraceptives", "contraceptives", -1]
+				["Fertile", "fertile", 0],
+				["Very fertile", "very fertile", 1],
+				["Extremely fertile", "extremely fertile", 2],
+			]
+			if (V.seeHyperPreg === 1 && V.superFertilityDrugs === 1) {
+				drugs.push(["Hyper fertile", "hyper fertile", 3])
+				drugs.push(["Maximize fertility", "maximize fertility", 4])
+			}
+			drugs.forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.preg)
+			this.onchange = (label, value) => V.currentRule.set.preg = value
+		}
+	}
+
+	class PregDrugsList extends List {
+		constructor() {
+			super("Pregnancy control agents for pregnant slaves")
+			[
+				["No changes", "no changes", "no default setting"],
+				["None", "none"],
+				["Fast gestation", "fast gestation", "fast"],
+				["Slow gestation", "slow gestation", "slow"],
+				["Birth supressors", "birth supressors", "suppress"],
+				["Birth stimulators", "birth stimulators", "stimulate"]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.pregSpeed)
+			this.onchange = (label, value) => V.currentRule.set.pregSpeed = value
+		}
+	}
+
+	class FemaleHormonesList extends List {
+		constructor() {
+			super("Hormones for female slaves")
+			[
+				["No default setting", "no default setting"],
+				["Intensive Female", "intensive female", 2],
+				["Female", "female", 1],
+				["None", "none", 0],
+				["Male", "male", -1],
+				["Intensive Male", "intensive male", -2]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.XX)
+			this.onchange = (label, value) => V.currentRule.set.XX = value
+		}
+	}
+
+	class GeldingHormonesList extends List {
+		constructor() {
+			super("Hormones for geldings")
+			[
+				["No default setting", "no default setting"],
+				["Intensive Female", "intensive female", 2],
+				["Female", "female", 1],
+				["None", "none", 0],
+				["Male", "male", -1],
+				["Intensive Male", "intensive male", -2]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.gelding)
+			this.onchange = (label, value) => V.currentRule.set.gelding = value
+		}
+	}
+
+	class ShemaleHormonesList extends List {
+		constructor() {
+			super("Hormones for shemales")
+			[
+				["No default setting", "no default setting"],
+				["Intensive Female", "intensive female", 2],
+				["Female", "female", 1],
+				["None", "none", 0],
+				["Male", "male", -1],
+				["Intensive Male", "intensive male", -2]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.XY)
+			this.onchange = (label, value) => V.currentRule.set.XY = value
+		}
+	}
+
+	class OtherDrugsList extends List {
+		constructor() {
+			super("Other drugs (Will be overriden by hormones and other drugs where applicable)")
+			const drugs = []
+			setup.drugs.forEach(drug => {
+				if (drug.fs === undefined && drug.rs === undefined)
+					drugs.push([drug.name, drug.value])
+				else if (drug.rs === "growth" && V.growthStim === 1)
+					drugs.push([drug.name + " (Research)", drug.value])
+				else if (drug.rs === "pubHorm" && V.precociousPuberty === 1 && V.pubertyHormones === 1)
+					drugs.push([drug.name + " (Research)", drug.value])
+				else if (drug.rs === "nosag" && V.purchasedSagBGone === 1)
+					drugs.push([drug.name + " (Product)", drug.value])
+				else if (drug.fs === "slimness" && V.arcologies[0].FSSlimnessEnthusiastResearch === 1)
+					drugs.push([drug.name + " (FS)", drug.value])
+				else if (drug.fs === "youth" && V.arcologies[0].FSYouthPreferentialistResearch === 1)
+					drugs.push([drug.name + " (FS)", drug.value])
+			})
+			this.selectValue(V.currentRule.set.drug)
+			this.onchange = (label, value) => V.currentRule.set.drug = value
+		}
+	}
+
+	class DietList {
+		constructor() {
+			super("Slave diets")
+			[
+				["no default setting", "no default setting"],
+				["Fix fat and skinny slaves", "fix fat and skinny slaves", "attractive"],
+				["Curvy", "Curvy", 30],
+				["Average", "Average", 0],
+				["Thin", "Thin", -30]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue(V.currentRule.set.diet)
+			this.onchange = (label, value) => V.currentRule.set.diet = value
+		}
 	}
 
 	return rulesAssistantOptions
