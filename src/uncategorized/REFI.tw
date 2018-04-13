@@ -23,55 +23,67 @@
 /* Some scenes are also stored in useGuard.tw, walkPast.tw, and toychest.tw			*/
 
 <<switch $REFIevent>>
-  <<case "masochist">>
-	<<set $activeSlave = $slaves.find(function(s) { return s.ID == $masochistInterestTargetID; })>>
-  <<case "pregnancy">>
-	<<set $activeSlave = $slaves.find(function(s) { return s.ID == $pregnancyInterestTargetID; })>>
-  <<case "boobs">>
-	<<set $activeSlave = $slaves.find(function(s) { return s.ID == $boobsInterestTargetID; })>>
-  <<case "submissive">>
-	<<set $activeSlave = $slaves.find(function(s) { return s.ID == $submissiveInterestTargetID; })>>
-  <<case "buttslut">>
-	<<set $activeSlave = $slaves.find(function(s) { return s.ID == $buttslutInterestTargetID; })>>
-  <<case "cumslut">>
-	<<set $activeSlave = $slaves.find(function(s) { return s.ID == $cumslutInterestTargetID; })>>
-  <<case "humiliation">>
-	<<set $activeSlave = $slaves.find(function(s) { return s.ID == $humiliationInterestTargetID; })>>
+	<<case "masochist">>
+		<<set $activeSlave = $slaves.find(function(s) { return s.ID == $masochistInterestTargetID; })>>
+	<<case "pregnancy">>
+		<<set $activeSlave = $slaves.find(function(s) { return s.ID == $pregnancyInterestTargetID; })>>
+	<<case "boobs">>
+		<<set $activeSlave = $slaves.find(function(s) { return s.ID == $boobsInterestTargetID; })>>
+	<<case "submissive">>
+		<<set $activeSlave = $slaves.find(function(s) { return s.ID == $submissiveInterestTargetID; })>>
+	<<case "buttslut">>
+		<<set $activeSlave = $slaves.find(function(s) { return s.ID == $buttslutInterestTargetID; })>>
+	<<case "cumslut">>
+		<<set $activeSlave = $slaves.find(function(s) { return s.ID == $cumslutInterestTargetID; })>>
+	<<case "humiliation">>
+		<<set $activeSlave = $slaves.find(function(s) { return s.ID == $humiliationInterestTargetID; })>>
+	<<case "dom">>
+	<<case "sadist">>
 <</switch>>
 
 <<if Array.isArray($REFIevent)>>
-  <<set $activeSlave = $eventSlave>>
-  <<if $cheatMode == 1>>
-	<<set $nextButton = "Back", $nextLink = "Nonrandom Event", $returnTo = "Nonrandom Event">> /* if user just clicks spacebar */
-	''A random fetish interest event would have been selected from the following:''
-	<br>
-	<<for _i = 0; _i < $REFIevent.length; _i++>>
-		<<print "[[$REFIevent[_i]|REFI][$REFIevent = $REFIevent[" + _i + "]]]">>
+	<<set $activeSlave = $eventSlave>>
+	<<if $cheatMode == 1>>
+		<<set $nextButton = "Back", $nextLink = "Nonrandom Event", $returnTo = "Nonrandom Event">> /* if user just clicks spacebar */
+		''A random fetish interest event would have been selected from the following:''
 		<br>
-	<</for>>
-	<br><br>[[Go Back to Random Nonindividual Event|Random Nonindividual Event][$eventSlave = 0]]
-  <<else>>
-	<<set $REFIevent = $REFIevent.random()>>
-	<<goto "REFI">>
-  <</if>>
+		<<for _i = 0; _i < $REFIevent.length; _i++>>
+			<<print "[[$REFIevent[_i]|REFI][$REFIevent = $REFIevent[" + _i + "]]]">>
+			<br>
+		<</for>>
+		<br><br>[[Go Back to Random Nonindividual Event|Random Nonindividual Event][$eventSlave = 0]]
+	<<else>>
+		<<set $REFIevent = $REFIevent.random()>>
+		<<goto "REFI">>
+	<</if>>
 <<else>>
 
 <<set $nextButton = "Continue", $nextLink = "AS Dump", $returnTo = "RIE Eligibility Check">>
 
 <<SlaveTitle $activeSlave>>
 <<Enunciate $activeSlave>>
+<<set _belly = bellyAdjective($activeSlave)>>
+
 
 <<switch $REFIevent>>
 
 <<case "masochist">>
-<<for $i = 0; $i < $slaves.length; $i++>>
-<<if $masochistID == $slaves[$i].ID>>
-<<set $slaves[$i].vaginalCount += 1>>
-<<set $vaginalTotal += 1>>
-<<set $subSlave = $slaves[$i]>>
-<<break>>
+
+<<set _refi = $slaves.findIndex(function(s) { return s.ID == $masochistID; })>>
+<<if canDoAnal($slaves[_refi]) && slaves[_refi].anus > 0>>
+	<<set $slaves[_refi].analCount++, $analTotal++>>
+	<<if $PC.dick == 1 && $slaves[_refi].eggType == "human" && canGetPregnant($slaves[_refi])>>
+		<<KnockMeUp $slaves[_refi] 5 1 -1 1>>
+	<</if>>
+<<else>>
+	<<set $slaves[_refi].vaginalCount++, $vaginalTotal++>>
+	<<if $PC.dick == 1 && $slaves[_refi].eggType == "human" && canGetPregnant($slaves[_refi])>>
+		<<KnockMeUp $slaves[_refi] 5 0 -1 1>>
+	<</if>>
 <</if>>
-<</for>>
+
+<<set $subSlave = $slaves[_refi]>>
+<<set _subBelly = bellyAdjective($subSlave)>>
 
 /* 000-250-006 */
 <<if $seeImages == 1>>
@@ -84,20 +96,89 @@
 <</if>>
 /* 000-250-006 */
 
-You have $subSlave.slaveName bent over your desk, and are seeing to your own amusement and her masochistic streak at once. She has her body flat on the desk, but is unrestrained, and has been told that she must not rise off it at all. You then tell her to count strokes and begin to flog her ass with a leathern instrument. Before long she is experiencing more pain than the human body can support without involuntary movement, and you tell her to go back one count whenever she does. At long last she completes the required number of blows, and lies quivering and sobbing, thanking you over and over, until she stiffens again at the burning sensation of a cock stretching her anal sphincter. You are not gentle, and the rough sodomy combined with the burning of her outraged buttocks as you slap yourself against them maintains her pain high. After you finish and she leaves, wincing in agony but with a faraway look of release, you notice $activeSlave.slaveName at the door to your office. You call her in.
+<<if $subSlave.belly >= 1500>>
+	You have $subSlave.slaveName lying down on your desk, and are seeing to your own amusement and her masochistic streak at once. She has her body flat on the surface, but is unrestrained, and has been told that she must not rise off it at all, nor tilt her bulk to either side. You then tell her to count strokes and begin to flog her _subBelly belly with a leathern instrument<<if $subSlave.pregKnown == 1>>, taking care not to cause her pregnancy any lasting harm<</if>>. Before long she is experiencing more pain than the human body can support without involuntary movement, and you tell her to go back one count whenever she does. At long last she completes the required number of blows, and lies quivering and sobbing, thanking you over and over, until she stiffens again at the
+	<<if canDoAnal($subSlave) && subSlave.anus > 0>>
+		burning sensation of a <<if $PC.dick>>cock<<else>>dildo<</if>> stretching her anal sphincter. You are not gentle, and the rough sodomy combined with the burning of her outraged skin as you slap yourself against it maintains her pain high.
+	<<else>>
+		sudden sensation of a <<if $PC.dick>>cock<<else>>dildo<</if>> slamming deep into her pussy. You are not gentle, and the rough fucking combined with the burning of her outraged skin as you slap yourself against it maintains her pain high.
+	<</if>>
+	Your grip around her neck only adds to her thrill.
+<<else>>
+	You have $subSlave.slaveName bent over your desk, and are seeing to your own amusement and her masochistic streak at once. She has her body flat on the surface, but is unrestrained, and has been told that she must not rise off it at all. You then tell her to count strokes and begin to flog her
+	<<if $subSlave.butt < 0>>
+		flat
+	<<elseif $subSlave.butt <= 1>>
+		small
+	<<elseif $subSlave.butt <= 2>>
+		round
+	<<elseif $subSlave.butt <= 3>>
+		curvy
+	<<elseif $subSlave.butt <= 4>>
+		huge
+	<<elseif $subSlave.butt <= 5>>
+		enormous
+	<<elseif $subSlave.butt <= 6>>
+		gigantic
+	<<elseif $subSlave.butt <= 7>>
+		ridiculous
+	<<elseif $subSlave.butt <= 10>>
+		immense
+	<<elseif $subSlave.butt <= 14>>
+		inhuman
+	<<elseif $subSlave.butt <= 20>>
+		aburdly massive
+	<</if>>
+	ass with a leathern instrument. Before long she is experiencing more pain than the human body can support without involuntary movement, and you tell her to go back one count whenever she does. At long last she completes the required number of blows, and lies quivering and sobbing, thanking you over and over, until she stiffens again at the
+	<<if canDoAnal($subSlave) && subSlave.anus > 0>>
+		burning sensation of a <<if $PC.dick>>cock<<else>>dildo<</if>> stretching her anal sphincter. You are not gentle, and the rough sodomy combined with the burning of her outraged buttocks as you slap yourself against <<if $subSlave.butt < 2>>it<<else>>them<</if>> maintains her pain high.
+	<<else>>
+		sudden sensation of a <<if $PC.dick>>cock<<else>>dildo<</if>> slamming deep into her pussy. You are not gentle, and the rough fucking combined with the burning of her outraged buttocks as you slap yourself against <<if $subSlave.butt < 2>>it<<else>>them<</if>> maintains her pain high.
+	<</if>>
+<</if>>
+After you finish and she leaves, wincing in agony<<if $subSlave.belly >= 1500>> and short of breath<</if>> but with a faraway look of release, you notice $activeSlave.slaveName at the door to your office. You call her in.
 <br><br>
-<<EventNameLink $activeSlave>> hesitates before explaining herself, and the $desc is obviously aroused: <<if ($activeSlave.dick > 0) && ($activeSlave.dickAccessory == "chastity")>>she's got a string of precum leaking out of her chastity cage<<elseif ($activeSlave.dick > 0) && ($activeSlave.hormoneBalance >= 100)>>though her hormone-filled body can't get her dick hard any more, she's got a string of precum coming off her member<<elseif ($activeSlave.dick > 0) && ($activeSlave.balls == 0)>>though her gelded body can't get her dick hard any more, she's got a string of precum coming off her limp member<<elseif $activeSlave.dick > 4>>her gigantic cock is standing out like a mast<<elseif $activeSlave.dick > 2>>she's sporting an impressive erection<<elseif $activeSlave.dick > 0>>her little penis is rock hard<<elseif $activeSlave.clit > 0>>her large clit is visibly engorged<<else>>her nipples are hard and there's a sheen on her pussylips<</if>>. It seems she passed by while you were beating $subSlave.slaveName and found the sight rather compelling. It should be possible to either encourage this fascination or steer her away from it for now.
+<<EventNameLink $activeSlave>> hesitates before explaining herself, and the $desc is obviously aroused:
+<<if ($activeSlave.dick > 0) && ["chastity", "combined chastity"].includes($activeSlave.dickAccessory)>>
+	she's got a string of precum leaking out of her chastity cage.
+<<elseif ($activeSlave.dick > 0) && ($activeSlave.hormoneBalance >= 100)>>
+	though her hormone-filled body can't get her dick hard any more, she's got a string of precum coming off her member.
+<<elseif ($activeSlave.dick > 0) && ($activeSlave.balls == 0)>>
+	though her gelded body can't get her dick hard any more, she's got a string of precum coming off her limp member.
+<<elseif canAchieveErection($activeSlave)>>
+	<<if $activeSlave.dick > 4>>
+		her gigantic cock is standing out like a mast.
+	<<elseif $activeSlave.dick > 2>>
+		she's sporting an impressive erection.
+	<<elseif $activeSlave.dick > 0>>
+		her little penis is rock hard.
+	<</if>>
+<<elseif $activeSlave.dick > 7>>
+	she's got a string of precum coming off her engorged member.
+<<elseif $activeSlave.dick > 0>>
+	she's got a string of precum coming off her limp member.
+<<elseif $activeSlave.clit > 0>>
+	her large clit is visibly engorged.
+<<elseif $activeSlave.vagina > -1>>
+	her nipples are hard and there's a sheen on her pussylips.
+<<elseif $activeSlave.balls > 0>>
+	her nipples are hard and there is a distinct dribble of precum running from her featureless crotch.
+<<else>>
+	her nipples are hard and there is a clear scent of lust around her.
+<</if>>
+It seems she passed by while you were beating $subSlave.slaveName and found the <<if canSee($activeSlave)>>sight<<else>>sounds<</if>> rather compelling. It should be possible to either encourage this fascination or steer her away from it for now.
 
 <<case "pregnancy">>
 
-<<for $i = 0; $i < $slaves.length; $i++>>
-<<if $pregnancyID == $slaves[$i].ID>>
-<<set $slaves[$i].vaginalCount += 1>>
-<<set $vaginalTotal += 1>>
-<<set $subSlave = $slaves[$i]>>
-<<break>>
+<<set _refi = $slaves.findIndex(function(s) { return s.ID == $pregnancyID; })>>
+<<if $slaves[_refi].mpreg == 0 && canDoVaginal($slaves[_refi]) && slaves[_refi].vagina > 0>>
+	<<set $slaves[_refi].vaginalCount++, $vaginalTotal++>>
+<<elseif canDoAnal($slaves[_refi]) && slaves[_refi].anus > 0 && $slaves[_refi].mpreg == 1>>
+	<<set $slaves[_refi].analCount++, $analTotal++>>
 <</if>>
-<</for>>
+
+<<set $subSlave = $slaves[_refi]>>
+<<set _subBelly = bellyAdjective($subSlave)>>
 
 /* 000-250-006 */
 <<if $seeImages == 1>>
@@ -110,7 +191,111 @@ You have $subSlave.slaveName bent over your desk, and are seeing to your own amu
 <</if>>
 /* 000-250-006 */
 
-$subSlave.slaveName gets inspected more regularly than your other slaves, since she's quite pregnant. Her pregnancy is progressing acceptably, but having her belly inspected gets her extremely eager to feel more of <<if def $PC.customTitle>>her $PC.customTitle<<elseif $PC.title != 0>>her master<<else>>her mistress<</if>>'s seed in her fertile cunt. $subSlave.slaveName has been a good girl, so you take her on the couch, spooning so that her heavy belly can rest comfortably as you languidly take her. You have your arms wrapped around her chest to cup both breasts, and she has her neck twisted back to kiss you. After you both finish and she leaves, smiling contentedly at you, you notice $activeSlave.slaveName at the door to your office. You call her in.
+$subSlave.slaveName gets inspected more regularly than your other slaves, since she's quite pregnant. Her pregnancy is progressing acceptably, but having her belly inspected gets her
+<<if $subSlave.pregSource == -1>>
+	extremely eager to feel more of her <<WrittenMaster $subSlave>>'s seed in her fertile <<if $subSlave.mpreg == 1>>rear<<else>>cunt<</if>>. $subSlave.slaveName has been a good girl,
+	<<if ($subSlave.mpreg == 1 && canDoAnal($subSlave) && subSlave.anus > 0) || ($subSlave.mpreg == 0 && canDoVaginal($subSlave) && subSlave.vagina > 0)>>
+		<<if $PC.belly >= 5000>>
+			so you take her 
+			<<if $subSlave.belly >= 300000>>
+				over her own _subBelly belly. Such discomfort doesn't bother her since it means she gets to enjoy the sensation of your own gravid middle rubbing the small of her back
+			<<else>>
+				on the edge of your desk. She doesn't mind the hard surface, not when it means your gravid middle is pushing against her _subBelly own
+			<</if>>
+			 as you lanquidly take her.
+		<<else>>
+			so you take her on the couch, spooning so that her
+			<<if $subSlave.belly >= 300000>>
+				immense gravidity can hang between your legs and towards the floor as you languidly take her. You have your arms as far around her middle as you can,
+			<<else>>
+				_subBelly heavy belly can rest comfortably as you languidly take her. You have your arms wrapped around her chest to cup both breasts, 
+			<</if>>
+			and she has her neck twisted back to kiss you.
+		<</if>>
+	<<else>>
+		but her eager hole just can't be permitted to have another of your loads at the moment, so she'll have to settle for some cuddling instead. You embrace her on the couch,
+		<<if $PC.belly >= 5000>>
+			 as closely as you can with your own gravidity in the way and languidly fondle her; one arm wrapped around behind to her breast and the other alternating between fecund bulges. The two of you share a deep kiss as your bellies run against each other.
+		<<else>>
+			spooning so that her
+			<<if $subSlave.belly >= 300000>>
+				immense gravidity can hang between your legs and towards the floor as you languidly grope her. You have your arms wrapped as far around her middle as you can, savoring the motion beneath your palms,
+			<<else>>
+				_subBelly heavy belly can rest comfortably as you languidly fondle her. You have one arm wrapped around her middle to grope her _subBelly belly and the other to her breast, 
+			<</if>>
+			while she has her neck twisted back to kiss you.
+		<</if>>
+	<</if>>
+<<elseif $PC.dick == 1>>
+	extremely eager for a good fuck and there's no better dick than her <<WrittenMaster $subSlave>>'s. $subSlave.slaveName has been a good girl,
+	<<if ($subSlave.mpreg == 1 && canDoAnal($subSlave) && subSlave.anus > 0) || ($subSlave.mpreg == 0 && canDoVaginal($subSlave) && subSlave.vagina > 0)>>
+		<<if $PC.belly >= 5000>>
+			so you take her 
+			<<if $subSlave.belly >= 300000>>
+				over her own _subBelly belly. Such discomfort doesn't bother her since it means she gets to enjoy the sensation of your own gravid middle rubbing the small of her back
+			<<else>>
+				on the edge of your desk. She doesn't mind the hard surface, not when it means your gravid middle is pushing against her _subBelly own
+			<</if>>
+			 as you lanquidly take her.
+		<<else>>
+			so you take her on the couch, spooning so that her
+			<<if $subSlave.belly >= 300000>>
+				immense gravidity can hang between your legs and towards the floor as you languidly take her. You have your arms as far around her middle as you can,
+			<<else>>
+				_subBelly heavy belly can rest comfortably as you languidly take her. You have your arms wrapped around her chest to cup both breasts, 
+			<</if>>
+			and she has her neck twisted back to kiss you.
+		<</if>>
+	<<else>>
+		but her fertile hole is off limits at the moment, so she'll have to settle for some cuddling instead. You embrace her on the couch,
+		<<if $PC.belly >= 5000>>
+			 as closely as you can with your own gravidity in the way and languidly fondle her; one arm wrapped around behind to her breast and the other alternating between fecund bulges. The two of you share a deep kiss as your bellies run against each other.
+		<<else>>
+			spooning so that her
+			<<if $subSlave.belly >= 300000>>
+				immense gravidity can hang between your legs and towards the floor as you languidly grope her. You have your arms wrapped as far around her middle as you can, savoring the motion beneath your palms,
+			<<else>>
+				_subBelly heavy belly can rest comfortably as you languidly fondle her. You have one arm wrapped around her middle to grope her _subBelly belly and the other to her breast, 
+			<</if>>
+			while she has her neck twisted back to kiss you.
+		<</if>>
+	<</if>>
+<<else>>
+	all hot and bothered. $subSlave.slaveName has been a good girl,
+	<<if ($subSlave.mpreg == 1 && canDoAnal($subSlave) && subSlave.anus > 0) || ($subSlave.mpreg == 0 && canDoVaginal($subSlave) && subSlave.vagina > 0)>>
+		 so you don a strapon and take her 
+		<<if $PC.belly >= 5000>>
+			<<if $subSlave.belly >= 300000>>
+				over her own _subBelly belly. Such discomfort doesn't bother her since it means she gets to enjoy the sensation of your own gravid middle rubbing the small of her back
+			<<else>>
+				on the edge of your desk. She doesn't mind the hard surface, not when it means your gravid middle is pushing against her _subBelly own
+			<</if>>
+			 as you lanquidly take her.
+		<<else>>
+			on the couch, spooning so that her
+			<<if $subSlave.belly >= 300000>>
+				immense gravidity can hang between your legs and towards the floor as you languidly take her. You have your arms as far around her middle as you can,
+			<<else>>
+				_subBelly heavy belly can rest comfortably as you languidly take her. You have your arms wrapped around her chest to cup both breasts, 
+			<</if>>
+			and she has her neck twisted back to kiss you.
+		<</if>>
+	<<else>>
+		but her fertile hole is off limits at the moment, so she'll have to settle for some cuddling instead. You embrace her on the couch,
+		<<if $PC.belly >= 5000>>
+			 as closely as you can with your own gravidity in the way and languidly fondle her; one arm wrapped around behind to her breast and the other alternating between fecund bulges. The two of you share a deep kiss as your bellies run against each other.
+		<<else>>
+			spooning so that her
+			<<if $subSlave.belly >= 300000>>
+				immense gravidity can hang between your legs and towards the floor as you languidly grope her. You have your arms wrapped as far around her middle as you can, savoring the motion beneath your palms,
+			<<else>>
+				_subBelly heavy belly can rest comfortably as you languidly fondle her. You have one arm wrapped around her middle to grope her _subBelly belly and the other to her breast, 
+			<</if>>
+			while she has her neck twisted back to kiss you.
+		<</if>>
+	<</if>>
+<</if>>
+After you both finish and she leaves, smiling contentedly at you, you notice $activeSlave.slaveName at the door to your office. You call her in.
 
 <<EventNameLink $activeSlave>> hesitates before explaining herself, and the $desc is obviously aroused: <<if ($activeSlave.dick > 0) && ($activeSlave.dickAccessory == "chastity")>>she's got a string of precum leaking out of her chastity cage<<elseif ($activeSlave.dick > 0) && ($activeSlave.hormoneBalance >= 100)>>though her hormone-filled body can't get her dick hard any more, she's got a string of precum coming off her member<<elseif ($activeSlave.dick > 0) && ($activeSlave.balls == 0)>>though her gelded body can't get her dick hard any more, she's got a string of precum coming off her limp member<<elseif $activeSlave.dick > 4>>her gigantic cock is standing out like a mast<<elseif $activeSlave.dick > 2>>she's sporting an impressive erection<<elseif $activeSlave.dick > 0>>her little penis is rock hard<<elseif $activeSlave.clit > 0>>her large clit is visibly engorged<<else>>her nipples are hard and there's a sheen on her pussylips<</if>>. It seems she passed by while you were enjoying the heavily pregnant $subSlave.slaveName and found the sight rather compelling. It should be possible to either encourage this fascination or steer her away from it for now.
 
@@ -265,21 +450,110 @@ You have $subSlave.slaveName pinned up against a railing on a balcony that overl
 <<case "masochist">>
 
 <<link "Turn her into another pain slut">>
-	<<replace "#name">>$activeSlave.slaveName<</replace>>
-	<<replace "#result">>
-	<<if ($activeSlave.accent >= 3)>>Since she doesn't speak $language well enough to handle the subject, she's forced to use delightfully humiliating gestures to communicate her desire to be abused.<<elseif ($activeSlave.amp == 1) && (canTalk($activeSlave) == false)>>She's mute and has no hands, so it takes a long, frustrating time for her to communicate that she would like you to hurt her, too.<<elseif canTalk($activeSlave) == false>>She's mute, so she uses gestures to ask you hurt her, too.<<elseif ($activeSlave.lips > 70)>>She asks through her massive dick-sucking lips, "<<Master>>, can - can you hurt me? Like that?"<<elseif ($activeSlave.lipsPiercing+$activeSlave.tonguePiercing > 2)>>She asks through her big oral piercings, "<<Master>>, can - can you hurt me? Like that?"<<else>>She asks, "<<Master>>, can - can you hurt me? Like that?"<</if>> You make her state it more explicitly, so she tries again: <<if ($activeSlave.amp == 1)>> she wriggles herself into a position where she can lightly slap her amputee ass against a chair leg.<<elseif canTalk($activeSlave) == false>>she turns around and starts to spank herself roughly.<<else>>"Plea<<s>>e beat me, <<Master>>!"<</if>> You shove her over the desk, rub your hand over her ass, which is quivering with anticipation and fear, and ask if she wants you to hit her. She's almost beside herself, shuddering at the titillation, but before she can answer, you use your other hand to strike her <<if $activeSlave.dick > 0>>cockhead<<else>>pussylips<</if>>. As she writhes in agony, you tell her to get used to it. She's a pain slut now, second thoughts or not. She hasn't recovered before she feels the still more urgent pain of rough anal, which is then overlaid by rough spanking, nipple pinching, and <<if $activeSlave.dick > 0>>dick abuse<<else>>clit torture<</if>>. @@.hotpink;She has become more devoted to you,@@ and @@.lightcoral;she has started to get off on pain.@@
+	<<EventNameDelink $activeSlave>>
+	<<if $activeSlave.accent >= 3>>
+		Since she doesn't speak $language well enough to handle the subject, she's forced to use delightfully humiliating gestures to communicate her desire to be abused.
+	<<elseif $activeSlave.amp == 1 && !canTalk($activeSlave)>>
+		She's mute and has no hands, so it takes a long, frustrating time for her to communicate that she would like you to hurt her, too.
+	<<elseif !canTalk($activeSlave)>>
+		She's mute, so she uses gestures to ask you hurt her, too.
+	<<else>>
+		<<if $activeSlave.lips > 70>>
+			She asks through her massive dick-sucking lips,
+		<<elseif ($activeSlave.lipsPiercing+$activeSlave.tonguePiercing > 2)>>
+			She asks through her big oral piercings,
+		<<else>>
+			She asks,
+		<</if>>
+		"<<Master>>, can - can you hurt me? Like that?"
+	<</if>>
+	You make her state it more explicitly, so she tries again:
+	<<if $activeSlave.amp == 1>>
+		she wriggles herself into a position where she can lightly slap her amputee ass against a chair leg.
+	<<elseif !canTalk($activeSlave)>>
+		she turns around and starts to spank herself roughly.
+	<<else>>
+		"Plea<<s>>e beat me, <<Master>>!"
+	<</if>>
+	You shove her
+	<<if $activeSlave.belly >= 300000>>
+		over her _belly <if $activeSlave.bellyPreg >= 2000>>pregnant <</if>> belly,
+	<<elseif $activeSlave.belly >= 1500>>
+		onto her knees,
+	<<else>>
+		over the desk,
+	<</if>>
+	rub your hand over her ass, which is quivering with anticipation and fear, and ask if she wants you to hit her. She's almost beside herself, shuddering at the titillation, but before she can answer, you use your other hand to strike her
+	<<if ["chastity", "combined chastity"].includes($activeSlave.dickAccessory)>>
+		caged dick.
+	<<elseif $activeSlave.dick > 0>>
+		cockhead.
+	<<elseif $activeSlave.vagina > -1 && canDoVaginal($activeSlave)>>
+		pussylips.
+	<<elseif $activeSlave.belly >= 1500>>
+		distended middle.
+	<<elseif $activeSlave.vagina > -1>>
+		chastity belt into her pussylips.
+	<<elseif $activeSlave.scrotum > 1>>
+		testicles.
+	<<else>>
+		smooth crotch.
+	<</if>>
+	As she writhes in agony, you tell her to get used to it. She's a pain slut now, second thoughts or not.
+	<<if canDoAnal($activeSlave)>>
+		<<if $activeSlave.anus == 0>>
+			She hasn't recovered before she feels the still more urgent pain of <<if $PC.dick == 1>>your dick brutally @@.lime;taking her anal virginity@@<<else>>an enormous dildo @@.lime;stealing her anal virgninty@@<</if>>, followed by rough anal,
+			<<set $activeSlave.anus = 1>>
+		<<else>>
+			She hasn't recovered before she feels the still more urgent pain of rough anal,
+		<</if>>
+		<<AnalVCheck>>
+	<<else canDoVaginal($activeSlave)>>
+		<<if $activeSlave.vagina == 0>>
+			She hasn't recovered before she feels the still more urgent pain of <<if $PC.dick == 1>>your dick brutally @@.lime;stripping her of her virginity@@<<else>>an enormous dildo @@.lime;stealing her virgninty@@<</if>>, followed by rough sex,
+			<<set $activeSlave.vagina = 1>>
+		<<else>>
+			She hasn't recovered before she feels the still more urgent pain of <<if $PC.dick == 1>>your dick<<else>>an enormous dildo<</if>> slamming against her cervix,
+		<</if>>
+		<<VaginalVCheck>>
+	<<else>>
+		She hasn't recovered before she feels the still more urgent pain of <<if $PC.dick == 1>>your dick getting shoved as deep down her throat as you can<<else>>an enormous dildo forcing her jaw wide and working its way down her throat<</if>>,
+		<<set $activeSlave.oralCount++, $oralTotal++>>
+	<</if>>
+	which is then overlaid by rough spanking, nipple pinching, and
+	<<if ["chastity", "combined chastity"].includes($activeSlave.dickAccessory)>>
+		cock torment.
+	<<elseif $activeSlave.dick > 0>>
+		dick abuse.
+	<<elseif $activeSlave.vagina > -1 && canDoVaginal($activeSlave)>>
+		clit torture.
+	<<elseif $activeSlave.belly >= 1500>>
+		stomach abuse.
+	<<elseif $activeSlave.vagina > -1>>
+		chastity assault.
+	<<elseif $activeSlave.scrotum > 1>>
+		ball crushing.
+	<<else>>
+		urethral torment.
+	<</if>>
+	<<if $activeSlave.dick > 0>>dick abuse<<else>>clit torture<</if>>
+	@@.hotpink;She has become more devoted to you,@@ and @@.lightcoral;she has started to get off on pain.@@
 	<<set $activeSlave.devotion += 4>>
-	<<set $activeSlave.analCount += 1>><<set $analTotal += 1>>
 	<<set $activeSlave.fetish = "masochist">>
 	<<set $activeSlave.fetishKnown = 1>><<set $activeSlave.fetishStrength = 65>>
 	<</replace>>
-<</link>>
+<</link>><<if canDoAnal($activeSlave) && ($activeSlave.anus == 0)>>//This option will take virginity//<<elseif !canDoAnal($activeSlave) && canDoVaginal($activeSlave) && ($activeSlave.vagina == 0)>> //This option will take anal virginity//<</if>>
 <br><<link "Steer her away from pain obsession for the moment">>
-	<<replace "#name">>$activeSlave.slaveName<</replace>>
-	<<replace "#result">>
-	Good slaves get aroused according to their masters' whim, not their own silly tendencies. You call $activeSlave.slaveName over before she can give voice to her interest in pain play, <<if ($activeSlave.dick == 0)>>and play with her until she orgasms while <<if ($PC.dick == 0)>>giving you oral<<else>>sucking you off<</if>>, all while carefully keeping her experience purely pleasurable.<<else>>and let her masturbate while she blows you, carefully keeping her experience purely pleasurable.<</if>> You'll keep an eye on her, and with this correction @@.hotpink;she'll become more submissive to you.@@
+	<<EventNameDelink $activeSlave>>
+	Good slaves get aroused according to their masters' whim, not their own silly tendencies. You call $activeSlave.slaveName over before she can give voice to her interest in pain play,
+	<<if canDoVaginal($activeSlave) || ($activeSlave.dick > 0 && !["chastity", "combined chastity"].includes($activeSlave.dickAccessory))>>
+		and let her masturbate while <<if ($PC.dick == 0)>>eating you out<<else>>sucking you off<</if>>,
+	<<else>>
+		and play with her until she orgasms while <<if ($PC.dick == 0)>>eating you out<<else>>sucking you off<</if>>, all while
+	<</if>>
+	carefully keeping her experience purely pleasurable. You'll keep an eye on her, and with this correction @@.hotpink;she'll become more submissive to you.@@
 	<<set $activeSlave.devotion += 4>>
-	<<set $activeSlave.oralCount += 1>><<set $oralTotal += 1>>
+	<<set $activeSlave.oralCount += 1, $oralTotal += 1>>
 	<</replace>>
 <</link>>
 
