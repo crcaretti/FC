@@ -1,7 +1,7 @@
 :: SA relationships [nobr]
 
 <<if $slaves[$i].fuckdoll == 0>>
-	<<set _SL = $slaves.length, _SlaveI = $slaves[$i], _SlaveJ = null, _J = -1, _K = -1, _drop = 0>>
+	<<set _SL = $slaves.length, _SlaveI = $slaves[$i], _SlaveJ = null, _drop = 0>>
 	<<if _SlaveI.relationship == 0 && _SlaveI.fetish != "mindbroken">>
 		<<if (_SlaveI.devotion + _SlaveI.trust > 175) && (random(1,3) == 1)>>
 			_SlaveI.slaveName is quite devoted to you, and trusts both you and her place as a slave. Since she does not have a strong relationship with another slave,
@@ -42,12 +42,10 @@
 				<<if _SlaveJ.fetish != "mindbroken" && _SlaveJ.prestigeDesc == "You bankrupted and enslaved her in revenge for her part in the attack on your arcology by the Daughters of Liberty.">>
 					_SlaveI.slaveName greets _SlaveJ.slaveName with joy, happy to see her former owner again. Without any regard to you, they continue their prior relationship.
 					<<if _SlaveJ.relationship > 0>>
-					<<for _k = 0; _k < _SL; _k++>>
-						<<if _SlaveJ.relationshipTarget == $slaves[_k].ID>>
+						<<set _k = $slaveIndices[_SlaveJ.relationshipTarget]>>
+						<<if def _k>>
 							<<set $slaves[_k].relationshipTarget = 0, $slaves[_k].relationship = 0>>
-							<<break>>
 						<</if>>
-					<</for>>
 					<</if>>
 					<<set _SlaveJ.relationship = 4, _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveI.relationship = 4, _SlaveI.relationshipTarget = _SlaveJ.ID>>
 					<<break>>
@@ -200,16 +198,13 @@
 		<<set _drop = 1>>
 	<</if>>
 	<<if (_SlaveI.relationship > 0) || (_SlaveI.relation > 0)>>
-		<<for _j = 0; _j < _SL; _j++>>
-			<<if _SlaveI.relationshipTarget == $slaves[_j].ID>>
-				<<set _SlaveJ = $slaves[_j], _J = _j , _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveJ.relationship = _SlaveI.relationship>>
-			<</if>>
-			<<if _SlaveI.relationTarget == $slaves[_j].ID>>
-				<<if _SlaveI.rivalryTarget != _SlaveI.relationTarget>>
-					<<set _K = _j>>
-				<</if>>
-			<</if>>
-		<</for>>
+		<<set _J = $slaveIndices[_SlaveI.relationshipTarget]>>
+		<<if def _J>>
+			<<set _SlaveJ = $slaves[_J], _SlaveJ.relationshipTarget = _SlaveI.ID, _SlaveJ.relationship = _SlaveI.relationship>>
+		<</if>>
+		<<if _SlaveI.rivalryTarget != _SlaveI.relationTarget>>
+			<<set _K = $slaveIndices[_SlaveI.relationTarget]>>
+		<</if>>
 		<<if (_SlaveI.relationship > 0) && (_SlaveJ == null)>>
 			<br>@@.red;_SlaveI.slaveName's relationship was _SlaveI.relationship and relationshipTarget was _SlaveI.relationshipTarget but no slave with that ID was found@@<br>
 			<<set _SlaveI.relationship = 0, _SlaveI.relationshipTarget = 0>>
@@ -1161,7 +1156,7 @@
 			<<if totalRelatives(_SlaveI) > 0>>
 				<<set $relation = 0>>
 				<<set $relationType = 0>>
-				<<set _sr = $slaves.find(function(s) { return s.ID == _SlaveI.relationshipTarget; })>>
+				<<set _sr = getSlave(_SlaveI.relationshipTarget)>>
 				<<if def _sr>>
 					<<if (_SlaveI.mother == _sr.ID || _SlaveI.father == _sr.ID || _sr.mother == _SlaveI.ID || _sr.father == _SlaveI.ID || areSisters(_SlaveI, _sr) > 0)>>
 						<<if _sr.mother == _SlaveI.ID || _sr.father == _SlaveI.ID>>
@@ -1559,7 +1554,7 @@
 
 	<<else>>
 
-	<<if _K != -1 && _SlaveI.trust <= 95>>
+	<<if def _K && _SlaveI.trust <= 95>>
 		_SlaveI.slaveName
 		<<if _SlaveI.trust < -20>>
 			<<if _SlaveI.relation == "mother">>
