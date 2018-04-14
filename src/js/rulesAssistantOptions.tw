@@ -851,6 +851,7 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new GeldingHormonesList())
 			this.appendChild(new OtherDrugsList())
 			this.appendChild(new DietList())
+			this.appendChild(new DietGrowthList())
 			this.appendChild(new DietBaseList())
 			this.appendChild(new MuscleList())
 			this.appendChild(new BraceList())
@@ -1468,18 +1469,95 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
-	class DietList {
+	class DietList extends List {
 		constructor() {
 			super("Slave diets")
-			[
+			const diets = [
 				["no default setting", "no default setting"],
 				["Fix fat and skinny slaves", "fix fat and skinny slaves", "attractive"],
-				["Curvy", "Curvy", 30],
-				["Average", "Average", 0],
-				["Thin", "Thin", -30]
-			].forEach(pair => this.appendChild(new ListItem(...pair)))
+				["Curvy", "curvy", 30],
+				["Average", "average", 0],
+				["Thin", "thin", -30]
+			]
+			if (V.feeder === 1) {
+				diets.push(
+					["Feminine", "feminine", "XX"],
+					["Masculine", "masculine", "XY"]
+				)
+				if (V.dietXXY === 1)
+					diets.push(["Futanari", "futanari", "XXY"])
+			}
+			if (V.dietCleanse === 1)
+				diets.push(["Cleansing", "promote health", "cleansing"])
+			if (V.dietFertility === 1)
+				diets.push(["Feritlity", "promote fertility", "fertility"])
+			if (V.cumProDiet === 1)
+				diets.push(["Cum production", "promote cum production", "cum production"])
+			diets.forEach(pair => this.appendChild(new ListItem(...pair)))
 			this.selectValue(V.currentRule.set.diet)
 			this.onchange = (label, value) => V.currentRule.set.diet = value
+		}
+	}
+
+	class DietGrowthList extends List {
+		constructor() {
+			super("Diet support for growth drugs")
+			[
+				["On", "On", 1],
+				["Off", "Off", 0]
+			].forEach(i => this.appendChild(new ListItem(...i)))
+			this.selectValue(V.currentRule.set.dietGrowthSupport)
+			this.onchange = (label, value) => V.currentRule.set.dietGrowthSupport = value
+		}
+	}
+
+	class DietBaseList extends List {
+		constructor() {
+			super("Diet base")
+			// TODO: better data structure?
+			[
+				["No default setting", "No default setting", {cum: "no default setting", milk: "no default setting"}],
+				["Normal Diet", "Normal Diet", {cum: 0, milk: 0}],
+				["Cum Added", "Cum Added", {cum: 1, milk: 0}],
+				["Milk Added", "Milk Added", {cum: 0, milk: 1}],
+				["Cum &amp; Milk Added", "Cum &amp; Milk Added", {cum: 1, milk: 1}],
+				["Cum-Based", "Cum-Based", {cum: 2, milk: 0}]
+				["Milk-Based", "Milk-Based", {cum: 0, milk: 2}]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.selectValue({cum: V.currentRule.set.dietCum, milk: V.currentRule.set.dietMilk})
+			this.onchange = (label, value) => {
+				V.currentRule.set.dietCum = value.cum
+				V.currentRule.set.dietMilk = value.milk
+			}
+		}
+	}
+
+	class MuscleList extends List {
+		constructor() {
+			super("Muscles", true)
+			[
+				["No default setting", "no default setting"],
+				["None", "None", 0],
+				["Toned", "Toned", 20],
+				["Ripped", "Ripped", 50],
+				["Massive", "Massive", 100],
+				["Weak", "Weak", -20]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.setValue(V.currentRule.set.muscles)
+			this.onchange = (label, value) => V.currentRule.set.muscles = value
+		}
+	}
+
+	class BraceList extends List {
+		constructor() {
+			super("Braces")
+			[
+				["No default setting", "no default setting"],
+				["None", "none"],
+				["Straighten", "straighten"],
+				["Universal", "universal"]
+			].forEach(pair => this.appendChild(new ListItem(...pair)))
+			this.onchange = (label, value) => V.currentRule.set.teeth = value
 		}
 	}
 
