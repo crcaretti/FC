@@ -2,43 +2,17 @@
 
 <<nobr>>
 
-<<set $nextButton = "Continue">>
-<<set $nextLink = "Scheduled Event">>
-<<set $returnTo = "Scheduled Event">>
-<<set $pitFought = 1>>
+<<set $nextButton = "Continue", $nextLink = "Scheduled Event", $returnTo = "Scheduled Event", $pitFought = 1, $fighterOne = 0, $fighterTwo = 0>>
 
-<<set $fighterOne = 0>>
-<<set $fighterTwo = 0>>
 <<if $pitBG == 0>>
-	<<set $fighterOne = $fighterIDs.random()>>
-	<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if ($slaves[$i].ID == $fighterOne)>>
-		<<set $fighterOne = $slaves[$i]>>
-		<<break>>
-	<</if>>
-	<</for>>
+	<<set $fighterOne = $fighterIDs.pluck()>> /* .pluck() removes the element from the array, preventing $fighterTwo from also choosing this ID */
+	<<set $fighterOne = getSlave($fighterOne)>>
 <<else>>
-	<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if ($slaves[$i].ID == $Bodyguard.ID)>>
-		<<set $fighterOne = $slaves[$i]>>
-		<<break>>
-	<</if>>
-	<</for>>
+	<<set $fighterOne = getSlave($Bodyguard.ID)>>
 <</if>>
-<<set $fighterIDs = $fighterIDs.shuffle()>>
-<<for $i = 0; $i < $fighterIDs.length; $i++>>
-	<<if ($fighterIDs[$i] != $fighterOne.ID)>>
-		<<set $fighterTwo = $fighterIDs[$i]>>
-		<<break>>
-	<</if>>
-<</for>>
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if ($slaves[$i].ID == $fighterTwo)>>
-		<<set $fighterTwo = $slaves[$i]>>
-		<<break>>
-	<</if>>
-<</for>>
-<<if ($fighterOne == 0) || ($fighterTwo == 0)>>
+<<set $fighterTwo = $fighterIDs.pluck()>>
+<<set $fighterTwo = getSlave($fighterTwo)>>
+<<if ndef $fighterOne || ndef $fighterTwo || ($fighterOne == 0) || ($fighterTwo == 0)>>
 	<<goto "Nonrandom Event">>
 <</if>>
 
@@ -656,18 +630,8 @@ You let the winner _winner.slaveName, shaking as she comes off the adrenaline, d
 	<<set $fighterTwo = 0>>
 <</if>>
 
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if _winner.ID == $slaves[$i].ID>>
-	<<set $slaves[$i] = _winner>>
-	<<break>>
-	<</if>>
-<</for>>
-<<for $i = 0; $i < $slaves.length; $i++>>
-	<<if _loser.ID == $slaves[$i].ID>>
-	<<set $activeSlave = $slaves[$i]>>
-	<<include "Remove activeSlave">>
-	<<break>>
-	<</if>>
-<</for>>
+<<set $slaves[$slaveIndices[_winner.ID]] = _winner>>
+<<set $activeSlave = getSlave(_loser.ID)>>
+<<include "Remove activeSlave">>
 
 <</nobr>>\

@@ -1,9 +1,9 @@
 Common problems:
 
 How do I start the game?
--Run the compile file, go to folder "bin", click the "FC_Pregmod" and play. (Reccomendation: Drag it into incongito mode)
+-Run the compile file, go to folder "bin", click the "FC_Pregmod" and play. (Recommendation: Drag it into incognito mode)
 
-I get a error on gamestart.
+I get an error on gamestart.
 -clear cookies
 
 I can't save more than once or twice.
@@ -44,7 +44,7 @@ How to mod (basic doc):
     meld FreeCities FreeCitiesPregmod 
     or just select these folders in meld's GUI.
 
-5. All modders will be wery grateful if any, who make some changes to game, with .html file also post his/her resulting src folder tree.
+5. All modders will be very grateful if anyone who makes some changes to game with .html file also post his/her resulting src folder tree.
 
 6. For contributors to pregmod: if you don't use git, then you need to post your version of src folder tree, not just produced FC_pregmod.html file!!! This html file can't be reverted to proper sources, and useless as contribution!
 
@@ -56,7 +56,7 @@ How to mod (basic doc):
     Typical cycle with git:
 	1. Make account on gitgud if you don't have usable one.
 	2. Fork main repository through gitgud interface. (Or pull changes from main repo if you already have fork.)
-	3. Clone your fork to local machine witn git client  (Or pull changes if already cloned.)
+	3. Clone your fork to local machine with git client (Or pull changes if already cloned.)
 	4. Make you changes as you like, commit, and push result into your forked repository (with git client).
 	5. Make merge request through gitgud interface.
     

@@ -269,7 +269,7 @@
 <<if ($slaves[$i].fetishKnown == 0)>>
 <<if ($slaves[$i].fetish == "humiliation")>>
 <<if random(1,100) > 90>>
-<<if not setup.modestClothes.includes($slaves[$i].clothes)>>
+<<if !setup.modestClothes.includes($slaves[$i].clothes)>>
 	Surprisingly, she takes to her extremely revealing clothing, and gets an obvious thrill from it. @@.lightcoral;She's a humiliation fetishist!@@
 	<<set $slaves[$i].fetishKnown = 1>>
 <</if>>
@@ -3785,7 +3785,7 @@
 		<<if $slaves[$i].pregSource == -1>>
 			<<set $PC.slavesKnockedUp++>>
 		<<elseif $slaves[$i].pregSource > 0>>
-			<<set _babyDaddy = $slaves.findIndex(function(s) { return s.ID == $slaves[$i].pregSource; })>>
+			<<set _babyDaddy = $slaveIndices[$slaves[$i].pregSource]>>
 			<<set $slaves[_babyDaddy].slavesKnockedUp++>>
 		<</if>>
 	<</if>>
@@ -4290,8 +4290,8 @@
 		<<set $slaves[$i].pregType = setPregType($slaves[$i])>>
 		<<set WombImpregnate($slaves[$i], $slaves[$i].pregType, $HeadGirl.ID, 1)>>
 		<<set $activeSlave = $slaves[$i]>><<if $slaves[$i].mpreg == 1>><<AnalVCheck 10>><<else>><<VaginalVCheck 10>><</if>><<set $slaves[$i] = $activeSlave>>
-		<<set _saLTE = $slaves.findIndex(function(s) { return s.ID == $HeadGirl.ID; })>>
-		<<if _saLTE != -1>>
+		<<set _saLTE = $slaveIndices[$HeadGirl.ID]>>
+		<<if def _saLTE>>
 			<<set $slaves[_saLTE] = $HeadGirl>>
 		<</if>>
 
@@ -4357,15 +4357,16 @@
 
 	<<default>> /* random impregnation chance on other assignments - consider relationships first */
 		<<if (_conceptionSeed > 80) && (($slaves[$i].vaginalCount > 0) || ($slaves[$i].analCount > 0 && $slaves[$i].mpreg > 0))>> /* TODO: compare to previous week totals? */
-			<<for _m = 0; _m < $slaves.length; _m++>>
-				<<if $slaves[$i].relationshipTarget == $slaves[_m].ID>>
-					<<set _tempLover = $slaves[_m]>>
-				<<elseif $slaves[$i].rivalryTarget == $slaves[_m].ID>>
-					<<set _tempRival = $slaves[_m]>>
-				<<elseif $slaves[$i].subTarget == $slaves[_m].ID>>
-					<<set _tempSub = $slaves[_m]>>
-				<</if>>
-			<</for>>
+			<<if $slaves[$i].relationshipTarget > 0>>
+				<<set _tempLover = getSlave($slaves[$i].relationshipTarget)>>
+				<<if ndef _tempLover>>@@.red;Error, relationshipTarget not found.@@<</if>>
+			<<elseif $slaves[$i].rivalryTarget > 0>>
+				<<set _tempRival = getSlave($slaves[$i].rivalryTarget)>>
+				<<if ndef _tempRival>>@@.red;Error, rivalryTarget not found.@@<</if>>
+			<<elseif $slaves[$i].subTarget > 0>>
+				<<set _tempSub = getSlave($slaves[$i].subTarget)>>
+				<<if ndef _tempSub>>@@.red;Error, subTarget not found.@@<</if>>
+			<</if>>
 			<<if ($PC.dick == 1) && (($slaves[$i].relationship == -3) || ($slaves[$i].relationship == -2)) && ($slaves[$i].eggType == "human")>>
 				<<set $slaves[$i].pregSource = -1>>
 			<<elseif ($slaves[$i].relationship > 2) && canImpreg($slaves[$i], _tempLover)>> /* erection not needed for impregnation via consensual sex play (FWB or better) */
@@ -4952,7 +4953,7 @@
 		<</if>>
 		<<if $slaves[$i].pregKnown == 1>>
 			<<if $slaves[$i].pregSource > 0>>
-				<<set _saLTE = $slaves.find(function(s) { return $slaves[$i].pregSource == s.ID; })>>
+				<<set _saLTE = getSlave($slaves[$i].pregSource)>>
 				<<if def _saLTE>>
 					<<if $slaves[$i].race != _saLTE.race>>
 						Society @@.red;strongly disapproves@@ of your allowing a pure $arcologies[0].FSSupremacistRace slave to be miscegenated by _saLTE.slaveName.
@@ -5002,7 +5003,8 @@
 		<</if>>
 	<<else>>
 		<<if $slaves[$i].pregKnown == 1 && $slaves[$i].pregSource > 0>>
-			<<set _lte = $slaves.findIndex(function(s) { return $slaves[$i].pregSource == s.ID; })>>
+			<<set _lte = $slaveIndices[$slaves[$i].pregSource]>>
+			<<if ndef _lte>>@@.red;Error, pregSource not found.@@<</if>>
 			<<if $slaves[_lte].race == $arcologies[0].FSSubjugationistRace>>
 				Society @@.red;strongly disapproves@@ of your allowing $slaves[$i].slaveName to be miscegenated by a $arcologies[0].FSSubjugationistRace subhuman like $slaves[_lte].slaveName.
 				<<FSChangePorn "Subjugationist" -2>>
