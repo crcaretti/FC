@@ -4357,15 +4357,16 @@
 
 	<<default>> /* random impregnation chance on other assignments - consider relationships first */
 		<<if (_conceptionSeed > 80) && (($slaves[$i].vaginalCount > 0) || ($slaves[$i].analCount > 0 && $slaves[$i].mpreg > 0))>> /* TODO: compare to previous week totals? */
-			<<for _m = 0; _m < $slaves.length; _m++>>
-				<<if $slaves[$i].relationshipTarget > 0>>
-					<<set _tempLover = getSlave($slaves[$i].relationshipTarget)>>
-				<<elseif $slaves[$i].rivalryTarget > 0>>
-					<<set _tempRival = getSlave($slaves[$i].rivalryTarget)>>
-				<<elseif $slaves[$i].subTarget > 0>>
-					<<set _tempSub = getSlave($slaves[$i].subTarget)>>
-				<</if>>
-			<</for>>
+			<<if $slaves[$i].relationshipTarget > 0>>
+				<<set _tempLover = getSlave($slaves[$i].relationshipTarget)>>
+				<<if ndef _tempLover>>@@.red;Error, relationshipTarget not found.@@<</if>>
+			<<elseif $slaves[$i].rivalryTarget > 0>>
+				<<set _tempRival = getSlave($slaves[$i].rivalryTarget)>>
+				<<if ndef _tempRival>>@@.red;Error, rivalryTarget not found.@@<</if>>
+			<<elseif $slaves[$i].subTarget > 0>>
+				<<set _tempSub = getSlave($slaves[$i].subTarget)>>
+				<<if ndef _tempSub>>@@.red;Error, subTarget not found.@@<</if>>
+			<</if>>
 			<<if ($PC.dick == 1) && (($slaves[$i].relationship == -3) || ($slaves[$i].relationship == -2)) && ($slaves[$i].eggType == "human")>>
 				<<set $slaves[$i].pregSource = -1>>
 			<<elseif ($slaves[$i].relationship > 2) && canImpreg($slaves[$i], _tempLover)>> /* erection not needed for impregnation via consensual sex play (FWB or better) */
@@ -5002,7 +5003,8 @@
 		<</if>>
 	<<else>>
 		<<if $slaves[$i].pregKnown == 1 && $slaves[$i].pregSource > 0>>
-			<<set _lte = getSlave($slaves[$i].pregSource)>>
+			<<set _lte = $slaveIndices[$slaves[$i].pregSource]>>
+			<<if ndef _lte>>@@.red;Error, pregSource not found.@@<</if>>
 			<<if $slaves[_lte].race == $arcologies[0].FSSubjugationistRace>>
 				Society @@.red;strongly disapproves@@ of your allowing $slaves[$i].slaveName to be miscegenated by a $arcologies[0].FSSubjugationistRace subhuman like $slaves[_lte].slaveName.
 				<<FSChangePorn "Subjugationist" -2>>
