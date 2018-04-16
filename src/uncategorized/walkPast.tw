@@ -356,14 +356,8 @@
 /* TIME TOGETHER EXCEPTION ENDS */
 
 <<if ($partner == "rivalry")>>
-	<<set _partnerSlave = null>>
-	<<for _i = 0; _i < $slaves.length; _i++>>
-		<<if $slaves[_i].ID == $activeSlave.rivalryTarget>>
-			<<set _partnerSlave = $slaves[_i]>>
-			<<break>>
-		<</if>>
-	<</for>>
-	<<if _partnerSlave == null>>
+	<<set _partnerSlave = getSlave($activeSlave.rivalryTarget)>>
+	<<if ndef _partnerSlave>>
 		<<goto "Main">>
 	<</if>>
 
@@ -527,22 +521,16 @@
 	<</switch>>
 	<<set $target = "FRival", _partnerSlave = null>>
 <<elseif ($partner == "relationship") && ($activeSlave.relationship >= 3) && ($activeSlave.releaseRules !== "restrictive") && ($activeSlave.releaseRules !== "masturbation")>>
-	<<set _partnerSlave = null>>
-	<<for _i = 0; _i < $slaves.length; _i++>>
-		<<if $slaves[_i].ID == $activeSlave.relationshipTarget>>
-			<<set _partnerSlave = $slaves[_i]>>
-			<<if $activeSlave.relationship <= 3>>
-			<<set _activeSlaveRel = "friend with benefits">>
-			<<elseif $activeSlave.relationship <= 4>>
-			<<set _activeSlaveRel = "lover">>
-			<<else>>
-			<<set _activeSlaveRel = "slave wife">>
-			<</if>>
-			<<break>>
-		<</if>>
-	<</for>>
-	<<if _partnerSlave == null>>
+	<<set _partnerSlave = getSlave($activeSlave.relationshipTarget)>>
+	<<if ndef _partnerSlave>>
 		<<goto "Main">>
+	<</if>>
+	<<if $activeSlave.relationship <= 3>>
+		<<set _activeSlaveRel = "friend with benefits">>
+	<<elseif $activeSlave.relationship <= 4>>
+		<<set _activeSlaveRel = "lover">>
+	<<else>>
+		<<set _activeSlaveRel = "slave wife">>
 	<</if>>
 
 	$activeSlave.slaveName and _partnerSlave.slaveName are
@@ -836,54 +824,34 @@
 	<<if $slaves[_i].ID == _partnerSlave.ID>>
 		<<set $slaves[_i] = _partnerSlave>>
 	<<else>>
-		<<for _i = 0; _i < $slaves.length; _i++>>
-			<<if $slaves[_i].ID == _partnerSlave.ID>>
-			<<set $slaves[_i] = _partnerSlave>>
-			<<break>>
-			<</if>>
-		<</for>>
+		<<set $slaves[$slaveIndices[_partnerSlave.ID]] = _partnerSlave>>
 	<</if>>
-	<<for _i = 0; _i < $slaves.length; _i++>>
-		<<if $slaves[_i].ID == $activeSlave.ID>>
-		<<set $slaves[_i] = $activeSlave>>
-		<<break>>
-		<</if>>
-	<</for>>
+	<<set $slaves[$slaveIndices[activeSlave.ID]] = activeSlave>>	
 	<<set $target = "FRelation", _partnerSlave = null>>
 
 <<elseif ($partner == "relationship") || ($partner == "relation")>>
 	<<set _partnerSlave = null>>
 	<<if ($partner == "relation")>>
 		<<if $familyTesting == 1>>
-				<<set _partnerSlave = $relation>>
+			<<set _partnerSlave = $relation>>
 		<<else>>
-			<<for _i = 0; _i < $slaves.length; _i++>>
-				<<if $slaves[_i].ID == $activeSlave.relationTarget>>
-						<<set _partnerSlave = $slaves[_i]>>
-					<<break>>
-				<</if>>
-			<</for>>
+			<<set _partnerSlave = getSlave($activeSlave.relationTarget)>>
 		<</if>>
 	<<else>>
-		<<for _i = 0; _i < $slaves.length; _i++>>
-			<<if $slaves[_i].ID == $activeSlave.relationshipTarget>>
-			<<set _partnerSlave = $slaves[_i]>>
-			<<if $activeSlave.relationship <= 1>>
-				<<set _activeSlaveRel = "friend", _partnerRel = "friend">>
-			<<elseif $activeSlave.relationship <= 2>>
-				<<set _activeSlaveRel = "best friend", _partnerRel = "best friend">>
-			<<elseif $activeSlave.relationship <= 3>>
-				<<set _activeSlaveRel = "friend with benefits", _partnerRel = "friend with benefits">>
-			<<elseif $activeSlave.relationship <= 4>>
-				<<set _activeSlaveRel = "lover", _partnerRel = "lover">>
-			<<elseif $activeSlave.relationship > 4>>
-				<<set _activeSlaveRel = "slave wife", _partnerRel = "slave wife">>
-			<</if>>
-			<<break>>
-			<</if>>
-		<</for>>
+		<<set _partnerSlave = getSlave($activeSlave.relationshipTarget)>>
+		<<if $activeSlave.relationship <= 1>>
+			<<set _activeSlaveRel = "friend", _partnerRel = "friend">>
+		<<elseif $activeSlave.relationship <= 2>>
+			<<set _activeSlaveRel = "best friend", _partnerRel = "best friend">>
+		<<elseif $activeSlave.relationship <= 3>>
+			<<set _activeSlaveRel = "friend with benefits", _partnerRel = "friend with benefits">>
+		<<elseif $activeSlave.relationship <= 4>>
+			<<set _activeSlaveRel = "lover", _partnerRel = "lover">>
+		<<elseif $activeSlave.relationship > 4>>
+			<<set _activeSlaveRel = "slave wife", _partnerRel = "slave wife">>
+		<</if>>
 	<</if>>
-	<<if _partnerSlave == null>>
+	<<if ndef _partnerSlave || _partnerSlave == null>>
 		<<goto "Main">>
 	<</if>>
 
