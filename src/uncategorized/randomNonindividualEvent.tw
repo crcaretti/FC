@@ -202,19 +202,19 @@
 	<<if ($slaves[$i].fetishKnown == 1) && ($slaves[$i].fetishStrength > 95) && isSlaveAvailable($slaves[$i])>>
 		<<if ($slaves[$i].fetish == "buttslut")>>
 			<<if $buttslutID == 0>>
-			<<if ($slaves[$i].anus > 0) && canDoAnal($slaves[$i])>>
-				<<set $buttslutID = $slaves[$i].ID>>
-			<</if>>
+				<<if $slaves[$i].anus > 0 && canDoAnal($slaves[$i])>>
+					<<set $buttslutID = $slaves[$i].ID>>
+				<</if>>
 			<</if>>
 		<<elseif ($slaves[$i].fetish == "cumslut")>>
 			<<if ($cumslutID == 0)>>
 				<<set $cumslutID = $slaves[$i].ID>>
 			<</if>>
 		<<elseif ($slaves[$i].fetish == "submissive")>>
-			<<if ($slaves[$i].anus > 0)>>
 			<<if ($subID == 0)>>
-				<<set $subID = $slaves[$i].ID>>
-			<</if>>
+				<<if (($slaves[$i].anus > 0 && canDoAnal($slaves[$i])) || ($slaves[$i].vagina > 0 && canDoVaginal($slaves[$i])) && $slaves[$i].belly < 30000)>>
+					<<set $subID = $slaves[$i].ID>>
+				<</if>>
 			<</if>>
 		<<elseif ($slaves[$i].fetish == "humiliation")>>
 			<<if ($slaves[$i].anus > 0)>>
@@ -229,10 +229,10 @@
 			<</if>>
 			<</if>>
 		<<elseif ($slaves[$i].fetish == "pregnancy")>>
-			<<if ($slaves[$i].bellyPreg >= 5000)>>
 			<<if ($pregnancyID == 0)>>
-				<<set $pregnancyID = $slaves[$i].ID>>
-			<</if>>
+				<<if ($slaves[$i].bellyPreg >= 5000)>>
+					<<set $pregnancyID = $slaves[$i].ID>>
+				<</if>>
 			<</if>>
 		<<elseif ($slaves[$i].fetish == "masochist")>>
 			<<if ($masochistID == 0)>>
@@ -715,15 +715,17 @@
 
 <<set _recruiterSlaves = $slaves.filter(function(s) { return s.fuckdoll == 0 && s.canRecruit == 1 && s.devotion > 50 && canWalk(s); })>>
 <<for _recruiterSlaves.length > 0>>
-	<<set $recruiterSlave = _recruiterSlaves.pluck().ID>>
+	<<set $recruiterSlave = _recruiterSlaves.pluck()>>
 	<<if random(1,100) > 90+(totalRelatives($recruiterSlave)*2)>>
-		<<set $j = $genePool.findIndex(function(o) { return o.ID == $recruiterSlave; })>>
+		<<set $j = $genePool.findIndex(function(o) { return o.ID == $recruiterSlave.ID; })>>
 		<<if $j != -1>>
 			<<set $events.push("RE relative recruiter")>>
+			<<set $recruiterSlave = $recruiterSlave.ID>>
 			<<break>>
 		<<else>> /* no matching slave object in the slavesOriginal array */
-			<<set $i = $slaves.findIndex(function(o) { return o.ID == $recruiterSlave; })>>
+			<<set $i = $slaveIndices[$recruiterSlave.ID]>>
 			<<set $slaves[$i].canRecruit = 0>>
+			<<set $recruiterSlave = -1>>
 		<</if>>
 	<</if>>
 <</for>>
@@ -732,14 +734,16 @@
 
 <<set _recruiterSlaves = $slaves.filter(function(s) { return s.recruiter != 0 && s.fuckdoll == 0 && s.devotion > 50 && s.relation == 0 && canWalk(s); })>>
 <<for _recruiterSlaves.length > 0>>
-	<<set $recruiterSlave = _recruiterSlaves.pluck().ID>>
-	<<set $j = $genePool.findIndex(function(o) { return o.ID == $recruiterSlave; })>>
+	<<set $recruiterSlave = _recruiterSlaves.pluck()>>
+	<<set $j = $genePool.findIndex(function(o) { return o.ID == $recruiterSlave.ID; })>>
 	<<if $j != -1>>
 		<<set $events.push("RE relative recruiter")>>
+		<<set $recruiterSlave = $recruiterSlave.ID>>
 		<<break>>
 	<<else>> /* no matching slave object in the slavesOriginal array -- bug? */
-		<<set $i = $slaves.findIndex(function(o) { return o.ID == $recruiterSlave; })>>
-		<<set $slaves[$i].recruiter = 0>>
+		<<set $i = $slaveIndices[$recruiterSlave.ID]>>
+		<<set $slaves[$i].canRecruit = 0>>
+		<<set $recruiterSlave = -1>>
 	<</if>>
 <</for>>
 
@@ -1261,9 +1265,10 @@
 <</if>>
 
 <<if $arcologies[0].prosperity >= 100 && ($rep > random(1,30000))>>
-	<<set $milfSlave = $slaves.find(function(s) { return s.devotion > 20 && canTalk(s) && canWalk(s) && (s.assignment == "serve the public" || s.assignment == "serve in the club"); })>>
-	<<if def $milfSlave>>
+	<<set $milfSlaveID = $slaves.find(function(s) { return s.devotion > 20 && canTalk(s) && canWalk(s) && (s.assignment == "serve the public" || s.assignment == "serve in the club"); })>>
+	<<if def $milfSlaveID>>
 		<<set $events.push("RE milf tourist")>>
+		<<set $milfSlaveID = $milfSlaveID.ID>>
 	<</if>>
 <</if>>
 
