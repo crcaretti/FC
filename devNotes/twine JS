@@ -7593,6 +7593,7 @@ window.todaysOutfit = function(slave) {
 			if(ArcologyZero.FSMaturityPreferentialist > 0) {
 				if(slave.visualAge >= 30) {
 					wardrobeFS.push({text: "and wears a slutty suit to look like the ideal horny older woman.", clothes: "slutty business attire"});
+					wardrobeFS.push({text: "and wears only an apron to make herself seem more matronly.", clothes: "an apron"});
 				} else {
 					wardrobeFS.push({text: "and wears a formal suit to look more mature.", clothes: "nice business attire"});
 				}
@@ -7610,6 +7611,7 @@ window.todaysOutfit = function(slave) {
 			}
 			if(ArcologyZero.FSPastoralist > 0) {
 				wardrobeFS.push({text: "and wears Western clothing, since she thinks it fits with pastoralism.", clothes: "Western clothing"});
+				wardrobeFS.push({text: "and wears a swimsuit that leaves her breasts uncovered.", clothes: "a monokini"});
 				if(slave.lactation > 0) {
 					wardrobeFS.push({text: "and dresses up as a slutty wet nurse.", clothes: "a slutty nurse outfit"});
 				}
@@ -7637,6 +7639,7 @@ window.todaysOutfit = function(slave) {
 					wardrobeFS.push({text: "and wears a leotard to show off her lithe body.", clothes: "a leotard"});
 					wardrobeFS.push({text: "and wears a form fitting bodysuit to show off her lithe figure.", clothes: "a comfortable bodysuit"});
 					wardrobeFS.push({text: "and wears spats to hug her tight butt.", clothes: "spats and a tank top"});
+					wardrobeFS.push({text: "and wears an apron that covers her front while leaving her rear free.", clothes: "an apron"});
 				} else {
 					wardrobeFS.push({text: "and squeezes into a form fitting bodysuit in the hopes that it squishes down her assets.", clothes: "restrictive latex"});
 				}
@@ -8529,6 +8532,20 @@ function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot c
 
 var lastActiveSlave, lastSlaves, lastPC;
 
+/*
+  To use, add something like:
+
+<div id="familyTree"></div>
+	<span id="familyTreeLink">
+		<<link "Pull up the file on her family tree.">>
+		<<replace #familyTreeLink>>
+			<<run renderFamilyTree($slaves, $activeSlave.ID)>>
+		<</replace>>
+	<</link>>
+</span>
+
+*/
+
 window.renderFamilyTree = function(slaves, filterID) {
 
 	var ftreeWidth,ftreeHeight;
@@ -8630,7 +8647,7 @@ window.renderFamilyTree = function(slaves, filterID) {
 		node.append('circle')
 			.attr('r', function(d){  return d.r })
 			.attr('stroke', function(d) {
-				if(d.id == filterID) {
+				if(d.ID == filterID) {
 					return '#ffff20';
 				} else {
 					return '#5a5a5a';
@@ -8643,8 +8660,14 @@ window.renderFamilyTree = function(slaves, filterID) {
 			.text(function(d) {
 				var ssym;
 				if(d.ID == -1) {
-					ssym = '';
-				} else if(d.dick > 0 && d.vagina > -1) {
+					if(d.dick == 1 && d.vagina == 1) {
+						ssym = '☿'
+					} else if (d.dick == 1) {
+						ssym = '♂';
+					} else if (d.vagina == 1) {
+						ssym = '♀';
+					}
+				} else if (d.dick > 0 && d.vagina > -1) {
 					ssym = '☿'
 				} else if (d.dick > 0) {
 					ssym = '♂';
@@ -8896,7 +8919,7 @@ window.buildFamilyTree = function(slaves = State.variables.slaves, filterID) {
 		}
 		node_lookup[char_id] = family_graph.nodes.length;
 		var char_obj = {
-			id: char_id,
+			ID: char_id,
 			name: character.slaveName,
 			dick: character.dick,
 			unborn: !!unborn[char_id],
@@ -8953,6 +8976,20 @@ window.buildFamilyTree = function(slaves = State.variables.slaves, filterID) {
 	}
 	return family_graph;
 };
+
+/*Old version. To use, do something like: 
+<div id="editFamily">
+  <div id="graph"></div>
+</div>
+
+<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
+<script>updateFamilyTree()</script>
+If you want to update the tree, just re-call the run line.
+
+If there's no active slave, you can do:
+
+<<run updateFamilyTree(null, $slaves, $PC)>>
+*/
 
 window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastSlaves, PC = lastPC) {
   lastActiveSlave = activeSlave;
@@ -9101,6 +9138,8 @@ window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastS
 	});
 
 };
+
+/* I don't know which JS I belong to */
 
 window.getHeroSlave = function(heroSlave, baseHeroSlave) {
     var newSlave = clone(baseHeroSlave);
