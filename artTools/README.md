@@ -35,23 +35,25 @@ While editing, keep the Layers in mind.
   Use them if your asset should be changed upon display. 
   Do not set the style directly in the object.
 
-## 3. Fix the document (before commiting, Inkscape only)
+## 3. Normalise the document (before committing)
 
-Inkscape shows weird behaviour in some regards.
-If you use Inkscape, close the document and run
+**THIS IS IMPORTANT**
 
-    python3 inkscape_svg_fixup.py vector_source.svg
+The various editors out there (Inkscape, Illustrator) may use different variants of formatting the SVG XML.
+Use
 
-before continuing. Open the file in Inkscape and save it again. 
-You need to make a minor change, as Inkscape will not save a unchanged file 
-(move the notes back and forth or something). The fixup does not produce
-the same linebreaks as Inkscape or Illustrator and git will go mad because
-the whole seems to have changed.
+    python3 normalize_svg.py vector_source.svg
+
+before committing to normalise the format so git will not freak out about the changed indentation.
+
+If you use Inkscape, please use in Edit → Settings → Input/Output → SVG-Output → Path Data → Optimized. This is the default.
+In case your Editor uses another path data style which cannot be changed, please contact the other artists and developers via the issue tracker to find a new common ground.
 
 What it does:
+* Formats the SVG XML according to Pythons lxml module, regardless of editor.
 * Adobe Illustrator uses group IDs as layer labels. 
   Inkscape however uses layer labels and a separate, auto-generated group ID.
-  inkscape_svg_fixup.py overwrites the group ID with the Inkscape layer label 
+  normalize_svg.py overwrites the group ID with the Inkscape layer label 
   so they are synchronised with Inkscape layer labels.
 * Inkscape copies the global style definition into the object *every time*
   the object is edited. If an object references a CSS class AND at the same time 
@@ -62,11 +64,11 @@ Note: Behaviour of Adobe Illustrator is untested.
 
 ## 4. Split the layers
 
-Execute
+For NoX original, deepurk extensions, execute
 
     python3 vector_layer_split.py vector_source.svg tw ../src/art/vector/layers/
 
-For revamped art 
+For faraen revamped art (based on NoX original)
 
 	python3 vector_revamp_layer_split.py vector_revamp_source.svg tw ../src/art/vector_revamp/layers/
 
