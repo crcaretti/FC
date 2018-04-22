@@ -148,25 +148,27 @@
 	<<set _o = $genePool.findIndex(function(s) { return s.ID = _ID; })>>
 	<<if def _o>>
 		<<set _dontDeleteMe = 0>>
-		<<for _rasi = 0; _rasi < _SL; _rasi++>>
-			<<if $slaves[_rasi].ID != _ID && isImpregnatedBy($slaves[_rasi], $genePool[_o])>>
-				<<set _dontDeleteMe = 1>>
-				<<break>>
-			<</if>>
-		<</for>>
 		<<if $traitor != 0>>
-			<<if isImpregnatedBy($traitor, $genePool[_o]) || $traitor.ID == _ID>>
+			<<if isImpregnatedBy($traitor, $genePool[_o]) || $traitor.ID == _ID>> /* did we impregnate the traitor, or are we the traitor? */
 				<<set _dontDeleteMe = 1>>
 			<</if>>
 		<</if>>
 		<<if $boomerangSlave != 0>>
-			<<if isImpregnatedBy($boomerangSlave, $genePool[_o]) || $boomerangSlave.ID == _ID)>>
+			<<if isImpregnatedBy($boomerangSlave, $genePool[_o]) || $boomerangSlave.ID == _ID)>> /* did we impregnate the boomerang, or are we the boomerang? */
 				<<set _dontDeleteMe = 1>>
 			<</if>>
 		<</if>>
-	<</if>>
-	<<if _dontDeleteMe === 0>>
-		<<set $genePool.deleteAt(_o)>>	
+		<<if _dontDeleteMe == 0>> /* avoid going through this loop if possible */
+			<<for _rasi = 0; _rasi < _SL; _rasi++>>
+				<<if $slaves[_rasi].ID != _ID && isImpregnatedBy($slaves[_rasi], $genePool[_o])>> /* have we impregnated a slave that is not ourself? */
+					<<set _dontDeleteMe = 1>>
+					<<break>>
+				<</if>>
+			<</for>>
+		<</if>>
+		<<if _dontDeleteMe == 0>>
+			<<set $genePool.deleteAt(_o)>>	
+		<</if>>
 	<</if>>
 	
 	<<if _missingID == 1>>
