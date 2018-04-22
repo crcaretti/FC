@@ -3022,8 +3022,15 @@ Setting missing slave variables:
 	<<set _Slave = $genePool[_bci]>>
 	<<if ndef _Slave.origSkin>><<set _Slave.origSkin = _Slave.skin>><</if>>
 
+	<<if $genePool.map(function(s) { return s.ID; }).count(_Slave.ID) > 1>> /* first check for duplicate IDs, keep the first entry and delete the others */
+		<<for _bci2 = _bci + 1; _bci2 < $genePool.length; _bci2++>>
+			<<if $genePool[_bci2].ID == _Slave.ID>>
+				<<set $genePool.deleteAt(_bci2), _bci2-->>
+			<</if>>
+		<</for>>
+	<</if>>
 	<<set _dontDeleteMe = 0>>
-	<<if def $slaveIndices[_Slave.ID]>> /* are we still in the $slaves array? */
+ 	<<if def $slaveIndices[_Slave.ID]>> /* are we still in the $slaves array? */
 		<<set _dontDeleteMe = 1>>
 	<</if>>
 	<<if $traitor != 0>>
@@ -3032,11 +3039,11 @@ Setting missing slave variables:
 		<</if>>
 	<</if>>
 	<<if $boomerangSlave != 0>>
-		<<if isImpregnatedBy($boomerangSlave, _Slave) || $boomerangSlave.ID == _Slave.ID)>> /* did we impregnate the boomerang, or are we the boomerang? */
+		<<if isImpregnatedBy($boomerangSlave, _Slave) || $boomerangSlave.ID == _Slave.ID>> /* did we impregnate the boomerang, or are we the boomerang? */
 			<<set _dontDeleteMe = 1>>
 		<</if>>
 	<</if>>
-	<<if _dontDeleteMe == 0>> /* avoid going through this loop if possible */
+	<<if _dontDeleteMe == 1>> /* avoid going through this loop if possible */
 		<<for _bci2 = 0; _bci2 < $slaves.length; _bci2++>>
 			<<if $slaves[_bci2].ID != _Slave.ID && isImpregnatedBy($slaves[_bci2], _Slave)>> /* have we impregnated a slave that is not ourself? */
 				<<set _dontDeleteMe = 1>>
@@ -3045,7 +3052,7 @@ Setting missing slave variables:
 		<</for>>
 	<</if>>
 	<<if _dontDeleteMe == 0>>
-		<<set $genePool.deleteAt(_bci)>>	
+		<<set $genePool.deleteAt(_bci), _bci-->>	
 	<</if>>
 
 <</for>>
