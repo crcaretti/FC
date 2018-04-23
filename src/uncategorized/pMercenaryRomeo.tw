@@ -2,16 +2,21 @@
 
 <<set $nextButton = "Continue", $nextLink = "Random Nonindividual Event">>
 
-<<set _romeoSlaves = $slaves.filter(function(s) { return s.fetish != "mindbroken" && s.fuckdoll == 0 && ["serve the public", "serve in the club", "whore", "work in the brothel"].includes(s.assignment); })>>
-<<if _romeoSlaves.length == 0>>
-	<<set _romeoSlaves = $slaves.filter(function(s) { return (s.publicCount > 0) && (s.newGamePlus == 0) && (s.relationship > -3) && !["be your Concubine", "serve in the master suite"].includes(s.assignment); })>>
+<<if ndef $romeoID>>
+	<<set _romeoSlaves = $slaves.filter(function(s) { return s.fetish != "mindbroken" && s.fuckdoll == 0 && ["serve the public", "serve in the club", "whore", "work in the brothel"].includes(s.assignment); })>>
 	<<if _romeoSlaves.length == 0>>
-		<<set $activeSlave = $slaves.random()>>
+		<<set _romeoSlaves = $slaves.filter(function(s) { return (s.publicCount > 0) && (s.newGamePlus == 0) && (s.relationship > -3) && !["be your Concubine", "serve in the master suite"].includes(s.assignment); })>>
+		<<if _romeoSlaves.length == 0>>
+			<<set $activeSlave = $slaves.random()>>
+		<<else>>
+			<<set $activeSlave = _romeoSlaves.random()>>
+		<</if>>
 	<<else>>
 		<<set $activeSlave = _romeoSlaves.random()>>
 	<</if>>
+	<<set $romeoID = $activeSlave.ID>>
 <<else>>
-	<<set $activeSlave = _romeoSlaves.random()>>
+	<<set $activeSlave = getSlave($romeoID)>>
 <</if>>
 
 <<slaveCost $activeSlave>>
@@ -55,6 +60,7 @@ I've scraped together what I can, and I can pay <<print cashFormat($slaveCost)>>
 	<<replace "#result">>
 		$activeSlave.slaveName obeys your orders not to see the old mercenary. Though neither he or $activeSlave.slaveName says a word about it, his squadmates are not so closemouthed. Soon the tragic story of The Mercenary and the Slave Girl is being told in bars and brothels across the Free City, with you naturally playing @@.red;the role of the villain.@@
 		<<set $rep -= 1000>>
+		<<unset $romeoID>>
 	<</replace>>
 <</link>>
 <br><<link "Politely decline">>
@@ -62,6 +68,7 @@ I've scraped together what I can, and I can pay <<print cashFormat($slaveCost)>>
 	<<replace "#result">>
 		"Ah well," he says, "didn't think you would, but I had to ask. If you'd be so kind as to keep her assigned so's I can see her, I would be grateful. That was a fine victory, <<if def $PC.customTitle>>$PC.customTitle<<elseif $PC.title != 0>>Sir<<else>>Ma'am<</if>>; come down to the bar and join the boys and I. We'll buy you a drink. Devil knows, thanks to you we can afford to."
 		<<if $activeSlave.relationship == -3 && $activeSlave.fetish != "mindbroken" && $activeSlave.devotion+$activeSlave.trust > 190>>$activeSlave.slaveName politely thanks you for not letting him take her away.<</if>>
+		<<unset $romeoID>>
 	<</replace>>
 <</link>>
 <br><<link "Accept">>
@@ -89,6 +96,7 @@ I've scraped together what I can, and I can pay <<print cashFormat($slaveCost)>>
 			<<set $rep += 500, $cash += $slaveCost>>
 			<<include "Remove activeSlave">>
 		<</if>>
+		<<unset $romeoID>>
 	<</replace>>
 <</link>>
 <br><<link "Give her to him as a gift">>
@@ -111,6 +119,7 @@ I've scraped together what I can, and I can pay <<print cashFormat($slaveCost)>>
 			<<set $trinkets.push(_poster)>>
 			<<include "Remove activeSlave">>
 		<</if>>
+		<<unset $romeoID>>
 	<</replace>>
 <</link>>
 </span>
