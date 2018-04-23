@@ -995,6 +995,21 @@ window.overpowerCheck = function(slave, PC) {
 	return strength;
 }
 
+window.impregnatedBy = function(slave) { /* returns array of IDs of all characters who impregnated slave */
+	var IDArray = [];
+	if (!Array.isArray(slave.womb)) {   
+		WombInit(slave);
+	}
+	for (var i = 0; i < slave.womb.length; i++) {
+		IDArray.push(slave.womb.fatherID);
+	}
+	return IDArray;
+}
+
+window.isImpregnatedBy = function(mother, father) { /* returns true if mother was impregnated by father */
+	return impregnatedBy(mother).includes(father.ID);
+}
+
 window.jsAlert = function(obj)
 {
 	alert(obj);
@@ -1906,6 +1921,9 @@ window.getCost = function(array) {
 				costs -= 25;
 			}
 			if(slave.assignment === Job.SERVANT) {
+				costs -= rulesCost;
+			}
+			if(setup.servantCareers.includes(slave.career)) {
 				costs -= rulesCost;
 			}
 		}
@@ -7984,7 +8002,7 @@ window.FResult = (function() {
 		if (V.arcologies[0].FSHedonisticDecadence > 20)
 			calcHedonismWeight(slave);
 		if (V.FResult < 2) {
-			if (supremeRaceP(slave))
+			if (supremeRaceP(slave) && V.arcologies[0].FSSupremacist > 20)
 				V.FResult = 0;
 			else
 				V.FResult = 2;
