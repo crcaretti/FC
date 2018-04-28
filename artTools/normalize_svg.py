@@ -13,10 +13,6 @@ https://bugs.launchpad.net/inkscape/+bug/167937
   
 Usage Example:
 python3 inkscape_svg_fixup.py vector_source.svg
-
-Note:
-The output of lxml differs greatly from standard SVG indentation.
-Please open and save the file in Inkscape before committing.
 '''
 
 import lxml.etree as etree
