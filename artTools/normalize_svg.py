@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Application for "fixing" SVGs edited with Inkscape
+Application for "normalizing" SVGs
 
 These problems are addressed:
 
@@ -44,8 +44,23 @@ def fix(tree):
         if (i != l):
           print("Overwriting ID %s with Label %s..."%(i, l))
           elem.set('id', l)
-    
-    # remove all offending style attributes
+
+    # clean styles (for easier manual merging)
+    style_string = elem.get('style')
+    if style_string:
+      split_styles = style_string.strip('; ').split(';')
+      styles_pairs = [s.strip('; ').split(':') for s in split_styles]
+      filtered_pairs = [ (k,v) for k,v in styles_pairs if not (
+        k.startswith('font-') or
+        k.startswith('text-') or
+        k.endswith('-spacing') or
+        k in ["line-height", " direction", " writing", " baseline-shift", " white-space", " writing-mode"]
+      )]
+      split_styles = [':'.join(p) for p in filtered_pairs]
+      style_string = ';'.join(sorted(split_styles))
+      elem.attrib["style"] = style_string
+
+    # remove all style attributes offending class styles
     s = elem.get('style')
     c = elem.get('class')
     if (c and s):
