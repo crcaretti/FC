@@ -81,8 +81,9 @@ in total, the corporation has enslaved <<print commaNum($corpPeopleEnslaved)>> p
 <</if>>
 <<set _dividendPerShare = 0.2 * $corpProfit / _totalShares>>
 <<if _dividendPerShare > 5>>
-	Since it is incredibly profitable, a massive dividend of ¤5/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*5)>>@@.
-	<<set $cash += $personalShares*5, $corpCash -= _totalShares*5>>
+<<set _dividendPerShare = 5 * Math.floor(0.2 * Math.log(_dividendPerShare)/Math.log(1.25))>>
+	Since it is incredibly profitable, a massive dividend of <<print cashFormat(_dividendPerShare)>>/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*_dividendPerShare)>>@@.
+	<<set $cash += $personalShares*_dividendPerShare, $corpCash -= _totalShares*_dividendPerShare>>
 <<elseif _dividendPerShare > 3>>
 	Since it is extremely profitable, a huge dividend of ¤3/share was paid out to stockholders; you received @@.yellowgreen;<<print cashFormat($personalShares*3)>>@@.
 	<<set $cash += $personalShares*3, $corpCash -= _totalShares*3>>
@@ -111,21 +112,27 @@ in total, the corporation has enslaved <<print commaNum($corpPeopleEnslaved)>> p
 
 <<set _roll = random(1,100)>>
 
-<<if $sharePrice*_totalShares < $corpValue*0.2>> /* market cap is less than 20% of value of assets */
+<<if $sharePrice*_totalShares < $corpValue*0.25>> /* market cap is less than 25% of value of assets */
+	Investors scramble to buy into your booming corporation, causing share prices to skyrocket. Your financial genius is @@.green;widely praised@@.
+	<<set $sharePrice = Math.ceil($sharePrice*(110 + _roll/5))/100, $rep += 150 + Math.ceil(_roll * 3.5)>> /* 10-30% rise, +150-500 rep */
+<<elseif $sharePrice*_totalShares < $corpValue*0.5>> /* market cap is less than 50% of value of assets */
 	The market consensus is that your corporation is undervalued, driving share prices sharply up.
 	<<set $sharePrice = Math.ceil($sharePrice*random(105,108))/100>> /* 5-8% rise */
-<<elseif random(1,100) < $rep/2000>> /* up to 10% chance */
+<<elseif $sharePrice*_totalShares > $corpValue*1.5>> /* market cap is more than 1.5 times value of assets */
+	Investors panic as the bubble around your corporation bursts. Share prices are in free fall, and many @@.red;blame you personally@@ for their losses.
+	<<set $sharePrice = Math.ceil($sharePrice* (90 - _roll/3))/100, $rep -= 300 + Math.ceil(5 * _roll)>> /* 10-43% drop, -300-800 rep */
+<<elseif random(1,100) < $rep/1000>> /* up to 20% chance */
 	Share prices in your corporation are driven up by your reputation.
 	<<set $sharePrice = Math.ceil($sharePrice*either(101,103))/100>> /* 1-3% rise */
+<<elseif $sharePrice*_totalShares > $corpValue>> /* market cap is more than value of assets */
+	The market consensus is that your corporation is overvalued, driving share prices sharply down.
+	<<set $sharePrice = Math.ceil($sharePrice*random(92,95))/100>> /* 5-8% drop */
 <<elseif _roll < 20>> /* 20% chance */
 	Market volatility drives share prices down.
 	<<set $sharePrice = Math.ceil($sharePrice*random(97,99))/100>> /* 1-3% drop */
 <<elseif _roll > 80>> /* 20% chance */
 	Market volatility drives share prices up.
 	<<set $sharePrice = Math.ceil($sharePrice*either(101,102))/100>> /* 1-2% rise */
-<<elseif $sharePrice*_totalShares > $corpValue>> /* market cap is more than 80% of value of assets */
-	The market consensus is that your corporation is overvalued, driving share prices sharply down.
-	<<set $sharePrice = Math.ceil($sharePrice*random(92,95))/100>> /* 5-8% drop */
 <</if>>
 
 Shares in your corporation are trading at <<print cashFormat($sharePrice)>>:
@@ -176,7 +183,7 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 
 <</if>>/* closes actions that reduce private ownership percentage */
 
-<<if _PublicOwnershipPercentage <= 5>>//You cannot make the corporation privately held.//
+<<if _PublicOwnershipPercentage <= 5>><br>//You cannot make the corporation privately held.//
 <<else>> /* actions that reduce public ownership percentage */
 	<br>Purchase shares from corporation:
 	<<if $cash > 1000*$sharePrice>>
@@ -232,7 +239,6 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;
-<span id="purchasing"></span>
 <span id="cashOnHand"><<print cashFormat($corpCash)>></span> in cash on hand.
 <span id="update"></span>
 
@@ -276,7 +282,25 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#update">>
 			<</replace>>
 		<<else>>
-		<<replace "#purchasing">>
+		<<replace "#update">>
+			There are insufficient funds for additional purchases.
+		<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Invest Half">>
+		 <<if $generalAssetPrice*1000 < $corpCash>>
+			<<set $generalAssets += (Math.trunc($corpCash/($generalAssetPrice*1000)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($generalAssetPrice*1000)))*($generalAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				<<print cashFormat($corpCash)>>
+			<</replace>>
+			<<replace "#genAssets">>
+				<<print cashFormat($generalAssetPrice*$generalAssets)>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+		<<replace "#update">>
 			There are insufficient funds for additional purchases.
 		<</replace>>
 		<</if>>
@@ -291,8 +315,10 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#genAssets">>
 				<<print cashFormat($generalAssetPrice*$generalAssets)>>
 			<</replace>>
+			<<replace "#update">>
+			<</replace>>
 		<<else>>
-		<<replace "#purchasing">>
+		<<replace "#update">>
 			There are insufficient funds for additional purchases.
 		<</replace>>
 		<</if>>
@@ -358,7 +384,7 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 	| <<link "Buy">>
 		 <<if $slaveAssetPrice*500 < $corpCash>>
 			<<set $slaveAssets += 500>>
-			<<set $corpPeopleEnslaved += Math.trunc((500*$slaveAssetPrice)/1000)>>
+			<<set $corpPeopleEnslaved += Math.trunc(($slaveAssetPrice)/2)>>
 			<<set $corpCash -= 500*$slaveAssetPrice>>
 			<<replace "#cashOnHand">>
 				<<print cashFormat($corpCash)>>
@@ -369,15 +395,34 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#update">>
 			<</replace>>
 		<<else>>
-		<<replace "#purchasing">>
+		<<replace "#update">>
 			There are insufficient funds for additional purchases.
 		<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Invest Half">>
+		<<if $slaveAssetPrice*1000 < $corpCash>>
+			<<set $slaveAssets += (Math.trunc($corpCash/($slaveAssetPrice*1000)))*500>>
+			<<set $corpPeopleEnslaved += Math.trunc($corpCash/2000)>>
+			<<set $corpCash -= (Math.trunc($corpCash/($slaveAssetPrice*1000)))*($slaveAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				<<print cashFormat($corpCash)>>
+			<</replace>>
+			<<replace "#slavAssets">>
+				<<print cashFormat($slaveAssetPrice*$slaveAssets)>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
 		<</if>>
 	<</link>>
 	| <<link "Massive investment">>
 		<<if $slaveAssetPrice*1000 < $corpCash>>
 			<<set $slaveAssets += (Math.trunc($corpCash/($slaveAssetPrice*500)))*500>>
-			<<set $corpPeopleEnslaved += Math.trunc(($corpCash/($slaveAssetPrice*2))/1000)>>
+			<<set $corpPeopleEnslaved += Math.trunc($corpCash/1000)>>
 			<<set $corpCash -= (Math.trunc($corpCash/($slaveAssetPrice*500)))*($slaveAssetPrice*500)>>
 			<<replace "#cashOnHand">>
 				<<print cashFormat($corpCash)>>
@@ -385,8 +430,10 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#slavAssets">>
 				<<print cashFormat($slaveAssetPrice*$slaveAssets)>>
 			<</replace>>
+			<<replace "#update">>
+			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -482,7 +529,25 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#update">>
 			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Invest Half">>
+		<<if $entrapmentAssetPrice*1000 < $corpCash>>
+			<<set $entrapmentAssets += (Math.trunc($corpCash/($entrapmentAssetPrice*1000)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($entrapmentAssetPrice*1000)))*($entrapmentAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				<<print cashFormat($corpCash)>>
+			<</replace>>
+			<<replace "#trapAssets">>
+				<<print cashFormat($entrapmentAssetPrice*$entrapmentAssets)>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -497,8 +562,10 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#trapAssets">>
 				<<print cashFormat($entrapmentAssetPrice*$entrapmentAssets)>>
 			<</replace>>
+			<<replace "#update">>
+			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -594,7 +661,25 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#update">>
 			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Invest Half">>
+		<<if $captureAssetPrice*1000 < $corpCash>>
+			<<set $captureAssets += (Math.trunc($corpCash/($captureAssetPrice*1000)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($captureAssetPrice*1000)))*($captureAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				<<print cashFormat($corpCash)>>
+			<</replace>>
+			<<replace "#capAssets">>
+				<<print cashFormat($captureAssetPrice*$captureAssets)>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -609,8 +694,10 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#capAssets">>
 				<<print cashFormat($captureAssetPrice*$captureAssets)>>
 			<</replace>>
+			<<replace "#update">>
+			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -706,7 +793,25 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#update">>
 			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Invest Half">>
+		<<if $trainingAssetPrice*1000 < $corpCash>>
+			<<set $trainingAssets += (Math.trunc($corpCash/($trainingAssetPrice*1000)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($trainingAssetPrice*1000)))*($trainingAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				<<print cashFormat($corpCash)>>
+			<</replace>>
+			<<replace "#trainAssets">>
+				<<print cashFormat($trainingAssetPrice*$trainingAssets)>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -721,8 +826,10 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#trainAssets">>
 				<<print cashFormat($trainingAssetPrice*$trainingAssets)>>
 			<</replace>>
+			<<replace "#update">>
+			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -818,7 +925,25 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#update">>
 			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Invest Half">>
+		<<if $surgicalAssetPrice*1000 < $corpCash>>
+			<<set $surgicalAssets += (Math.trunc($corpCash/($surgicalAssetPrice*1000)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($surgicalAssetPrice*1000)))*($surgicalAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				<<print cashFormat($corpCash)>>
+			<</replace>>
+			<<replace "#surgAssets">>
+				<<print cashFormat($surgicalAssetPrice*$surgicalAssets)>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -833,8 +958,10 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#surgAssets">>
 				<<print cashFormat($surgicalAssetPrice*$surgicalAssets)>>
 			<</replace>>
+			<<replace "#update">>
+			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -930,7 +1057,25 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#update">>
 			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
+				There are insufficient funds for additional purchases.
+			<</replace>>
+		<</if>>
+	<</link>>
+	| <<link "Invest Half">>
+		<<if $drugAssetPrice*1000 < $corpCash>>
+			<<set $drugAssets += (Math.trunc($corpCash/($drugAssetPrice*1000)))*500>>
+			<<set $corpCash -= (Math.trunc($corpCash/($drugAssetPrice*1000)))*($drugAssetPrice*500)>>
+			<<replace "#cashOnHand">>
+				<<print cashFormat($corpCash)>>
+			<</replace>>
+			<<replace "#drAssets">>
+				<<print cashFormat($drugAssetPrice*$drugAssets)>>
+			<</replace>>
+			<<replace "#update">>
+			<</replace>>
+		<<else>>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
@@ -945,8 +1090,10 @@ You hold <<print commaNum($personalShares)>> shares personally while <<print com
 			<<replace "#drAssets">>
 				<<print cashFormat($drugAssetPrice*$drugAssets)>>
 			<</replace>>
+			<<replace "#update">>
+			<</replace>>
 		<<else>>
-			<<replace "#purchasing">>
+			<<replace "#update">>
 				There are insufficient funds for additional purchases.
 			<</replace>>
 		<</if>>
