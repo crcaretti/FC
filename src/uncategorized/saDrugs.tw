@@ -1,5 +1,9 @@
 :: SA drugs [nobr]
 
+/*  Induced NCS is working at a genetical level against all types of growth, but doesn't stop it, generally about
+*   1/2 the growth, however, boob and butt fat is interpreted as excess fat by NCS and so is converted to slave
+*   sexual energy.
+*/
 <<if $slaves[$i].drugs == "intensive breast injections" || $slaves[$i].drugs == "intensive butt injections" || $slaves[$i].drugs == "intensive penis enhancement" || $slaves[$i].drugs == "intensive testicle enhancement">>
 	<<set _intensive = 1>>
 <</if>>
@@ -104,6 +108,11 @@
 		  <</if>>
 		<</if>>
 	<</if>>
+        <<if $slaves[$i].inducedNCS == 1>>
+                <<set _growth = Math.trunc(_growth/2.2)>>
+                $possessiveCap NCS kicks in fighting the breast growth, converting the excess fat into sexual energy for $object.
+                <<set $slaves[$i].energy += _growth>>
+        <</if>>
 	<<set _growth = 25*Math.trunc(_growth*0.8)>>
 	<<set $slaves[$i].boobs += Math.clamp(_growth, 25, 5000)>>
 	<<if random(1,100) > 30+($slaves[$i].areolae*10) && $slaves[$i].areolae < 3>>
@@ -195,6 +204,11 @@
 			<</if>>
 		<</if>>
 	<</if>>
+        <<if $slaves[$i].inducedNCS == 1>>
+                <<set _growth = Math.trunc(_growth/2.2)>>
+                $possessiveCap NCS kicks in fighting the breast growth, converting the excess fat into sexual energy for $object.
+                <<set $slaves[$i].energy += _growth>>
+        <</if>>
 	<<set _growth = 25*Math.trunc(_growth*0.8)>>
 	<<set $slaves[$i].boobs += Math.clamp(_growth, 25, 200)>>
 	<<if $slaves[$i].areolae < 3>>
@@ -277,7 +291,13 @@
 		monstrous cheeks tend to grow very slowly.
 	<</if>>
 	<<set _growth*=0.2>>
-	<<set $slaves[$i].butt += Math.clamp(_growth,0.2,1)>>
+        <<if $slaves[$i].inducedNCS == 1>>
+                <<set _growth = Math.trunc(_growth/2.2)>>
+                $possessiveCap NCS kicks in fighting the butt 
+                growth<<if _growth > 1>>, converting the excess fat into sexual energy for $object<<else>> and no change happens<</if>>.
+                <<set $slaves[$i].energy += _growth>>
+        <</if>>
+	<<set $slaves[$i].butt += Math.clamp(_growth,0,2)>>
 	<<if _intensive>>
 		<<if $slaves[$i].anus > 1>>
 			The reckless drug therapy has the side effect of rejuvenating her sphincter muscles, @@.lime;tightening up $possessive <<if $slaves[$i].anus > 4>>gaping<<elseif $slaves[$i].anus > 3>>loose<<else>>relaxed<</if>> anus.@@
@@ -333,7 +353,12 @@
 		inhuman cheeks tend to grow slowly.
 		<<set _growth += .4>>
 	<</if>>
-	<<if _growth > 1>>
+        <<if $slaves[$i].inducedNCS == 1>>
+                <<set _growth = Math.trunc(_growth/2.2)>>
+                $possessiveCap NCS kicks in fighting the butt growth<<if _growth > 1>>, converting the excess fat into sexual energy for $object<<else>> and no change happens<</if>>.
+                <<set $slaves[$i].energy += _growth>>
+        <</if>>
+	<<if ((_growth > 1) || ($slaves[$i].inducedNCS == 1))>>
 		<<set $slaves[$i].butt += _growth>>
 	<<else>>
 		<<set $slaves[$i].butt += 1>>
@@ -351,7 +376,11 @@
 		<<else>>
 			@@.lime;$possessiveCap lips swell rapidly.@@
 		<</if>>
-		<<set $slaves[$i].lips += 5>>
+                <<if $slaves[$i].inducedNCS == 1>>
+                        <<set $slaves[$i].lips += 2>>
+                <<else>>
+                        <<set $slaves[$i].lips += 5>>
+                <</if>>
 	<</if>>
 	
 <<case "growth stimulants">>
@@ -479,7 +508,10 @@
 	<<if _growth > 0>>	
 		/*age modifier*/
 		<<set _ageMod = 1>>
-		<<if $slaves[$i].genes == "XY">>
+                <<if $slaves[$i].inducedNCS == 1>>
+                        $possessiveCap NCS inhibits $possessive body response to the treatment.
+                        <<set _ageMod = .25>>
+		<<elseif $slaves[$i].genes == "XY">>
 			<<if $slaves[$i].pubertyXY == 0 && $slaves[$i].physicalAge <= 3>>
 				$possessiveCap very young body responds extremely well to the treatment.
 				<<set _ageMod = 2.5>>
@@ -525,7 +557,11 @@
 		<</if>>
 		/*... and calculates final value*/
 		<<set _growth = (_growth + _growth * _heightDiff) * _ageMod>>	
-		<<set _growth = Math.round(Math.clamp(_growth,0,5))>>
+                <<if $slaves[$i].inducedNCS == 0>>
+                        <<set _growth = Math.round(Math.clamp(_growth,0,5))>>
+                <<else>>
+                        <<set _growth = Math.round(Math.clamp(_growth,0,2))>>
+                <</if>>
 		/*communicates the amount of growth*/
 		<<if _growth < 1>> 												/*in case _heightDiff manages to bring _growth down enough*/
 			Despite the treatment, $possessive height does not increase this week.
@@ -591,6 +627,9 @@
 <<case "penis enhancement" "intensive penis enhancement">>
 	<<set _growth = 60-($injectionUpgrade*10)>>
 	<<if _intensive>><<set _growth -= 20>><</if>>
+        <<if $slaves[$i].inducedNCS == 1>>
+	        <<set _growth -= 30>>
+        <</if>>
 	<<if ($slaves[$i].dick > 0)>>
 		<<if (random(1,100) > _growth+($slaves[$i].dick*5))>>
 			@@.lime;$possessiveCap cock grows painfully,@@ becoming both longer and girthier.
@@ -626,8 +665,15 @@
 			$possessiveCap cock is now so huge that further drug enhancement will not increase its size. @@.yellow;$possessiveCap drug regimen has been ended.@@
 			<<set $slaves[$i].drugs = "no drugs">>
 		<<else>>
-			@@.lime;$possessiveCap cock grows painfully,@@ becoming both longer and girthier.
-			<<set $slaves[$i].dick += 1>>
+                        <<if $slaves[$i].inducedNCS == 0>>
+                                @@.lime;$possessiveCap cock grows painfully,@@ becoming both longer and girthier.
+                                <<set $slaves[$i].dick += 1>>
+                         <<elseif random(1,100 - $slaves[$i].dick) > 50>>
+                                @@.lime;$possessiveCap cock grows painfully,@@ becoming both longer and girthier, depsite $possessive NCS.
+                                <<set $slaves[$i].dick += 1>>
+                        <<else>>
+                                The treatment fails to over come $possessive NCS and $possessive cock fails to grow.
+                         <</if>>
 		<</if>>
 	<<else>>
 		$pronounCap receives @@.lime;direct injections of hyper growth hormones, right into $possessive clit.@@
@@ -636,8 +682,15 @@
 			$possessiveCap clit is now so huge that further drug enhancement will not increase its size. @@.yellow;$possessiveCap drug regimen has been ended.@@
 			<<set $slaves[$i].drugs = "no drugs">>
 		<<else>>
-			@@.lime;$possessiveCap clit grows painfully,@@ becoming both longer and girthier.
-			<<set $slaves[$i].clit += 1>>
+                        <<if $slaves[$i].inducedNCS == 0>>
+                                @@.lime;$possessiveCap clit grows painfully,@@ becoming both longer and girthier.
+                                <<set $slaves[$i].clit += 1>>
+                         <<elseif random(1,16 - $slaves[$i].clit) > 8>>
+                                @@.lime;$possessiveCap clit grows painfully,@@ becoming both longer and girthier, despite $possessive NCS.
+                                <<set $slaves[$i].clit += 1>>
+                        <<else>>
+                                The treatment fails to over come $possessive NCS and $possessive clit fails to grow.
+                        <</if>>
 		<</if>>
 	<</if>>
 
@@ -646,13 +699,16 @@
 	<<else>>
 	<<set _growth = 60-($injectionUpgrade*10)>>
 	<<if _intensive>><<set _growth -= 20>><</if>>
+        <<if $slaves[$i].inducedNCS == 1>>
+	        <<set _growth -= 30>>
+        <</if>>
 	<<if (random(1,100) > _growth+($slaves[$i].balls*5))>>
 		@@.lime;$possessiveCap balls swell painfully.@@
 		<<set $slaves[$i].balls++>>
 	<<else>>
 		Despite being filled with testicle enhancers and painfully swollen with resultant cum overproduction, $possessive balls do not grow.
 	<</if>>
-	<<if $slaves[$i].dick == 1>>
+	<<if $slaves[$i].dick == 1 && $slaves[$i].inducedNCS == 0>>
 	<<if $slaves[$i].scrotum > 0>>
 		As a side effect of the testicle enhancement drugs, @@.lime;$possessive micropenis grows,@@ becoming merely tiny.
 		<<set $slaves[$i].dick++>>
@@ -666,33 +722,42 @@
 	<<if ($slaves[$i].balls >= 125)>>
 		$possessiveCap balls are now so immense that further drug enhancement will not increase their size. However, leaving her on them will still stimulate cum production.
 	<<elseif ($slaves[$i].balls < 125)>>
-		@@.lime;$possessiveCap balls swell painfully.@@
-		<<set $slaves[$i].balls += 2>>
+                <<if $slaves[$i].inducedNCS == 0>>
+                        @@.lime;$possessiveCap balls swell painfully.@@
+                        <<set $slaves[$i].balls += 2>>
+                <<elseif random(1,400 - $slaves[$i].balls) > 200>>
+                        @@.lime;$possessiveCap balls swell painfully, despite $possessive NCS.@@
+                        <<set $slaves[$i].balls += 1>>
+                <<else>>
+                        The treatment fails to over come $possessive NCS and $possessive balls fail to grow.
+                <</if>>
 	<</if>>
 
 <<case "steroids">>
-	<<if ($slaves[$i].dick == 0) && (random(1,100) > 40+($slaves[$i].clit*10))>>
-		The gear $pronoun's on @@.lime;increases the size of $possessive clit.@@
-		<<set $slaves[$i].clit += 1>>
-	<<elseif ($slaves[$i].dick != 0) && ($slaves[$i].dick < 3) && (random(1,100) > 95)>>
-		The gear $pronoun's on @@.lime;increases the size of $possessive penis.@@
-		<<set $slaves[$i].dick += 1>>
-	<<elseif ($slaves[$i].faceShape != "masculine") && ($slaves[$i].faceShape != "androgynous") && (random(1,100) > 95)>>
-		The gear $pronoun's on @@.orange;hardens $possessive face into androgyny.@@
-		<<set $slaves[$i].faceShape = "androgynous">>
-	<<elseif ($slaves[$i].balls != 0) && ($slaves[$i].scrotum != 0) && ($slaves[$i].balls < 3) && (random(1,100) > 95)>>
-		The gear $pronoun's on @@.lime;increases the size of $possessive balls.@@
-		<<set $slaves[$i].balls += 1>>
-	<<elseif random(1,100) > 110-($slaves[$i].anus*10)>>
-		The steroids $pronoun's on have an effect on $possessive stretched anal muscles, giving $object a @@.lime;tighter butthole.@@
-		<<set $slaves[$i].anus -= 1>>
-	<<elseif random(1,100) > 110-($slaves[$i].vagina*10)>>
-		The steroids $pronoun's on have an effect on $possessive vaginal muscles, giving $object a @@.lime;tighter pussy.@@
-		<<set $slaves[$i].vagina -= 1>>
-	<<elseif ($slaves[$i].face-$slaves[$i].faceImplant > 10) && (random(1,100) > 95)>>
-		The gear $pronoun's on @@.orange;hardens $possessive pretty face a little.@@
-		<<set $slaves[$i].face -= 5>>
-	<</if>>
+        <<if $slaves[$i].inducedNCS == 0 || random(1,100) > 50>>
+                <<if ($slaves[$i].dick == 0) && (random(1,100) > 40+($slaves[$i].clit*10))>>
+                        The gear $pronoun's on @@.lime;increases the size of $possessive clit.@@
+                        <<set $slaves[$i].clit += 1>>
+                <<elseif ($slaves[$i].dick != 0) && ($slaves[$i].dick < 3) && (random(1,100) > 95)>>
+                        The gear $pronoun's on @@.lime;increases the size of $possessive penis.@@
+                        <<set $slaves[$i].dick += 1>>
+                <<elseif ($slaves[$i].faceShape != "masculine") && ($slaves[$i].faceShape != "androgynous") && (random(1,100) > 95)>>
+                        The gear $pronoun's on @@.orange;hardens $possessive face into androgyny.@@
+                        <<set $slaves[$i].faceShape = "androgynous">>
+                <<elseif ($slaves[$i].balls != 0) && ($slaves[$i].scrotum != 0) && ($slaves[$i].balls < 3) && (random(1,100) > 95)>>
+                        The gear $pronoun's on @@.lime;increases the size of $possessive balls.@@
+                        <<set $slaves[$i].balls += 1>>
+                <<elseif random(1,100) > 110-($slaves[$i].anus*10)>>
+                        The steroids $pronoun's on have an effect on $possessive stretched anal muscles, giving $object a @@.lime;tighter butthole.@@
+                        <<set $slaves[$i].anus -= 1>>
+                <<elseif random(1,100) > 110-($slaves[$i].vagina*10)>>
+                        The steroids $pronoun's on have an effect on $possessive vaginal muscles, giving $object a @@.lime;tighter pussy.@@
+                        <<set $slaves[$i].vagina -= 1>>
+                <<elseif ($slaves[$i].face-$slaves[$i].faceImplant > 10) && (random(1,100) > 95)>>
+                        The gear $pronoun's on @@.orange;hardens $possessive pretty face a little.@@
+                        <<set $slaves[$i].face -= 5>>
+                <</if>>
+        <</if>>
 
 <<case "anti-aging cream">>
 	<<if ($slaves[$i].visualAge <= 18)>>
@@ -741,10 +806,12 @@
 	<<else>>
 		$pronounCap's on super fertility drugs, so $pronoun is more likely to conceive, and will have multiple pregnancy.
 	<</if>>
-	<<if $slaves[$i].lactation == 0 && random(0,50) < $slaves[$i].health>>
-		The hormonal changes produced by the fertility drugs have the side effect of @@.lime;inducing lactation,@@ indistinguishable from natural lactation.
-		<<set $slaves[$i].lactation = 1>>
-	<</if>>
+        <<if $slaves[$i].inducedNCS == 0>>
+                <<if $slaves[$i].lactation == 0 && random(0,50) < $slaves[$i].health>>
+                        The hormonal changes produced by the fertility drugs have the side effect of @@.lime;inducing lactation,@@ indistinguishable from natural lactation.
+                        <<set $slaves[$i].lactation = 1>>
+                <</if>>
+        <</if>>
 	<<if $slaves[$i].attrXY < 100 && random(0,10) < $slaves[$i].health>>
 		The hormonal changes produced by the fertility drugs cause $object to begin @@.green;finding men more attractive.@@
 		<<set $slaves[$i].attrXY += random(5,10)>>
@@ -779,9 +846,11 @@
 	<<else>>
 		$pronounCap's on fertility drugs, so $pronoun is more likely to conceive, and may experience multiple pregnancy.
 	<</if>>
-	<<if $slaves[$i].lactation == 0 && random(0,100) < $slaves[$i].health>>
-		The hormonal changes produced by the fertility drugs have the side effect of @@.lime;inducing lactation,@@ indistinguishable from natural lactation.
-		<<set $slaves[$i].lactation = 1>>
+        <<if $slaves[$i].inducedNCS == 0>>
+                <<if $slaves[$i].lactation == 0 && random(0,100) < $slaves[$i].health>>
+                        The hormonal changes produced by the fertility drugs have the side effect of @@.lime;inducing lactation,@@ indistinguishable from natural lactation.
+                        <<set $slaves[$i].lactation = 1>>
+                <</if>>
 	<</if>>
 	
 <<case "appetite suppressors">>
@@ -803,81 +872,97 @@
 	<</if>>
 	
 <<case "penis atrophiers">>
-	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive penis,@@ causing $possessive body to begin pulling resources from it.
+	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive penis,@@ causing $possessive body to begin pulling resources from it<<if $slaves[$i].inducedNCS == 1>>, $possessive NCS amplifies the effectiveness<</if>>.
+        <<set _shrinkage = 0>>
 	<<if $slaves[$i].dick == 1>>
 		$possessiveCap penis is now so miniscule that further drug use will fail to shrink it further; @@.yellow;$possessive drug regimen has been ended.@@
 		<<set $slaves[$i].drugs = "no drugs">>
 	<<elseif $slaves[$i].dick >= 20>>
 		@@.lime;$possessiveCap cock shrinks painfully,@@ becoming massively shorter and thinner.
-		<<set $slaves[$i].dick -= 3>>
+                <<set _shrinkage = 3>>
 	<<elseif $slaves[$i].dick >= 10>>
 		@@.lime;$possessiveCap cock shrinks painfully,@@ becoming shorter and thinner.
-		<<set $slaves[$i].dick -= 2>>
-	<<elseif (random(1,100) > (40-($injectionUpgrade*10)-($slaves[$i].dick*5))) && ($slaves[$i].dick > 1)>>
+                <<set _shrinkage = 2>>
+	<<elseif (($slaves[$i].inducedNCS == 1) || (random(1,100) > (40-($injectionUpgrade*10)-($slaves[$i].dick*5)))) && ($slaves[$i].dick > 1)>>
 		@@.lime;$possessiveCap cock shrinks painfully,@@ becoming shorter and thinner.
-		<<set $slaves[$i].dick -= 1>>
+                <<set _shrinkage = 1>>
 	<</if>>
+        <<if ($slaves[$i].inducedNCS == 1) && ($slaves[$i].dick > 2)>>
+                <<set _shrinkage *= 2>>
+	<</if>>
+        <<set $slaves[$i].dick -= _shrinkage>>
 	
 <<case "testicle atrophiers">>
-	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive testicles,@@ causing $possessive body to begin pulling resources from them.
+	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive testicles,@@ causing $possessive body to begin pulling resources from them<<if $slaves[$i].inducedNCS == 1>>, $possessive NCS amplifies the effectiveness<</if>>.
+        <<set _shrinkage = 0>>
 	<<if $slaves[$i].balls == 1>>
 		$possessiveCap balls are now so minuscule that further drug use will fail to shrink them further; @@.yellow;$possessive drug regimen has been ended.@@
 		<<set $slaves[$i].drugs = "no drugs">>
 	<<elseif $slaves[$i].balls >= 100>>
 		@@.lime;$possessiveCap balls shrink painfully,@@ becoming massively smaller and leaving $possessive scrotum looser.
-		<<set $slaves[$i].balls -= 5>>
+                <<set _shrinkage = 5>>
 	<<elseif $slaves[$i].balls >= 80>>
 		@@.lime;$possessiveCap balls shrink painfully,@@ becoming massively smaller and leaving $possessive scrotum looser.
-		<<set $slaves[$i].balls -= 4>>
+                <<set _shrinkage = 4>>
 	<<elseif $slaves[$i].balls >= 60>>
 		@@.lime;$possessiveCap balls shrink painfully,@@ becoming massively smaller and leaving $possessive scrotum looser.
-		<<set $slaves[$i].balls -= 3>>
+                <<set _shrinkage = 3>>
 	<<elseif $slaves[$i].balls >= 40>>
 		@@.lime;$possessiveCap balls shrink painfully,@@ becoming much smaller and leaving $possessive scrotum looser.
-		<<set $slaves[$i].balls -= 2>>
+                <<set _shrinkage = 2>>
 	<<elseif $slaves[$i].balls >= 20>>
 		@@.lime;$possessiveCap balls shrink painfully,@@ becoming smaller and leaving $possessive scrotum looser.
-		<<set $slaves[$i].balls -= 1>>
-	<<elseif (random(1,100) > (40-($injectionUpgrade*10)-($slaves[$i].balls*2))) && ($slaves[$i].balls > 1)>>
+                <<set _shrinkage = 1>>
+	<<elseif (($slaves[$i].inducedNCS == 1) || (random(1,100) > (40-($injectionUpgrade*10)-($slaves[$i].balls*2)))) && ($slaves[$i].balls > 1)>>
 		@@.lime;$possessiveCap balls shrink painfully,@@ becoming smaller and leaving $possessive scrotum looser.
-		<<set $slaves[$i].balls -= 1>>
+                <<set _shrinkage = 1>>
 	<</if>>
+        <<if ($slaves[$i].inducedNCS == 1) && ($slaves[$i].balls > 2)>>
+                <<set _shrinkage *= 2>>
+	<</if>>
+        <<set $slaves[$i].balls -= _shrinkage>>
 	
 <<case "clitoris atrophiers">>
-	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive clitoris,@@ causing $possessive body to begin pulling resources from it.
+	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive clitoris,@@ causing $possessive body to begin pulling resources from it<<if $slaves[$i].inducedNCS == 1>>, $possessive NCS amplifies the effectiveness<</if>>.
 	<<if $slaves[$i].clit == 0>>
 		$possessiveCap clit is now so minuscule that further drug use will fail to shrink it further; @@.yellow;$possessive drug regimen has been ended.@@
 		<<set $slaves[$i].drugs = "no drugs">>
-	<<elseif (random(1,100) > (60-($injectionUpgrade*10)-($slaves[$i].clit*5))) && ($slaves[$i].clit > 0)>>
+	<<elseif (($slaves[$i].inducedNCS == 1) || (random(1,100) > (60-($injectionUpgrade*10)-($slaves[$i].clit*5)))) && ($slaves[$i].clit > 0)>>
 		@@.lime;$possessiveCap clit shrinks painfully,@@ becoming smaller.
 		<<set $slaves[$i].clit -= 1>>
 	<</if>>
+        <<if ($slaves[$i].inducedNCS == 1) && ($slaves[$i].clit > 2)>>
+                <<set $slaves[$i].clit -= 1>>
+	<</if>>
 	
 <<case "labia atrophiers">>
-	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive labia majora,@@ causing $possessive body to begin pulling resources from them.
+	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive labia majora,@@ causing $possessive body to begin pulling resources from them<<if $slaves[$i].inducedNCS == 1>>, $possessive NCS amplifies the effectiveness<</if>>.
 	<<if $slaves[$i].labia == 0>>
 		$possessiveCap labia are now so minuscule that further drug use will fail to shrink them further; @@.yellow;$possessive drug regimen has been ended.@@
 		<<set $slaves[$i].drugs = "no drugs">>
-	<<elseif (random(1,100) > (60-($injectionUpgrade*10)-($slaves[$i].labia*5))) && ($slaves[$i].labia > 0)>>
+	<<elseif (($slaves[].inducedNCS == 1) || (random(1,100) > (60-($injectionUpgrade*10)-($slaves[$i].labia*5)))) && ($slaves[$i].labia > 0)>>
 		@@.lime;$possessiveCap labia shrink painfully,@@ becoming smaller.
 		<<set $slaves[$i].labia -= 1>>
 	<</if>>
+        <<if ($slaves[$i].inducedNCS == 1) && ($slaves[$i].labia > 2)>>
+                <<set $slaves[$i].labia -= 1>>
+	<</if>>
 	
 <<case "nipple atrophiers">>
-	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive nipples,@@ causing $possessive body to begin pulling resources from it.
+	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive nipples,@@ causing $possessive body to begin pulling resources from it<<if $slaves[$i].inducedNCS == 1>>, $possessive NCS amplifies the effectiveness<</if>>.
 	<<switch $slaves[$i].nipples>>
 	<<case "huge">>
-		<<if (random(1,100) > (60-($injectionUpgrade*15)))>>
+		<<if (($slaves[].inducedNCS == 1) || (random(1,100) > (60-($injectionUpgrade*15))))>>
 			@@.lime;$possessiveCap nipples shrink painfully,@@ becoming smaller and puffy.
 			<<set $slaves[$i].nipples = "puffy">>
 		<</if>>
 	<<case "puffy">>
-		<<if (random(1,100) > (60-($injectionUpgrade*15)))>>
+		<<if (($slaves[].inducedNCS == 1) || (random(1,100) > (60-($injectionUpgrade*15))))>>
 			@@.lime;$possessiveCap nipples shrink painfully,@@ becoming smaller and cuter.
 			<<set $slaves[$i].nipples = "cute">>
 		<</if>>
 	<<case "cute">>
-		<<if (random(1,100) > (60-($injectionUpgrade*15)))>>
+		<<if (($slaves[].inducedNCS == 1) || (random(1,100) > (60-($injectionUpgrade*15))))>>
 			@@.lime;$possessiveCap nipples shrink painfully,@@ becoming tiny.
 			<<set $slaves[$i].nipples = "tiny">>
 		<</if>>
@@ -887,26 +972,32 @@
 	<</switch>>
 	
 <<case "lip atrophiers">>
-	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive lips,@@ causing $possessive body to begin pulling resources from them.
+	$pronounCap receives @@.lime;direct injections of atrophiers right into $possessive lips,@@ causing $possessive body to begin pulling resources from them<<if $slaves[$i].inducedNCS == 1>>, $possessive NCS amplifies the effectiveness<</if>>.
+        <<set _shrinkage = 0>>
 	<<if ($slaves[$i].lips-$slaves[$i].lipsImplant) == 0>>
 		$possessiveCap natural lips are now so thin that further drug use will fail to shrink them further; @@.yellow;$possessive drug regimen has been ended.@@
 		<<set $slaves[$i].drugs = "no drugs">>
 	<<elseif ($slaves[$i].lips-$slaves[$i].lipsImplant) >= 70>>
 		@@.lime;$possessiveCap natural lips shrink painfully,@@ becoming massively smaller and thinner.
-		<<set $slaves[$i].lips -= 5>>
+                <<set _shrinkage = 5>>
 	<<elseif ($slaves[$i].lips-$slaves[$i].lipsImplant) >= 50>>
 		@@.lime;$possessiveCap natural lips shrink painfully,@@ becoming smaller and thinner.
-		<<set $slaves[$i].lips -= 3>>
+                <<set _shrinkage = 3>>
 	<<elseif ($slaves[$i].lips-$slaves[$i].lipsImplant) >= 20>>
 		@@.lime;$possessiveCap natural lips shrink painfully,@@ becoming smaller and thinner.
-		<<set $slaves[$i].lips -= 1>>
-	<<elseif (random(1,100) > (40-($injectionUpgrade*10)-($slaves[$i].lips-$slaves[$i].lipsImplant))) && (($slaves[$i].lips-$slaves[$i].lipsImplant) > 0)>>
+                <<set _shrinkage = 1>>
+	<<elseif (($slaves[].inducedNCS == 1) || (random(1,100) > (40-($injectionUpgrade*10)-($slaves[$i].lips-$slaves[$i].lipsImplant)))) && (($slaves[$i].lips-$slaves[$i].lipsImplant) > 0)>>
 		@@.lime;$possessiveCap natural lips shrink painfully,@@ becoming smaller and thinner.
-		<<set $slaves[$i].lips -= 1>>
+                <<set _shrinkage = 1>>
 	<</if>>
+        <<if ($slaves[$i].inducedNCS == 1) && ($slaves[$i].lipsImplant > 1)>>
+                <<set _shrinkage *= 2>>
+	<</if>>
+        <<set $slaves[$i].lips -= _shrinkage>>
 	
 <<case "breast redistributors">>
-	$pronounCap receives @@.lime;direct injections of fat redistributors right into $possessive breasts,@@ causing $possessive body to begin moving fatty tissue from them to $possessive core.
+	$pronounCap receives @@.lime;direct injections of fat redistributors right into $possessive breasts,@@ causing $possessive body to begin moving fatty tissue from them to $possessive core<<if $slaves[$i].inducedNCS == 1>>, $possessive NCS amplifies the effectiveness<</if>>.
+        <<set _factor = 0>>
 	<<if ($slaves[$i].boobs-$slaves[$i].boobsImplant) <= 100>>
 		$possessiveCap natural breast tissue is now so thin that further drug use will fail to shrink it further; @@.yellow;$possessive drug regimen has been ended.@@
 		<<set $slaves[$i].drugs = "no drugs">>
@@ -915,28 +1006,28 @@
 		<<set $slaves[$i].drugs = "no drugs">>
 	<<elseif ($slaves[$i].boobs-$slaves[$i].boobsImplant) >= 20000>>
 		@@.lime;$possessiveCap breasts shrink painfully,@@ becoming massively smaller while $possessive @@.orange;waistline swells tremendously.@@
-		<<set $slaves[$i].boobs -= 2000>>
-		<<set $slaves[$i].weight += 20>>
+		<<set _factor = 20>>
 	<<elseif ($slaves[$i].boobs-$slaves[$i].boobsImplant) >= 10000>>
 		@@.lime;$possessiveCap breasts shrink painfully,@@ becoming greatly smaller while $possessive @@.orange;waistline swells.@@
-		<<set $slaves[$i].boobs -= 1000>>
-		<<set $slaves[$i].weight += 10>>
+		<<set _factor = 10>>
 	<<elseif ($slaves[$i].boobs-$slaves[$i].boobsImplant) >= 5000>>
 		@@.lime;$possessiveCap breasts shrink painfully,@@ becoming smaller while $possessive @@.orange;waistline swells.@@
-		<<set $slaves[$i].boobs -= 500>>
-		<<set $slaves[$i].weight += 5>>
+		<<set _factor = 5>>
 	<<elseif ($slaves[$i].boobs-$slaves[$i].boobsImplant) >= 1000>>
 		@@.lime;$possessiveCap breasts shrink painfully,@@ becoming smaller while $possessive @@.orange;waistline grows.@@
-		<<set $slaves[$i].boobs -= 300>>
-		<<set $slaves[$i].weight += 3>>
+		<<set _factor = 3>>
 	<<elseif ($slaves[$i].boobs-$slaves[$i].boobsImplant) > 100>>
 		@@.lime;$possessiveCap breasts shrink painfully,@@ becoming smaller while $possessive @@.orange;waistline grows slightly.@@
-		<<set $slaves[$i].boobs -= 100>>
-		<<set $slaves[$i].weight += 1>>
+		<<set _factor = 1>>
 	<</if>>
+        <<set $slaves[$i].weight += _factor>>
+        <<if ($slaves[$i].inducedNCS == 1) && ($slaves[$i].boobsImplant > 200)>>
+                <<set _shrinkage *= 2>>
+	<</if>>
+        <<set $slaves[$i].boobs -= 100*_factor>>
 	
 <<case "butt redistributors">>
-	$pronounCap receives @@.lime;direct injections of fat redistributors right into $possessive buttocks,@@ causing $possessive body to begin moving fatty tissue from it to $possessive core.
+	$pronounCap receives @@.lime;direct injections of fat redistributors right into $possessive buttocks,@@ causing $possessive body to begin moving fatty tissue from it to $possessive core<<if $slaves[$i].inducedNCS == 1>>, $possessive NCS amplifies the effectiveness<</if>>.
 	<<if ($slaves[$i].butt-$slaves[$i].buttImplant) <= 0>>
 		$possessiveCap natural ass flesh is now so thin that further drug use will fail to shrink it further; @@.yellow;$possessive drug regimen has been ended.@@
 		<<set $slaves[$i].drugs = "no drugs">>
@@ -951,7 +1042,7 @@
 		@@.lime;$possessiveCap butt shrinks painfully,@@ becoming smaller while $possessive @@.orange;waistline swells tremendously.@@
 		<<set $slaves[$i].butt -= 1>>
 		<<set $slaves[$i].weight += 20>>
-	<<elseif (random(1,100) > (50-($injectionUpgrade*10)-($slaves[$i].butt-$slaves[$i].buttImplant))) && ($slaves[$i].butt-$slaves[$i].buttImplant) >= 0>>
+	<<elseif (($slaves[$i].inducedNCS == 1) || (random(1,100) > (50-($injectionUpgrade*10)-($slaves[$i].butt-$slaves[$i].buttImplant)))) && ($slaves[$i].butt-$slaves[$i].buttImplant) >= 0>>
 		@@.lime;$possessiveCap butt shrinks painfully,@@ becoming smaller while $possessive @@.orange;waistline swells greatly.@@
 		<<set $slaves[$i].butt -= 1>>
 		<<set $slaves[$i].weight += 10>>

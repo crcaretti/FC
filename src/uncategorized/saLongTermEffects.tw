@@ -3421,10 +3421,10 @@
 	<<if ($slaves[$i].vagina > -1) && ($slaves[$i].ovaries != 0) && ($slaves[$i].vaginaLube < 2)>>
 		<<set _Effects.push("VaginaWetter")>>
 	<</if>>
-	<<if (($slaves[$i].butt-$slaves[$i].buttImplant) < 2)>>
+	<<if (($slaves[$i].butt-$slaves[$i].buttImplant) < 2) && (($slaves[$i].inducedNCS == 0) || (random(1,100) > 50))>>
 		<<set _Effects.push("ButtBigger")>>
 	<</if>>
-	<<if (($slaves[$i].boobs-$slaves[$i].boobsImplant) < 500)>>
+	<<if (($slaves[$i].boobs-$slaves[$i].boobsImplant) < 500) && (($slaves[$i].inducedNCS == 0) || (random(1,100) > 50))>>
 		<<set _Effects.push("BoobsBigger")>>
 	<</if>>
 	<<if $slaves[$i].face-$slaves[$i].faceImplant <= 10>>
@@ -3452,10 +3452,20 @@
 		<<set _Effects = _Effects.random()>>
 		<<switch _Effects>>
 		<<case "DickShrink">>
-			Dependence on the hormone-based aphrodisiacs makes @@.orange;$possessive dick atrophy.@@
+	                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50) && ($slaves[$i].dick > 2))>>
+                                Dependence on the hormone-based aphrodisiacs combined with $possessive NCS makes @@.orange;$possessive dick shrink down to be more childlike.@@
+                                <<set $slaves[$i].dick -= 1>>
+                        <<else>>
+                                Dependence on the hormone-based aphrodisiacs makes @@.orange;$possessive dick atrophy.@@
+                        <</if>>
 			<<set $slaves[$i].dick -= 1>>
 		<<case "BallsShrink">>
-			Dependence on the hormone-based aphrodisiacs makes @@.orange;$possessive testicles atrophy.@@
+	                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50) && ($slaves[$i].balls > 2))>>
+                                Dependence on the hormone-based aphrodisiacs combined with $possessive NCS makes @@.orange;$possessive balls shrink down to be more childlike.@@
+                                <<set $slaves[$i].balls -= 1>>
+                        <<else>>
+                                Dependence on the hormone-based aphrodisiacs makes @@.orange;$possessive testicles atrophy.@@
+                        <</if>>
 			<<set $slaves[$i].balls -= 1>>
 		<<case "VoiceHigher">>
 			Dependence on the hormone-based aphrodisiacs makes @@.lime;$possessive voice higher and more feminine.@@
@@ -3479,7 +3489,12 @@
 			Dependence on the hormone-based aphrodisiacs makes @@.lime;$possessive face soften into femininity.@@
 			<<set $slaves[$i].faceShape = "normal">>
 		<<case "ClitSmaller">>
-			Dependence on the hormone-based aphrodisiacs makes @@.orange;$possessive clit shrink significantly.@@
+	                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50) && ($slaves[$i].clit > 1))>>
+                                Dependence on the hormone-based aphrodisiacs combined with $possessive NCS makes @@.orange;$possessive clit shrink down to be more childlike.@@
+                                <<set $slaves[$i].clit -= 1>>
+                        <<else>>
+                                Dependence on the hormone-based aphrodisiacs makes @@.orange;$possessive clit shrink significantly.@@
+                        <</if>>
 			<<set $slaves[$i].clit -= 1>>
 		<<case "Devoted">>
 			Hormonal effects make $object a bit more @@.hotpink;docile.@@
@@ -3569,7 +3584,12 @@
 			<</if>>
 		<</if>>
 	<</if>>
-<<set $slaves[$i].hormoneBalance = Math.clamp($slaves[$i].hormoneBalance, -400, 400)>>
+        /* NCS helps primary sexual maturity */
+<<if $slaves[$i].inducedNCS == 0>>
+        <<set $slaves[$i].hormoneBalance = Math.clamp($slaves[$i].hormoneBalance, -400, 400)>>
+<<else>>
+        <<set $slaves[$i].hormoneBalance = Math.clamp($slaves[$i].hormoneBalance * 1.5, -400, 400)>>
+<</if>>
 <<if $slaves[$i].drugs != "hormone blockers">>
 	<<include "SA hormone effects">>
 <<elseif $slaves[$i].drugs == "hormone blockers">>
@@ -3668,164 +3688,217 @@
 
 <<if $precociousPuberty == 1>>
 
-    <<if ($slaves[$i].physicalAge < $slaves[$i].pubertyAgeXX) && ($slaves[$i].ovaries == 1 || $slaves[$i].mpreg == 1) && $slaves[$i].pubertyXX == 0>>  /* Female type */
+        <<if ($slaves[$i].physicalAge < $slaves[$i].pubertyAgeXX) && ($slaves[$i].ovaries == 1 || $slaves[$i].mpreg == 1) && $slaves[$i].pubertyXX == 0>>  /* Female type */
 
-	<<if ($slaves[$i].diet == "XX" || $slaves[$i].diet == "XXY")>>
-	    <<set $slaves[$i].pubertyAgeXX -= 0.1>>
-	<<elseif $slaves[$i].diet == "fertility">>
-		 <<set $slaves[$i].pubertyAgeXX -= 0.1>>
-	<</if>>
-	<<if ($slaves[$i].drugs == "fertility drugs")>>
-	    <<set $slaves[$i].pubertyAgeXX -= 0.1>>
-	<<elseif ($slaves[$i].drugs == "female hormone injections")>>
-	    <<set $slaves[$i].pubertyAgeXX -= 1>>
-	<<elseif ($slaves[$i].drugs == "male hormone injections")>>
-	    <<set $slaves[$i].pubertyAgeXX += 1>>
-	<<elseif ($slaves[$i].drugs == "testicle enhancement")>>
-	    <<set $slaves[$i].pubertyAgeXX += 0.1>>
-	<<elseif ($slaves[$i].drugs == "steroids")>>
-	    <<set $slaves[$i].pubertyAgeXX += 0.2>>
-		<<if ($slaves[$i].boobs > 100) && (random(1,100) < 30)>>
-			$pronounCap feels an @@.orange;unusual calmness@@ in $possessive belly and breasts.
-			<<set $slaves[$i].boobs -= 50>>
-		<</if>>
-		<<if ($slaves[$i].clit < 2) && (random(1,100) < 10)>>
-			$pronounCap feels @@.lime;unusual warmness@@ in $possessive clitoris.
-			<<set $slaves[$i].clit += 1>>
-	    <</if>>
-	<<elseif ($slaves[$i].drugs == "super fertility drugs")>>
-	    <<set $slaves[$i].pubertyAgeXX -= 0.5>>
-		$pronounCap feels an @@.lime;unusual warm feeling@@ in $possessive belly and breasts.
-	    <<if ($slaves[$i].boobs < 400) && (random(1,100) < 30)>>
-			$possessiveCap breasts feel @@.lime;heavy, hot and sensitive.@@
-			<<set $slaves[$i].boobs += 50>>
-			<<if random(1,100) < 10 && ($slaves[$i].breastMesh != 1)>>
-				<<set $slaves[$i].boobShape = "perky">>
-			<</if>>
-	    <</if>>
-	    <<if ($slaves[$i].hips < 2) && (random(1,100) < 10)>>
-			$pronounCap feels @@.lime;strange minor pains@@ in $possessive pelvis.
-			<<set $slaves[$i].hips += 1>>
-	    <</if>>
-	    <<if ($slaves[$i].butt < 4) && (random(1,100) < 10)>>
-			$pronounCap feels a @@.lime;strange weight@@ on $possessive rear.
-			<<set $slaves[$i].butt += 1>>
-	    <</if>>
-	    <<if ($slaves[$i].labia < 2) && (random(1,100) < 10)>>
-			$pronounCap feels an @@.lime;unusual tenderness@@ in $possessive labia.
-			<<set $slaves[$i].labia += 1>>
-	    <</if>>
-	<<elseif ($slaves[$i].drugs == "hyper testicle enhancement")>>
-	    <<set $slaves[$i].pubertyAgeXX += .5>>
-	<</if>>
-	<<if ($slaves[$i].hormones == 1)>>
-	    <<set $slaves[$i].pubertyAgeXX -= 0.1>>
-	<<elseif ($slaves[$i].hormones == 2)>>
-	    <<set $slaves[$i].pubertyAgeXX -= 0.2>>
-	<<elseif ($slaves[$i].hormones == -1)>>
-	    <<set $slaves[$i].pubertyAgeXX += 0.2>>
-	<<elseif ($slaves[$i].hormones == -2)>>
-	    <<set $slaves[$i].pubertyAgeXX += 0.4>>
-	<</if>>
-	<<if $slaves[$i].drugs == "hormone enhancers">>
-		<<if ($slaves[$i].hormones == 1)>>
-			<<set $slaves[$i].pubertyAgeXX -= 0.1>>
-		<<elseif ($slaves[$i].hormones == 2)>>
-			<<set $slaves[$i].pubertyAgeXX -= 0.2>>
-		<<elseif ($slaves[$i].hormones == -1)>>
-			<<set $slaves[$i].pubertyAgeXX += 0.1>>
-		<<elseif ($slaves[$i].hormones == -2)>>
-			<<set $slaves[$i].pubertyAgeXX += 0.2>>
-		<</if>>
-	<<elseif $slaves[$i].drugs == "hormone blockers">>
-		<<set $slaves[$i].pubertyAgeXX += 1>>
-	<</if>>
+                <<set _precocious = 0>>
+                /* Just having NCS speeds precocious Puberty, but also hormonal puberty affects are 
+                * increased while secondary growth is supressed
+                */
+                <<if ($slaves[$i].inducedNCS == 1)>>
+                        <<set _precocious -= 0.8>>
+                <</if>>
 
-	<<if ($slaves[$i].physicalAge < $slaves[$i].pubertyAgeXX) && ($slaves[$i].physicalAge > $slaves[$i].pubertyAgeXX-3) && ($slaves[$i].pubertyAgeXX < $fertilityAge)>>
-		$possessiveCap body is showing signs of @@.lime;early puberty.@@
-    <</if>>
+                <<if ($slaves[$i].diet == "XX" || $slaves[$i].diet == "XXY")>>
+                        <<set _precocious -= 0.1>>
+                <<elseif $slaves[$i].diet == "fertility">>
+                         <<set _precocious -= 0.1>>
+                <</if>>
+                <<if ($slaves[$i].drugs == "fertility drugs")>>
+                        <<set _precocious -= 0.1>>
+                <<elseif ($slaves[$i].drugs == "female hormone injections")>>
+                        <<set _precocious -= 1>>
+                <<elseif ($slaves[$i].drugs == "male hormone injections")>>
+                        <<set _precocious += 1>>
+                <<elseif ($slaves[$i].drugs == "testicle enhancement")>>
+                        <<set _precocious += 0.1>>
+                <<elseif ($slaves[$i].drugs == "steroids")>>
+                        <<set _precocious += 0.2>>
+                        <<if ($slaves[$i].boobs > 100) && (random(1,100) < 30)>>
+                                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50) && ($slaves[$i].boobs > 300))>>
+                                        Hormonal effects work with $possessive NCS and cause @@.orange;$possessive tits to shrink down.@@
+                                        <<set $slaves[$i].boobs -= 50>>
+                                        <<set $slaves[$i].energy += 1>>
+                                <<else>>
+                                        $pronounCap feels an @@.orange;unusual calmness@@ in $possessive belly and breasts.
+                                <</if>>
+                                <<set $slaves[$i].boobs -= 50>>
+                        <</if>>
+                        <<if ($slaves[$i].inducedNCS == 0)>>
+                                <<if ($slaves[$i].clit < 2) && (random(1,100) < 10)>>
+                                        $pronounCap feels @@.lime;unusual warmness@@ in $possessive clitoris.
+                                        <<set $slaves[$i].clit += 1>>
+                                <</if>>
+                        <</if>>
+                <<elseif ($slaves[$i].drugs == "super fertility drugs")>>
+                        <<set _precocious -= 0.5>>
+                        <<if ($slaves[$i].inducedNCS == 0)>>
+                                $pronounCap feels an @@.lime;unusual warm feeling@@ in $possessive belly and breasts.
+                                <<if ($slaves[$i].boobs < 400) && (random(1,100) < 30)>>
+                                        $possessiveCap breasts feel @@.lime;heavy, hot and sensitive.@@
+                                        <<set $slaves[$i].boobs += 50>>
+                                        <<if random(1,100) < 10 && ($slaves[$i].breastMesh != 1)>>
+                                                <<set $slaves[$i].boobShape = "perky">>
+                                        <</if>>
+                                <</if>>
+                                <<if ($slaves[$i].hips < 2) && (random(1,100) < 10)>>
+                                        $pronounCap feels @@.lime;strange minor pains@@ in $possessive pelvis.
+                                        <<set $slaves[$i].hips += 1>>
+                                <</if>>
+                                <<if ($slaves[$i].butt < 4) && (random(1,100) < 10)>>
+                                        $pronounCap feels a @@.lime;strange weight@@ on $possessive rear.
+                                        <<set $slaves[$i].butt += 1>>
+                                <</if>>
+                                <<if ($slaves[$i].labia < 2) && (random(1,100) < 10)>>
+                                        $pronounCap feels an @@.lime;unusual tenderness@@ in $possessive labia.
+                                        <<set $slaves[$i].labia += 1>>
+                                <</if>>
+                        <</if>>
+                <<elseif ($slaves[$i].drugs == "hyper testicle enhancement")>>
+                        <<set _precocious += .5>>
+                <</if>>
+                <<if ($slaves[$i].hormones == 1)>>
+                        <<set _precocious -= 0.1>>
+                <<elseif ($slaves[$i].hormones == 2)>>
+                        <<set _precocious -= 0.2>>
+                <<elseif ($slaves[$i].hormones == -1)>>
+                        <<set _precocious += 0.2>>
+                <<elseif ($slaves[$i].hormones == -2)>>
+                        <<set _precocious += 0.4>>
+                <</if>>
+                <<if $slaves[$i].drugs == "hormone enhancers">>
+                        <<if ($slaves[$i].hormones == 1)>>
+                                <<set _precocious -= 0.1>>
+                        <<elseif ($slaves[$i].hormones == 2)>>
+                                <<set _precocious -= 0.2>>
+                        <<elseif ($slaves[$i].hormones == -1)>>
+                                <<set _precocious += 0.1>>
+                        <<elseif ($slaves[$i].hormones == -2)>>
+                                <<set _precocious += 0.2>>
+                        <</if>>
+                <<elseif $slaves[$i].drugs == "hormone blockers">>
+                        <<set _precocious += 1>>
+                <</if>>
+                <<if ($slaves[$i].inducedNCS == 1)>>
+                        <<set _precocious *= 2>>
+                <</if>>
+                <<set $slaves[$i].pubertyAgeXX += _precocious>>
+
+                <<if ($slaves[$i].physicalAge < $slaves[$i].pubertyAgeXX) && ($slaves[$i].physicalAge > $slaves[$i].pubertyAgeXX-3) && ($slaves[$i].pubertyAgeXX < $fertilityAge)>>
+                        <<if $slaves[$i].inducedNCS == 0>>
+                                $possessiveCap body is showing signs of @@.lime;early puberty.@@
+                        <<else>>
+                                A routine scan confirms that $possessive body is advancing towards @@.lime;early puberty.@@ puberty, despite not really showing signs of secondary sexual characteristics.
+                        <</if>>
+                <</if>>
 
 	<</if>> /* closes female type */
 
  	<<if ($slaves[$i].physicalAge < $slaves[$i].pubertyAgeXY) && $slaves[$i].balls >= 1 && $slaves[$i].pubertyXY == 0>>  /* Male type */
+                <<set _precocious = 0>>
+                /* Just having NCS speeds precocious Puberty, but also hormonal puberty affects are increased while secondary growth is supressed */
+                <<if ($slaves[$i].inducedNCS == 1)>>
+                        <<set _precocious -= 0.8>>
+                <</if>>
 
-	<<if ($slaves[$i].diet == "XY" || $slaves[$i].diet == "XXY")>>
-	    <<set $slaves[$i].pubertyAgeXY -= 0.1>>
-	<</if>>
-	<<if ($slaves[$i].drugs == "fertility drugs")>>
-	    <<set $slaves[$i].pubertyAgeXY += 0.2>>
-	<<elseif ($slaves[$i].drugs == "female hormone injections")>>
-	    <<set $slaves[$i].pubertyAgeXY += 1>>
-	<<elseif ($slaves[$i].drugs == "male hormone injections")>>
-	    <<set $slaves[$i].pubertyAgeXY -= 1>>
-	<<elseif ($slaves[$i].drugs == "testicle enhancement")>>
-	    <<set $slaves[$i].pubertyAgeXY -= 0.1>>
-	<<elseif ($slaves[$i].drugs == "steroids")>>
-	    <<set $slaves[$i].pubertyAgeXY -= 0.2>>
-	<<elseif ($slaves[$i].drugs == "hyper testicle enhancement")>>
-	    <<set $slaves[$i].pubertyAgeXY -= 0.5>>
-		$pronounCap feels an @@.lime;unusual warm feeling@@ in $possessive groin.
-	    <<if ($slaves[$i].dick < 4) && (random(1,100) < 30)>>
-			$possessiveCap penis feels @@.lime;heavy, hot and oversensitive@@.
-			<<set $slaves[$i].dick += 1>>
-	    <</if>>
-		<<if ($slaves[$i].balls < 4) && (random(1,100) < 30)>>
-			$possessiveCap balls feel @@.lime;heavy, full and oversensitive@@.
-			<<set $slaves[$i].balls += 1>>
-	    <</if>>
-	<<elseif ($slaves[$i].drugs == "super fertility drugs")>>
-	    <<set $slaves[$i].pubertyAgeXY -= 1>>
-		$pronounCap feels @@.lime;unusual warm feeling@@ in $possessive breasts.
-	    <<if ($slaves[$i].boobs < 400) && (random(1,100) < 30)>>
-			$possessiveCap chest feels @@.lime;hot and sensitive@@.
-			<<set $slaves[$i].boobs += 50>>
-			<<if random(1,100) < 10 && ($slaves[$i].breastMesh != 1)>>
-				<<set $slaves[$i].boobShape = "perky">>
-			<</if>>
-	    <</if>>
-	    <<if ($slaves[$i].hips < 2) && (random(1,100) < 10)>>
-			$pronounCap feels @@.lime;strange minor pains@@ in $possessive pelvis.
-			<<set $slaves[$i].hips += 1>>
-	    <</if>>
-	    <<if ($slaves[$i].butt < 4) && (random(1,100) < 10)>>
-			$pronounCap feels a @@.lime;strange weight@@ to $possessive rear.
-			<<set $slaves[$i].butt += 1>>
-	    <</if>>
-	    <<if ($slaves[$i].dick > 1) && (random(1,100) < 30)>>
-			$pronounCap feels an @@.orange;unusual lightness@@ in $possessive penis.
-			<<set $slaves[$i].dick -= 1>>
-	    <</if>>
-	    <<if ($slaves[$i].balls > 1) && (random(1,100) < 30)>>
-			$pronounCap feels an @@.orange;unusual emptiness@@ to $possessive scrotum.
-			<<set $slaves[$i].balls -= 1>>
-	    <</if>>
-	<</if>>
-	<<if ($slaves[$i].hormones == 1)>>
-	    <<set $slaves[$i].pubertyAgeXY += 0.2>>
-	<<elseif ($slaves[$i].hormones == 2)>>
-	    <<set $slaves[$i].pubertyAgeXY += 0.4>>
-	<<elseif ($slaves[$i].hormones == -1)>>
-	    <<set $slaves[$i].pubertyAgeXY -= 0.1>>
-	<<elseif ($slaves[$i].hormones == -2)>>
-	    <<set $slaves[$i].pubertyAgeXY -= 0.2>>
-	<</if>>
-	<<if $slaves[$i].drugs == "hormone enhancers">>
-		<<if ($slaves[$i].hormones == 1)>>
-			<<set $slaves[$i].pubertyAgeXY += 0.1>>
-		<<elseif ($slaves[$i].hormones == 2)>>
-			<<set $slaves[$i].pubertyAgeXY += 0.2>>
-		<<elseif ($slaves[$i].hormones == -1)>>
-			<<set $slaves[$i].pubertyAgeXY -= 0.1>>
-		<<elseif ($slaves[$i].hormones == -2)>>
-			<<set $slaves[$i].pubertyAgeXY -= 0.2>>
-		<</if>>
-	<<elseif $slaves[$i].drugs == "hormone blockers">>
-		<<set $slaves[$i].pubertyAgeXY += 1>>
-	<</if>>
+                <<if ($slaves[$i].diet == "XY" || $slaves[$i].diet == "XXY")>>
+                        <<set _precocious -= 0.1>>
+                <</if>>
+                <<if ($slaves[$i].drugs == "fertility drugs")>>
+                        <<set _precocious += 0.2>>
+                <<elseif ($slaves[$i].drugs == "female hormone injections")>>
+                        <<set _precocious += 1>>
+                <<elseif ($slaves[$i].drugs == "male hormone injections")>>
+                        <<set _precocious -= 1>>
+                <<elseif ($slaves[$i].drugs == "testicle enhancement")>>
+                        <<set _precocious -= 0.1>>
+                <<elseif ($slaves[$i].drugs == "steroids")>>
+                        <<set _precocious -= 0.2>>
+                <<elseif ($slaves[$i].drugs == "hyper testicle enhancement")>>
+                        <<set _precocious -= 0.5>>
+                        <<if ($slaves[$i].inducedNCS == 0)>>
+                                $pronounCap feels an @@.lime;unusual warm feeling@@ in $possessive groin.
+                                <<if ($slaves[$i].dick < 4) && (random(1,100) < 30)>>
+                                        $possessiveCap penis feels @@.lime;heavy, hot and oversensitive@@.
+                                        <<set $slaves[$i].dick += 1>>
+                                <</if>>
+                                <<if ($slaves[$i].balls < 4) && (random(1,100) < 30)>>
+                                            $possessiveCap balls feel @@.lime;heavy, full and oversensitive@@.
+                                            <<set $slaves[$i].balls += 1>>
+                                <</if>>
+                        <</if>>
+                <<elseif ($slaves[$i].drugs == "super fertility drugs")>>
+                        <<set _precocious -= 1>>
+                        <<if ($slaves[$i].inducedNCS == 0)>>
+                                $pronounCap feels @@.lime;unusual warm feeling@@ in $possessive breasts.
+                                <<if ($slaves[$i].boobs < 400) && (random(1,100) < 30)>>
+                                        $possessiveCap chest feels @@.lime;hot and sensitive@@.
+                                        <<set $slaves[$i].boobs += 50>>
+                                        <<if random(1,100) < 10 && ($slaves[$i].breastMesh != 1)>>
+                                                <<set $slaves[$i].boobShape = "perky">>
+                                        <</if>>
+                                <</if>>
+                                <<if ($slaves[$i].hips < 2) && (random(1,100) < 10)>>
+                                        $pronounCap feels @@.lime;strange minor pains@@ in $possessive pelvis.
+                                        <<set $slaves[$i].hips += 1>>
+                                <</if>>
+                                <<if ($slaves[$i].butt < 4) && (random(1,100) < 10)>>
+                                        $pronounCap feels a @@.lime;strange weight@@ to $possessive rear.
+                                        <<set $slaves[$i].butt += 1>>
+                                <</if>>
+                        <</if>>
+                        <<if ($slaves[$i].dick > 1) && (random(1,100) < 30)>>
+                                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50) && ($slaves[$i].dick > 2))>>
+                                        Hormonal effects work with $possessive NCS and cause @@.orange;$possessive dick to shrink.@@
+                                        <<set $slaves[$i].dick -= 1>>
+                                <<else>>
+                                        $pronounCap feels an @@.orange;unusual lightness@@ in $possessive penis.
+                                <</if>>
+                                <<set $slaves[$i].dick -= 1>>
+                        <</if>>
+                        <<if ($slaves[$i].balls > 1) && (random(1,100) < 30)>>
+                                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50) && ($slaves[$i].balls > 300))>>
+                                        Hormonal effects work with $possessive NCS and cause @@.orange;$possessive balls to shrink.@@
+                                        <<set $slaves[$i].balls -= 1>>
+                                <<else>>
+                                        $pronounCap feels an @@.orange;unusual emptiness@@ to $possessive scrotum.
+                                <</if>>
+                                <<set $slaves[$i].balls -= 1>>
+                        <</if>>
+                <</if>>
+                <<if ($slaves[$i].hormones == 1)>>
+                    <<set _precocious += 0.2>>
+                <<elseif ($slaves[$i].hormones == 2)>>
+                    <<set _precocious += 0.4>>
+                <<elseif ($slaves[$i].hormones == -1)>>
+                    <<set _precocious -= 0.1>>
+                <<elseif ($slaves[$i].hormones == -2)>>
+                    <<set _precocious -= 0.2>>
+                <</if>>
+                <<if $slaves[$i].drugs == "hormone enhancers">>
+                        <<if ($slaves[$i].hormones == 1)>>
+                                <<set _precocious += 0.1>>
+                        <<elseif ($slaves[$i].hormones == 2)>>
+                                <<set _precocious += 0.2>>
+                        <<elseif ($slaves[$i].hormones == -1)>>
+                                <<set _precocious -= 0.1>>
+                        <<elseif ($slaves[$i].hormones == -2)>>
+                                <<set _precocious -= 0.2>>
+                        <</if>>
+                <<elseif $slaves[$i].drugs == "hormone blockers">>
+                        <<set _precocious += 1>>
+                <</if>>
+                <<if ($slaves[$i].inducedNCS == 1)>>
+                        <<set _precocious *= 2>>
+                <</if>>
+                <<set $slaves[$i].pubertyAgeXY += _precocious>>
 
-	<<if ($slaves[$i].physicalAge < $slaves[$i].pubertyAgeXY) && ($slaves[$i].physicalAge > $slaves[$i].pubertyAgeXY-3) && ($slaves[$i].pubertyAgeXY < $potencyAge)>>
-		$possessiveCap body is showing signs of @@.lime;early puberty.@@
-    <</if>>
+                <<if ($slaves[$i].physicalAge < $slaves[$i].pubertyAgeXY) && ($slaves[$i].physicalAge > $slaves[$i].pubertyAgeXY-3) && ($slaves[$i].pubertyAgeXY < $potencyAge)>>
+                        <<if $slaves[$i].inducedNCS == 0>>
+                                $possessiveCap body is showing signs of @@.lime;early puberty.@@
+                        <<else>>
+                                A routine scan confirms that $possessive body is advancing towards @@.lime;early puberty.@@ puberty, despite not really showing signs of secondary sexual characteristics.
+                        <</if>>
+                <</if>>
 
 	<</if>> /* closes male type */
 
@@ -4090,7 +4163,10 @@
 				<<set $slaves[$i].fetish = "pregnancy", $slaves[$i].fetishKnown = 1, $slaves[$i].fetishStrength = 65>>
 			<</if>>
 		<</if>> /* closes not fuckdoll or mindbroken check; still .preg >= 10 */
-		<<if $slaves[$i].physicalAge >= 18>>
+		<<if $slaves[$i].inducedNCS == 1>>
+                        /* NCS: always working against secondary sexual characteristics even in pregnancies. */
+                        <<set _boobTarget = 0>>
+		<<elseif $slaves[$i].physicalAge >= 18>>
 			<<if $slaves[$i].pregType >= 50>>
 				<<set _boobTarget = 10000>>
 			<<elseif $slaves[$i].pregType >= 30>>
@@ -4131,56 +4207,58 @@
 				<<set _boobTarget = 400>>
 			<</if>>
 		<</if>>
-		<<if ($slaves[$i].pregType >= 30) && ((($slaves[$i].assignment == "be your Concubine" || $slaves[$i].assignment == "serve in the master suite") && $masterSuitePregnancySlaveLuxuries == 1) || ($slaves[$i].diet == "high caloric"))>>
-			<<if ($slaves[$i].weight <= 65)>>
-				$pronounCap has @@.lime;gained weight@@ in order to better sustain <<print $possessive>>self and $possessive children.
-				<<set $slaves[$i].weight += 1>>
-			<</if>>
-			<<if (random(1,100) > 60)>>
-				<<if (($slaves[$i].boobs - $slaves[$i].boobsImplant) < _boobTarget)>>
-					$possessiveCap breasts @@.lime;greatly swell@@ to meet the upcoming demand.
-					<<set $slaves[$i].boobs += 200>>
-					<<if $slaves[$i].boobShape != "saggy" && $slaves[$i].preg > 32 && ($slaves[$i].breastMesh != 1) && ($slaves[$i].drugs != "sag-B-gone")>>
-						$possessiveCap immensely engorged @@.orange;breasts become saggy@@ in the last stages of $possessive pregnancy as $possessive body undergoes changes in anticipation of the forthcoming birth.
-						<<set $slaves[$i].boobShape = "saggy">>
-					<</if>>
-				<</if>>
-				<<if ($slaves[$i].hips < 2)>>
-					$possessiveCap hips @@.lime;widen@@ for $possessive upcoming birth.
-					<<set $slaves[$i].hips += 1>>
-				<</if>>
-				<<if ($slaves[$i].butt < 14)>>
-					$possessiveCap butt @@.lime;swells with added fat@@ from $possessive changing body.
-					<<set $slaves[$i].butt += 1>>
-				<</if>>
-			<</if>>
-		<<elseif ($slaves[$i].pregType >= 10)>>
-			<<if random(1,100) > 80 && (($slaves[$i].boobs - $slaves[$i].boobsImplant) < _boobTarget)>>
-				$possessiveCap breasts @@.lime;swell@@ in preparation for $possessive growing brood.
-				<<set $slaves[$i].boobs += 100>>
-				<<if $slaves[$i].boobShape != "saggy" && ($slaves[$i].breastMesh != 1) && ($slaves[$i].drugs != "sag-B-gone")>>
-					<<if $slaves[$i].preg > random(32,82)>>
-						$possessiveCap swollen @@.orange;breasts become saggy@@ in the last stages of $possessive pregnancy as $possessive body undergoes changes in anticipation of the forthcoming birth.
-						<<set $slaves[$i].boobShape = "saggy">>
-					<</if>>
-				<</if>>
-			<</if>>
-		<<elseif ($slaves[$i].boobs - $slaves[$i].boobsImplant) < _boobTarget>>
-			<<if random(1,100) > 80>>
-				Pregnancy @@.lime;causes $possessive breasts to swell somewhat.@@
-				<<set $slaves[$i].boobs += 50>>
-				<<if $slaves[$i].boobShape != "saggy" && $slaves[$i].preg > random(32,100) && ($slaves[$i].breastMesh != 1) && ($slaves[$i].drugs != "sag-B-gone")>>
-					$possessiveCap @@.orange;breasts become saggy@@ in the last stages of $possessive pregnancy as $possessive body undergoes changes in anticipation of the forthcoming birth.
-					<<set $slaves[$i].boobShape = "saggy">>
-				<</if>>
-			<</if>>
-		<</if>>
-		<<if $slaves[$i].preg > 32 && $slaves[$i].physicalAge >= 18 && $slaves[$i].hips == 1 && $slaves[$i].hipsImplant == 0 && random(1,100) > 90>>
-			$possessiveCap hips @@.lime;widen@@ to better support $possessive gravidity.
-			<<set $slaves[$i].hips += 1>>
-		<<elseif $slaves[$i].preg > 28 && $slaves[$i].physicalAge >= 18 && $slaves[$i].hips == 0 && $slaves[$i].hipsImplant == 0 && random(1,100) > 70>>
-			$possessiveCap hips @@.lime;widen@@ to better support $possessive gravidity.
-			<<set $slaves[$i].hips += 1>>
+                <<if ($slaves[$i].inducedNCS == 0)>>
+                        <<if ($slaves[$i].pregType >= 30) && ((($slaves[$i].assignment == "be your Concubine" || $slaves[$i].assignment == "serve in the master suite") && $masterSuitePregnancySlaveLuxuries == 1) || ($slaves[$i].diet == "high caloric"))>>
+                                <<if ($slaves[$i].weight <= 65)>>
+                                        $pronounCap has @@.lime;gained weight@@ in order to better sustain <<print $possessive>>self and $possessive children.
+                                        <<set $slaves[$i].weight += 1>>
+                                <</if>>
+                                <<if (random(1,100) > 60)>>
+                                        <<if (($slaves[$i].boobs - $slaves[$i].boobsImplant) < _boobTarget)>>
+                                                $possessiveCap breasts @@.lime;greatly swell@@ to meet the upcoming demand.
+                                                <<set $slaves[$i].boobs += 200>>
+                                                <<if $slaves[$i].boobShape != "saggy" && $slaves[$i].preg > 32 && ($slaves[$i].breastMesh != 1) && ($slaves[$i].drugs != "sag-B-gone")>>
+                                                        $possessiveCap immensely engorged @@.orange;breasts become saggy@@ in the last stages of $possessive pregnancy as $possessive body undergoes changes in anticipation of the forthcoming birth.
+                                                        <<set $slaves[$i].boobShape = "saggy">>
+                                                <</if>>
+                                        <</if>>
+                                        <<if ($slaves[$i].hips < 2)>>
+                                                $possessiveCap hips @@.lime;widen@@ for $possessive upcoming birth.
+                                                <<set $slaves[$i].hips += 1>>
+                                        <</if>>
+                                        <<if ($slaves[$i].butt < 14)>>
+                                                $possessiveCap butt @@.lime;swells with added fat@@ from $possessive changing body.
+                                                <<set $slaves[$i].butt += 1>>
+                                        <</if>>
+                                <</if>>
+                        <<elseif ($slaves[$i].pregType >= 10)>>
+                                <<if random(1,100) > 80 && (($slaves[$i].boobs - $slaves[$i].boobsImplant) < _boobTarget)>>
+                                        $possessiveCap breasts @@.lime;swell@@ in preparation for $possessive growing brood.
+                                        <<set $slaves[$i].boobs += 100>>
+                                        <<if $slaves[$i].boobShape != "saggy" && ($slaves[$i].breastMesh != 1) && ($slaves[$i].drugs != "sag-B-gone")>>
+                                                <<if $slaves[$i].preg > random(32,82)>>
+                                                        $possessiveCap swollen @@.orange;breasts become saggy@@ in the last stages of $possessive pregnancy as $possessive body undergoes changes in anticipation of the forthcoming birth.
+                                                        <<set $slaves[$i].boobShape = "saggy">>
+                                                <</if>>
+                                        <</if>>
+                                <</if>>
+                        <<elseif ($slaves[$i].boobs - $slaves[$i].boobsImplant) < _boobTarget>>
+                                <<if random(1,100) > 80>>
+                                        Pregnancy @@.lime;causes $possessive breasts to swell somewhat.@@
+                                        <<set $slaves[$i].boobs += 50>>
+                                        <<if $slaves[$i].boobShape != "saggy" && $slaves[$i].preg > random(32,100) && ($slaves[$i].breastMesh != 1) && ($slaves[$i].drugs != "sag-B-gone")>>
+                                                $possessiveCap @@.orange;breasts become saggy@@ in the last stages of $possessive pregnancy as $possessive body undergoes changes in anticipation of the forthcoming birth.
+                                                <<set $slaves[$i].boobShape = "saggy">>
+                                        <</if>>
+                                <</if>>
+                        <</if>>
+                        <<if $slaves[$i].preg > 32 && $slaves[$i].physicalAge >= 18 && $slaves[$i].hips == 1 && $slaves[$i].hipsImplant == 0 && random(1,100) > 90>>
+                                $possessiveCap hips @@.lime;widen@@ to better support $possessive gravidity.
+                                <<set $slaves[$i].hips += 1>>
+                        <<elseif $slaves[$i].preg > 28 && $slaves[$i].physicalAge >= 18 && $slaves[$i].hips == 0 && $slaves[$i].hipsImplant == 0 && random(1,100) > 70>>
+                                $possessiveCap hips @@.lime;widen@@ to better support $possessive gravidity.
+                                <<set $slaves[$i].hips += 1>>
+                        <</if>>
 		<</if>>
 		<<if $slaves[$i].preg == 15>>
 			<<if $slaves[$i].pregKnown == 0>>
@@ -4833,23 +4911,23 @@
 			<<set _effect = random(1,6)>>
 			Being so angry at her life as a sex slave has
 			<<if _effect == 1>>
-			driven her into @@.red;sexual apathy.@@
-			<<set $slaves[$i].sexualFlaw = "apathetic">>
+                                driven her into @@.red;sexual apathy.@@
+                                <<set $slaves[$i].sexualFlaw = "apathetic">>
 			<<elseif _effect == 2>>
-			convinced her that the conservative parts of her upbringing were right: sex is evil. @@.red;She's now repressed.@@
-			<<set $slaves[$i].sexualFlaw = "repressed">>
+                                convinced her that the conservative parts of her upbringing were right: sex is evil. @@.red;She's now repressed.@@
+                                <<set $slaves[$i].sexualFlaw = "repressed">>
 			<<elseif _effect == 3>>
-			given her a dread of being nude. @@.red;She's now shamefast.@@
-			<<set $slaves[$i].sexualFlaw = "shamefast">>
+                                given her a dread of being nude. @@.red;She's now shamefast.@@
+                                <<set $slaves[$i].sexualFlaw = "shamefast">>
 			<<elseif _effect == 4>>
-			deprived her of any motivation to keep sex appealing or even clean. @@.red;She's now crude.@@
-			<<set $slaves[$i].sexualFlaw = "crude">>
+                                deprived her of any motivation to keep sex appealing or even clean. @@.red;She's now crude.@@
+                                <<set $slaves[$i].sexualFlaw = "crude">>
 			<<elseif _effect == 5>>
-			driven her to find refuge in high standards. @@.red;She's now judgemental.@@
-			<<set $slaves[$i].sexualFlaw = "judgemental">>
+                                driven her to find refuge in high standards. @@.red;She's now judgemental.@@
+                                <<set $slaves[$i].sexualFlaw = "judgemental">>
 			<<else>>
-			convinced her that sex is only this way here. Convinced that sexual slavery is wrong, @@.red;She's become sexually idealistic.@@
-			<<set $slaves[$i].sexualFlaw = "idealistic">>
+                                convinced her that sex is only this way here. Convinced that sexual slavery is wrong, @@.red;She's become sexually idealistic.@@
+                                <<set $slaves[$i].sexualFlaw = "idealistic">>
 			<</if>>
 		<</if>>
 		<</if>>
@@ -5163,40 +5241,43 @@
 <</if>>
 
 <<if $arcologies[0].FSYouthPreferentialist != "unset">>
-	<<if ($slaves[$i].visualAge < 30)>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName's youthful body; $pronoun furthers the fashion for young slaves.
-	<<set _youth_rep_change = ((30-$slaves[$i].visualAge)/5)>>
-	<<FSChangePorn "YouthPreferentialist" _youth_rep_change>>
+	<<if ($slaves[$i].inducedNCS > 0) && ($slaves[$i].visualAge <= 18)>>
+                Society @@.green;strongly approves@@ of you keeping $slaves[$i].slaveName forever young and youthening; this furthers the fashion for young slaves.
+                <<FSChangePorn "Paternalist" 2>>
+	<<elseif ($slaves[$i].visualAge < 30)>>
+                Society @@.green;approves@@ of $slaves[$i].slaveName's youthful body; $pronoun furthers the fashion for young slaves.
+                <<set _youth_rep_change = ((30-$slaves[$i].visualAge)/5)>>
+                <<FSChangePorn "YouthPreferentialist" _youth_rep_change>>
 	<</if>>
 <<elseif $arcologies[0].FSMaturityPreferentialist != "unset">>
 	<<if ($slaves[$i].visualAge >= 30)>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName's mature body; $pronoun furthers the fashion for older ladies.
-	<<set _maturity_rep_change = (($slaves[$i].visualAge-25)/5)>>
-	<<FSChangePorn "MaturityPreferentialist" _maturity_rep_change>>
+                Society @@.green;approves@@ of $slaves[$i].slaveName's mature body; $pronoun furthers the fashion for older ladies.
+                <<set _maturity_rep_change = (($slaves[$i].visualAge-25)/5)>>
+                <<FSChangePorn "MaturityPreferentialist" _maturity_rep_change>>
 	<</if>>
 <</if>>
 
 <<if $arcologies[0].FSGenderRadicalist != "unset">>
 	<<if ($slaves[$i].balls > 0) && ($slaves[$i].dick > 0) && ($slaves[$i].hormoneBalance >= 100)>>
-	Society @@.green;approves@@ of your heavy hormonal feminization of $slaves[$i].slaveName; this advances public interest in girls with soft little dicks.
-	<<FSChangePorn "GenderRadicalist" 1>>
+                Society @@.green;approves@@ of your heavy hormonal feminization of $slaves[$i].slaveName; this advances public interest in girls with soft little dicks.
+                <<FSChangePorn "GenderRadicalist" 1>>
 	<<elseif ($slaves[$i].balls > 0) && ($slaves[$i].pubertyXY == 0) && ($slaves[$i].physicalAge >= $potencyAge)>>
-	Society @@.green;approves@@ of you keeping $slaves[$i].slaveName from going through puberty; this advances public interest in girls with soft little dicks.
-	<<FSChangePorn "GenderRadicalist" 2>>
+                Society @@.green;approves@@ of you keeping $slaves[$i].slaveName from going through puberty; this advances public interest in girls with soft little dicks.
+                <<FSChangePorn "GenderRadicalist" 2>>
 	<<elseif ($slaves[$i].dick > 0) && ($slaves[$i].balls == 0)>>
-	Society @@.green;approves@@ of your keeping a gelded slave; this advances public interest in girls with soft dickclits.
-	<<FSChangePorn "GenderRadicalist" 1>>
+                Society @@.green;approves@@ of your keeping a gelded slave; this advances public interest in girls with soft dickclits.
+                <<FSChangePorn "GenderRadicalist" 1>>
 	<<elseif ($slaves[$i].dick > 0) && ($slaves[$i].anus > 0) && ($slaves[$i].devotion > 20) && ($slaves[$i].trust > -20)>>
-	Society @@.green;approves@@ of your keeping a contented dickgirl bottom; this advances public interest in girls who get hard when assfucked.
-	<<FSChangePorn "GenderRadicalist" 1>>
+                Society @@.green;approves@@ of your keeping a contented dickgirl bottom; this advances public interest in girls who get hard when assfucked.
+                <<FSChangePorn "GenderRadicalist" 1>>
 	<</if>>
 <<elseif $arcologies[0].FSGenderFundamentalist != "unset">>
 	<<if ($slaves[$i].bellyPreg >= 1500)>>
-	Society <<if $arcologies[0].FSGenderFundamentalist >= $FSLockinLevel*0.5>>@@.green;approves@@<<else>>@@.green;approves@@<</if>> of your keeping a pregnant slave; this also supports the idea that slave women should bear babies.
-	<<FSChangePorn "GenderFundamentalist" 1>>
+                Society <<if $arcologies[0].FSGenderFundamentalist >= $FSLockinLevel*0.5>>@@.green;approves@@<<else>>@@.green;approves@@<</if>> of your keeping a pregnant slave; this also supports the idea that slave women should bear babies.
+                <<FSChangePorn "GenderFundamentalist" 1>>
 	<<elseif ($slaves[$i].preg == 0)>>
-	Society <<if $arcologies[0].FSGenderFundamentalist >= $FSLockinLevel*0.5>>@@.green;approves@@<<else>>@@.green;approves@@<</if>> of your keeping a slave fertile; this also supports the idea that slave women should bear babies.
-	<<FSChangePorn "GenderFundamentalist" 1>>
+                Society <<if $arcologies[0].FSGenderFundamentalist >= $FSLockinLevel*0.5>>@@.green;approves@@<<else>>@@.green;approves@@<</if>> of your keeping a slave fertile; this also supports the idea that slave women should bear babies.
+                <<FSChangePorn "GenderFundamentalist" 1>>
 	<</if>>
 	<<if ($slaves[$i].devotion <= 95) && canPenetrate($slaves[$i])>>
 		Society @@.red;disapproves@@ of $slaves[$i].slaveName's stiff, unrestrained dick, since $pronoun isn't even worshipful of you.
@@ -5315,41 +5396,44 @@
 <</if>>
 
 <<if $arcologies[0].FSPaternalist != "unset">>
-	<<if ($slaves[$i].intelligenceImplant > 0) && ($slaves[$i].fetish != "mindbroken")>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName being properly educated; this advances ideas about slave improvement.
-	<<FSChangePorn "Paternalist" 1>>
+	<<if ($slaves[$i].inducedNCS > 0) && ($slaves[$i].visualAge <= $potencyAge) && ($slaves[$i].physicalAge >= $potencyAge)>>
+                Society @@.green;approves@@ of you keeping $slaves[$i].slaveName perpetually young and innocent looking so you can keep taking care of $object; this advances paternalistic ideals.
+                <<FSChangePorn "Paternalist" 1>>
+	<<elseif ($slaves[$i].intelligenceImplant > 0) && ($slaves[$i].fetish != "mindbroken")>>
+                Society @@.green;approves@@ of $slaves[$i].slaveName being properly educated; this advances ideas about slave improvement.
+                <<FSChangePorn "Paternalist" 1>>
 	<<elseif ($slaves[$i].intelligenceImplant == 0) && ($slaves[$i].intelligence < 0) && ($slaves[$i].fetish != "mindbroken")>>
-	Society @@.red;disapproves@@ of $slaves[$i].slaveName being stupid and uneducated; this holds back ideas about slave improvement.
-	<<FSChangePorn "Paternalist" -1>>
+                Society @@.red;disapproves@@ of $slaves[$i].slaveName being stupid and uneducated; this holds back ideas about slave improvement.
+                <<FSChangePorn "Paternalist" -1>>
 	<</if>>
 	<<if ($slaves[$i].health > 80)>>
-	Society @@.green;approves@@ of $possessive shining health; this advances belief in a slaveowner's duty.
-	<<FSChangePorn "Paternalist" 1>>
+                Society @@.green;approves@@ of $possessive shining health; this advances belief in a slaveowner's duty.
+                <<FSChangePorn "Paternalist" 1>>
 	<</if>>
 	<<if ($slaves[$i].devotion+$slaves[$i].trust > 180)>>
 		<<if ($slaves[$i].relationship == -3)>>
-		Society @@.green;approves very strongly@@ of $possessive happiness as your wife; this advances paternalistic ideals.
-		<<FSChangePorn "Paternalist" 5>>
+                        Society @@.green;approves very strongly@@ of $possessive happiness as your wife; this advances paternalistic ideals.
+                        <<FSChangePorn "Paternalist" 5>>
 		<<elseif ($slaves[$i].relationship == -2)>>
-		Society @@.green;strongly approves@@ of $possessive emotional bond to you; this advances paternalistic ideals.
-		<<FSChangePorn "Paternalist" 2>>
+                        Society @@.green;strongly approves@@ of $possessive emotional bond to you; this advances paternalistic ideals.
+                        <<FSChangePorn "Paternalist" 2>>
 		<<else>>
-		Society @@.green;approves@@ of $possessive attachment to you; this advances paternalistic ideals.
-		<<FSChangePorn "Paternalist" 1>>
+                        Society @@.green;approves@@ of $possessive attachment to you; this advances paternalistic ideals.
+                        <<FSChangePorn "Paternalist" 1>>
 		<</if>>
 	<<else>>
 		<<if ($slaves[$i].devotion > 95)>>
-		Society @@.green;approves@@ of $possessive attachment to you; this advances paternalistic ideals.
-		<<FSChangePorn "Paternalist" 1>>
+                        Society @@.green;approves@@ of $possessive attachment to you; this advances paternalistic ideals.
+                        <<FSChangePorn "Paternalist" 1>>
 		<</if>>
 		<<if ($slaves[$i].trust > 95)>>
-		Society @@.green;approves@@ of $possessive trust in you; this advances paternalistic ideals.
-		<<FSChangePorn "Paternalist" 1>>
+                        Society @@.green;approves@@ of $possessive trust in you; this advances paternalistic ideals.
+                        <<FSChangePorn "Paternalist" 1>>
 		<</if>>
 	<</if>>
 	<<if ($slaves[$i].choosesOwnAssignment == 1)>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName being allowed to choose $possessive own job, advancing ideals about slave self-actualization.
-	<<FSChangePorn "Paternalist" 1>>
+                Society @@.green;approves@@ of $slaves[$i].slaveName being allowed to choose $possessive own job, advancing ideals about slave self-actualization.
+                <<FSChangePorn "Paternalist" 1>>
 	<</if>>
 	<<if ($slaves[$i].relationship == -3)>>
 		<<if $slaves[$i].fetish == "mindbroken">>
@@ -5361,8 +5445,8 @@
 		<</if>>
 	<</if>>
 	<<if ($modScore > 15 || ($piercingScore > 8 && $tatScore > 5))>>
-	Society @@.red;disapproves@@ of $possessive degrading body modifications, which dulls the public interest in letting slaves choose their own appearance.
-	<<FSChangePorn "Paternalist" -1>>
+                Society @@.red;disapproves@@ of $possessive degrading body modifications, which dulls the public interest in letting slaves choose their own appearance.
+                <<FSChangePorn "Paternalist" -1>>
 	<</if>>
 	<<if $slaves[$i].fuckdoll > 0>>
 		Society @@.red;strongly disapproves@@ of your owning a Fuckdoll.
@@ -5370,8 +5454,8 @@
 	<</if>>
 <<elseif $arcologies[0].FSDegradationist != "unset">>
 	<<if ($slaves[$i].fetish == "mindbroken")>>
-	Society @@.green;approves@@ of $possessive broken spirit; $pronoun serves as an example of a soulless fuckpuppet.
-	<<FSChangePorn "Degradationist" 1>>
+                Society @@.green;approves@@ of $possessive broken spirit; $pronoun serves as an example of a soulless fuckpuppet.
+                <<FSChangePorn "Degradationist" 1>>
 	<<else>>
 	<<if ($slaves[$i].trust <= 4)>>
 		Society @@.green;approves@@ of $slaves[$i].slaveName's fear of you.
@@ -5390,12 +5474,12 @@
 	<</if>>
 	<</if>>
 	<<if ($slaves[$i].assignment == "work a glory hole") || ($slaves[$i].assignment == "be confined in the arcade")>>
-	Society @@.green;approves@@ of how $pronoun is restrained for involuntary use, seeing this as the future of sexual relations.
-	<<FSChangePorn "Degradationist" 1>>
+                Society @@.green;approves@@ of how $pronoun is restrained for involuntary use, seeing this as the future of sexual relations.
+                <<FSChangePorn "Degradationist" 1>>
 	<</if>>
 	<<if ($modScore > 15 || ($piercingScore > 8 && $tatScore > 5))>>
-	Society @@.green;approves@@ of $possessive many body modifications, which advances the public taste for such degradation of slave bodies.
-	<<FSChangePorn "Degradationist" 1>>
+                Society @@.green;approves@@ of $possessive many body modifications, which advances the public taste for such degradation of slave bodies.
+                <<FSChangePorn "Degradationist" 1>>
 	<</if>>
 	<<if $slaves[$i].voice != 0>>
 	<<if $slaves[$i].lips > 95>>
@@ -5404,8 +5488,8 @@
 	<</if>>
 	<</if>>
 	<<if ($slaves[$i].choosesOwnAssignment == 1)>>
-	Society @@.red;disapproves@@ of $slaves[$i].slaveName being allowed to choose $possessive own job; this holds back ideas about slave degradation.
-	<<FSChangePorn "Degradationist" -1>>
+                Society @@.red;disapproves@@ of $slaves[$i].slaveName being allowed to choose $possessive own job; this holds back ideas about slave degradation.
+                <<FSChangePorn "Degradationist" -1>>
 	<</if>>
 	<<if $slaves[$i].fuckdoll > 0>>
 		Society @@.green;approves@@ of your owning a Fuckdoll.
@@ -5426,15 +5510,15 @@
 
 <<if $arcologies[0].FSBodyPurist != "unset">>
 	<<if ($slaves[$i].boobsImplant == 0) && ($slaves[$i].buttImplant == 0) && ($slaves[$i].lipsImplant == 0) && ($slaves[$i].bellyImplant == -1)>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName's natural body; this supports the fashion for surgically untouched slaves.
-	<<FSChangePorn "BodyPurist" 1>>
+                Society @@.green;approves@@ of $slaves[$i].slaveName's natural body; this supports the fashion for surgically untouched slaves.
+                <<FSChangePorn "BodyPurist" 1>>
 	<<else>>
-	Society @@.red;disapproves@@ of $slaves[$i].slaveName's implants; this holds back acceptance of the idea that slaves should be all-natural.
-	<<FSChangePorn "BodyPurist" -1>>
+                Society @@.red;disapproves@@ of $slaves[$i].slaveName's implants; this holds back acceptance of the idea that slaves should be all-natural.
+                <<FSChangePorn "BodyPurist" -1>>
 	<</if>>
 	<<if ($slaves[$i].corsetPiercing == 0 && $piercingScore < 3 && $tatScore < 2)>>
-	Society @@.green;approves@@ of $possessive unmarked, unblemished skin, advancing the fashion for unspoiled slaves.
-	<<FSChangePorn "BodyPurist" 1>>
+                Society @@.green;approves@@ of $possessive unmarked, unblemished skin, advancing the fashion for unspoiled slaves.
+                <<FSChangePorn "BodyPurist" 1>>
 	<</if>>
 	<<set _race = $slaves[$i].race>>
 	<<if $slaves[$i].faceImplant <= 5 && _race.indexOf("surgically") == -1>>
@@ -5531,24 +5615,28 @@
 		<</if>>
 	<</if>>
 	<<if ($slaves[$i].butt > 4) && ($slaves[$i].boobs > 800)>>
-	Society @@.red;disapproves@@ of $slaves[$i].slaveName's boorishly large tits and ass; $pronoun damages the fashion for slender slaves.
-	<<FSChangePorn "SlimnessEnthusiast" -1>>
+                Society @@.red;disapproves@@ of $slaves[$i].slaveName's boorishly large tits and ass; $pronoun damages the fashion for slender slaves.
+                <<FSChangePorn "SlimnessEnthusiast" -1>>
 	<</if>>
 <<elseif $arcologies[0].FSAssetExpansionist != "unset">>
+	<<if ($slaves[$i].inducedNCS > 0)>>
+                Society @@.green;strongly disaproves @@ of $slaves[$i].slaveName who can't get bigger; Her shrinking body hurts the fashion for Asset expansion.
+                <<FSChangePorn "AssetExpansionist" -2>>
+	<</if>>
 	<<if ($slaves[$i].boobs > 2000)>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName's huge tits; $possessive breasts further the fashion for bouncing boobs on slaves.
-	<<FSChangePorn "AssetExpansionist" 1>>
+                Society @@.green;approves@@ of $slaves[$i].slaveName's huge tits; $possessive breasts further the fashion for bouncing boobs on slaves.
+                <<FSChangePorn "AssetExpansionist" 1>>
 	<</if>>
 	<<if ($slaves[$i].butt > 7)>>
-	Society @@.green;approves@@ of $possessive massive ass; $possessive butt furthers the fashion for big behinds on slaves.
-	<<FSChangePorn "AssetExpansionist" 1>>
+                Society @@.green;approves@@ of $possessive massive ass; $possessive butt furthers the fashion for big behinds on slaves.
+                <<FSChangePorn "AssetExpansionist" 1>>
 	<</if>>
 	<<if ($slaves[$i].dick > 8)>>
-	Society @@.green;approves@@ of $possessive massive member, which might be nonfunctional, but is a wonder of expansionism.
-	<<set _Dic = $slaves[$i].dick-8>>
-	<<FSChangePorn "AssetExpansionist" _Dic>>
+                Society @@.green;approves@@ of $possessive massive member, which might be nonfunctional, but is a wonder of expansionism.
+                <<set _Dic = $slaves[$i].dick-8>>
+	        <<FSChangePorn "AssetExpansionist" _Dic>>
 	<<elseif ($slaves[$i].dick > 6)>>
-	Society @@.green;approves@@ of $possessive enormous penis; $possessive cock furthers the fashion for dangling dicks on slaves.
+                Society @@.green;approves@@ of $possessive enormous penis; $possessive cock furthers the fashion for dangling dicks on slaves.
 		<<FSChangePorn "AssetExpansionist" 1>>
 	<</if>>
 	<<if ($slaves[$i].balls > 6)>>
@@ -5563,12 +5651,12 @@
 
 <<if $arcologies[0].FSPastoralist != "unset">>
 	<<if ($slaves[$i].lactation > 0)>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName's milky udders; the sight of $possessive creamy milk encourages the public taste for dairy straight from the nipple.
-	<<FSChangePorn "Pastoralist" 1>>
+                Society @@.green;approves@@ of $slaves[$i].slaveName's milky udders; the sight of $possessive creamy milk encourages the public taste for dairy straight from the nipple.
+                <<FSChangePorn "Pastoralist" 1>>
 	<</if>>
 	<<if ($slaves[$i].assignment == "get milked") && ($slaves[$i].balls > 0)>>
-	Society @@.green;approves@@ of how $slaves[$i].slaveName gets cockmilked; the sight of $possessive product encourages experimentation with cum-based concoctions.
-	<<FSChangePorn "Pastoralist" 1>>
+                Society @@.green;approves@@ of how $slaves[$i].slaveName gets cockmilked; the sight of $possessive product encourages experimentation with cum-based concoctions.
+                <<FSChangePorn "Pastoralist" 1>>
 	<</if>>
 <</if>>
 
@@ -5606,29 +5694,29 @@
 	<</if>>
 <<elseif $arcologies[0].FSHedonisticDecadence != "unset">>
 	<<if ($slaves[$i].weight > 160)>>
-	Society @@.green;strongly approves@@ of $slaves[$i].slaveName's glorious rolls; everyone wants to own a pillowy slave like $object.
-	<<FSChangePorn "Hedonism" 3>>
+                Society @@.green;strongly approves@@ of $slaves[$i].slaveName's glorious rolls; everyone wants to own a pillowy slave like $object.
+                <<FSChangePorn "Hedonism" 3>>
 	<<elseif ($slaves[$i].weight > 95)>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName's fat body; it shows just how much luxurious your life must be to pamper a slave as much as $object.
-	<<FSChangePorn "Hedonism" 2>>
+                Society @@.green;approves@@ of $slaves[$i].slaveName's fat body; it shows just how much luxurious your life must be to pamper a slave as much as $object.
+                <<FSChangePorn "Hedonism" 2>>
 	<<elseif ($slaves[$i].weight > 30)>>
-	Society @@.green;approves@@ of $slaves[$i].slaveName's chubby form; the public enjoys the sight of a well rounded slave.
-	<<FSChangePorn "Hedonism" 1>>
+                Society @@.green;approves@@ of $slaves[$i].slaveName's chubby form; the public enjoys the sight of a well rounded slave.
+                <<FSChangePorn "Hedonism" 1>>
 	<</if>>
 	<<if ($slaves[$i].muscles < -30)>>
-	Society @@.green;approves@@ of how soft $pronoun is; the sexual advantages of being able to effortlessly overpower $object are not lost on them.
-	<<FSChangePorn "Hedonism" 1>>
+                Society @@.green;approves@@ of how soft $pronoun is; the sexual advantages of being able to effortlessly overpower $object are not lost on them.
+                <<FSChangePorn "Hedonism" 1>>
 	<</if>>
 	<<if ($slaves[$i].fetishStrength > 95)>>
-	Society @@.green;approves@@ of $possessive intense fetish; the expectation that everyone's deepest desires should be fulfilled grows.
-	<<FSChangePorn "Hedonism" 1>>
+                Society @@.green;approves@@ of $possessive intense fetish; the expectation that everyone's deepest desires should be fulfilled grows.
+                <<FSChangePorn "Hedonism" 1>>
 	<</if>>
 	<<if (_para > 0)>>
-	Society @@.green;is pleased@@ that $pronoun is allowed to fully indulge $possessive paraphilia.
-	<<FSChangePorn "Hedonism" 1>>
+                Society @@.green;is pleased@@ that $pronoun is allowed to fully indulge $possessive paraphilia.
+                <<FSChangePorn "Hedonism" 1>>
 	<<elseif (_para < 0)>>
-	Society @@.red;frowns@@ upon $object not being allowed to indulge in $possessive paraphilia.
-	<<FSChangePorn "Hedonism" -2>>
+	        Society @@.red;frowns@@ upon $object not being allowed to indulge in $possessive paraphilia.
+	        <<FSChangePorn "Hedonism" -2>>
 	<</if>>
 <</if>>
 
@@ -5733,16 +5821,16 @@
 <<elseif $slaves[$i].eyes == -1>>
 	<<if ($slaves[$i].eyewear != "corrective glasses") && ($slaves[$i].eyewear != "corrective contacts")>>
 		<<if $slaves[$i].devotion > 50>>
-	<<elseif $slaves[$i].devotion > 20>>
-		Since she's on the cusp of devotion, her blurred vision makes her @@.hotpink;slightly more submissive,@@ since she can't always see what's happening to her.
-		<<set $slaves[$i].devotion += 1>>
-	<<elseif ($slaves[$i].assignment == "serve the public") || ($slaves[$i].assignment == "serve in the club") || ($slaves[$i].assignment == "whore") || ($slaves[$i].assignment == "work in the brothel")>>
-		Her blurred vision @@.hotpink;reduces her distaste for her life slightly,@@ since her fuzzy vision allows her to ignore the details of everyone she's expected to fuck.
-		<<set $slaves[$i].devotion += 1>>
-	<<else>>
-		Her blurred vision tends to make her @@.mediumorchid;a little more fearful,@@ since she can never tell what's about to happen to her.
-		<<set $slaves[$i].trust -= 1>>
-	<</if>>
+	        <<elseif $slaves[$i].devotion > 20>>
+                        Since she's on the cusp of devotion, her blurred vision makes her @@.hotpink;slightly more submissive,@@ since she can't always see what's happening to her.
+                        <<set $slaves[$i].devotion += 1>>
+                <<elseif ($slaves[$i].assignment == "serve the public") || ($slaves[$i].assignment == "serve in the club") || ($slaves[$i].assignment == "whore") || ($slaves[$i].assignment == "work in the brothel")>>
+                        Her blurred vision @@.hotpink;reduces her distaste for her life slightly,@@ since her fuzzy vision allows her to ignore the details of everyone she's expected to fuck.
+                        <<set $slaves[$i].devotion += 1>>
+                <<else>>
+                        Her blurred vision tends to make her @@.mediumorchid;a little more fearful,@@ since she can never tell what's about to happen to her.
+                        <<set $slaves[$i].trust -= 1>>
+                <</if>>
 	<</if>>
 <<elseif $slaves[$i].eyes == 2>>
 	<<if ($slaves[$i].eyewear == "blurring glasses") || ($slaves[$i].eyewear == "blurring contacts")>>
@@ -5875,13 +5963,13 @@
 	<<set $slaves[$i].analArea += 1>>
 	$possessiveCap anal area is getting used to being
 	<<if $slaves[$i].analArea > 3>>
-	permanently gaped, and the puckered skin around $possessive anus now runs from $possessive tailbone all the way down to the <<if $slaves[$i].vagina > -1>>bottom of $possessive pussy<<else>>base of $possessive dick<</if>>.
+                permanently gaped, and the puckered skin around $possessive anus now runs from $possessive tailbone all the way down to the <<if $slaves[$i].vagina > -1>>bottom of $possessive pussy<<else>>base of $possessive dick<</if>>.
 	<<elseif $slaves[$i].analArea > 2>>
-	very loose, and the puckered skin around $possessive anus now covers more of the space between $possessive buttocks.
+                very loose, and the puckered skin around $possessive anus now covers more of the space between $possessive buttocks.
 	<<elseif $slaves[$i].analArea > 1>>
-	nice and relaxed, and it now looks quite lewd.
+                nice and relaxed, and it now looks quite lewd.
 	<<else>>
-	penetrated, and to put it delicately, $possessive anus is now a bit more eye-catching.
+                penetrated, and to put it delicately, $possessive anus is now a bit more eye-catching.
 	<</if>>
 <</if>>
 <</if>>
@@ -5892,33 +5980,33 @@
 <<if $slaves[$i].foreskin > 0>>
 <<if $slaves[$i].foreskin - $slaves[$i].dick < -1>>
 	<<if canAchieveErection($slaves[$i])>>
-	$possessiveCap cockhead has grown to the point where it is much too large for $possessive foreskin, making $possessive erections so uncomfortable to achieve that $possessive @@.red;appetite for sex is reduced@@ by $possessive reluctance to undergo the discomfort.
-	<<set $slaves[$i].energy -= 2>>
-	<<if random(1,300) < $slaves[$i].energy>>
-		Despite this, she spends enough of $possessive time hard that $possessive foreskin @@.lime;stretches out naturally.@@
-		<<set $slaves[$i].foreskin += 1>>
-	<</if>>
+                $possessiveCap cockhead has grown to the point where it is much too large for $possessive foreskin, making $possessive erections so uncomfortable to achieve that $possessive @@.red;appetite for sex is reduced@@ by $possessive reluctance to undergo the discomfort.
+                <<set $slaves[$i].energy -= 2>>
+                <<if random(1,300) < $slaves[$i].energy>>
+                        Despite this, she spends enough of $possessive time hard that $possessive foreskin @@.lime;stretches out naturally.@@
+                        <<set $slaves[$i].foreskin += 1>>
+                <</if>>
 	<</if>>
 <<elseif $slaves[$i].foreskin - $slaves[$i].dick < 0>>
 	<<if canAchieveErection($slaves[$i])>>
-	$possessiveCap cockhead has grown to the point where it is too large for $possessive foreskin, making $possessive erections uncomfortable to achieve; $possessive @@.red;arousal is slightly impeded@@ by $possessive reluctance to undergo the discomfort.
-	<<set $slaves[$i].energy -= 1>>
-	<<if random(1,500) < $slaves[$i].energy>>
-		Despite this, she spends enough of $possessive time hard that $possessive foreskin @@.lime;stretches out naturally.@@
-		<<set $slaves[$i].foreskin += 1>>
-	<</if>>
+                $possessiveCap cockhead has grown to the point where it is too large for $possessive foreskin, making $possessive erections uncomfortable to achieve; $possessive @@.red;arousal is slightly impeded@@ by $possessive reluctance to undergo the discomfort.
+                <<set $slaves[$i].energy -= 1>>
+                <<if random(1,500) < $slaves[$i].energy>>
+                        Despite this, she spends enough of $possessive time hard that $possessive foreskin @@.lime;stretches out naturally.@@
+                        <<set $slaves[$i].foreskin += 1>>
+                <</if>>
 	<</if>>
 <<elseif $slaves[$i].foreskin - $slaves[$i].dick > 1>>
 	<<if ($slaves[$i].balls > 0)>>
-	<<if random(30,110) > $slaves[$i].energy>>
-		$possessiveCap penis has gotten so small that even when she's hard, $possessive loose foreskin rarely retracts. Despite $possessive regular erections, @@.orange;$possessive foreskin atrophies.@@
-		<<set $slaves[$i].foreskin -= 1>>
-	<</if>>
+                <<if random(30,110) > $slaves[$i].energy>>
+                        $possessiveCap penis has gotten so small that even when she's hard, $possessive loose foreskin rarely retracts. Despite $possessive regular erections, @@.orange;$possessive foreskin atrophies.@@
+                        <<set $slaves[$i].foreskin -= 1>>
+                <</if>>
 	<<else>>
-	<<if random(40,120) > $slaves[$i].energy>>
-		@@.orange;$possessiveCap foreskin atrophies,@@ which is not surprising, since $possessive penis has shrunk and it's almost never hard.
-		<<set $slaves[$i].foreskin -= 1>>
-	<</if>>
+                <<if random(40,120) > $slaves[$i].energy>>
+                        @@.orange;$possessiveCap foreskin atrophies,@@ which is not surprising, since $possessive penis has shrunk and it's almost never hard.
+                        <<set $slaves[$i].foreskin -= 1>>
+                <</if>>
 	<</if>>
 <</if>>
 <</if>>
@@ -6150,6 +6238,105 @@
 	<</if>>
 <</if>>
 
+/*  NCS youthening and shrinkage of giant organs and regular shrinking for regular organs happening
+* when not youthening
+*/
+<<if ($slaves[$i].inducedNCS == 1)>>
+        <<if $slaves[$i].visualAge > 8 && $slaves[$i].physicalAge > 8>>
+                <<set $slaves[$i].NCSyouthening++>>
+                <<set _youthDifference = $slaves[$i].physicalAge - 8>>
+                <<set _youtheningLevel = Math.round(Math.clamp((_youthDifference / 4) + .25, 0, 10))>>
+                <<set _youtheningRequirement = 11 - _youtheingLevel>>
+                <<if $slaves[$i].NCSyouthening <= _youtheningRequirement>>
+                        <<if $seeAge == 1>>
+                                $pronounCap has been living under the effects of $possessive NCS for a while and the accumulated effects make @@.lime;$object look younger again.@@
+                        <</if>>
+                        <<set $slaves[$i].visualAge-->>
+                        <<set $slaves[$i].NCSyouthening = 0>>
+                <</if>>
+        <</if>>
+        <<if (($slaves[$i].boobs >= 3000) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive bouncing breasts.@@
+                <<set  $slaves[$i].boobs -= Math.round($slaves[$i].boobs * .1)>>
+        <<elseif (($slaves[$i].NCSyouthening >= 5) && ($slaves[$i].boobs >= 300) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive tits.@@
+                <<set  $slaves[$i].boobs -= Math.round($slaves[$i].boobs * .1)>>
+        <</if>>
+        /* height */
+        <<set _averageHeight = Height.mean($slaves[$i])>>
+        <<set _heightDelta = $slaves[$i].height - _averageHeight>>
+        <<if (($slaves[$i].height > 176) || (_heightDelta > 5) || (($slaves[$i].NCSyouthening >= 4) && (($slaves[$i].height > 126) || (_heightDelta > 0)) && (random(1,100) > 50)))>>
+                <<if _heightDelta > 15>><<set _shrinkage = 5>>
+                <<elseif _heightDelta > 5>><<set _shrinkage = 4>>
+                <<elseif _heightDelta > -5>><<set _shrinkage = 3>>
+                <<elseif _heightDelta > -15>><<set _shrinkage = 2>>
+                <<else>><<set _shrinkage = 1>>
+                <</if>>
+                $possessiveCap NCS kicks in and @@.orange;reduces $possessive stature, leaving her shorter.@@
+                <<set $slaves[$i].height -= _shrinkage>>
+        <</if>>
+        <<if (($slaves[$i].hips >= 2) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive freakish hips.@@
+                <<set $slaves[$i].hips -= 1>>
+        <<elseif (($slaves[$i].NCSyouthening >= 3) && ($slaves[$i].hips >= -1) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive hips making $possessive appear more childlike.@@
+                <<set $slaves[$i].hips -= 1>>
+        <</if>>
+        <<if (($slaves[$i].shoulders >= 2) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive domineering shoulders.@@
+                <<set  $slaves[$i].shoulders -= 1>>
+        <<elseif (($slaves[$i].NCSyouthening >= 3) && ($slaves[$i].shoulders >= -1) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive shoulders making $possessive appear more childlike.@@
+                <<set  $slaves[$i].shoulders -= 1>>
+        <</if>>
+        <<if (($slaves[$i].dick >= 10) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive giant dick.@@
+                <<set  $slaves[$i].dick -= 2>>
+        <<elseif (($slaves[$i].NCSyouthening >= 3) && ($slaves[$i].dick >= 1) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive dick.@@
+                <<set  $slaves[$i].dick -= 1>>
+        <</if>>
+        <<if (($slaves[$i].clit >= 5) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive enourmous clit-dick.@@
+                <<set  $slaves[$i].clit -= 2>>
+        <<elseif (($slaves[$i].NCSyouthening >= 3) && ($slaves[$i].clit >= 1) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive clit.@@
+                <<set  $slaves[$i].clit -= 1>>
+        <</if>>
+        <<if (($slaves[$i].balls >= 10) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive titanic balls.@@
+                <<set  $slaves[$i].balls -= 2>>
+        <<elseif (($slaves[$i].NCSyouthening >= 3) && ($slaves[$i].balls >= 1) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive balls.@@
+                <<set  $slaves[$i].balls -= 1>>
+        <</if>>
+        <<if (($slaves[$i].butt >= 10) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive bolbuous butt.@@
+                <<set  $slaves[$i].butt -= 2>>
+        <<elseif (($slaves[$i].NCSyouthening >= 6) && ($slaves[$i].butt >= 1) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive butt.@@
+                <<set  $slaves[$i].butt -= 1>>
+        <</if>>
+        <<if (($slaves[$i].labia >= 5) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive sagging labia.@@
+                <<set  $slaves[$i].labia -= 2>>
+        <<elseif (($slaves[$i].NCSyouthening >= 6) && ($slaves[$i].labia >= 1) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive labia.@@
+                <<set  $slaves[$i].labia -= 1>>
+        <</if>>
+        <<if (($slaves[$i].scrotum >= 5) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive pendulous scrotum.@@
+                <<set  $slaves[$i].scrotum -= 2>>
+        <<elseif (($slaves[$i].NCSyouthening >= 6) && ($slaves[$i].scrotum >= 1) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;reduces the size of $possessive scrotum.@@
+                <<set  $slaves[$i].scrotum -= 1>>
+        <</if>>
+        <<if (($slaves[$i].voice < 3) && (random(1,100) > 50))>>
+                $possessiveCap NCS kicks in and @@.orange;raises the pitch of $possessive voice, $possessive now sounds more childlike.@@
+                <<set  $slaves[$i].voice -= 1>>
+        <</if>>
+<</if>>
+
 <<if $slaves[$i].fuckdoll == 0>>
 	<<if !canWalk($slaves[$i])>>
 		She is immobilized by her
@@ -6265,19 +6452,23 @@
 	<</if>>
 	<<if $slaves[$i].physicalAge >= 18>>
 		<<if ($slaves[$i].boobs > 30000+($slaves[$i].muscles*100))>>
-		<<if ($slaves[$i].assignment != "work in the dairy") || ($dairyRestraintsSetting < 2) || $arcologies[0].FSAssetExpansionistResearch == 0>>
-		<<if ($slaves[$i].drugs != "breast injections" && $slaves[$i].drugs != "intensive breast injections" && $arcologies[0].FSAssetExpansionistResearch == 0)>>
-		<<if $slaves[$i].bellyPreg < 300000 && $slaves[$i].hormoneBalance < 300>>
-		<<if ($slaves[$i].boobs > 30000+($slaves[$i].muscles*100))>>
-			Her breasts are larger than her body can possibly sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
-			<<set $slaves[$i].boobs -= 25>>
-		<<else>>
-			Her breasts are far, far beyond what her body can sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
-			<<set $slaves[$i].boobs -= 50>>
-		<</if>>
-		<</if>>
-		<</if>>
-		<</if>>
+		        <<if ($slaves[$i].assignment != "work in the dairy") || ($dairyRestraintsSetting < 2) || $arcologies[0].FSAssetExpansionistResearch == 0>>
+		                <<if ($slaves[$i].drugs != "breast injections" && $slaves[$i].drugs != "intensive breast injections" && $arcologies[0].FSAssetExpansionistResearch == 0)>>
+		                        <<if $slaves[$i].bellyPreg < 300000 && $slaves[$i].hormoneBalance < 300>>
+		                                <<if ($slaves[$i].boobs > 30000+($slaves[$i].muscles*100))>>
+			                                $possessiveCap breasts are larger than $possessive body can possibly sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
+			                                <<set $slaves[$i].boobs -= 25>>
+		                                <<else>>
+			                                $possessiveCap breasts are far, far beyond what $possessive body can sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
+			                                <<set $slaves[$i].boobs -= 50>>
+		                                <</if>>
+                                                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50))>>
+                                                        This effect is compounded by $possessive NCS.
+                                                        <<set $slaves[$i].boobs -= 35>>
+                                                <</if>>
+		                        <</if>>
+		                <</if>>
+		        <</if>>
 		<</if>>
 		<<if ($slaves[$i].boobs > 40000)>>
 			Her immense breasts are so big they pin her to the floor, taking the weight off her body.
@@ -6323,19 +6514,23 @@
 		<</if>>
 	<<elseif $slaves[$i].physicalAge <= 3>>
 		<<if ($slaves[$i].boobs > 5000+($slaves[$i].muscles*10))>>
-		<<if ($slaves[$i].assignment != "work in the dairy") || ($dairyRestraintsSetting < 2) || $arcologies[0].FSAssetExpansionistResearch == 0>>
-		<<if ($slaves[$i].drugs != "breast injections" && $slaves[$i].drugs != "intensive breast injections" && $arcologies[0].FSAssetExpansionistResearch == 0)>>
-		<<if $slaves[$i].bellyPreg < 300000 && $slaves[$i].hormoneBalance < 300>>
-		<<if ($slaves[$i].boobs > 5000+($slaves[$i].muscles*10))>>
-			Her breasts are larger than her body can possibly sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
-			<<set $slaves[$i].boobs -= 25>>
-		<<else>>
-			Her breasts are far, far beyond what her body can sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
-			<<set $slaves[$i].boobs -= 50>>
-		<</if>>
-		<</if>>
-		<</if>>
-		<</if>>
+                        <<if ($slaves[$i].assignment != "work in the dairy") || ($dairyRestraintsSetting < 2) || $arcologies[0].FSAssetExpansionistResearch == 0>>
+                                <<if ($slaves[$i].drugs != "breast injections" && $slaves[$i].drugs != "intensive breast injections" && $arcologies[0].FSAssetExpansionistResearch == 0)>>
+                                        <<if $slaves[$i].bellyPreg < 300000 && $slaves[$i].hormoneBalance < 300>>
+                                                <<if ($slaves[$i].boobs > 5000+($slaves[$i].muscles*10))>>
+                                                        $possesiveCap breasts are larger than $possesive body can possibly sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
+                                                        <<set $slaves[$i].boobs -= 25>>
+                                                <<else>>
+                                                        $possesiveCap breasts are far, far beyond what $possesive body can sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
+                                                        <<set $slaves[$i].boobs -= 50>>
+                                                <</if>>
+                                                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50))>>
+                                                        This effect is compounded by $possesive NCS.
+                                                        <<set $slaves[$i].boobs -= 35>>
+                                                <</if>>
+                                        <</if>>
+                                <</if>>
+                        <</if>>
 		<</if>>
 		<<if ($slaves[$i].boobs > 40000)>>
 			Her titanic breasts are so massive they dwarf her body. She has no choice but to accept immobility.
@@ -6390,19 +6585,23 @@
 		<</if>>
 	<<elseif $slaves[$i].physicalAge <= 12>>
 		<<if ($slaves[$i].boobs > 10000+($slaves[$i].muscles*20))>>
-		<<if ($slaves[$i].assignment != "work in the dairy") || ($dairyRestraintsSetting < 2) || $arcologies[0].FSAssetExpansionistResearch == 0>>
-		<<if ($slaves[$i].drugs != "breast injections" && $slaves[$i].drugs != "intensive breast injections" && $arcologies[0].FSAssetExpansionistResearch == 0)>>
-		<<if $slaves[$i].bellyPreg < 300000 && $slaves[$i].hormoneBalance < 300>>
-		<<if ($slaves[$i].boobs > 10000+($slaves[$i].muscles*20))>>
-			Her breasts are larger than her body can possibly sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
-			<<set $slaves[$i].boobs -= 25>>
-		<<else>>
-			Her breasts are far, far beyond what her body can sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
-			<<set $slaves[$i].boobs -= 50>>
-		<</if>>
-		<</if>>
-		<</if>>
-		<</if>>
+                        <<if ($slaves[$i].assignment != "work in the dairy") || ($dairyRestraintsSetting < 2) || $arcologies[0].FSAssetExpansionistResearch == 0>>
+                                <<if ($slaves[$i].drugs != "breast injections" && $slaves[$i].drugs != "intensive breast injections" && $arcologies[0].FSAssetExpansionistResearch == 0)>>
+                                        <<if $slaves[$i].bellyPreg < 300000 && $slaves[$i].hormoneBalance < 300>>
+                                                <<if ($slaves[$i].boobs > 10000+($slaves[$i].muscles*20))>>
+                                                        $possessiveCap breasts are larger than $possessive body can possibly sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
+                                                        <<set $slaves[$i].boobs -= 25>>
+                                                <<else>>
+                                                        $possessiveCap breasts are far, far beyond what $possessive body can sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
+                                                        <<set $slaves[$i].boobs -= 50>>
+                                                <</if>>
+                                                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50))>>
+                                                        This effect is compounded by $possessive NCS.
+                                                        <<set $slaves[$i].boobs -= 35>>
+                                                <</if>>
+                                        <</if>>
+                                <</if>>
+                        <</if>>
 		<</if>>
 		<<if ($slaves[$i].boobs > 40000)>>
 			Her immense breasts are so huge they rest upon the floor even when she tries to stand, taking the weight off her small body.
@@ -6457,19 +6656,23 @@
 		<</if>>
 	<<else>>
 		<<if ($slaves[$i].boobs > 20000+($slaves[$i].muscles*50))>>
-		<<if ($slaves[$i].assignment != "work in the dairy") || ($dairyRestraintsSetting < 2) || $arcologies[0].FSAssetExpansionistResearch == 0>>
-		<<if ($slaves[$i].drugs != "breast injections" && $slaves[$i].drugs != "intensive breast injections" && $arcologies[0].FSAssetExpansionistResearch == 0)>>
-		<<if $slaves[$i].bellyPreg < 300000 && $slaves[$i].hormoneBalance < 300>>
-		<<if ($slaves[$i].boobs > 20000+($slaves[$i].muscles*50))>>
-			Her breasts are larger than her body can possibly sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
-			<<set $slaves[$i].boobs -= 25>>
-		<<else>>
-			Her breasts are far, far beyond what her body can sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
-			<<set $slaves[$i].boobs -= 50>>
-		<</if>>
-		<</if>>
-		<</if>>
-		<</if>>
+                        <<if ($slaves[$i].assignment != "work in the dairy") || ($dairyRestraintsSetting < 2) || $arcologies[0].FSAssetExpansionistResearch == 0>>
+                                <<if ($slaves[$i].drugs != "breast injections" && $slaves[$i].drugs != "intensive breast injections" && $arcologies[0].FSAssetExpansionistResearch == 0)>>
+                                        <<if $slaves[$i].bellyPreg < 300000 && $slaves[$i].hormoneBalance < 300>>
+                                                <<if ($slaves[$i].boobs > 20000+($slaves[$i].muscles*50))>>
+                                                        $possessiveCap breasts are larger than $possessive body can possibly sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
+                                                        <<set $slaves[$i].boobs -= 25>>
+                                                <<else>>
+                                                        $possessiveCap breasts are far, far beyond what $possessive body can sustain without industrial intervention, and they @@.orange;naturally lose mass.@@
+                                                        <<set $slaves[$i].boobs -= 50>>
+                                                <</if>>
+                                                <<if (($slaves[$i].inducedNCS == 1) && (random(1,100) > 50))>>
+                                                        This effect is compounded by $possessive NCS.
+                                                        <<set $slaves[$i].boobs -= 35>>
+                                                <</if>>
+                                        <</if>>
+                                <</if>>
+                        <</if>>
 		<</if>>
 		<<if ($slaves[$i].boobs > 25000)>>
 			Her immense breasts are so big they pin her to the floor, taking the weight off her youthful body. She finds pulling them along @@.mediumorchid;mildly annoying.@@
@@ -6655,30 +6858,30 @@
 <</if>>
 
 <<if $slaves[$i].fuckdoll == 0>>
-<<if $slaves[$i].fetish != "mindbroken">>
-<<if ($slaves[$i].boobs > 20000)>>
-	<<if $boobAccessibility == 1>>
-	<<if ($slaves[$i].devotion > 20)>>
-		She's @@.mediumaquamarine;thankful@@ to you for providing living spaces adapted to life with gigantic boobs.
-		<<set $slaves[$i].trust += 1>>
-	<</if>>
-	<<else>>
-	Her gigantic boobs make life a struggle: <<if $buttAccessibility == 1 || $pregAccessibility == 1 || $ballsAccessibility == 1>>she has trouble using appliances and furniture, and constantly bumps into things, but at least the doors have already been widened for your other slaves<<else>>she barely fits through doors, has trouble using appliances and furniture, and constantly bumps into things<</if>>.
-	<<if ($slaves[$i].devotion > 50)>>
-		Since she's devoted to you, she just does her best.
-	<<elseif ($slaves[$i].trust > -20)>>
-		This torment makes her @@.gold;less trusting@@ of your willingness to look after her.
-		<<set $slaves[$i].trust -= 2>>
-	<<else>>
-		She already believes you capable of tormenting her, so this proof of your indifference @@.mediumorchid;angers her@@ daily.
-		<<set $slaves[$i].devotion -= 2>>
-	<</if>>
-	<</if>>
-<</if>>
-<</if>>
+        <<if $slaves[$i].fetish != "mindbroken">>
+                <<if ($slaves[$i].boobs > 20000)>>
+                        <<if $boobAccessibility == 1>>
+                                <<if ($slaves[$i].devotion > 20)>>
+                                        She's @@.mediumaquamarine;thankful@@ to you for providing living spaces adapted to life with gigantic boobs.
+                                        <<set $slaves[$i].trust += 1>>
+                                <</if>>
+                        <<else>>
+                                Her gigantic boobs make life a struggle: <<if $buttAccessibility == 1 || $pregAccessibility == 1 || $ballsAccessibility == 1>>she has trouble using appliances and furniture, and constantly bumps into things, but at least the doors have already been widened for your other slaves<<else>>she barely fits through doors, has trouble using appliances and furniture, and constantly bumps into things<</if>>.
+                                <<if ($slaves[$i].devotion > 50)>>
+                                        Since she's devoted to you, she just does her best.
+                                <<elseif ($slaves[$i].trust > -20)>>
+                                        This torment makes her @@.gold;less trusting@@ of your willingness to look after her.
+                                        <<set $slaves[$i].trust -= 2>>
+                                <<else>>
+                                        She already believes you capable of tormenting her, so this proof of your indifference @@.mediumorchid;angers her@@ daily.
+                                        <<set $slaves[$i].devotion -= 2>>
+                                <</if>>
+                        <</if>>
+                <</if>>
+        <</if>>
 <</if>>
 
-<<if ($slaves[$i].lactation > 1)>>
+<<if (($slaves[$i].inducedNCS == 0) && ($slaves[$i].lactation > 1))>>
 <<if ($slaves[$i].boobs < 800)>>
 	The powerful lactation drugs $pronoun's implanted with @@.lime;rapidly swell $possessive small breasts.@@
 	<<set $slaves[$i].boobs += 100>>
@@ -6997,30 +7200,30 @@
 <</if>>
 
 <<if canWalk($slaves[$i])>>
-<<if ($slaves[$i].dick >= 30)>>
-	<<if ($slaves[$i].devotion <= 50)>>
-		Her titanic penis rests upon the floor even when she stands. She finds moving @@.mediumorchid;terrifying@@ since she drags her cock along.
-		<<set $slaves[$i].devotion -= 3>>
-	<<else>>
-		Her titanic penis rests upon the floor even when she stands. She pays close attention as she moves to keep it pristine for you.
-	<</if>>
-<<elseif ($slaves[$i].dick > 20)>>
-	<<if ($slaves[$i].devotion <= 50)>>
-		Her enormous cock is @@.mediumorchid;very uncomfortable@@ for her to drag around.
-		<<set $slaves[$i].devotion -= 2>>
-	<<else>>
-		Her enormous cock is uncomfortable for her to move with, but she bears its weight out of devotion to you.
-	<</if>>
-<<elseif ($slaves[$i].dick >= 10)>>
-	<<if canWalk($slaves[$i])>>
-		<<if ($slaves[$i].devotion <= 50)>>
-			Her giant dick is @@.mediumorchid;uncomfortable@@ for her body.
-			<<set $slaves[$i].devotion -= 1>>
-		<<else>>
-			She can't seem to get comfortable with her giant dick, but she keeps it to herself out of devotion.
-		<</if>>
-	<</if>>
-<</if>>
+        <<if ($slaves[$i].dick >= 30)>>
+                <<if ($slaves[$i].devotion <= 50)>>
+                        Her titanic penis rests upon the floor even when she stands. She finds moving @@.mediumorchid;terrifying@@ since she drags her cock along.
+                        <<set $slaves[$i].devotion -= 3>>
+                <<else>>
+                        Her titanic penis rests upon the floor even when she stands. She pays close attention as she moves to keep it pristine for you.
+                <</if>>
+        <<elseif ($slaves[$i].dick > 20)>>
+                <<if ($slaves[$i].devotion <= 50)>>
+                        Her enormous cock is @@.mediumorchid;very uncomfortable@@ for her to drag around.
+                        <<set $slaves[$i].devotion -= 2>>
+                <<else>>
+                        Her enormous cock is uncomfortable for her to move with, but she bears its weight out of devotion to you.
+                <</if>>
+        <<elseif ($slaves[$i].dick >= 10)>>
+                <<if canWalk($slaves[$i])>>
+                        <<if ($slaves[$i].devotion <= 50)>>
+                                Her giant dick is @@.mediumorchid;uncomfortable@@ for her body.
+                                <<set $slaves[$i].devotion -= 1>>
+                        <<else>>
+                                She can't seem to get comfortable with her giant dick, but she keeps it to herself out of devotion.
+                        <</if>>
+                <</if>>
+        <</if>>
 <</if>>
 
 <<if ($slaves[$i].dick >= 20)>>
@@ -7284,10 +7487,10 @@
 	<<set _oldFame = $slaves[$i].pornFame>>
 	<<if ($slaves[$i].pornFame < 35) && ($slaves[$i].prestige > 1)>>
 		Interest in porn of $object is very high, since $pronoun's already quite prestigious.
-		<<set $slaves[$i].pornFame += 1/$HackingSkillMultiplier>>
+                <<set $slaves[$i].pornFame += 1*$HackingSkillMultiplier>>
 	<<elseif ($slaves[$i].pornFame < 10) && ($slaves[$i].prestige > 0)>>
 		Interest in porn of $object is high, since $pronoun's already prestigious.
-		<<set $slaves[$i].pornFame += 1/$HackingSkillMultiplier>>
+                <<set $slaves[$i].pornFame += 1*$HackingSkillMultiplier>>
 	<</if>>
 	<<set $slaves[$i].pornFame += (($slaves[$i].pornFameSpending/1000)/$HackingSkillMultiplier)>>
 	<<if ($slaves[$i].prestige < 3) && ($slaves[$i].pornFame >= 100) && (_oldFame < 100)>>
@@ -7451,11 +7654,11 @@
 	<<if $slaves[$i].fuckdoll > 0>>
 		It did not know.
 	<<elseif $slaves[$i].devotion > 50>>
-		She did not notice.
+                $pronounCap did not notice.
 	<<elseif $week-$slaves[$i].weekAcquired > 10>>
-		She remembered it only dimly.
+                $pronounCap remembered it only dimly.
 	<<else>>
-		She remembered it, but no one cared.
+		$pronounCap remembered it, but no one cared.
 	<</if>>
 <</if>>
 <<if $retiree == 0>>
