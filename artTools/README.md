@@ -66,7 +66,7 @@ Note: Behaviour of Adobe Illustrator is untested.
 
 For NoX original, deepurk extensions, execute
 
-    python3 vector_layer_split.py vector_source.svg tw ../src/art/vector/layers/
+    python3 vector_layer_split.py vector_source_ndmain.svg tw ../src/art/vector/layers/
 
 For faraen revamped art (based on NoX original)
 
