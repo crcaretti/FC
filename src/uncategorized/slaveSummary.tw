@@ -90,12 +90,18 @@
 <<capture _ssi>>
 
 <<if $useSlaveListInPageJSNavigation == 1>>
-	<<set _Count = _indexSlavesIdxs.length>>
-	<<if ((_Count > 1) && (_indexed == 0) && (((_Pass == 'Main') && (ndef $Flag)) || ($Flag == 1)))>>
-		<<set _indexed = 1, _counter = 0, _buttons = []>>
-		<style>
-			.hidden {display:none;}
-			table.quicklist {
+        <<set _Count = _indexSlavesIdxs.length>>
+        /* Useful for finding weird combinations -- usages of this passage that don't yet generate the quick index.
+        *   <<print 'pass/count/indexed/flag::[' + _Pass + '/' + _Count + '/' + _indexed + '/' + $Flag + ']'>>
+        */
+        <<if ((_Count > 1) && (_indexed == 0) && (((_Pass == 'Main') && (ndef $Flag)) || ($Flag == 1)))>>
+                <<set _indexed = 1, _counter = 0, _buttons = [], _offset = -50>>
+                <<if (/Select/i.test(_Pass))>>
+                        <<set _offset = -25>>
+                <</if>>
+                <style>
+                        .hidden {   display:none;   }
+                        table.quicklist {
 				table-layout: fixed;
 				text-align: center;
 				border-collapse: separate;
@@ -103,44 +109,44 @@
 				border-style: hidden;
 				empty-cells: hide;
 				width: 70%;
-			}
+                        }
 			table.quicklist td  { margin: 1px; }
 			table.quicklist col { width: 8%; }
-		</style>
+                </style>
 		<br />
 		<button data-quick-index="1">Quick Index</button>
-		<div id="list_index" class="hidden">
-		<<for !_.isUndefined(_ssii = _indexSlavesIdxs.shift())>>
-			<<set _IndexSlave = $slaves[_ssii]>>
-			<<if $surnameOrder != 1>>
-				<<if ["Cambodian", "Chinese", "Hungarian", "Japanese", "Korean", "Mongolian", "Taiwanese", "Vietnamese"].includes(_Slave.nationality)>>
-					<<set _indexSlaveName = [_IndexSlave.slaveSurname || "", _IndexSlave.slaveName].join(" ").trim()>>
-				<<else>>
-					<<set _indexSlaveName = [_IndexSlave.slaveName, _IndexSlave.slaveSurname || ""].join(" ").trim()>>
-				<</if>>
-			<<else>>
-				<<set _indexSlaveName = [_IndexSlave.slaveName, _IndexSlave.slaveSurname || ""].join(" ").trim()>>
-			<</if>>
-			<<set _buttons.push('<button data-scroll-to="#slave-' + _IndexSlave.ID + '" data-scroll-offset="300">' + _indexSlaveName + '</button>'); >>
-		<</for>>
+                <div id="list_index" class="hidden">
+                <<for !_.isUndefined(_ssii = _indexSlavesIdxs.shift())>>
+                        <<set _IndexSlave = $slaves[_ssii]>>
+                        <<if $surnameOrder != 1>>
+                                <<if ["Cambodian", "Chinese", "Hungarian", "Japanese", "Korean", "Mongolian", "Taiwanese", "Vietnamese"].includes(_Slave.nationality)>>
+                                        <<set _indexSlaveName = [_IndexSlave.slaveSurname || "", _IndexSlave.slaveName].join(" ").trim()>>
+                                <<else>>
+                                        <<set _indexSlaveName = [_IndexSlave.slaveName, _IndexSlave.slaveSurname || ""].join(" ").trim()>>
+                                <</if>>
+                        <<else>>
+                                <<set _indexSlaveName = [_IndexSlave.slaveName, _IndexSlave.slaveSurname || ""].join(" ").trim()>>
+                        <</if>>
+                        <<set _buttons.push('<button data-scroll-to="#slave-' + _IndexSlave.ID + '" data-scroll-offset="' + _offset + '">' + _indexSlaveName + '</button>'); >>
+                <</for>>
 		<<if !_.isUndefined(_buttons[0])>>
-			<table class="quicklist">
+                        <table class="quicklist">
 			<<for !_.isUndefined(_buttons[0])>>
 				<tr>
-					<<for _cols = 0; _cols <= 4; _cols++>>
-						<<set _button = _buttons.shift()>>
-						<<if !_.isUndefined(_button)>>
-							<td></td>
+                                        <<for _cols = 0; _cols <= 4; _cols++>>
+                                                <<set _button = _buttons.shift()>>
+                                                <<if !_.isUndefined(_button)>>
+                                                        <td></td>
 							<td colspan="10">
-								<<print _button>>
-							</td>
-						<</if>>
-					<</for>>
-					<td></td>
-				</tr>
-			<</for>>
+                                                                <<print _button>>
+                                                        </td>
+                                                <</if>>
+                                        <</for>>
+                                        <td></td>
+                                </tr>
+                        <</for>>
 			</table>
-			<script>
+                        <script>
 				/*
 				*   Use javascript scrollTop animation for in page navigation.
 				*/
@@ -150,15 +156,15 @@
 				});
 				$("[data-scroll-to]").click(function() {
 					var $this = $(this);
-					var $toElement = $this.attr('data-scroll-to'), $offset = $this.attr('data-scroll-offset') || 0, $speed = $this.attr('data-scroll-speed') || 900;
+					var $toElement = $this.attr('data-scroll-to'), $offset = $this.attr('data-scroll-offset') || 0, $speed = $this.attr('data-scroll-speed') || 900, moveto = $($toElement).offset().top;
 					$('html, body').animate( {
-						scrollTop: $($toElement).offset().top + $offset
+						scrollTop: (moveto + $offset) + 'px'
 					}, $speed);
 				});
-			</script>
-		<</if>>
-		</div>
-	<</if>>
+                        </script>
+                <</if>>
+                </div>
+        <</if>>
 <</if>>
 <<switch _Pass>>
 <<case "Main">>
@@ -213,7 +219,6 @@
 	<<elseif "guard you" == _Slave.assignment>>''@@.lightcoral;BG@@''
 	<</if>>
 	<<if Array.isArray($personalAttention) && $personalAttention.findIndex(function(s) { return s.ID == _Slave.ID; }) != -1>>''@@.lightcoral;PA@@''<</if>>
-	<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 	[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]] /* lists their names */
 
 <<case "Personal Attention Select">>
@@ -252,7 +257,6 @@
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <</if>>
 <<case "Subordinate Targeting">>
@@ -275,7 +279,6 @@
 	<</if>>
 <<elseif $Flag == 1>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -301,11 +304,10 @@
 	<</if>>
 <<elseif $Flag == 1>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
+                [[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <</if>>
 <<case "Madam Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -327,7 +329,6 @@
 	<</if>>
 <<elseif $Flag == 1>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -348,11 +349,10 @@
 	<</if>>
 <<elseif $Flag == 1>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
- 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
+		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <</if>>
 <<case "Nurse Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -374,7 +374,6 @@
 	<</if>>
 <<elseif $Flag == 1>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -429,7 +428,6 @@
 	<</if>>
 <<elseif $Flag == 1>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -450,7 +448,6 @@
 	<</if>>
 <<elseif $Flag == 1>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -471,7 +468,6 @@
 	<</if>>
 <<elseif $Flag == 1>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -493,7 +489,6 @@
 	<</if>>
 <<elseif $Flag == 1>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -520,7 +515,6 @@
 	<</if>>
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <</if>>
 <<case "Pit">>
@@ -574,7 +568,6 @@
 <</if>>
 <<case "Matchmaking">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-	<<print '<a id="slave-' + $slaves[_ssi].ID + '"></a>'>>
 	[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <</switch>>
 
@@ -748,7 +741,8 @@ will
 
 <</if>> /* closes _numFacilities */
 
-<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
+<<print '<br id="slave-' + $slaves[_ssi].ID + '"/>'>>
+<<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
 
 <<SlaveSummary _Slave>>
 
