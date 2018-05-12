@@ -94,7 +94,7 @@
         /* Useful for finding weird combinations -- usages of this passage that don't yet generate the quick index.
         *   <<print 'pass/count/indexed/flag::[' + _Pass + '/' + _Count + '/' + _indexed + '/' + $Flag + ']'>>
         */
-        <<if ((_Count > 1) && (_indexed == 0) && (((_Pass == 'Main') && (ndef $Flag)) || ($Flag == 1)))>>
+        <<if ((_Count > 1) && (_indexed == 0) && (((_Pass == 'Main') && (ndef $Flag) && (($useSlaveSummaryTabs == 0) || ($slaveAssignmentTab == "all"))) || ($Flag == 1)))>>
                 <<set _indexed = 1, _counter = 0, _buttons = [], _offset = -50>>
                 <<if (/Select/i.test(_Pass))>>
                         <<set _offset = -25>>
@@ -116,13 +116,16 @@
 		<br />
                 <<set _tableCount = _tableCount || 0>>
                 <<set _tableCount++>>
-                <<set _quickList = '<button data-quick-index="' + _tableCount + '">Quick Index</button>'>>
-                <<set _listDivOpen = '<div id="list_index' + _tableCount + '" class="hidden">'>>
-                <<set _listDivClose = '</div><!-- ' + _tableCount + ' -->'>>
-                _quickList
-/%		<button data-quick-index="<<print _tableCount>>">Quick Index</button> %/
-                _listDivOpen
-/%              <div id="list_index<<print _tableCount>>" class="hidden"> %/
+                /*
+                 *  we want <button data-quick-index="<<= _tableCount>>"> ...
+                 */
+                <<set _buttonAttributes = { 'data-quick-index': _tableCount }>>
+                <<htag _buttonAttributes 'button'>>Quick Index<</htag>>
+                /*
+                 *  we want <div id="list_index3" class=" hidden">...
+                 */
+                <<set _divAttributes = { id: 'list_index' + _tableCount, class: 'hidden'}>>
+                <<htag _divAttributes>>
                 <<for !_.isUndefined(_ssii = _indexSlavesIdxs.shift())>>
                         <<set _IndexSlave = $slaves[_ssii]>>
                         <<if $surnameOrder != 1>>
@@ -177,8 +180,7 @@
 				});
                         </script>
                 <</if>>
-                _listDivClose
-/%              </div> %/
+                <</htag>>
         <</if>>
 <</if>>
 <<switch _Pass>>
@@ -756,7 +758,10 @@ will
 
 <</if>> /* closes _numFacilities */
 
-<<print '<span id="slave-' + $slaves[_ssi].ID + '">&nbsp;</span><br/>'>>
+<<if ((_Pass != 'Main') || (def $Flag) || ($useSlaveSummaryTabs == 0) || ($slaveAssignmentTab == "all"))>>
+        <<print '<span id="slave-' + $slaves[_ssi].ID + '">&nbsp;</span>'>>
+<</if>>
+<br/>
 <<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
 
 <<SlaveSummary _Slave>>
