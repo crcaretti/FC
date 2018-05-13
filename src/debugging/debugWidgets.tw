@@ -1,0 +1,33 @@
+:: Debug Widgets [widget nobr]
+
+/* 	
+$args[0] and $args[1] should both be objects. $args[0] is the old object, $args[1] is the new object. Will also work with arrays.
+This widget will find which properties were changed, and display their original values and current values.
+It's somewhat awkward if a stored variable changes types to/from an object or array.
+Usage example:
+	<<set $slaves[0].hColor = "red">>
+	<<set _oldVariables = clone(State.variables)>>
+	<<set $slaves[0].hColor = "black">>
+	<<set _newVariables = clone(State.variables)>>
+	<<displayDifferences _oldVariables _newVariables>>
+This will display "Variable: slaves.0.hColor, Original Value: red, New Value: black" with an option to show more (in this case the show more option gives the same display).
+*/
+<<widget "displayDifferences">>
+Differences:<br>
+<<set _newDiff = diffFlatten(difference($args[0],$args[1]))>> /* returns a flattened object containing the names of the changed variables, and the new values of those variables */
+<<set _oldDiff = diffFlatten(difference($args[1],$args[0]))>> /* returns a flattened object containing the names of the changed variables, and the old values of those variables */
+<<set _diffArrayFromNew = generateDiffArray(_newDiff)>> /* this function requires the existence of the specific variables _newDiff AND _oldDiff to work */
+<<for _i = 0; _i < _diffArrayFromNew.length; _i++>>	/* print variable names, and changed values. Will output the new values correctly, may not output old values correctly */ 
+	&nbsp;&nbsp;&nbsp;&nbsp;Variable: <<print _diffArrayFromNew[_i].variable>>, Original Value: <<print _diffArrayFromNew[_i].oldVal>>, New Value: <<print _diffArrayFromNew[_i].newVal>><br>
+<</for>>
+<span id="extraInfo">
+<<link "Show more">>
+	<<replace "#extraInfo">>
+	<<set _diffArrayFromOld = generateDiffArray(_oldDiff)>>
+	<<for _i = 0; _i < _diffArrayFromOld.length; _i++>> /* print variable names, and changed values. Will output the old values correctly, may not output new values correctly */ 
+		&nbsp;&nbsp;&nbsp;&nbsp;Variable: <<print _diffArrayFromOld[_i].variable>>, Original Value: <<print _diffArrayFromOld[_i].oldVal>>, New Value: <<print _diffArrayFromOld[_i].newVal>><br>
+	<</for>>
+	<</replace>>
+<</link>>// This should only be necessary if a variable changes type to/from an object or array. In that case this will display the correct original value, but incorrect current value.//
+</span>
+<</widget>>
