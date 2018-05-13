@@ -76,16 +76,7 @@
         _indexSlavesIdxs = $slaves.map(function(slave, idx) { return _passagePreFilter(slave) ? idx : null; }).filter(function(idx) { return idx !== null; })>>
 <<for !_.isUndefined(_ssi = _filteredSlaveIdxs.shift())>>
 <<set _Slave = $slaves[_ssi]>>
-<<if $surnameOrder != 1>>
-	<<if ["Cambodian", "Chinese", "Hungarian", "Japanese", "Korean", "Mongolian", "Taiwanese", "Vietnamese"].includes(_Slave.nationality)>>
-		<<set _slaveName = [_Slave.slaveSurname || "", _Slave.slaveName].join(" ").trim()>>
-	<<else>>
-		<<set _slaveName = [_Slave.slaveName, _Slave.slaveSurname || ""].join(" ").trim()>>
-	<</if>>
-<<else>>
-	<<set _slaveName = [_Slave.slaveName, _Slave.slaveSurname || ""].join(" ").trim()>>
-<</if>>
-
+<<set _slaveName = getSlaveDisplayName(_Slave);>>
 
 <<capture _ssi>>
 
@@ -99,20 +90,6 @@
                 <<if (/Select/i.test(_Pass))>>
                         <<set _offset = -25>>
                 <</if>>
-                <style>
-                        .hidden {   display:none;   }
-                        table.quicklist {
-				table-layout: fixed;
-				text-align: center;
-				border-collapse: separate;
-				border-spacing: 2px;
-				border-style: hidden;
-				empty-cells: hide;
-				width: 70%;
-                        }
-			table.quicklist td  { margin: 1px; }
-			table.quicklist col { width: 8%; }
-                </style>
 		<br />
                 <<set _tableCount = _tableCount || 0>>
                 <<set _tableCount++>>
@@ -128,56 +105,47 @@
                 <<htag _divAttributes>>
                 <<for !_.isUndefined(_ssii = _indexSlavesIdxs.shift())>>
                         <<set _IndexSlave = $slaves[_ssii]>>
-                        <<if $surnameOrder != 1>>
-                                <<if ["Cambodian", "Chinese", "Hungarian", "Japanese", "Korean", "Mongolian", "Taiwanese", "Vietnamese"].includes(_IndexSlave.nationality)>>
-                                        <<set _indexSlaveName = [_IndexSlave.slaveSurname || "", _IndexSlave.slaveName].join(" ").trim()>>
-                                <<else>>
-                                        <<set _indexSlaveName = [_IndexSlave.slaveName, _IndexSlave.slaveSurname || ""].join(" ").trim()>>
-                                <</if>>
-                        <<else>>
-                                <<set _indexSlaveName = [_IndexSlave.slaveName, _IndexSlave.slaveSurname || ""].join(" ").trim()>>
-                        <</if>>
-                        <<set _buttons.push('<button data-scroll-to="#slave-' + _IndexSlave.ID + '" data-scroll-offset="' + _offset + '">' + _indexSlaveName + '</button>'); >>
+                        <<set _indexSlaveName = getSlaveDisplayName(_IndexSlave);>>
+                        <<set _devotionClass = getSlaveDevotionClass(_IndexSlave);>>
+                        <<set _trustClass = getSlaveTrustClass(_IndexSlave);>>
+                        <<set _buttons.push({'data-name': _indexSlaveName, 'data-scroll-to': '#slave-' + _IndexSlave.ID, 'data-scroll-offset': _offset, 'data-devotion': _IndexSlave.devotion, 'data-trust': _IndexSlave.trust, class: _devotionClass + ' ' + _trustClass }); >>
                 <</for>>
 		<<if !_.isUndefined(_buttons[0])>>
-                        <table class="quicklist">
+                        <<set $sortQuickList = $sortQuickList || 'Devotion'>>
+	                //Sorting:// ''<span id="qlSort">$sortQuickList</span>.''
+                        <<link "Sort by Devotion">>
+                                <<set $sortQuickList = 'Devotion'>>
+                                <<replace "#qlSort">>$sortQuickList<</replace>>
+                                <<script>>
+                                        $('#qlWrapper').removeClass('trust').addClass('devotion');
+                                        sortButtonsByDevotion();
+                                <</script>>
+                        <</link>> |
+                        <<link "Sort by Trust">>
+                                <<set $sortQuickList = 'Trust'>>
+                                <<replace "#qlSort">>$sortQuickList<</replace>>
+                                <<script>>
+                                        $('#qlWrapper').removeClass('devotion').addClass('trust');
+                                        sortButtonsByTrust();
+                                <</script>>
+                        <</link>>
+                        <br/>
+                        <div id="qlWrapper" class="quicklist devotion">
 			<<for !_.isUndefined(_buttons[0])>>
-				<tr>
-                                        <<for _cols = 0; _cols <= 4; _cols++>>
-                                                <<set _button = _buttons.shift()>>
-                                                <<if !_.isUndefined(_button)>>
-                                                        <td></td>
-							<td colspan="10">
-                                                                <<print _button>>
-                                                        </td>
-                                                <</if>>
-                                        <</for>>
-                                        <td></td>
-                                </tr>
+                                <<set _button = _buttons.shift()>>
+                                <<if !_.isUndefined(_button)>>
+                                        <<set _buttonSlaveName = _button['data-name'];>>
+                                        <<htag _button 'button'>>_buttonSlaveName<</htag>>
+                                <</if>>
                         <</for>>
-			</table>
+			</div>
                         <script>
-				/*
-				*   Use javascript scrollTop animation for in page navigation.
-				*/
 				$("[data-quick-index]").click(function () {
                                         var $this = $(this), which = $this.attr('data-quick-index');
                                         var $quick = $('div#list_index' + which);
                                         $quick.toggleClass("hidden");
                                 });
-                                $("[data-scroll-to]").click(function() {
-                                        var $this = $(this), $toElement = $this.attr('data-scroll-to'),
-                                                /*
-                                                * note the *1 enforces $offset to be an integer, without
-                                                * it we scroll to True, which goes nowhere fast.
-                                                */
-                                                $offset = $this.attr('data-scroll-offset') * 1 || 0,
-                                                $speed = $this.attr('data-scroll-speed') * 1 || 500;
-                                        $('html, body').animate({
-                                                scrollTop: $($toElement).offset().top + $offset
-                                        }, $speed);
-                                                          
-				});
+                                quickListBuildLinks();
                         </script>
                 <</if>>
                 <</htag>>
