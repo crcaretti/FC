@@ -114,12 +114,35 @@ Performing a cesarean section is trivial for the remote surgery to carry out. $a
 		<<set _incubated = 1>>
 	<</if>>
 	<<set $mom = $activeSlave>>
+	<<set _identicalChildGen = 0, _shiftDegree = 0>>
 	<<for _cb = 0; _cb < _cToIncub; _cb++>> /* if there is no reserved children, code in loop will not trigger */
-			<<include "Generate Child">>
+			<<if _identicalChildGen == 0>>
+				<<if _cb == $mom.curBabies.length-1 && $mom.curBabies.length > 1 && $mom.curBabies[_cb].identical == 1>> /* catch for improperly placed identical twin flag to still generate*/
+					<<set _twin = clone($activeSlave)>>
+					<<set $activeSlave = _twin>>
+					<<set $activeSlave.ID = $IDNumber++>>
+				<<else>>
+					<<include "Generate Child">>
+				<</if>>
+			<<else>>
+				<<set _twin = clone($activeSlave)>>
+				<<set $activeSlave = _twin>>
+				<<set $activeSlave.ID = $IDNumber++>>
+			<</if>>
 			<<include "Incubator Workaround">>
-			<<set $mom.curBabies.shift()>> /*for now child generation method for incubator not changed. But here children for incubator removed from array of birthed babies. If we decide later - we can use them for incubator as real objects here. For now they just discarded silently */
+			<<if $mom.curBabies[_cb].identical === 1>>
+				<<set _identicalChildGen = 1>>
+			<<else>>
+				<<set _identicalChildGen = 0>>
+			<</if>>
+			<<set _shiftDegree++>>
 			<<set $reservedChildren-- >>
 	<</for>>
+	<<if _shiftDegree > 0>>
+		<<for _csec = 0; _csec < _shiftDegree; _csec++>>
+			<<set $mom.curBabies.shift()>> /*for now child generation metod for incubator not changed. But here children for incubator removed from array of birthed babies. If we decide later - we can use them for incubator as real objects here. For now they just discarded silently */
+		<</for>>
+	<</if>>
 	<<set $activeSlave = $mom>>
 <<else>>
 	/*No live babies. Placeholder */

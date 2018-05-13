@@ -23,6 +23,7 @@ $children = WombBirth($slave, $birth_ready_age) - for actual birth. Return array
 WombFlush($slave) - clean womb (array). Can be used at broodmother birthstorm or abortion situations in game. But birthstorm logically should use WombBirth($slave, 35) or so before - some children in this event is live capable, others is not.
 
 $slave.bellyPreg = WombGetWolume($slave) - return double, with current womb volume in CC - for updating $slave.bellyPreg, or if need to update individual fetuses sizes.
+
 */
 
 window.WombInit = function(actor) //Init womb system.
@@ -86,6 +87,7 @@ window.WombImpregnate = function(actor, fCount, fatherID, age)
     tf.fatherID = fatherID; //We can store who is father too.
 	tf.sex = Math.round(Math.random())+1; // 1 = male, 2 = female. For possible future usage, just as concept now.
     tf.volume = 1; //Initial, to create property. Updated with actual data after WombGetVolume call.
+	tf.identical = 0; //Initial, to create property. Updated with actual data during fetalSplit call.
 
     try {
             if (actor.womb.length == 0)
@@ -124,7 +126,7 @@ window.WombProgress = function(actor, ageToAdd)
 window.WombBirth = function(actor, readyAge)
 {
     try{
-        actor.womb.sort(function (a, b){return b.age - a.age}); //For normal processing fetuses that more old should be first. Now - they are.
+        WombSort(actor); //For normal processing fetuses that more old should be first. Now - they are.
         }catch(err){
             WombInit(actor);
             alert("WombBirth warning - " + actor.slaveName+" "+err);       
@@ -214,7 +216,7 @@ window.WombGetVolume = function(actor) //most code from pregJS.tw with minor ada
 
 window.WombUpdatePregVars = function(actor) {
 
-    actor.womb.sort(function (a, b){return b.age - a.age});
+    WombSort(actor);
     if (actor.womb.length > 0)
     {
         if (actor.preg > 0 && actor.womb[0].age > 0)
@@ -232,7 +234,7 @@ window.WombUpdatePregVars = function(actor) {
 
 window.WombMinPreg = function(actor)
 {
-    actor.womb.sort(function (a, b){return b.age - a.age});
+    WombSort(actor);
 
     if (actor.womb.length > 0) 
         return actor.womb[actor.womb.length-1].age;
@@ -242,7 +244,7 @@ window.WombMinPreg = function(actor)
 
 window.WombMaxPreg = function(actor)
 {
-    actor.womb.sort(function (a, b){return b.age - a.age});
+    WombSort(actor);
     if (actor.womb.length > 0) 
         return actor.womb[0].age;
     else
@@ -325,3 +327,53 @@ window.WombZeroID = function(actor, id)
 
     WombNormalizePreg(actor);
 }
+
+/* Sorts the womb object by age with oldest and thus soonest to be born, first. This will be needed in the future once individual fertilization is a possiblity.*/
+window.WombSort = function(actor)
+{
+	actor.womb.sort(function (a, b){return b.age - a.age});
+}
+
+window.fetalSplit = function(actor)
+{
+	var i, ft;
+	var nft = {};
+    nft.age = actor.preg;
+    nft.fatherID = actor.pregSource;
+	nft.sex = Math.round(Math.random())+1;
+    nft.volume = 1;
+	nft.identical = 0;
+
+	actor.womb.forEach(function(s){
+		if ((jsRandom(1,1000) >= 1000) && s.identical !== 1)
+		{
+			nft = {};
+			nft.age = s.age;
+			nft.fatherID = s.fatherID;
+			nft.sex = s.sex;
+			nft.volume = s.volume;
+			actor.womb.push(nft);
+			s.identical = 1;
+		}
+	});
+	WombNormalizePreg(actor);
+
+}
+
+/* alt
+window.fetalSplit = function(actor)
+{
+	var i, ft, nft;
+
+	actor.womb.forEach(function(s){
+		if ((jsRandom(1,1000) >= 1000) && s.identical !== 1)
+		{
+			nft = deepCopy(s);
+			actor.womb.push(nft);
+			s.identical = 1;
+		}
+	});
+	WombNormalizePreg(actor);
+
+}
+*/

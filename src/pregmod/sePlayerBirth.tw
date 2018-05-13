@@ -25,7 +25,7 @@ PC.pregSource documentation
 <<set _curBabies = $PC.curBabies.length>> 
 <<set _stilBirth = $PC.womb.length>>
 <<set WombFlush($PC)>>
-/* difference in code below: _curBabies - count of live babies after birth, $PC.pregType = all babies in PC. I assume that dead fetuses do not count to reputation, etc, and PC manages to hide them. This mainly for future possibilities, or early birth triggers. PC will not support partial birth - even she happens to be prenant at different stages at once, undeveloped babies will be dead as result. _stilBirth currently not used - it's just for future improvements.*/
+/* difference in code below: _curBabies - count of live babies after birth, $PC.pregType = all babies in PC. I assume that dead fetuses do not count to reputation, etc, and PC manages to hide them. This mainly for future possibilities, or early birth triggers. PC will not support partial birth - even she happens to be pregnant at different stages at once, undeveloped babies will be dead as result. _stilBirth currently not used - it's just for future improvements.*/
 
 <<set $PC.preg = 0, $PC.pregKnown = 0, $PC.labor = 0, $PC.births += _curBabies>>
 <<if $PC.pregSource == 0>>
@@ -440,8 +440,21 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 	<</if>>
 
 <<elseif _curBabies > 1>>
+	<<set _identicalChildGen = 0, _shiftDegree = 0>>
 	<<for _p = 0; _p < _curBabies; _p++>>
-		<<include "Generate Child">>
+		<<if _identicalChildGen == 0>>
+			<<if _p == $PC.curBabies.length-1 && $PC.curBabies.length > 1 && $PC.curBabies[_p].identical == 1>> /* catch for improperly placed indentical twin flag to still generate*/
+				<<set _twin = clone($activeSlave)>>
+				<<set $activeSlave = _twin>>
+				<<set $activeSlave.ID = $IDNumber++>>
+			<<else>>
+				<<include "Generate Child">>
+			<</if>>
+		<<else>>
+			<<set _twin = clone($activeSlave)>>
+			<<set $activeSlave = _twin>>
+			<<set $activeSlave.ID = $IDNumber++>>
+		<</if>>
 
 		<<if $activeSlave.race == $PC.race>>
 			<<set _PCDegree++>>
@@ -457,7 +470,9 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 		<</if>>
 
 		<<if _p == 0>>Your first<<else>>The next<</if>> little <<if $babyGender == 1>>girl<<else>>boy<</if>>
-		<<if $PC.pregSource == -6>>
+		<<if _identicalChildGen == 1>>
+			looks exactly like the previous; they're identical twins.
+		<<elseif $PC.pregSource == -6>>
 			looks exactly like you<<if _p == 0>>, in fact, the resemblance seems uncanny. Since she has the exact same genetics as you, she'll likely look almost identical to you when she's your age<</if>>. Every one of your children look this way; it's kind of hard to tell them apart.
 		<<elseif _PCDegree == 4>>
 			looks just like you; she will likely grow up to closely resemble yourself.
@@ -472,11 +487,21 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 			You set <<if $babyGender == 1>>her<<else>>him<</if>> aside for incubation.
 			<<include "Incubator Workaround">>
 			<<set $reservedChildren-->>
-			<<set $PC.curBabies.shift()>>
+			<<set _shiftDegree++>>
 			<<set $PC.reservedChildren-- >>
 		<</if>>
-	<<set $babyGender = Math.floor(Math.random()*100) < $seeDicks ? 2 : 1>>
+		<<if $PC.curBabies[_p].identical === 1>>
+			<<set _identicalChildGen = 1>>
+		<<else>>
+			<<set _identicalChildGen = 0>>
+			<<set $babyGender = Math.floor(Math.random()*100) < $seeDicks ? 2 : 1>>
+		<</if>>
 	<</for>>
+	<<if _shiftDegree > 0>>
+		<<for _spb = 0; _spb < _shiftDegree; _spb++>>
+			<<set $PC.curBabies.shift()>>
+		<</for>>
+	<</if>>
 
 <</if>>
 

@@ -3692,6 +3692,79 @@ window.capFirstChar = function capFirstChar(string) {
 	return string.charAt(0).toUpperCase() + string.substr(1);
 }
 
+window.getSlaveDisplayName = function (slave) 
+{
+    if  (   (!slave)
+        ||  (!State)
+        )
+    {
+        return  undefined;
+    }
+    var     surnamesFirstCountries  =   [   "Cambodian", "Chinese", "Hungarian", "Japanese", "Korean",
+                                            "Mongolian", "Taiwanese", "Vietnamese"
+                                        ]
+        ,   names   =   [   slave.slaveName, slave.slaveSurname || ""
+                        ];
+        ;
+    if  (   (1  !=  State.variables.surnameOrder)
+        &&  (surnamesFirstCountries.includes(slave.nationality))
+        )
+    {
+        names.reverse();
+    }
+    return  names.join(" ").trim();
+}
+
+window.getSlaveDevotionClass = function (slave) 
+{
+    if  (   (!slave)
+        ||  (!State)
+        )
+    {
+        return  undefined;
+    }
+    if  ('mindbroken' == slave.fetish)  return  'mindbroken';
+
+    if      (-95 >  slave.devotion)     return  'very-hateful';
+    else if (-50 >  slave.devotion)     return  'hateful';
+    else if (-20 >  slave.devotion)     return  'resistant';
+    else if (20  >= slave.devotion)     return  'ambivelent';
+    else if (50  >= slave.devotion)     return  'accepting';
+    else if (95  >= slave.devotion)     return  'devoted';
+    else                                return  'worshipful';
+}
+
+window.getSlaveTrustClass = function (slave) 
+{
+    if  (   (!slave)
+        ||  (!State)
+        )
+    {
+        return  undefined;
+    }
+    if  ('mindbroken' == slave.fetish)  return  '';
+
+    if      (-95 >  slave.trust)        return  'extremely-terrified';
+    else if (-50 >  slave.trust)        return  'terrified';
+    else if (-20 >  slave.trust)        return  'frightened';
+    else if (20  >= slave.trust)        return  'fearful';
+    else if (50  >= slave.trust)
+    {
+        if (-20 >  slave.devotion)      return  'hate-careful';
+        else                            return  'careful';
+    }
+    else if (95  >= slave.trust)
+    {
+        if (-20 >  slave.devotion)      return  'bold';
+        else                            return  'trusting';
+    }
+    else
+    {
+        if (-20 >  slave.devotion)      return  'defiant';
+        else                            return  'profoundly-trusting';
+    }
+}
+
 /*:: Span Macro JS [script]*/
 
 /*
@@ -6953,9 +7026,10 @@ $isReady = WombBirthReady($slave, $birth_ready_age) - how many children ready to
 
 $children = WombBirth($slave, $birth_ready_age) - for actual birth. Return array with fetuses objects that birthed (can be used in future) and remove them from womb array of $slave. Should be called at actual birth code in sugarcube. fetuses that not ready remained in womb (array).
 
-WombFlush($slave) - clean womb (array). Can be used at broodmother birthstorm or abortion situations in game. But birthstorm logicaly should use WombBirth($slave, 35) or so before - some children in this event is live capable, others is not.
+WombFlush($slave) - clean womb (array). Can be used at broodmother birthstorm or abortion situations in game. But birthstorm logically should use WombBirth($slave, 35) or so before - some children in this event is live capable, others is not.
 
 $slave.bellyPreg = WombGetWolume($slave) - return double, with current womb volume in CC - for updating $slave.bellyPreg, or if need to update individual fetuses sizes.
+
 */
 
 window.WombInit = function(actor) //Init womb system.
@@ -7019,6 +7093,7 @@ window.WombImpregnate = function(actor, fCount, fatherID, age)
     tf.fatherID = fatherID; //We can store who is father too.
 	tf.sex = Math.round(Math.random())+1; // 1 = male, 2 = female. For possible future usage, just as concept now.
     tf.volume = 1; //Initial, to create property. Updated with actual data after WombGetVolume call.
+	tf.identical = 0; //Initial, to create property. Updated with actual data during fetalSplit call.
 
     try {
             if (actor.womb.length == 0)
@@ -7057,7 +7132,7 @@ window.WombProgress = function(actor, ageToAdd)
 window.WombBirth = function(actor, readyAge)
 {
     try{
-        actor.womb.sort(function (a, b){return b.age - a.age}); //For normal processing fetuses that more old should be first. Now - they are.
+        WombSort(actor); //For normal processing fetuses that more old should be first. Now - they are.
         }catch(err){
             WombInit(actor);
             alert("WombBirth warning - " + actor.slaveName+" "+err);       
@@ -7147,7 +7222,7 @@ window.WombGetVolume = function(actor) //most code from pregJS.tw with minor ada
 
 window.WombUpdatePregVars = function(actor) {
 
-    actor.womb.sort(function (a, b){return b.age - a.age});
+    WombSort(actor);
     if (actor.womb.length > 0)
     {
         if (actor.preg > 0 && actor.womb[0].age > 0)
@@ -7165,7 +7240,7 @@ window.WombUpdatePregVars = function(actor) {
 
 window.WombMinPreg = function(actor)
 {
-    actor.womb.sort(function (a, b){return b.age - a.age});
+    WombSort(actor);
 
     if (actor.womb.length > 0) 
         return actor.womb[actor.womb.length-1].age;
@@ -7175,7 +7250,7 @@ window.WombMinPreg = function(actor)
 
 window.WombMaxPreg = function(actor)
 {
-    actor.womb.sort(function (a, b){return b.age - a.age});
+    WombSort(actor);
     if (actor.womb.length > 0) 
         return actor.womb[0].age;
     else
@@ -7258,6 +7333,56 @@ window.WombZeroID = function(actor, id)
 
     WombNormalizePreg(actor);
 }
+
+/* Sorts the womb object by age with oldest and thus soonest to be born, first. This will be needed in the future once individual fertilization is a possiblity.*/
+window.WombSort = function(actor)
+{
+	actor.womb.sort(function (a, b){return b.age - a.age});
+}
+
+window.fetalSplit = function(actor)
+{
+	var i, ft;
+	var nft = {};
+    nft.age = actor.preg;
+    nft.fatherID = actor.pregSource;
+	nft.sex = Math.round(Math.random())+1;
+    nft.volume = 1;
+	nft.identical = 0;
+
+	actor.womb.forEach(function(s){
+		if ((jsRandom(1,1000) >= 1000) && s.identical !== 1)
+		{
+			nft = {};
+			nft.age = s.age;
+			nft.fatherID = s.fatherID;
+			nft.sex = s.sex;
+			nft.volume = s.volume;
+			actor.womb.push(nft);
+			s.identical = 1;
+		}
+	});
+	WombNormalizePreg(actor);
+
+}
+
+/* alt
+window.fetalSplit = function(actor)
+{
+	var i, ft, nft;
+
+	actor.womb.forEach(function(s){
+		if ((jsRandom(1,1000) >= 1000) && s.identical !== 1)
+		{
+			nft = deepCopy(s);
+			actor.womb.push(nft);
+			s.identical = 1;
+		}
+	});
+	WombNormalizePreg(actor);
+
+}
+*/
 
 /*:: clothingSelectionJS [script]*/
 
@@ -9325,3 +9450,115 @@ window.setColors = function(colorMap){
         });
     });
 }
+
+/*:: HTAG Macro JS [script]*/
+
+/*
+ * <<htag>> macro
+ * A simple macro which allows to create wrapping html elements with dynamic IDs.
+ *      idea blatantly robbed from the spanMacroJS.tw  but expanded to a more generic 
+ *      case, allowing <div>, <button> or whatever you want. elements, default is for
+ *      the div though.  In addition, you can pass an object in as the first argument 
+ *      instead of an id, and each of the object's attributes will become attributes
+ *      of the generate tag.
+ *
+ * Usage: <<htag id>>...<</htag>>    
+ * Usage: <<htag id tag>>...<</htag>>    
+ * Usage: <<htag atributes>>...<</htag>>    
+ * Usage: <<htag atributes tag>>...<</htag>>    
+ */
+Macro
+    .add(
+        'htag',
+        {   tags            : null
+        ,   handler()
+            {
+		const payload   =   this.payload[0].contents.replace(/(^\n+|\n+$)/, '');
+		let htag        =   'div';
+		let attributes;
+
+                var     munge   =   function (val, key) 
+                {
+                    return  key + '="' + val + '"';
+                };
+		
+                if  (1  >  this.args.length)
+                {
+                    return  
+                        this.error(
+                            'invalid syntax, format: <<htag [id [ tag ] | attributes [ tag ] >>'
+                        );
+		}
+                if  (1  <  this.args.length)
+                {
+                    htag    =   String(this.args[1]).trim();
+                }
+                if  ("object"   === typeof this.args[0])
+                {
+                    attributes  =   $.map(this.args[0], munge).join(" ");
+                }
+                else
+                {
+                    attributes  =   'id="' + String(this.args[0]).trim() + '"';
+                }
+		Config.debug && this.debugView.modes({block: true});
+		
+		jQuery('<' + htag + ' ' + attributes + ' />')
+			.wiki(payload)
+			.appendTo(this.output);
+	}
+});
+
+/*:: Quick List [script]*/
+
+window.sortDomObjects = function (objects, attrName)
+{
+    var sortingByAttr = function (a, b)
+    {
+        var     aVal    =   parseInt(a.getAttribute(attrName))
+            ,   bVal    =   parseInt(b.getAttribute(attrName))
+            ;
+        return  bVal - aVal;
+    };
+    return  objects.toArray().sort(sortingByAttr);
+};
+
+window.sortButtonsByDevotion    =   function ()
+{
+    var $sortedButtons   =  $('#qlWrapper button').remove();
+
+    $sortedButtons  =   sortDomObjects($sortedButtons, 'data-devotion');
+
+    $($sortedButtons).appendTo($('#qlWrapper'));
+    quickListBuildLinks();
+};
+
+window.sortButtonsByTrust   =   function ()
+{
+    var $sortedButtons   =  $('#qlWrapper button').remove();
+
+    $sortedButtons  =   sortDomObjects($sortedButtons, 'data-trust');
+
+    $($sortedButtons).appendTo($('#qlWrapper'));
+    quickListBuildLinks();
+};
+
+window.quickListBuildLinks  =   function ()
+{
+    $("[data-scroll-to]").click(function() {
+            var     $this = $(this), $toElement = $this.attr('data-scroll-to'),
+                    /*
+                    * note the * 1 enforces $offset to be an integer, without
+                    *       it we scroll to True, which goes nowhere fast.
+                    */
+                    $offset =   $this.attr('data-scroll-offset')    * 1 || 0,
+                    $speed  =   $this.attr('data-scroll-speed')     * 1 || 500
+                ;
+            /*
+            *   Use javascript scrollTop animation for in page navigation.
+            */
+            $('html, body').animate({
+                    scrollTop: $($toElement).offset().top + $offset
+            }, $speed);
+    });
+};
