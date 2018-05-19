@@ -767,13 +767,38 @@ All in all,
 		<<set $slaves[$i].reservedChildren = 0, _cToIncub = _curBabies>>
 	<</if>>
 	<<set $mom = $slaves[$i]>>
+	<<set _identicalChildGen = 0, _shiftDegree = 0>>
 	<br><br>
 	Of $possessive _curBabies child<<if $slaves[$i].pregType > 1>>ren<</if>>; _cToIncub <<if $slaves[$i].reservedChildren > 1>>were<<else>>was<</if>> taken to $incubatorName.
-	<<for _k = _cToIncub; _k != 0; _k-->> 
-		<<include "Generate Child">>
+	<<for _k = 0; _k < _cToIncub; _k++>> 
+		<<if _identicalChildGen == 0>>
+			<<if _k == $slaves[$i].curBabies.length-1 && $slaves[$i].curBabies.length > 1 && $slaves[$i].curBabies[_k].identical == 1>> /* catch for improperly placed identical twin flag to still generate*/
+				<<set _twin = clone($activeSlave)>>
+				<<set _twin.ID = $IDNumber++>>
+				<<set $activeSlave = 0>>
+				<<set $activeSlave = _twin>>
+			<<else>>
+				<<include "Generate Child">>
+			<</if>>
+		<<else>>
+			<<set _twin = clone($activeSlave)>>
+			<<set _twin.ID = $IDNumber++>>
+			<<set $activeSlave = 0>>
+			<<set $activeSlave = _twin>>
+		<</if>>
 		<<include "Incubator Workaround">>
-		<<set $slaves[$i].curBabies.shift()>> /*for now child generation metod for incubator not changed. But here children for incubator removed from array of birthed babies. If we decide later - we can use them for incubator as real objects here. For now they just discarded silently */
+		<<if $slaves[$i].curBabies[_k].identical === 1>>
+			<<set _identicalChildGen = 1>>
+		<<else>>
+			<<set _identicalChildGen = 0>>
+		<</if>>
+		<<set _shiftDegree++>>
 	<</for>>
+	<<if _shiftDegree > 0>>
+		<<for _sbw = 0; _sbw < _shiftDegree; _sbw++>>
+			<<set $slaves[$i].curBabies.shift()>> /*for now child generation metod for incubator not changed. But here children for incubator removed from array of birthed babies. If we decide later - we can use them for incubator as real objects here. For now they just discarded silently */
+		<</for>>
+	<</if>>
 	<<set _curBabies = $slaves[$i].curBabies.length>>
 	<br><br>
 	<<if _curBabies > 0>>
