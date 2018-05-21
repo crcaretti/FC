@@ -230,7 +230,7 @@ window.rulesAssistantOptions = (function() {
 				value = document.createElement("strong");
 			}
 			value.setAttribute("type", "text");
-			this.value = value
+			this.value = value;
 			elem.appendChild(label);
 			elem.appendChild(value);
 			elem.classList.add("rajs-list");
@@ -334,8 +334,9 @@ window.rulesAssistantOptions = (function() {
 	// a way to organise lists with too many elements in subsections
 	// children are bound to the master list
 	class ListSubSection extends Element {
-		constructor(label, pairs) {
+		constructor(parent, label, pairs) {
 			super(label);
+			this.parent = parent;
 			pairs.forEach(item => this.appendChild(new ListItem(...item)));
 		}
 		
@@ -441,7 +442,7 @@ window.rulesAssistantOptions = (function() {
 
 		render() {
 			const container = document.createElement("div");
-			const textarea = document.createElmenet("textarea");
+			const textarea = document.createElement("textarea");
 			textarea.placeholder = "Paste your rule here";
 			container.appendChild(textarea);
 			this.textarea = textarea;
@@ -478,6 +479,7 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new RuleSelector(this));
 			this.appendChild(new RuleOptions(this));
 			this.appendChild(new ConditionEditor(this));
+			this.appendChild(new EffectEditor(this));
 		}
 
 		render(element) {
@@ -593,7 +595,6 @@ window.rulesAssistantOptions = (function() {
 					this.appendChild(new CustomEditor(V.currentRule.condition.data));
 					break;
 				default:
-					console.log(V.currentRule.condition)
 					this.appendChild(new RangeEditor(V.currentRule.condition.function, V.currentRule.condition.data));
 					break;
 			}
@@ -786,8 +787,8 @@ window.rulesAssistantOptions = (function() {
 				["No", false]
 			];
 			super("Exclude special slaves:", items);
-			this.setValue(V.currentRule.excludeSpecialSlaves);
-			this.onchange = (value) => V.currentRule.excludeSpecialSlaves = value;
+			this.setValue(V.currentRule.condition.excludeSpecialSlaves);
+			this.onchange = (value) => V.currentRule.condition.excludeSpecialSlaves = value;
 		}
 	}
 
@@ -795,7 +796,7 @@ window.rulesAssistantOptions = (function() {
 		constructor() {
 			super();
 			this.appendChild(new OptionsItem("Limit to specific slaves", () => Engine.display("Rules Slave Select")));
-			this.appendChild(new OptionsItem("Exclude specific slaveS", () => Engine.display("Rules Slave Exclude")));
+			this.appendChild(new OptionsItem("Exclude specific slaves", () => Engine.display("Rules Slave Exclude")));
 		}
 	}
 
@@ -905,6 +906,8 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new ArmpitHairColourList());
 			this.appendChild(new ArmpitHairStyleList());
 		}
+
+		render() { return document.createElement("div"); }
 	}
 
 	class BodyModSection extends Element {
@@ -941,6 +944,8 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new AnalTattooList());
 			this.appendChild(new LegTattooList());
 		}
+
+		render() { return document.createElement("div"); }
 	}
 
 	class AutoSurgerySection extends Element {
@@ -957,8 +962,10 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new TighteningSurgeryList());
 			this.appendChild(new BodyHairSurgeryList());
 			this.appendChild(new HairSurgeryList());
+		}
+
+		render() { return document.createElement("div"); }
 	}
-}
 
 	class ClothesList extends List {
 		constructor() {
@@ -1013,7 +1020,7 @@ window.rulesAssistantOptions = (function() {
 				["Western clothing (FS)", "Western clothing"],
 			];
 			fsnclothes.forEach(pair => { if (isItemAccessible(pair[1])) nclothes.push(pair); });
-			const nice = new ListSubSection("Nice", nclothes);
+			const nice = new ListSubSection(this, "Nice", nclothes);
 			this.appendChild(nice);
 
 			const hclothes = [
@@ -1028,7 +1035,7 @@ window.rulesAssistantOptions = (function() {
 			];
 			fshclothes.forEach(pair => { if (isItemAccessible(pair[1])) hclothes.push(pair); });
 
-			const harsh = new ListSubSection("Harsh", hclothes);
+			const harsh = new ListSubSection(this, "Harsh", hclothes);
 			this.appendChild(harsh);
 
 			this.setValue(V.currentRule.set.clothes);
@@ -1059,7 +1066,7 @@ window.rulesAssistantOptions = (function() {
 				["ancient Egyptian", "ancient Egyptian"],
 			];
 			fsncollars.forEach(pair => { if (isItemAccessible(pair[1])) ncollars.push(pair); });
-			const nice = new ListSubSection("Nice", ncollars);
+			const nice = new ListSubSection(this, "Nice", ncollars);
 			this.appendChild(nice);
 
 			const hcollars = [
@@ -1076,7 +1083,7 @@ window.rulesAssistantOptions = (function() {
 				hcollars.push(["Cruel retirement counter", "cruel retirement counter"]);
 			if (V.toysBoughtGags === 1)
 				hcollars.push(["Massive dildo gag", "massive dildo gag"]);
-			const harsh = new ListSubSection("Harsh", hcollars);
+			const harsh = new ListSubSection(this, "Harsh", hcollars);
 			this.appendChild(harsh);
 
 			this.setValue(V.currentRule.set.collar);
@@ -1086,7 +1093,7 @@ window.rulesAssistantOptions = (function() {
 
 	class ShoeList extends List {
 		constructor() {
-			super("Shoes", setup.shoes);
+			super("Shoes", setup.shoes.map(i => [i.name, i.value]));
 			this.setValue(V.currentRule.set.shoes);
 			this.onchange = (value) => V.currentRule.set.shoes = value;
 		}
@@ -1156,7 +1163,7 @@ window.rulesAssistantOptions = (function() {
 
 	class DickAccVirginsList extends List {
 		constructor() {
-			super("Dick accessories for anal virgins", setup.dickAccessories);
+			super("Dick accessories for anal virgins", setup.dickAccessories.map(i => [i.name, i.value]));
 			this.setValue(V.currentRule.set.aVirginDickAccessory);
 			this.onchange = (value) => V.currentRule.set.aVirginDickAccessory = value;
 		}
@@ -1164,7 +1171,7 @@ window.rulesAssistantOptions = (function() {
 
 	class DickAccOtherList extends List {
 		constructor() {
-			super("Dick accessories for other slaves", setup.dickAccessories);
+			super("Dick accessories for other slaves", setup.dickAccessories.map(i => [i.name, i.value]));
 			this.setValue(V.currentRule.set.dickAccessory);
 			this.onchange = (value) => V.currentRule.set.dickAccessory = value;
 		}
@@ -1827,8 +1834,9 @@ window.rulesAssistantOptions = (function() {
 			const elem = document.createElement("div");
 			elem.innerHTML = "Eye coloring: ";
 			this.label = document.createElement("strong");
-			this.label.innerText = coloring;
+			this.label.innerText = color;
 			elem.appendChild(this.label);
+			return elem
 		}
 
 		combine() {
@@ -1850,7 +1858,7 @@ window.rulesAssistantOptions = (function() {
 
 	class LensesColourList extends Options {
 		constructor() {
-			super("Color:");
+			const items = [];
 			[
 				["no default setting"],
 				["blue"],
@@ -1865,16 +1873,17 @@ window.rulesAssistantOptions = (function() {
 				["pink"],
 				["amber"],
 				["red"]
-			].forEach(i => this.appendChild(new OptionsItem(i, item => {
+			].forEach(i => items.push(new OptionsItem(i, item => {
 				this.value = item.label;
 				this.parent.set_value();
 			})));
+			super(items);
 		}
 	}
 
 	class LensesShapeList extends Options {
 		constructor() {
-			super("Shape:");
+			const items = [];
 			[
 				["no default setting"],
 				["catlike"],
@@ -1888,10 +1897,11 @@ window.rulesAssistantOptions = (function() {
 				["bright"],
 				["teary"],
 				["vacant"]
-			].forEach(i => this.appendChild(new OptionsItem(i, item => {
+			].forEach(i => items.push(new OptionsItem(i, item => {
 				this.value = item.label;
 				this.parent.set_value();
 			})));
+			super(items);
 		}
 	}
 
@@ -2218,7 +2228,7 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
-	class ClipPiercingList extends List {
+	class ClitPiercingList extends List {
 		constructor() {
 			const pairs = [
 				["No default setting", "no default setting"],
@@ -2304,98 +2314,98 @@ window.rulesAssistantOptions = (function() {
 		constructor() {
 			super("Your preferred location for brands is", []);
 
-			const ears = new ListSubSection("Ears", [
+			const ears = new ListSubSection(this, "Ears", [
 				["Left", "left ear"],
 				["Right", "right ear"],
 				["Both", "ears"]
 			]);
 			this.appendChild(ears);
 
-			const cheeks = new ListSubSection("Cheeks", [
+			const cheeks = new ListSubSection(this, "Cheeks", [
 				["Left", "left cheek"],
 				["Right", "right cheek"],
 				["Both", "cheeks"]
 			]);
 			this.appendChild(cheeks);
 
-			const shoulders = new ListSubSection("Shoulders", [
+			const shoulders = new ListSubSection(this, "Shoulders", [
 				["Left", "left shoulder"],
 				["Right", "right shoulder"],
 				["Both", "shoulders"]
 			]);
 			this.appendChild(shoulders);
 
-			const breasts = new ListSubSection("Breasts", [
+			const breasts = new ListSubSection(this, "Breasts", [
 				["Left", "right breast"],
 				["Right", "left breast"],
 				["Both", "breasts"]
 			]);
 			this.appendChild(breasts);
 
-			const upper_arms = new ListSubSection("Arms, upper", [
+			const upper_arms = new ListSubSection(this, "Arms, upper", [
 				["Left", "left upper arm"],
 				["Right", "right upper arm"],
 				["Both", "upper arms"]
 			]);
 			this.appendChild(upper_arms);
 
-			const lower_arms = new ListSubSection("Arms, lower", [
+			const lower_arms = new ListSubSection(this, "Arms, lower", [
 				["Left", "left lower arm"],
 				["Right", "right lower arm"],
 				["Both", "lower arms"]
 			]);
 			this.appendChild(lower_arms);
 
-			const wrist = new ListSubSection("Wrist", [
+			const wrist = new ListSubSection(this, "Wrist", [
 				["Left", "left wrist"],
 				["Right", "right wrist"],
 				["Both", "wrists"]
 			]);
 			this.appendChild(wrist);
 
-			const hand = new ListSubSection("Hand", [
+			const hand = new ListSubSection(this, "Hand", [
 				["Left", "left hand"],
 				["Right", "right hand"],
 				["Both", "hands"]
 			]);
 			this.appendChild(hand);
 
-			const buttocks = new ListSubSection("Buttocks", [
+			const buttocks = new ListSubSection(this, "Buttocks", [
 				["Left", "left buttock"],
 				["Right", "right buttock"],
 				["Both", "buttocks"]
 			]);
 			this.appendChild(buttocks);
 
-			const thigh = new ListSubSection("Thigh", [
+			const thigh = new ListSubSection(this, "Thigh", [
 				["Left", "left thigh"],
 				["Right", "right thigh"],
 				["Both", "thighs"]
 			]);
 			this.appendChild(thigh);
 
-			const calf = new ListSubSection("Calf", [
+			const calf = new ListSubSection(this, "Calf", [
 				["Left", "left calf"],
 				["Right", "right calf"],
 				["Both", "calves"]
 			]);
 			this.appendChild(calf);
 
-			const ankle = new ListSubSection("Ankle", [
+			const ankle = new ListSubSection(this, "Ankle", [
 				["Left", "left ankle"],
 				["Right", "right ankle"],
 				["Both", "ankles"]
 			]);
 			this.appendChild(ankle);
 
-			const feet = new ListSubSection("Feet", [
+			const feet = new ListSubSection(this, "Feet", [
 				["Left", "left foot"],
 				["Right", "right foot"],
 				["Both", "feet"]
 			]);
 			this.appendChild(feet);
 
-			const other = new ListSubSection("Other", [
+			const other = new ListSubSection(this, "Other", [
 				["Neck", "neck"],
 				["Chest", "chest"],
 				["Belly", "belly"],
