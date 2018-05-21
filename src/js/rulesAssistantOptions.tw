@@ -209,11 +209,10 @@ window.rulesAssistantOptions = (function() {
 	// value display can optionally be an editable text input field
 	// it can be "bound" to a variable by setting its "onchange" method
 	class List extends Element {
-		constructor(prefix, data, textinput=false) {
+		constructor(prefix, data=[], textinput=false) {
 			super(prefix, textinput);
 			this.selectedItem = null;
-			this.value = this.element.querySelector(".rajs-value");
-			data.forEach(item => this.appendChild(...item));
+			data.forEach(item => this.appendChild(new ListItem(...item)));
 		}
 
 		render(prefix, textinput) {
@@ -231,6 +230,7 @@ window.rulesAssistantOptions = (function() {
 				value = document.createElement("strong");
 			}
 			value.setAttribute("type", "text");
+			this.value = value
 			elem.appendChild(label);
 			elem.appendChild(value);
 			elem.classList.add("rajs-list");
@@ -355,6 +355,7 @@ window.rulesAssistantOptions = (function() {
 	// similar to list, but is just a collection of buttons
 	class Options extends Element {
 		constructor(elements=[]) {
+			super();
 			elements.forEach(element => { this.appendChild(element); });
 		}
 
@@ -465,8 +466,8 @@ window.rulesAssistantOptions = (function() {
 
 	// the base element, parent of all elements
 	class Root extends Element {
-		constructor() {
-			super();
+		constructor(element) {
+			super(element);
 			if(V.defaultRules.length === 0) {
 				const paragraph = document.createElement("p");
 				paragraph.innerHTML = "<strong>No rules</strong>";
@@ -476,6 +477,7 @@ window.rulesAssistantOptions = (function() {
 			}
 			this.appendChild(new RuleSelector(this));
 			this.appendChild(new RuleOptions(this));
+			this.appendChild(new ConditionEditor(this));
 		}
 
 		render(element) {
@@ -503,7 +505,7 @@ window.rulesAssistantOptions = (function() {
 		constructor(root) {
 			if (!V.currentRule)
 				V.currentRule = V.defaultRules[0];
-			super("Current rule:", V.defaultRules.map(i => [i.name, i.name, i]));
+			super("Current rule:", V.defaultRules.map(i => [i.name, i]));
 			this.onchange = function (rule) {
 				V.currentRule = rule;
 				reload(root);
@@ -577,11 +579,11 @@ window.rulesAssistantOptions = (function() {
 	class ConditionFunction extends Element {
 		constructor() {
 			super();
-			this.fnlist = new List("Activation function:");
+			const items = ["Never", "Always", "Custom"];
+			["Devotion", "Trust", "Health", "Sex drive", "Weight", "Age", "Body Age", "Visible Age", "Muscles", "Lactation", "Pregnancy", "Pregnancy Multiples", "Belly Implant", "Belly Size"].forEach(i => items.push([i, this.getAttribute(i)]));
+			this.fnlist = new List("Activation function:", items);
+			this.fnlist.onchange = (value) => this.fnchanged(value);
 			this.fneditor = null;
-			["Never", "Always", "Custom"].forEach(i => this.fnlist.appendChild(i));
-			["Devotion", "Trust", "Health", "Sex drive", "Weight", "Age", "Body Age", "Visible Age", "Muscles", "Lactation", "Pregnancy", "Pregnancy Multiples", "Belly Implant", "Belly Size"].forEach(i => this.fnlist.appendChild(i, this.getAttribute(i)));
-			this.fnlist.onchange = () => this.fnchanged;
 
 			switch(V.currentRule.condition.function) {
 				case "Never":
@@ -591,6 +593,7 @@ window.rulesAssistantOptions = (function() {
 					this.appendChild(new CustomEditor(V.currentRule.condition.data));
 					break;
 				default:
+					console.log(V.currentRule.condition)
 					this.appendChild(new RangeEditor(V.currentRule.condition.function, V.currentRule.condition.data));
 					break;
 			}
@@ -614,7 +617,7 @@ window.rulesAssistantOptions = (function() {
 				"Lactation": "lactation",
 				"Pregnancy": "preg",
 				"Pregnancy Multiples": "pregType",
-				"Belly implant": "bellyImplant",
+				"Belly Implant": "bellyImplant",
 				"Belly Size": "belly",
 			}[what];
 		}
@@ -662,19 +665,19 @@ window.rulesAssistantOptions = (function() {
 	}
 
 	class RangeEditor extends Element {
-		render(data) {
+		render(fn, data) {
 			const elem = document.createElement("div");
 
 			const min = document.createElement("input");
 			min.setAttribute("type", "text");
-			min.value = data.between[0];
+			min.value = data.value[0];
 			min.onkeypress = e => onreturn(e, () => this.setmin(min.value));
 			min.onfocusout = e => this.setmin(min.value);
 			elem.appendChild(min);
 
 			const max = document.createElement("input");
 			max.setAttribute("type", "text");
-			max.value = data.between[0];
+			max.value = data.value[0];
 			max.onkeypress = e => onreturn(e, () => this.setmax(max.value));
 			max.onfocusout = e => this.setmax(max.value);
 			elem.appendChild(max);
@@ -697,11 +700,11 @@ window.rulesAssistantOptions = (function() {
 		}
 
 		setmin(value) {
-			V.currentRule.data.between[0] = this.parse(value);
+			V.currentRule.data.value[0] = this.parse(value);
 		}
 
 		setmax(value) {
-			V.currentRule.data.between[1] = this.parse(value);
+			V.currentRule.data.value[1] = this.parse(value);
 		}
 
 		info(attribute) {
@@ -2918,5 +2921,5 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 	
-	return rulesAssistantOptions
+	return rulesAssistantOptions;
 })();
