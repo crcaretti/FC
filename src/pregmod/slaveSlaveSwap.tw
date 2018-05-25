@@ -1,0 +1,79 @@
+:: Slave Slave Swap [nobr]
+
+<<set $nextButton = "Continue">>
+<<set _ss1 = $slaveIndices[$activeSlave.ID]>>
+<<set _ss1Clone = clone($activeSlave)>>
+<<set _ss2 = $slaveIndices[$swappingSlave.ID]>>
+<<set _ss2Clone = clone($swappingSlave)>>
+<<set _gps1 = $genePool.findIndex(function(s) { return s.ID == $slaves[_ss1].ID; })>>
+<<set _gps1Clone = clone($genePool[_gps1])>>
+<<set _gps2 = $genePool.findIndex(function(s) { return s.ID == $slaves[_ss2].ID; })>>
+<<set _gps2Clone = clone($genePool[_gps2])>>
+
+You strap $activeSlave.slaveName and $swappingSlave.slaveName into the remote surgery and stand back as it goes to work.
+<<BodySwap $slaves[_ss1] _ss2Clone>>
+<<BodySwap $genePool[_gps1] _gps2Clone>>
+<<BodySwap $slaves[_ss2] _ss1Clone>>
+<<BodySwap $genePool[_gps2] _gps1Clone>>
+
+<br><br>
+After an honestly impressive procedure, $slaves[_ss1].slaveName is recovering nicely.
+
+<<BodySwapReaction $slaves[_ss1] _ss2Clone>>
+
+<br><br><hr style="margin:0"><br>
+
+In the neighboring bed, $slaves[_ss2].slaveName rests peacefully.
+
+<<BodySwapReaction $slaves[_ss2] _ss1Clone>>
+
+/* figuring out whom has who's body now*/
+
+<<if $slaves[_ss1].bodySwap == 0>>
+	<<set $slaves[_ss1].origBodyOwnerID = _ss2Clone.ID>>
+<<elseif $slaves[_ss2].origBodyOwner !== "">> /* now who's going to be looking for you? */
+	<<set _myBody = $slaves.findIndex(function(s) { return s.origBodyOwnerID == $slaves[_ss2].ID; })>>
+	<<if _myBody != -1>>
+		<<set $slaves[_myBody].origBodyOwnerID = $slaves[_ss1].ID>>
+	<</if>>
+<</if>>
+
+<<if $slaves[_ss2].bodySwap == 0>>
+	<<set $slaves[_ss2].origBodyOwnerID = _ss1Clone.ID>>
+<<elseif $slaves[_ss1].origBodyOwner !== "">> /* now who's going to be looking for you? */
+	<<set _myBody = $slaves.findIndex(function(s) { return s.origBodyOwnerID == $slaves[_ss1].ID; })>>
+	<<if _myBody != -1>>
+		<<set $slaves[_myBody].origBodyOwnerID = $slaves[_ss2].ID>>
+	<</if>>
+<</if>>
+
+/* now to handle who's body it is, name-wise */
+
+<<BodySwapName $slaves[_ss1] $slaves[_ss2]>>
+<<BodySwapName $slaves[_ss2] $slaves[_ss1]>>
+
+<<if _ss1Clone.bodySwap > 0>>
+	<<if $slaves[_ss1].origBodyOwnerID == $slaves[_ss1].ID>>
+		<<set $slaves[_ss1].bodySwap = 0>>
+		<<set $slaves[_ss1].origBodyOwnerID = 0>>
+		<<set $slaves[_ss1].origBodyOwner = "">>
+	<<else>>
+		<<set $slaves[_ss1].bodySwap++>>
+	<</if>>
+<<else>>
+	<<set $slaves[_ss1].bodySwap++>>
+<</if>>
+
+<<if $slaves[_ss2].bodySwap > 0>>
+	<<if $slaves[_ss2].origBodyOwnerID == $slaves[_ss2].ID>>
+		<<set $slaves[_ss2].bodySwap = 0>>
+		<<set $slaves[_ss2].origBodyOwnerID = 0>>
+		<<set $slaves[_ss2].origBodyOwner = "">>
+	<<else>>
+		<<set $slaves[_ss2].bodySwap++>>
+	<</if>>
+<<else>>
+	<<set $slaves[_ss2].bodySwap++>>
+<</if>>
+
+<<set $activeSlave = 0, $swappingSlave = 0>>
