@@ -1521,11 +1521,31 @@ Release rules: _Slave.releaseRules.
 <<else>>
 	Underage.
 <</if>>
-<<if _Slave.actualAge != _Slave.physicalAge>>
-	_Slave.physicalAge year old body.
+/*
+**  No NCS, then do the standard, However because of the wrinkes of Incubators, as long as visual age is greater 
+**  than or equal to physical age, we do the old physical body/Looks for fresh out of the can NCS slaves.
+*/
+<<if ((_Slave.inducedNCS == 0) || (_Slave.visualAge >= _Slave.physicalAge))>>
+        <<if _Slave.actualAge != _Slave.physicalAge>>
+                _Slave.physicalAge year old body.
+        <</if>>
+        <<if _Slave.visualAge != _Slave.physicalAge>>
+                Looks _Slave.visualAge.
+        <</if>>
+<<else>>
+        /*
+        **  Now the rub. The use of physical Age for the year old body above, basically conflicts with the changes
+        **  that NCS introduces, so here to *distinguish* the changes, we use visual age with the 'year old body'
+        **  and appears, for example: Slave release from incubator at age 10, Her summary would show, 'Age 0. 10 
+        **  year old body.' But if she's given NCS a few weeks after release, while she's still before her first 
+        **  birthday, it'll appear the same. But once her birthday fires, if we ran with the above code it would 
+        **  say: 'Age 1. 11 year old body.' -- this conflicts with the way NCS works though, because she hasn't
+        **  visually aged, so our change here makes it say 'Age 1. Appears to have a 10 year old body.'
+        */
+        Appears to have a _Slave.visualAge year old body.
 <</if>>
-<<if _Slave.visualAge != _Slave.physicalAge>>
-	Looks _Slave.visualAge.
+<<if _Slave.inducedNCS == 1>>
+        (@@.orange;NCS@@)
 <</if>>
 <<if _Slave.face < -95>>
 	@@.red;Very ugly<<if $summaryStats>> [_Slave.face]<</if>>@@
