@@ -1240,9 +1240,9 @@ Work on her structurally:
 <<else>>
   $pronounCap is a quadruple amputee
   <<if $activeSlave.PLimb == 1 && $activeSlave.amp == 1>>
-	and has been implanted with basic PLimb interface.
+	and has been implanted with a <<if $cyberMod>>basic<</if>> PLimb interface.
   <<elseif $activeSlave.PLimb == 2 && $activeSlave.amp == 1>>
-	and has been implanted with advanced PLimb interface.
+	and has been implanted with an advanced PLimb interface.
   <<elseif $activeSlave.amp == -1>>
 	and has been equipped with modern prosthetics.
   <<elseif $activeSlave.amp == -2>>
@@ -1261,11 +1261,11 @@ Work on her structurally:
 <<if $cyberMod == 0>>
 	<<if $activeSlave.amp == 0>>
 		<<if ($activeSlave.indentureRestrictions < 1) && ($seeExtreme == 1)>>
-			[[Remove arms and legs|Surgery Degradation][$activeSlave.amp = 1,$activeSlave.heels = 0,$activeSlave.shoes = "none",$activeSlave.legAccessory = "none",$activeSlave.heightImplant = 0,$activeSlave.legsTat = 0,$activeSlave.armsTat = 0,$cash -= $surgeryCost, $activeSlave.health -= 40,$activeSlave.nails = 0,$surgeryType = "amp"]] //This will greatly restrict $possessive//
+			[[Remove arms and legs|Surgery Degradation][$activeSlave.amp = 1,$activeSlave.heels = 0,$activeSlave.shoes = "none",$activeSlave.legAccessory = "none",$activeSlave.heightImplant = 0,$activeSlave.legsTat = 0,$activeSlave.armsTat = 0,$cash -= $surgeryCost,$activeSlave.health -= 40,$activeSlave.nails = 0,$activeSlave.PLimb = 0,$surgeryType = "amp1"]] //This will greatly restrict $possessive//
 		<</if>>
-	<<elseif $activeSlave.amp != 1>>
+	<<elseif $activeSlave.PLimb != 1 && $activeSlave.amp == 1>>
 		<<if ($activeSlave.indentureRestrictions < 1) && ($seeExtreme == 1)>>
-			[[Detach artificial limbs|Surgery Degradation][$activeSlave.amp = 1,$activeSlave.heels = 0,$activeSlave.shoes = "none",$activeSlave.legAccessory = "none",$activeSlave.heightImplant = 0,$activeSlave.legsTat = 0,$activeSlave.armsTat = 0,$cash -= $surgeryCost, $activeSlave.health -= 40,$activeSlave.nails = 0,$surgeryType = "removeLimbs"]] //This will greatly restrict $possessive//
+			[[Implant prosthetic interface|Surgery Degradation][$activeSlave.PLimb = 1,$cash -= $surgeryCost,$activeSlave.health -= 20,$surgeryType = "prostheticInterface"]] //This will allow $possessive to use prosthetic limbs//
 		<</if>>
 	<</if>>
 <<else>>
@@ -1306,233 +1306,139 @@ Work on her structurally:
 <br><br>
 
 <<set $activeLimbs = 0>>
-<<for _i = 0; _i < $limbs.length; _i++>>
-  <<if $activeSlave.ID == $limbs[_i].ID>>
-    <<set $activeLimbs = $limbs[_i]>>
-	<<break>>
-  <</if>>
-<</for>>
+<<set _i = $limbs.findIndex(function(s) { return s.ID == $activeSlave.ID; })>>
+<<if _i != -1>>
+	<<set $activeLimbs = $limbs[_i]>>
+<</if>>
 
 <<if $activeLimbs == 0>>
-The prosthesis facility is not currently building a set of artificial limbs for $object.
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;
-	<<if $prostheticsUpgrade == 1>>
-		
-		<<link "Construct basic prosthetic limbs" && $activeSlave.readyLimbs.includes(-1) != 1>>
-			<<set $cash -= 10000>>
-			<<set $activeLimbs = {weeksToCompletion: 12, ID: 0, type: "simple"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(10000)>>//
-		
-	<<elseif $prostheticsUpgrade == 2>>
-		<<if $activeSlave.amp >= 0>>
+	<<if ($activeSlave.readyLimbs.length < 5 && $activeSlave.amp == 0) || ($activeSlave.readyLimbs.length < 4 && $activeSlave.amp < 0)>> /* missing at least one type of limb */
+		The prosthesis facility is not currently building a set of artificial limbs for $object.
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;
 		Construct prosthetics:
-		<<elseif $activeSlave.amp == -1>>
-		Upgrade $possessive prosthetics:
-		<<else>>
-		Modify $possessive prosthetics:
-		<</if>>
-
-		<<if $activeSlave.amp != -1 && $activeSlave.readyLimbs.includes(-1) != 1>>
-		<<link "Basic prosthetic limbs">>
-			<<set $cash -= 10000>>
-			<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "simple"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<if $activeSlave.amp == 1>>
-				<<set $activeLimbs.weeksToCompletion += 3>>
+		
+		<<if $activeSlave.amp != -1>>
+			<<set _rems = $activeSlave.readyLimbs.findIndex(function(s) { return s.type == -1; })>>
+			<<if _rems == -1>>
+				<<link "Basic prosthetic limbs">>
+					<<set $cash -= 10000>>
+					<<set $activeLimbs = {weeksToCompletion: 4, ID: 0, type: "simple"}>>
+					<<set $activeLimbs.ID = $activeSlave.ID>>
+					<<set $limbs.push($activeLimbs)>>
+					<<goto "Remote Surgery">>
+				<</link>> //Costs <<print cashFormat(10000)>> and will take 4 weeks//
 			<</if>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(10000)>>//
 		<</if>>
-		|
-		<<if $activeSlave.amp != -2 && $activeSlave.readyLimbs.includes(-2) != 1>>
-		<<link "Sexual functions">>
-			<<set $cash -= 10000>>
-			<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "sex"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<if $activeSlave.amp == 1>>
-				<<set $activeLimbs.weeksToCompletion += 3>>
+		
+		<<if $prostheticsUpgrade > 1>>
+			<<if $activeSlave.amp != -2>>
+				<<set _rems = $activeSlave.readyLimbs.findIndex(function(s) { return s.type == -2; })>>
+				<<if _rems == -1>>
+					|
+					<<link "Sexual functions">>
+						<<set $cash -= 15000>>
+						<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "sex"}>>
+						<<set $activeLimbs.ID = $activeSlave.ID>>
+						<<if $activeSlave.amp == 1>>
+							<<set $activeLimbs.weeksToCompletion += 3>>
+						<</if>>
+						<<set $limbs.push($activeLimbs)>>
+						<<goto "Remote Surgery">>
+					<</link>> //Costs <<print cashFormat(15000)>> and will take 6 weeks//
+				<</if>>
 			<</if>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(10000)>>//
+			
+			<<if $activeSlave.amp != -3>>
+				<<set _rems = $activeSlave.readyLimbs.findIndex(function(s) { return s.type == -3; })>>
+				<<if _rems == -1>>
+					|
+					<<link "Beauty and grace">>
+						<<set $cash -= 15000>>
+						<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "beauty"}>>
+						<<set $activeLimbs.ID = $activeSlave.ID>>
+						<<if $activeSlave.amp == 1>>
+							<<set $activeLimbs.weeksToCompletion += 3>>
+						<</if>>
+						<<set $limbs.push($activeLimbs)>>
+						<<goto "Remote Surgery">>
+					<</link>> //Costs <<print cashFormat(15000)>> and will take 6 weeks//
+				<</if>>
+			<</if>>
+			
+			<<if $activeSlave.amp != -4>>
+				<<set _rems = $activeSlave.readyLimbs.findIndex(function(s) { return s.type == -4; })>>
+				<<if _rems == -1>>
+					|
+					<<link "Combat effectiveness">>
+						<<set $cash -= 15000>>
+						<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "combat"}>>
+						<<set $activeLimbs.ID = $activeSlave.ID>>
+						<<if $activeSlave.amp == 1>>
+							<<set $activeLimbs.weeksToCompletion += 3>>
+						<</if>>
+						<<set $limbs.push($activeLimbs)>>
+						<<goto "Remote Surgery">>
+					<</link>> //Costs <<print cashFormat(15000)>> and will take 6 weeks//
+				<</if>>
+			<</if>>
 		<</if>>
-		|
-		<<if $activeSlave.amp != -3 && $activeSlave.readyLimbs.includes(-3) != 1>>
-		<<link "Beauty and grace">>
-			<<set $cash -= 10000>>
-			<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "beauty"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<if $activeSlave.amp == 1>>
-				<<set $activeLimbs.weeksToCompletion += 3>>
+		<<if $prostheticsUpgrade > 2>>
+			<<if $activeSlave.amp != -5>>
+				<<set _rems = $activeSlave.readyLimbs.findIndex(function(s) { return s.type == -5; })>>
+				<<if _rems == -1>>
+					|
+					<<link "Highly advanced cybernetics">>
+						<<set $cash -= 25000>>
+						<<set $activeLimbs = {weeksToCompletion: 8, ID: 0, type: "cyber"}>>
+						<<set $activeLimbs.ID = $activeSlave.ID>>
+						<<if $activeSlave.amp == 1>>
+							<<set $activeLimbs.weeksToCompletion += 6>>
+						<</if>>
+						<<set $limbs.push($activeLimbs)>>
+						<<goto "Remote Surgery">>
+					<</link>> //Costs <<print cashFormat(25000)>> and will take 8 weeks//
+				<</if>>
 			<</if>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(10000)>>//
-		<</if>>
-		|
-		<<if $activeSlave.amp != -4 && $activeSlave.readyLimbs.includes(-4) != 1>>
-		<<link "Combat effectiveness">>
-			<<set $cash -= 10000>>
-			<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "combat"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<if $activeSlave.amp == 1>>
-				<<set $activeLimbs.weeksToCompletion += 3>>
-			<</if>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(10000)>>//
 		<</if>>
 	<<else>>
-		<<if $activeSlave.amp >= 0>>
-		Construct prosthetics:
-		<<elseif $activeSlave.amp == -1>>
-		Upgrade $possessive prosthetics:
-		<<else>>
-		Modify $possessive prosthetics:
-		<</if>>
-
-		<<if $activeSlave.amp != -1 && $activeSlave.readyLimbs.includes(-1) != 1>>
-		<<link "Basic prosthetic limbs">>
-			<<set $cash -= 5000>>
-			<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "simple"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<if $activeSlave.amp == 1>>
-				<<set $activeLimbs.weeksToCompletion += 3>>
-			<</if>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(5000)>>//
-		<</if>>
-		<<if $activeSlave.amp != -2 && $activeSlave.readyLimbs.includes(-2) != 1>>
-		|
-		<<link "Sexual functions">>
-			<<set $cash -= 10000>>
-			<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "sex"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<if $activeSlave.amp == 1>>
-				<<set $activeLimbs.weeksToCompletion += 3>>
-			<</if>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(10000)>>//
-		<</if>>
-		<<if $activeSlave.amp != -3 && $activeSlave.readyLimbs.includes(-3) != 1>>
-		|
-		<<link "Beauty and grace">>
-			<<set $cash -= 10000>>
-			<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "beauty"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<if $activeSlave.amp == 1>>
-				<<set $activeLimbs.weeksToCompletion += 3>>
-			<</if>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(10000)>>//
-		<</if>>
-		<<if $activeSlave.amp != -4  && $activeSlave.readyLimbs.includes(-4) != 1>>
-		|
-		<<link "Combat effectiveness">>
-			<<set $cash -= 10000>>
-			<<set $activeLimbs = {weeksToCompletion: 6, ID: 0, type: "combat"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<if $activeSlave.amp == 1>>
-				<<set $activeLimbs.weeksToCompletion += 3>>
-			<</if>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(10000)>>//
-		<</if>>
-		<<if $activeSlave.amp != -5 && $activeSlave.readyLimbs.includes(-5) != 1>>
-		|
-		<<link "Highly advanced cybernetics">>
-			<<set $cash -= 15000>>
-			<<set $activeLimbs = {weeksToCompletion: 12, ID: 0, type: "cyber"}>>
-			<<set $activeLimbs.ID = $activeSlave.ID>>
-			<<if $activeSlave.amp == 1>>
-				<<set $activeLimbs.weeksToCompletion += 6>>
-			<</if>>
-			<<set $limbs.push($activeLimbs)>>
-			<<goto "Remote Surgery">>
-		<</link>> //Costs <<print cashFormat(15000)>>//
-		<</if>>
+		The prosthesis facility has already built a complete set of artificial limbs of every type for $object.
 	<</if>>
 <<elseif $activeLimbs.weeksToCompletion > 0>>
-The prosthesis facility is currently building a set of
-<<switch $activeLimbs.type>>
-<<case "cyber">>
-	 highly advanced cybernetic
-<<case "sex">>
-	 advanced sex-focus artificial
-<<case "beauty">>
-	 advanced beauty-focus artificial
-<<case "combat">>
-	 advanced combat-focus artificial
-<<default>>
-	 standard artificial
-<</switch>>
- limbs for $object, which is projected to be ready for attachment in $activeLimbs.weeksToCompletion <<if $activeLimbs.weeksToCompletion == 1>>week<<else>>weeks<</if>>.
- <<link "Discard">>
-	<<for _i = 0; _i < $limbs.length; _i++>>
-	  <<if $activeSlave.ID == $limbs[_i].ID>>
+	The prosthesis facility is currently building a set of
+	<<switch $activeLimbs.type>>
+	<<case "cyber">>
+		 highly advanced cybernetic
+	<<case "sex">>
+		 advanced sex-focus artificial
+	<<case "beauty">>
+		 advanced beauty-focus artificial
+	<<case "combat">>
+		 advanced combat-focus artificial
+	<<default>>
+		 standard artificial
+	<</switch>>
+	limbs for $object, which is projected to be ready for attachment in $activeLimbs.weeksToCompletion <<if $activeLimbs.weeksToCompletion == 1>>week<<else>>weeks<</if>>.
+	<<link "Discard">>
+		<<set _i = $limbs.findIndex(function(s) { return s.ID == $activeSlave.ID; })>>
 		<<set $limbs.deleteAt(_i)>>
-		<<break>>
-	  <</if>>
-	<</for>>
-	<<goto "Remote Surgery">>
-<</link>>
+		<<goto "Remote Surgery">>
+	<</link>>
 <<else>>
-The prosthesis facility has constructed $possessive prosthetic limbs.
-	<<if $activeSlave.amp < 1>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;
-		ERROR: this slave is not amputated.
-		<<link "Discard">>
-			<<for _i = 0; _i < $limbs.length; _i++>>
-			  <<if $activeSlave.ID == $limbs[_i].ID>>
-				<<set $limbs.deleteAt(_i)>>
-				<<break>>
-			  <</if>>
-			<</for>>
-			<<goto "Remote Surgery">>
-		<</link>>
-		|
-		<<link "Put into storage">>
-			<<for _i = 0; _i < $limbs.length; _i++>>
-			  <<if $activeSlave.ID == $limbs[_i].ID>>
-				<<break>>
-			  <</if>>
-			<</for>>
-
-			<<switch $limbs[_i].type>>
-			<<case "simple">>
-				<<set $activeSlave.readyLimbs.push(-1)>>
-				<<set $limbs.deleteAt(_i)>>
-			<<case "sex">>
-				<<set $activeSlave.readyLimbs.push(-2)>>
-				<<set $limbs.deleteAt(_i)>>
-			<<case "beauty">>
-				<<set $activeSlave.readyLimbs.push(-3)>>
-				<<set $limbs.deleteAt(_i)>>
-			<<case "combat">>
-				<<set $activeSlave.readyLimbs.push(-4)>>
-				<<set $limbs.deleteAt(_i)>>
-			<<case "cyber">>
-				<<set $activeSlave.readyLimbs.push(-5)>>
-				<<set $limbs.deleteAt(_i)>>
-			<</switch>>
-			<<goto "Remote Surgery">>
-		<</link>>
+	The prosthesis facility has constructed $possessive prosthetic limbs.
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;
+	<<if $activeSlave.amp == 0>>
+		// $pronounCap must be an amputee to attach prosthetic limbs //
+	<<elseif $activeSlave.PLimb == 0>>
+		// $pronounCap must have a prosthetic interface installed to attack prosthetic limbs //
 	<<else>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;
 		<<link "Attach">>
-			<<for _i = 0; _i < $limbs.length; _i++>>
-			  <<if $activeSlave.ID == $limbs[_i].ID>>
-				<<break>>
-			  <</if>>
-			<</for>>
+			<<if $activeSlave.amp < 0>>
+				<<set _oldLimbs = {type: 0, armsTat: 0, legsTat: 0}>>
+				<<set _oldLimbs.type = $activeSlave.amp, _oldLimbs.armsTat = $activeSlave.armsTat, _oldLimbs.legsTat = $activeSlave.legsTat>>
+				<<set $activeSlave.readyLimbs.push(_oldLimbs)>>
+			<</if>>
+			
+			<<set _i = $limbs.findIndex(function(s) { return s.ID == $activeSlave.ID; })>>
 
 			<<switch $limbs[_i].type>>
 			<<case "simple">>
@@ -1557,48 +1463,43 @@ The prosthesis facility has constructed $possessive prosthetic limbs.
 				<<set $limbs.deleteAt(_i)>>
 			<</switch>>
 			<<set $cash -= $surgeryCost>>
-			<<set $activeSlave.health -= 10>>
 			<<goto "Surgery Degradation">>
 		<</link>>
-		|
-		<<link "Discard">>
-			<<for _i = 0; _i < $limbs.length; _i++>>
-			  <<if $activeSlave.ID == $limbs[_i].ID>>
-				<<set $limbs.deleteAt(_i)>>
-				<<break>>
-			  <</if>>
-			<</for>>
-			<<goto "Remote Surgery">>
-		<</link>>
-		|
-		<<link "Put into storage">>
-			<<for _i = 0; _i < $limbs.length; _i++>>
-			  <<if $activeSlave.ID == $limbs[_i].ID>>
-				<<break>>
-			  <</if>>
-			<</for>>
+	<</if>>
+	|
+	<<link "Discard">>
+		<<set $limbs.deleteAt(_i)>>
+		<<goto "Remote Surgery">>
+	<</link>>
+	|
+	<<link "Put into storage">>
+		<<set _i = $limbs.findIndex(function(s) { return s.ID == $activeSlave.ID; })>>
+		<<set _newLimbs = {type: 0, armsTat: 0, legsTat: 0}>>
+		<<set _newLimbs.armsTat = $activeSlave.armsTat, _newLimbs.legsTat = $activeSlave.legsTat>>
 
-			<<switch $limbs[_i].type>>
-			<<case "simple">>
-				<<set $activeSlave.readyLimbs.push(-1)>>
-				<<set $limbs.deleteAt(_i)>>
-			<<case "sex">>
-				<<set $activeSlave.readyLimbs.push(-2)>>
-				<<set $limbs.deleteAt(_i)>>
-			<<case "beauty">>
-				<<set $activeSlave.readyLimbs.push(-3)>>
-				<<set $limbs.deleteAt(_i)>>
-			<<case "combat">>
-				<<set $activeSlave.readyLimbs.push(-4)>>
-				<<set $limbs.deleteAt(_i)>>
-			<<case "cyber">>
-				<<set $activeSlave.readyLimbs.push(-5)>>
-				<<set $limbs.deleteAt(_i)>>
-			<</switch>>
-			<<goto "Remote Surgery">>
-		<</link>>
+		<<switch $limbs[_i].type>>
+		<<case "simple">>
+			<<set _newLimbs.type = -1>>
+			<<set $activeSlave.readyLimbs.push(_newLimbs)>>
+		<<case "sex">>
+			<<set _newLimbs.type = -2>>
+			<<set $activeSlave.readyLimbs.push(_newLimbs)>>
+		<<case "beauty">>
+			<<set _newLimbs.type = -3>>
+			<<set $activeSlave.readyLimbs.push(_newLimbs)>>
+		<<case "combat">>
+			<<set _newLimbs.type = -4>>
+			<<set $activeSlave.readyLimbs.push(_newLimbs)>>
+		<<case "cyber">>
+			<<set _newLimbs.type = -5>>
+			<<set $activeSlave.readyLimbs.push(_newLimbs)>>
+		<</switch>>
+		
+		<<set $limbs.deleteAt(_i)>>
+		<<goto "Remote Surgery">>
+	<</link>>
 <</if>>
-<</if>>
+
 <</if>>
 <</if>> /* CLOSES PROSTHESIS FACTORY */
 <</if>> /* CyberMod Toggle */
