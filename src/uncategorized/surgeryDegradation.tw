@@ -25,7 +25,7 @@
 
 <<set $seed = $activeSlave.devotion>>
 
-<<if ($activeSlave.health < random(-100,-80)) && ($surgeryType != "braces") && ($surgeryType != "removeBraces")>>
+<<if ($activeSlave.health < random(-100,-80)) && !["braces", "removeBraces", "basicPLimbs", "sexPLimbs", "beautyPLimbs", "combatPLimbs", "cyberPLimbs"].includes($surgeryType)>>
 	$activeSlave.slaveName @@.red;has died from complications of surgery.@@
 	<<if $surgeryType == "ocular implant">>At least the ocular implants are still good.<<set $stockpile.ocularImplant++>><</if>>
 	<<include "Remove activeSlave">>
@@ -1396,16 +1396,51 @@ As the remote surgery's long recovery cycle completes,
 		<<set $activeSlave.trust -= 50>>
 		<<set $activeSlave.devotion -= 50>>
 	<</if>>
+	
+<<case "ampInterface">>
+	<<if ($activeSlave.devotion > 50)>>
+		Of course, she could not walk out of the surgery; you carried her. She knows what a slave's life is, but she did not really expect that it would ever come to this for her. Anesthesia has yet to completely wear off so it takes her a while to notice ports in her stumps. When she does, she visibly relaxes, realizing she may yet walk again. She squares her shoulders and visibly resolves to carry on being a good slave as best she can. Since the surgery was invasive, @@.red;her health has been greatly affected.@@
+	<<elseif ($activeSlave.devotion > 20)>>
+		Of course, she could not walk out of the surgery; you carried her. Despite her obedience, she cries softly the whole time, shoulder and hip stumps moving occasionally as she reflexively tries to stand - to walk - to touch herself - to gesture - all things that she will never do again. She slightly calms down when she <<if canSee($activeSlave)>>sees<<else>>feels<</if>> ports installed in her stumps and realizes her immobility may not be permanent. Even so, she is still @@.gold;terrified@@ of your total power over her body. @@.mediumorchid;She will struggle greatly with her medically created disability.@@ Since the surgery was invasive, @@.red;her health has been greatly affected.@@
+		<<set $activeSlave.trust -= 10>>
+		<<set $activeSlave.devotion -= 10>>
+	<<else>>
+		Of course, she could not walk out of the surgery; you carried her. You had a good idea what her reaction would be, so <<if ($activeSlave.teeth == "removable")>>you removed her teeth<<else>>she's muzzled<</if>> to prevent her from trying to bite. She sobs convulsively, and <<if canSee($activeSlave)>>seeing<<else>>noticing<</if>> ports installed in her stumps does little to stop her tears. @@.mediumorchid;The surgical invasion has filled her with horror and anger.@@ Since the surgery was invasive, @@.red;her health has been greatly affected.@@ She is @@.gold;terrified to the point of insanity@@ of your total power over her body.
+		<<set $activeSlave.trust -= 40>>
+		<<set $activeSlave.devotion -= 40>>
+	<</if>>
+
+<<case "prostheticInterface">>
+	When she is carried out of surgery she <<if canSee($activeSlave)>>cranes her neck to better see the ports<<else>>wiggles her stumps trying to feel the ports<</if>> installed in her stumps. Recovery will be @@.red;significant,@@ since the surgical implantation of anchor points for the limbs themselves and the installation of nerve impulse detectors constituted major surgery.
+	<<if $activeSlave.devotion > 20>>
+		Nevertheless, she's @@.hotpink;overwhelmed with gratitude,@@ and thanks you profusely the first chance she gets. She follows the acclimation program diligently, doing her best to learn how to be a good slave despite, or sometimes even because of, her disability. She @@.mediumaquamarine;places more trust in you,@@ too, since you obviously have her best interests at heart.
+		<<set $activeSlave.devotion += 5>>
+		<<set $activeSlave.trust += 5>>
+	<<elseif $activeSlave.devotion >= -20>>
+		She's @@.hotpink;overwhelmed with gratitude,@@ in part because she didn't think you'd do something like this for her. She thanks you profusely the first chance she gets, and follows the acclimation program diligently, trying to deserve the expense you went to. She @@.mediumaquamarine;places more trust in you,@@ too, since you seem to have a plan for her.
+		<<set $activeSlave.devotion += 5>>
+		<<set $activeSlave.trust += 5>>
+	<<else>>
+		Despite her hatred of you, she can't help but @@.mediumaquamarine;trust you a bit more,@@ since you clearly have a plan that involves putting a good deal of value into her. Your goals might not be hers, but at least she has an indication that you're not toying with her.
+		<<set $activeSlave.trust += 5>>
+	<</if>>
 
 <<case "amp1">>
 	<<set $nextLink = "Surgery Degradation", $surgeryType = "amp">>
-	Since you invested in cybernetic technology you can install PLimb interface into her body during the operation.<br>
-	Procedure will put additional strain on her health but less so than if you were to perform the procedures separately.<br>
-	<<if $stockpile.basicPLimbInterface > 0>>
-		[[Install basic interface|Surgery Degradation][$activeSlave.PLimb = 1, $activeSlave.health -= 10, $stockpile.basicPLimbInterface -= 1, $surgeryType = "amp2", $nextLink = "Remote Surgery"]]
-	<br><</if>>
-	<<if $stockpile.advPLimbInterface > 0>>
-		[[Install advanced interface|Surgery Degradation][$activeSlave.PLimb = 2, $activeSlave.health -= 10, $stockpile.advPLimbInterface -= 1, $surgeryType = "amp2", $nextLink = "Remote Surgery"]]
+	<<if $cyberMod == 0>>
+		During the procedure you may install a prosthetic interface so that she may use prosthetic limbs immediately afterwards.<br>
+		This will cost extra and put further strain on $activeSlave.slaveName's health, but choosing to do this now will be cheaper and be less damaging to her health than if you were to perform the procedures separately.<br>
+		[[Install prosthetic interface|Surgery Degradation][$activeSlave.prostheticInterface = 1, $activeSlave.health -= 10, $surgeryType = "ampInterface", $cash -= Math.trunc($surgeryCost/2)]]<br>
+		[[Only perform amputation|Surgery Degradation][$surgeryType = "amp"]]
+	<<else>>
+		Since you invested in cybernetic technology you can install PLimb interface into her body during the operation.<br>
+		Procedure will put additional strain on her health but less so than if you were to perform the procedures separately.<br>
+		<<if $stockpile.basicPLimbInterface > 0>>
+			[[Install basic interface|Surgery Degradation][$activeSlave.PLimb = 1, $activeSlave.health -= 10, $stockpile.basicPLimbInterface -= 1, $surgeryType = "amp2", $nextLink = "Remote Surgery"]]
+		<br><</if>>
+		<<if $stockpile.advPLimbInterface > 0>>
+			[[Install advanced interface|Surgery Degradation][$activeSlave.PLimb = 2, $activeSlave.health -= 10, $stockpile.advPLimbInterface -= 1, $surgeryType = "amp2", $nextLink = "Remote Surgery"]]
+		<</if>>
 	<</if>>
 
 <<case "amp2">>
@@ -2148,10 +2183,10 @@ As the remote surgery's long recovery cycle completes,
 
 <</switch>>
 
-<<if ($PC.medicine >= 100)>>
+<<if ($PC.medicine >= 100) && !["basicPLimbs", "sexPLimbs", "beautyPLimbs", "combatPLimbs", "cyberPLimbs"].includes($surgeryType)>>
 	<br><br>
-	Since you @@.springgreen;performed the surgery yourself,@@ and you do artist's work, her health is @@.green;less affected@@ by the surgery than it would have been if you'd paid some hack to do it remotely.
 	<<if ($surgeryType != "braces") && ($surgeryType != "removeBraces")>>
+		Since you @@.springgreen;performed the surgery yourself,@@ and you do artist's work, her health is @@.green;less affected@@ by the surgery than it would have been if you'd paid some hack to do it remotely.
 		<<set $activeSlave.health += 5>>
 	<</if>>
 	<<if ($activeSlave.fetish != "mindbroken")>>
