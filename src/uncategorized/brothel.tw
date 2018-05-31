@@ -134,15 +134,29 @@ $brothelNameCaps
 	$Madam.slaveName is alone in $brothelName, and has nothing to do but keep the place clean and plan future sales efforts.
 <<else>>
 	$brothelNameCaps is empty and desolate.
-	<<link "Decommission the brothel">>
+	<<link "Decommission the brothel" "Main">>
 		<<set $brothel = 0, $brothelUpgradeDrugs = 0, $brothelDecoration = "standard">>
-		<<for _i = 0; _i < $sectors.length; _i++>>
-		<<if $sectors[_i].type == "Brothel">>
-			<<set $sectors[_i].type = "Shops">><<break>>
+		<<set _broth = $sectors.findIndex(function(s) { return s.type == "Brothel"; })>>
+		<<if _broth != -1>>
+			<<set $sectors[_broth].type = "Shops">>
 		<</if>>
-		<</for>>
-		<<goto "Main">>
 	<</link>>
+<</if>>
+
+<<if $brothelSlaves > 0>>
+	<<if $Madam != 0>><<set _X = 1>><<else>><<set _X = 0>><</if>>
+	<<set _NewPop = $brothelSlaves+$dormitoryPopulation+_X>>
+	<<link "Remove all slaves" "Brothel">>
+		<<if $Madam != 0>>
+			<<assignJob $Madam "rest">>
+		<</if>>
+		<<for $brothelSlaves > 0>>
+			<<assignJob $slaves[$slaveIndices[$BrothiIDs[0]]] "whore">>
+		<</for>>
+	<</link>>
+	<<if _NewPop > $dormitory>>
+		@@.red;Dormitory capacity will be exceeded.@@
+	<</if>>
 <</if>>
 
 <<set _Tmult0 = Math.trunc($brothel*1000*$upgradeMultiplierArcology)>>
