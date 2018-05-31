@@ -295,15 +295,29 @@ $dairyNameCaps
 	$Milkmaid.slaveName is alone in $dairyName, and has nothing to do but clean and maintain the equipment.
 <<else>>
 	$dairyNameCaps is empty and desolate.
-	<<link "Decommission the dairy">>
+	<<link "Decommission the dairy" "Main">>
 		<<set $dairy = 0, $dairyFeedersUpgrade = 0, $dairyPregUpgrade = 0, $dairyStimulatorsUpgrade = 0, $dairyDecoration = "standard", $dairyFeedersSetting = 0, $dairyPregSetting = 0, $dairyStimulatorsSetting = 0, $dairyHyperPregRemodel = 0, $cumPipeline = 0, $milkPipeline = 0>>
-		<<for _i = 0; _i < $sectors.length; _i++>>
-		<<if $sectors[_i].type == "Dairy">>
-			<<set $sectors[_i].type = "Manufacturing">><<break>>
+		<<set _dai = $sectors.findIndex(function(s) { return s.type == "Dairy"; })>>
+		<<if _dai != -1>>
+			<<set $sectors[_dai].type = "Manufacturing">>
 		<</if>>
-		<</for>>
-		<<goto "Main">>
 	<</link>>
+<</if>>
+
+<<if $dairySlaves > 0>>
+	<<if $Milkmaid != 0>><<set _X = 1>><<else>><<set _X = 0>><</if>>
+	<<set _NewPop = $dairySlaves+$dormitoryPopulation+_X>>
+	<<link "Remove all slaves" "Dairy">>
+		<<if $Milkmaid != 0>>
+			<<assignJob $Milkmaid "rest">>
+		<</if>>
+		<<for $dairySlaves > 0>>
+			<<assignJob $slaves[$slaveIndices[$DairyiIDs[0]]] "get milked">>
+		<</for>>
+	<</link>>
+	<<if _NewPop > $dormitory>>
+		@@.red/Dormitory capacity will be exceeded.@@
+	<</if>>
 <</if>>
 
 <<set _Tmult0 = Math.trunc($dairy*1000*$upgradeMultiplierArcology)>>
