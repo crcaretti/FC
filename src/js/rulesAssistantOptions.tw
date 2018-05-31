@@ -67,6 +67,28 @@ window.rulesAssistantOptions = (function() {
 		rulesAssistantOptions();
 	}
 
+	const parse = {
+		integer(string) {
+			let n = parseInt(string, 10);
+			return isNaN(n)? 0: n;
+		},
+		boobs(string) {
+			return Math.clamp(parse.integer(string), 0, 48000);
+		},
+		butt(string) {
+			return Math.clamp(parse.integer(string), 0, 10);
+		},
+		lips(string) {
+			return Math.clamp(parse.integer(string), 0, 100);
+		},
+		dick(string) {
+			return Math.clamp(parse.integer(string), 0, 10);
+		},
+		balls(string) {
+			return Math.clamp(parse.integer(string), 0, 10);
+		},
+	};
+
 	// the Element class wraps around a DOM element and adds extra functionality
 	// this is safer than extending DOM objects directly
 	// it also turns DOM manipulation into an implementation detail
@@ -88,6 +110,43 @@ window.rulesAssistantOptions = (function() {
 			return args[0];
 		}
 	}
+	
+	class Section extends Element {
+		constructor(header, hidden=false) {
+			super(header);
+			this.hidey = this.element.querySelector("div");
+			if (hidden) this.toggle_hidey();
+		}
+		
+		render(header) {
+			const section = document.createElement("section");
+			section.classList.add("rajs-section");
+			const h1 = document.createElement("h1");
+			h1.onclick = () => { this.toggle_hidey(); };
+			h1.innerHTML = header;
+			const hidey = document.createElement("div");
+			section.appendChild(h1);
+			section.appendChild(hidey);
+			return section;
+		}
+
+		appendChild(child) {
+			child.parent = this;
+			this.children.push(child);
+			this.hidey.appendChild(child.element);
+		}
+
+		toggle_hidey() {
+			switch(this.hidey.style.display) {
+				case "none":
+					this.hidey.style.display = "initial";
+					break;
+				default:
+					this.hidey.style.display = "none";
+					break;
+			}
+		}
+	}
 
 	// list of clickable elements
 	// has a short explanation (the prefix) and a value display
@@ -95,7 +154,7 @@ window.rulesAssistantOptions = (function() {
 	// it can be "bound" to a variable by setting its "onchange" method
 	class List extends Element {
 		constructor(prefix, data=[], textinput=false) {
-			super(prefix, textinput);
+			super(prefix + ": ", textinput);
 			this.selectedItem = null;
 			data.forEach(item => this.appendChild(new ListItem(...item)));
 		}
@@ -107,6 +166,7 @@ window.rulesAssistantOptions = (function() {
 			let value;
 			if (textinput) {
 				value = document.createElement("input");
+				value.setAttribute("type", "text");
 				value.classList.add("rajs-value"); // 
 				// call the variable binding when the input field is no longer being edited, and when the enter key is pressed
 				value.onfocusout = () => { this.inputEdited(); };
@@ -114,7 +174,6 @@ window.rulesAssistantOptions = (function() {
 			} else {
 				value = document.createElement("strong");
 			}
-			value.setAttribute("type", "text");
 			this.value = value;
 			elem.appendChild(label);
 			elem.appendChild(value);
@@ -164,28 +223,6 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
-	const parse = {
-		integer(string) {
-			let n = parseInt(string, 10);
-			return isNaN(n)? 0: n;
-		},
-		boobs(string) {
-			return Math.clamp(parse.integer(string), 0, 48000);
-		},
-		butt(string) {
-			return Math.clamp(parse.integer(string), 0, 10);
-		},
-		lips(string) {
-			return Math.clamp(parse.integer(string), 0, 100);
-		},
-		dick(string) {
-			return Math.clamp(parse.integer(string), 0, 10);
-		},
-		balls(string) {
-			return Math.clamp(parse.integer(string), 0, 10);
-		},
-	};
-
 	// a clickable item of a list
 	class ListItem extends Element {
 		constructor(displayvalue, data) {
@@ -226,8 +263,10 @@ window.rulesAssistantOptions = (function() {
 		}
 		
 		render(label) {
-			const elem = document.createElement("em");
-			elem.innerText = label + ":";
+			const elem = document.createElement("div");
+			const lelem = document.createElement("em");
+			lelem.innerText = label + ": ";
+			elem.appendChild(lelem);
 			return elem;
 		}
 
@@ -392,7 +431,7 @@ window.rulesAssistantOptions = (function() {
 		constructor(root) {
 			if (!V.currentRule)
 				V.currentRule = V.defaultRules[0];
-			super("Current rule:", V.defaultRules.map(i => [i.name, i]));
+			super("Current rule", V.defaultRules.map(i => [i.name, i]));
 			this.onchange = function (rule) {
 				V.currentRule = rule;
 				reload(root);
@@ -671,7 +710,7 @@ window.rulesAssistantOptions = (function() {
 				["Yes", true],
 				["No", false]
 			];
-			super("Exclude special slaves:", items);
+			super("Exclude special slaves", items);
 			this.setValue(V.currentRule.condition.excludeSpecialSlaves);
 			this.onchange = (value) => V.currentRule.condition.excludeSpecialSlaves = value;
 		}
@@ -703,9 +742,9 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
-	class AppearanceSection extends Element {
+	class AppearanceSection extends Section {
 		constructor() {
-			super();
+			super("Appearance Settings");
 			this.appendChild(new ClothesList());
 			this.appendChild(new CollarList());
 			this.appendChild(new ShoeList());
@@ -723,15 +762,11 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new AutosurgerySwitch());
 
 		}
-
-		render() {
-			return document.createElement("div");
-		}
 	}
 
-	class RegimenSection extends Element {
+	class RegimenSection extends Section {
 		constructor() {
-			super();
+			super("Physical Regimen Settings");
 			this.appendChild(new GrowthList());
 			this.appendChild(new CurrativesList());
 			this.appendChild(new AphrodisiacList());
@@ -748,15 +783,11 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new MuscleList());
 			this.appendChild(new BraceList());
 		}
-
-		render() {
-			return document.createElement("div");
-		}
 	}
 
-	class BehaviourSection extends Element {
+	class BehaviourSection extends Section {
 		constructor() {
-			super();
+			super("Behavior Settings");
 			this.appendChild(new LivingStandardList());
 			this.appendChild(new PunishmentList());
 			this.appendChild(new RewardList());
@@ -770,15 +801,11 @@ window.rulesAssistantOptions = (function() {
 			if (V.studio === 1)
 				this.appendChild(new PornList());
 		}
-
-		render() {
-			return document.createElement("div");
-		}
 	}
 
-	class CosmeticSection extends Element {
+	class CosmeticSection extends Section {
 		constructor() {
-			super();
+			super("Cosmetic Settings", true);
 			this.appendChild(new EyewearList());
 			this.appendChild(new LensesList());
 			this.appendChild(new MakeupList());
@@ -791,13 +818,11 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new ArmpitHairColourList());
 			this.appendChild(new ArmpitHairStyleList());
 		}
-
-		render() { return document.createElement("div"); }
 	}
 
-	class BodyModSection extends Element {
+	class BodyModSection extends Section {
 		constructor() {
-			super();
+			super("Body Mod Settings", true);
 			this.appendChild(new EarPiercingList());
 			this.appendChild(new NosePiercingList());
 			this.appendChild(new EyebrowPiercingList());
@@ -829,13 +854,11 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new AnalTattooList());
 			this.appendChild(new LegTattooList());
 		}
-
-		render() { return document.createElement("div"); }
 	}
 
-	class AutosurgerySection extends Element {
+	class AutosurgerySection extends Section {
 		constructor() {
-			super();
+			super("Autosurgery Settings", true);
 			this.appendChild(new VisionSurgeryList());
 			this.appendChild(new LactationSurgeryList());
 			if (V.seeDicks || V.makeDicks)
@@ -848,8 +871,6 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new BodyHairSurgeryList());
 			this.appendChild(new HairSurgeryList());
 		}
-
-		render() { return document.createElement("div"); }
 	}
 
 	class ClothesList extends List {
@@ -1157,7 +1178,7 @@ window.rulesAssistantOptions = (function() {
 		render() {
 			const elem = document.createElement("div");
 			const span = document.createElement("span");
-			span.innerHTML = "Growth hormone regimes for healthy slaves:";
+			span.innerHTML = "Growth hormone regimes for healthy slaves";
 			elem.appendChild(span);
 			return elem;
 		}
@@ -1717,11 +1738,11 @@ window.rulesAssistantOptions = (function() {
 
 		render(color) {
 			const elem = document.createElement("div");
-			elem.innerHTML = "Eye coloring: ";
+			elem.innerHTML = "Eye coloring";
 			this.label = document.createElement("strong");
 			this.label.innerText = color;
 			elem.appendChild(this.label);
-			return elem
+			return elem;
 		}
 
 		combine() {
@@ -2621,7 +2642,7 @@ window.rulesAssistantOptions = (function() {
 				["possessive"],
 				["paternalist"],
 			];
-			super("Buttock tattoos", items);
+			super("Buttock tattoos:", items);
 			this.selectValue(V.currentRule.set.buttTat);
 			this.onchange = (value) => V.currentRule.set.buttTat = value;
 		}
