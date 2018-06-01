@@ -8,7 +8,7 @@
 
 window.rulesAssistantOptions = (function() {
 	"use strict";
-	let V;
+	let V, current_rule;
 
 	function rulesAssistantOptions(element) {
 		V = State.variables;
@@ -17,6 +17,11 @@ window.rulesAssistantOptions = (function() {
 		V.returnTo = "Main";
 		V.showEncyclopedia = 1;
 		V.encyclopedia = "Personal Assistant";
+		const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule);
+		if (idx === -1)
+			current_rule = V.defaultRules[0];
+		else
+			current_rule = V.defaultRules[idx];
 		const root = new Root(element);
 	}
 
@@ -28,20 +33,20 @@ window.rulesAssistantOptions = (function() {
 	function newRule(root) {
 		const rule = emptyDefaultRule();
 		V.defaultRules.push(rule);
-		V.currentRule = rule;
+		V.currentRule = rule.ID;
 		reload(root);
 	}
 
 	function removeRule(root) {
-		const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule.ID);
+		const idx = V.defaultRules.findIndex(rule => rule.ID === current_rule.ID);
 		V.defaultRules.splice(idx, 1);
-		V.currentRule = idx < V.defaultRules.length ? idx : V.defaultRules.length - 1;
+		V.currentRule = V.defaultRules[idx < V.defaultRules.length ? idx : V.defaultRules.length - 1].ID;
 		reload(root);
 	}
 
 	function lowerPriority(root) {
 		if (V.defaultRules.length === 1) return; // nothing to swap with
-		const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule.ID);
+		const idx = V.defaultRules.findIndex(rule => rule.ID === current_rule.ID);
 		if (idx === 0) return; // no lower rule
 		arraySwap(V.defaultRules, idx, idx-1);
 		reload(root);
@@ -49,22 +54,23 @@ window.rulesAssistantOptions = (function() {
 
 	function higherPriority(root) {
 		if (V.defaultRules.length === 1) return; // nothing to swap with
-		const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule.ID);
+		const idx = V.defaultRules.findIndex(rule => rule.ID === current_rule.ID);
 		if (idx === V.defaultRules.length - 1) return; // no higher rule
 		arraySwap(V.defaultRules, idx, idx+1);
 		reload(root);
 	}
 
 	function changeName(name, root) {
-		if (name === V.currentRule.name) return;
-		V.currentRule = name;
+		if (name === current_rule.name) return;
+		current_rule.name = name;
 		reload(root);
 	}
 
 	// reload the passage
 	function reload(root) {
-		root.element.remove();
-		rulesAssistantOptions();
+		const elem = root.element;
+		elem.innerHTML = ""
+		rulesAssistantOptions(elem);
 	}
 
 	const parse = {
@@ -193,16 +199,6 @@ window.rulesAssistantOptions = (function() {
 			this.propagateChange();
 		}
 
-		selectValue(what) {
-			this.children.some(child => {
-				if (child.data === what) {
-					child.select();
-					return true;
-				}
-				else return false;
-			});
-		}
-
 		setValue(what) {
 			if (this.value.tagName === "input")
 				this.value.value = what;
@@ -248,7 +244,7 @@ window.rulesAssistantOptions = (function() {
 		}
 
 		deselect() {
-			this.elem.classList.remove("selected");
+			this.element.classList.remove("selected");
 			this.selected = false;
 		}
 	}
@@ -372,6 +368,7 @@ window.rulesAssistantOptions = (function() {
 			this.textarea = textarea;
 			const button = document.createElement("button");
 			button.name = "Load";
+			button.innerHTML = "Load";
 			button.onclick = () => { this.loadNewRule(); };
 			container.appendChild(button);
 			return container;
@@ -382,9 +379,10 @@ window.rulesAssistantOptions = (function() {
 			try {
 				const rule = JSON.parse(text);
 				if (!rule.ID) rule.ID = generateNewID();
+				V.defaultRules.push(rule)
 				reload(this.root);
 			} catch (e) {
-				alert(e);
+				alert("Couldn't import that rule:\n" + e.message);
 			}
 		}
 	}
@@ -421,7 +419,7 @@ window.rulesAssistantOptions = (function() {
 			this.root = root;
 			const newrule = new OptionsItem("Add a new rule", () => { newRule(this.root); });
 			this.appendChild(newrule);
-			const importrule = new OptionsItem("Import a rule", () => { this.root.appendChild(new NewRuleField()); });
+			const importrule = new OptionsItem("Import a rule", () => { this.root.appendChild(new NewRuleField(this.root)); });
 			this.appendChild(importrule);
 		}
 	}
@@ -429,11 +427,10 @@ window.rulesAssistantOptions = (function() {
 	// buttons for selecting the current rule
 	class RuleSelector extends List {
 		constructor(root) {
-			if (!V.currentRule)
-				V.currentRule = V.defaultRules[0];
 			super("Current rule", V.defaultRules.map(i => [i.name, i]));
+			this.setValue(current_rule.name)
 			this.onchange = function (rule) {
-				V.currentRule = rule;
+				current_rule = rule.ID;
 				reload(root);
 			};
 		}
@@ -449,9 +446,9 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new OptionsItem("Lower Priotity", () => lowerPriority(root)));
 			this.appendChild(new OptionsItem("Higher Priority", () => higherPriority(root)));
 			this.appendChild(new OptionsItem("Rename", () => this.appendChild(new RenameField(root))));
-			this.appendChild(new OptionsItem("Export this rule", () => this.appendChild(new ExportField())));
-			this.appendChild(new OptionsItem("Export all rules", () => this.appendChild(new ExportField(true))));
-			this.appendChild(new OptionsItem("Import a rule", () => this.appendChild(new NewRuleField())));
+			this.appendChild(new OptionsItem("Export this rule", () => this.appendChild(new ExportField(current_rule))));
+			this.appendChild(new OptionsItem("Export all rules", () => this.appendChild(new ExportField(...V.defaultRules))));
+			this.appendChild(new OptionsItem("Import a rule", () => this.appendChild(new NewRuleField(root))));
 		}
 	}
 
@@ -471,80 +468,81 @@ window.rulesAssistantOptions = (function() {
 		}
 
 		render() {
-			const elem = document.createElement("div");
+			const elem = document.createElement("input");
 			elem.setAttribute("type", "text");
-			elem.setAttribute("value", V.currentRule.name);
+			elem.setAttribute("value", current_rule.name);
+			return elem;
 		}
 	}
 
 	class ExportField extends Element {
-		render(all=false) {
-			const element = document.createElement("textarea");
-			element.value = all ? JSON.stringify(V.currentRule) : map(i => JSON.stringify(i), V.defaultRules).join("\n\n");
+		render(...args) {
+			let element = document.getElementById("exportfield");
+			if (element === null) {
+				element = document.getElementById("exportfield") || document.createElement("textarea");
+				element.id = "exportfield";
+			}
+			element.value = args.map(i => JSON.stringify(i, null, 2)).join("\n\n")
 			return element;
 		}
 	}
 
 	// parent section for condition editing
-	class ConditionEditor extends Element {
+	class ConditionEditor extends Section {
 		constructor() {
-			super();
+			super("Activation Condition");
 			this.appendChild(new ConditionFunction());
 			this.appendChild(new AssignmentInclusion());
 			this.appendChild(new FacilityInclusion());
 			this.appendChild(new SpecialExclusion());
 			this.appendChild(new SpecificInclusionExclusion());
 		}
-
-		render() {
-			const element = document.createElement("div");
-			return element;
-		}
 	}
 
 	class ConditionFunction extends Element {
 		constructor() {
 			super();
-			const items = ["Never", "Always", "Custom"];
-			["Devotion", "Trust", "Health", "Sex drive", "Weight", "Age", "Body Age", "Visible Age", "Muscles", "Lactation", "Pregnancy", "Pregnancy Multiples", "Belly Implant", "Belly Size"].forEach(i => items.push([i, this.getAttribute(i)]));
-			this.fnlist = new List("Activation function:", items);
+			const items = [
+				["Never", false],
+				["Always", true],
+				["Custom", "custom"],
+				["Devotion", "devotion"],
+				["Trust", "trust"],
+				["Health", "health"],
+				["Sex drive", "energy"],
+				["Weight", "weight"],
+				["Age", "actualAge"],
+				["Body Age", "physicalAge"],
+				["Visible Age", "visualAge"],
+				["Muscles", "muscles"],
+				["Lactation", "lactation"],
+				["Pregnancy", "preg"],
+				["Pregnancy Multiples", "pregType"],
+				["Belly Implant", "bellyImplant"],
+				["Belly Size", "belly"],
+			];
+			this.fnlist = new List("Activation function", items);
+			this.fnlist.setValue(current_rule.condition.function === "between" ? current_rule.condition.data.attribute : current_rule.condition.function)
 			this.fnlist.onchange = (value) => this.fnchanged(value);
+			this.appendChild(this.fnlist);
 			this.fneditor = null;
 
-			switch(V.currentRule.condition.function) {
-				case "Never":
-				case "Always":
+			switch(current_rule.condition.function) {
+				case false:
+				case true:
 					break;
-				case "Custom":
-					this.appendChild(new CustomEditor(V.currentRule.condition.data));
+				case "custom":
+					this.appendChild(new CustomEditor(current_rule.condition.data));
 					break;
 				default:
-					this.appendChild(new RangeEditor(V.currentRule.condition.function, V.currentRule.condition.data));
+					this.appendChild(new RangeEditor(current_rule.condition.function, current_rule.condition.data));
 					break;
 			}
 		}
 
 		render() {
-			return document.createElement("div");
-		}
-
-		getAttribute(what) {
-			return {
-				"Devotion": "devotion",
-				"Trust": "trust",
-				"Health": "health",
-				"Sex drive": "energy",
-				"weight": "weight",
-				"Age": "actualAge",
-				"Body Age": "physicalAge",
-				"Visible Age": "visualAge",
-				"Muscles": "muscles",
-				"Lactation": "lactation",
-				"Pregnancy": "preg",
-				"Pregnancy Multiples": "pregType",
-				"Belly Implant": "bellyImplant",
-				"Belly Size": "belly",
-			}[what];
+			const elem = document.createElement("div");
+			return elem;
 		}
 
 		fnchanged(value) {
@@ -553,23 +551,23 @@ window.rulesAssistantOptions = (function() {
 				this.fneditor = null;
 			}
 			switch(value) {
-				case "Never":
-					V.currentRule.condition.function = false;
-					V.currentRule.condition.data = {};
+				case true:
+					current_rule.condition.function = false;
+					current_rule.condition.data = {};
 					break;
-				case "Always":
-					V.currentRule.condition.function = true;
-					V.currentRule.condition.data = {};
+				case false:
+					current_rule.condition.function = true;
+					current_rule.condition.data = {};
 					break;
-				case "Custom":
-					V.currentRule.condition.function = "custom";
-					V.currentRule.condition.data = {};
-					this.appendChild(new CustomEditor(V.currentRule.condition.data));
+				case "custom":
+					current_rule.condition.function = "custom";
+					current_rule.condition.data = {};
+					this.appendChild(new CustomEditor(current_rule.condition.data));
 					break;
 				default:
-					V.currentRule.condition.function = "between";
-					V.currentRule.condition.data = { attribute: value, value: [null, null] };
-					this.appendChild(new RangeEditor(V.currentRule.condition.data));
+					current_rule.condition.function = "between";
+					current_rule.condition.data = { attribute: value, value: [null, null] };
+					this.appendChild(new RangeEditor(current_rule.condition.data));
 					break;
 			}
 		}
@@ -579,7 +577,7 @@ window.rulesAssistantOptions = (function() {
 		constructor(data) {
 			if (data.length === 0) data = "function(slave) { return slave.slaveName === 'Fancy Name'; }";
 			super(data);
-			this.elem.onfocusout = () => V.currentRule.data = this.elem.value;
+			this.elem.onfocusout = () => current_rule.data = this.elem.value;
 		}
 
 		render(data) {
@@ -593,12 +591,22 @@ window.rulesAssistantOptions = (function() {
 		render(fn, data) {
 			const elem = document.createElement("div");
 
+			const minlabel = document.createElement("label");
+			minlabel.innerHTML = "Lower bound: ";
+			elem.appendChild(minlabel);
+
 			const min = document.createElement("input");
 			min.setAttribute("type", "text");
 			min.value = data.value[0];
 			min.onkeypress = e => onreturn(e, () => this.setmin(min.value));
 			min.onfocusout = e => this.setmin(min.value);
 			elem.appendChild(min);
+
+			elem.appendChild(document.createElement("br"));
+
+			const maxlabel = document.createElement("label");
+			maxlabel.innerHTML = "Upper bound: ";
+			elem.appendChild(maxlabel);
 
 			const max = document.createElement("input");
 			max.setAttribute("type", "text");
@@ -625,11 +633,11 @@ window.rulesAssistantOptions = (function() {
 		}
 
 		setmin(value) {
-			V.currentRule.data.value[0] = this.parse(value);
+			current_rule.data.value[0] = this.parse(value);
 		}
 
 		setmax(value) {
-			V.currentRule.data.value[1] = this.parse(value);
+			current_rule.data.value[1] = this.parse(value);
 		}
 
 		info(attribute) {
@@ -641,11 +649,11 @@ window.rulesAssistantOptions = (function() {
 		constructor() {
 			super("Apply to assignments");
 			["Rest", "Fucktoy", "Subordinate Slave", "House Servant", "Confined", "Whore", "Public Servant", "Classes", "Milked", "Gloryhole"].forEach(
-				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), V.currentRule.condition.assignment.includes(i))));
+				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), current_rule.condition.assignment.includes(i))));
 		}
 
 		onchange() {
-			V.currentRule.condition.assignment = this.getSelection();
+			current_rule.condition.assignment = this.getSelection();
 		}
 
 		getAttribute(what) {
@@ -680,11 +688,11 @@ window.rulesAssistantOptions = (function() {
 			if (V.clinic > 0) facilities.push("Clinic");
 			if (V.cellblock > 0) facilities.push("Cellblock");
 			facilities.forEach(
-				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), V.currentRule.condition.facility.includes(i))));
+				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), current_rule.condition.facility.includes(i))));
 		}
 
 		onchange(value) {
-			V.currentRule.condition.facility = this.getSelection();
+			current_rule.condition.facility = this.getSelection();
 		}
 
 		getAttribute(what) {
@@ -711,8 +719,8 @@ window.rulesAssistantOptions = (function() {
 				["No", false]
 			];
 			super("Exclude special slaves", items);
-			this.setValue(V.currentRule.condition.excludeSpecialSlaves);
-			this.onchange = (value) => V.currentRule.condition.excludeSpecialSlaves = value;
+			this.setValue(current_rule.condition.excludeSpecialSlaves);
+			this.onchange = (value) => current_rule.condition.excludeSpecialSlaves = value;
 		}
 	}
 
@@ -944,8 +952,8 @@ window.rulesAssistantOptions = (function() {
 			const harsh = new ListSubSection(this, "Harsh", hclothes);
 			this.appendChild(harsh);
 
-			this.setValue(V.currentRule.set.clothes);
-			this.onchange = (data) => V.currentRule.set.clothes = value;
+			this.setValue(current_rule.set.clothes);
+			this.onchange = (data) => current_rule.set.clothes = value;
 		}
 	}
 
@@ -992,16 +1000,16 @@ window.rulesAssistantOptions = (function() {
 			const harsh = new ListSubSection(this, "Harsh", hcollars);
 			this.appendChild(harsh);
 
-			this.setValue(V.currentRule.set.collar);
-			this.onchange = (value) => V.currentRule.set.collar = value;
+			this.setValue(current_rule.set.collar);
+			this.onchange = (value) => current_rule.set.collar = value;
 		}
 	}
 
 	class ShoeList extends List {
 		constructor() {
 			super("Shoes", setup.shoes.map(i => [i.name, i.value]));
-			this.setValue(V.currentRule.set.shoes);
-			this.onchange = (value) => V.currentRule.set.shoes = value;
+			this.setValue(current_rule.set.shoes);
+			this.onchange = (value) => current_rule.set.shoes = value;
 		}
 	}
 
@@ -1017,8 +1025,8 @@ window.rulesAssistantOptions = (function() {
 					bellies.push([acc.name + " (Purchased)", acc.value]);
 			});
 			super("Corsetage", bellies);
-			this.setValue(V.currentRule.set.bellyAccessory);
-			this.onchange = (value) => V.currentRule.set.bellyAccessory;
+			this.setValue(current_rule.set.bellyAccessory);
+			this.onchange = (value) => current_rule.set.bellyAccessory;
 		}
 	}
 
@@ -1032,8 +1040,8 @@ window.rulesAssistantOptions = (function() {
 					accs.push([acc.name + " (Purchased)", acc.value]);
 			});
 			super("Vaginal accessories for virgins");
-			this.setValue(V.currentRule.set.virginAccessory);
-			this.onchange = (value) => V.currentRule.set.virginAccessory = value;
+			this.setValue(current_rule.set.virginAccessory);
+			this.onchange = (value) => current_rule.set.virginAccessory = value;
 		}
 	}
 
@@ -1047,8 +1055,8 @@ window.rulesAssistantOptions = (function() {
 					accs.push([acc.name + " (Purchased)", acc.value]);
 			});
 			super("Vaginal accessories for anal virgins");
-			this.setValue(V.currentRule.set.aVirginAccessory);
-			this.onchange = (value) => V.currentRule.set.aVirginAccessory = value;
+			this.setValue(current_rule.set.aVirginAccessory);
+			this.onchange = (value) => current_rule.set.aVirginAccessory = value;
 		}
 	}
 
@@ -1062,24 +1070,24 @@ window.rulesAssistantOptions = (function() {
 					accs.push([acc.name + " (Purchased)", acc.value]);
 			});
 			super("Vaginal accessories for other slaves");
-			this.setValue(V.currentRule.set.vaginalAccessory);
-			this.onchange = (value) => V.currentRule.set.vaginalAccessory = value;
+			this.setValue(current_rule.set.vaginalAccessory);
+			this.onchange = (value) => current_rule.set.vaginalAccessory = value;
 		}
 	}
 
 	class DickAccVirginsList extends List {
 		constructor() {
 			super("Dick accessories for anal virgins", setup.dickAccessories.map(i => [i.name, i.value]));
-			this.setValue(V.currentRule.set.aVirginDickAccessory);
-			this.onchange = (value) => V.currentRule.set.aVirginDickAccessory = value;
+			this.setValue(current_rule.set.aVirginDickAccessory);
+			this.onchange = (value) => current_rule.set.aVirginDickAccessory = value;
 		}
 	}
 
 	class DickAccOtherList extends List {
 		constructor() {
 			super("Dick accessories for other slaves", setup.dickAccessories.map(i => [i.name, i.value]));
-			this.setValue(V.currentRule.set.dickAccessory);
-			this.onchange = (value) => V.currentRule.set.dickAccessory = value;
+			this.setValue(current_rule.set.dickAccessory);
+			this.onchange = (value) => current_rule.set.dickAccessory = value;
 		}
 	}
 
@@ -1093,8 +1101,8 @@ window.rulesAssistantOptions = (function() {
 					accs.push([acc.name + " (Purchased)", acc.value]);
 			});
 			super("Buttplugs for anal virgins");
-			this.setValue(V.currentRule.set.aVirginButtplug);
-			this.onchange = (value) => V.currentRule.set.aVirginButtplug = value;
+			this.setValue(current_rule.set.aVirginButtplug);
+			this.onchange = (value) => current_rule.set.aVirginButtplug = value;
 		}
 	}
 
@@ -1108,8 +1116,8 @@ window.rulesAssistantOptions = (function() {
 					accs.push([acc.name + " (Purchased)", acc.value]);
 			});
 			super("Buttplugs for other slaves");
-			this.setValue(V.currentRule.set.buttplug);
-			this.onchange = (value) => V.currentRule.set.buttplug = value;
+			this.setValue(current_rule.set.buttplug);
+			this.onchange = (value) => current_rule.set.buttplug = value;
 		}
 	}
 
@@ -1130,8 +1138,8 @@ window.rulesAssistantOptions = (function() {
 				["Full-term with octuplets", 120000]
 			];
 			super("Belly implant target volume (if present)", pairs);
-			this.setValue(V.currentRule.set.bellyImplantVol);
-			this.onchange = (value) => V.currentRule.set.bellyImplantVol = value;
+			this.setValue(current_rule.set.bellyImplantVol);
+			this.onchange = (value) => current_rule.set.bellyImplantVol = value;
 		}
 	}
 
@@ -1142,8 +1150,8 @@ window.rulesAssistantOptions = (function() {
 				["Off", 0],
 			];
 			super("Assistant-applied implants (Autosurgery global switch)", pairs);
-			this.setValue(V.currentRule.set.autoSurgery);
-			this.onchange = (value) => V.currentRule.set.autoSurgery = value;
+			this.setValue(current_rule.set.autoSurgery);
+			this.onchange = (value) => current_rule.set.autoSurgery = value;
 		}
 	}
 
@@ -1245,8 +1253,8 @@ window.rulesAssistantOptions = (function() {
 				["None", 0]
 			];
 			super("Breasts", pairs, true);
-			this.setValue(V.currentRule.set.growth_boobs);
-			this.onchange = (value) => V.currentRule.set.growth_boobs = value;
+			this.setValue(current_rule.set.growth_boobs);
+			this.onchange = (value) => current_rule.set.growth_boobs = value;
 		}
 	}
 
@@ -1261,8 +1269,8 @@ window.rulesAssistantOptions = (function() {
 				["None", 0]
 			];
 			super("Butts", pairs, true);
-			this.setValue(V.currentRule.set.growth_butt);
-			this.onchange = (value) => V.currentRule.set.growth_butt = value;
+			this.setValue(current_rule.set.growth_butt);
+			this.onchange = (value) => current_rule.set.growth_butt = value;
 		}
 	}
 
@@ -1276,8 +1284,8 @@ window.rulesAssistantOptions = (function() {
 				["None", 0]
 			];
 			super("Lips", pairs, true);
-			this.setValue(V.currentRule.set.growth_lips);
-			this.onchange = (value) => V.currentRule.set.growth_lips = value;
+			this.setValue(current_rule.set.growth_lips);
+			this.onchange = (value) => current_rule.set.growth_lips = value;
 		}
 	}
 
@@ -1291,8 +1299,8 @@ window.rulesAssistantOptions = (function() {
 				["None", 0]
 			];
 			super("Dicks, if present", pairs, true);
-			this.setValue(V.currentRule.set.growth_dick);
-			this.onchange = (value) => V.currentRule.set.growth_dick = value;
+			this.setValue(current_rule.set.growth_dick);
+			this.onchange = (value) => current_rule.set.growth_dick = value;
 		}
 	}
 
@@ -1306,8 +1314,8 @@ window.rulesAssistantOptions = (function() {
 				["None", 0]
 			];
 			super("Balls, if present", pairs, true);
-			this.setValue(V.currentRule.set.growth_balls);
-			this.onchange = (value) => V.currentRule.set.growth_balls = value;
+			this.setValue(current_rule.set.growth_balls);
+			this.onchange = (value) => current_rule.set.growth_balls = value;
 		}
 	}
 
@@ -1320,8 +1328,8 @@ window.rulesAssistantOptions = (function() {
 				["Curatives", "curatives", 2]
 			];
 			super("Health drugs", pairs);
-			this.setValue(V.currentRule.set.curatives);
-			this.onchange = (value) => V.currentRule.set.curatives = value;
+			this.setValue(current_rule.set.curatives);
+			this.onchange = (value) => current_rule.set.curatives = value;
 		}
 	}
 
@@ -1335,8 +1343,8 @@ window.rulesAssistantOptions = (function() {
 				["Anaphrodisiacs", "anaphrodisiacs", -1]
 			];
 			super("Aphrodisiacs", pairs);
-			this.setValue(V.currentRule.set.aphrodisiacs);
-			this.onchange = (value) => V.currentRule.set.aphrodisiacs = value;
+			this.setValue(current_rule.set.aphrodisiacs);
+			this.onchange = (value) => current_rule.set.aphrodisiacs = value;
 		}
 	}
 
@@ -1354,8 +1362,8 @@ window.rulesAssistantOptions = (function() {
 				drugs.push(["Maximize fertility", "maximize fertility", 4]);
 			}
 			super("Contraceptives for fertile slaves", drugs);
-			this.setValue(V.currentRule.set.preg);
-			this.onchange = (value) => V.currentRule.set.preg = value;
+			this.setValue(current_rule.set.preg);
+			this.onchange = (value) => current_rule.set.preg = value;
 		}
 	}
 
@@ -1370,8 +1378,8 @@ window.rulesAssistantOptions = (function() {
 				["Birth stimulators", "birth stimulators", "stimulate"]
 			];
 			super("Pregnancy control agents for pregnant slaves", pairs);
-			this.setValue(V.currentRule.set.pregSpeed);
-			this.onchange = (value) => V.currentRule.set.pregSpeed = value;
+			this.setValue(current_rule.set.pregSpeed);
+			this.onchange = (value) => current_rule.set.pregSpeed = value;
 		}
 	}
 
@@ -1386,8 +1394,8 @@ window.rulesAssistantOptions = (function() {
 				["Intensive Male", "intensive male", -2]
 			];
 			super("Hormones for female slaves", pairs);
-			this.setValue(V.currentRule.set.XX);
-			this.onchange = (value) => V.currentRule.set.XX = value;
+			this.setValue(current_rule.set.XX);
+			this.onchange = (value) => current_rule.set.XX = value;
 		}
 	}
 
@@ -1402,8 +1410,8 @@ window.rulesAssistantOptions = (function() {
 				["Intensive Male", "intensive male", -2]
 			];
 			super("Hormones for geldings", pairs);
-			this.setValue(V.currentRule.set.gelding);
-			this.onchange = (value) => V.currentRule.set.gelding = value;
+			this.setValue(current_rule.set.gelding);
+			this.onchange = (value) => current_rule.set.gelding = value;
 		}
 	}
 
@@ -1418,8 +1426,8 @@ window.rulesAssistantOptions = (function() {
 				["Intensive Male", "intensive male", -2]
 			];
 			super("Hormones for shemales", pairs);
-			this.setValue(V.currentRule.set.XY);
-			this.onchange = (value) => V.currentRule.set.XY = value;
+			this.setValue(current_rule.set.XY);
+			this.onchange = (value) => current_rule.set.XY = value;
 		}
 	}
 
@@ -1441,8 +1449,8 @@ window.rulesAssistantOptions = (function() {
 					drugs.push([drug.name + " (FS)", drug.value]);
 			});
 			super("Other drugs (Will be overriden by hormones and other drugs where applicable)", drugs);
-			this.setValue(V.currentRule.set.drug);
-			this.onchange = (value) => V.currentRule.set.drug = value;
+			this.setValue(current_rule.set.drug);
+			this.onchange = (value) => current_rule.set.drug = value;
 		}
 	}
 
@@ -1471,8 +1479,8 @@ window.rulesAssistantOptions = (function() {
 				diets.push(["Cum production", "promote cum production", "cum production"]);
 
 			super("Slave diets", diets);
-			this.setValue(V.currentRule.set.diet);
-			this.onchange = (value) => V.currentRule.set.diet = value;
+			this.setValue(current_rule.set.diet);
+			this.onchange = (value) => current_rule.set.diet = value;
 		}
 	}
 
@@ -1483,8 +1491,8 @@ window.rulesAssistantOptions = (function() {
 				["Off", 0]
 			];
 			super("Diet support for growth drugs", pairs);
-			this.setValue(V.currentRule.set.dietGrowthSupport);
-			this.onchange = (value) => V.currentRule.set.dietGrowthSupport = value;
+			this.setValue(current_rule.set.dietGrowthSupport);
+			this.onchange = (value) => current_rule.set.dietGrowthSupport = value;
 		}
 	}
 
@@ -1501,11 +1509,15 @@ window.rulesAssistantOptions = (function() {
 				["Milk-Based", {cum: 0, milk: 2}],
 			];
 			super("Diet base", pairs);
-			this.setValue({cum: V.currentRule.set.dietCum, milk: V.currentRule.set.dietMilk});
+			this.setValue(this.value2string(current_rule.set.dietCum, current_rule.set.dietMilk));
 			this.onchange = (value) => {
-				V.currentRule.set.dietCum = value.cum;
-				V.currentRule.set.dietMilk = value.milk;
+				current_rule.set.dietCum = value.cum;
+				current_rule.set.dietMilk = value.milk;
 			};
+		}
+
+		value2string(cum, milk) {
+			return `cum: ${cum}, milk: ${milk}`;
 		}
 	}
 
@@ -1520,8 +1532,8 @@ window.rulesAssistantOptions = (function() {
 				["Weak", "Weak", -20]
 			];
 			super("Muscles", pairs, true);
-			this.setValue(V.currentRule.set.muscles);
-			this.onchange = (value) => V.currentRule.set.muscles = value;
+			this.setValue(current_rule.set.muscles);
+			this.onchange = (value) => current_rule.set.muscles = value;
 		}
 	}
 
@@ -1534,8 +1546,8 @@ window.rulesAssistantOptions = (function() {
 				["Universal", "universal"]
 			];
 			super("Braces", pairs);
-			this.setValue(V.currentRule.set.teeth);
-			this.onchange = (value) => V.currentRule.set.teeth = value;
+			this.setValue(current_rule.set.teeth);
+			this.onchange = (value) => current_rule.set.teeth = value;
 		}
 	}
 
@@ -1548,8 +1560,8 @@ window.rulesAssistantOptions = (function() {
 				["Spare", "spare"]
 			];
 			super("Living standard", pairs);
-			this.setValue(V.currentRule.set.livingRules);
-			this.onchange = (value) => V.currentRule.set.livingRules = value;
+			this.setValue(current_rule.set.livingRules);
+			this.onchange = (value) => current_rule.set.livingRules = value;
 		}
 	}
 
@@ -1563,8 +1575,8 @@ window.rulesAssistantOptions = (function() {
 				["Situational", "situational"]
 			];
 			super("Typical punishment", pairs);
-			this.setValue(V.currentRule.set.standardPunishment);
-			this.onchange = (value) => V.currentRule.set.standardPunishment = value;
+			this.setValue(current_rule.set.standardPunishment);
+			this.onchange = (value) => current_rule.set.standardPunishment = value;
 		}
 	}
 
@@ -1578,8 +1590,8 @@ window.rulesAssistantOptions = (function() {
 				["Situational", "situational"]
 			];
 			super("Typical reward", pairs);
-			this.setValue(V.currentRule.set.standardReward);
-			this.onchange = (value) => V.currentRule.set.standardReward = value;
+			this.setValue(current_rule.set.standardReward);
+			this.onchange = (value) => current_rule.set.standardReward = value;
 		}
 	}
 
@@ -1593,8 +1605,8 @@ window.rulesAssistantOptions = (function() {
 				["Restritive", "restrictive"]
 			];
 			super("Release rules", pairs);
-			this.setValue(V.currentRule.set.releaseRules);
-			this.onchange = (value) => V.currentRule.set.releaseRules = value;
+			this.setValue(current_rule.set.releaseRules);
+			this.onchange = (value) => current_rule.set.releaseRules = value;
 		}
 	}
 
@@ -1614,8 +1626,8 @@ window.rulesAssistantOptions = (function() {
 				["Sadism", "sadist"]
 			];
 			super("Smart piercing fetish target", pairs);
-			this.setValue(V.currentRule.set.clitSetting);
-			this.onchange = (value) => V.currentRule.set.clitSetting = value;
+			this.setValue(current_rule.set.clitSetting);
+			this.onchange = (value) => current_rule.set.clitSetting = value;
 		}
 	}
 
@@ -1629,8 +1641,8 @@ window.rulesAssistantOptions = (function() {
 				["None", "none", 0]
 			];
 			super("Smart piercing XY attraction target", pairs);
-			this.setValue(V.currentRule.set.clitSettingXY);
-			this.onchange = (value) => V.currentRule.set.clitSettingXY = value;
+			this.setValue(current_rule.set.clitSettingXY);
+			this.onchange = (value) => current_rule.set.clitSettingXY = value;
 		}
 	}
 
@@ -1644,8 +1656,8 @@ window.rulesAssistantOptions = (function() {
 				["None", "none", 0]
 			];
 			super("Smart piercing XX attraction target", pairs);
-			this.setValue(V.currentRule.set.clitSettingXX);
-			this.onchange = (value) => V.currentRule.set.clitSettingXX = value;
+			this.setValue(current_rule.set.clitSettingXX);
+			this.onchange = (value) => current_rule.set.clitSettingXX = value;
 		}
 	}
 
@@ -1660,8 +1672,8 @@ window.rulesAssistantOptions = (function() {
 				["Frigid", "frigid", 0]
 			];
 			super("Smart piercing sex drive target", pairs);
-			this.setValue(V.currentRule.set.clitSettingEnergy);
-			this.onchange = (value) => V.currentRule.set.clitSettingEnergy = value;
+			this.setValue(current_rule.set.clitSettingEnergy);
+			this.onchange = (value) => current_rule.set.clitSettingEnergy = value;
 		}
 	}
 
@@ -1674,8 +1686,8 @@ window.rulesAssistantOptions = (function() {
 				["Restrictive", "restrictive"]
 			];
 			super("Speech rules", pairs);
-			this.setValue(V.currentRule.set);
-			this.onchange = (value) => V.currentRule.set = value;
+			this.setValue(current_rule.set.speechRules);
+			this.onchange = (value) => current_rule.set.speechRules = value;
 		}
 	}
 
@@ -1688,8 +1700,8 @@ window.rulesAssistantOptions = (function() {
 				["Restrictive", "restrictive"]
 			];
 			super("Relationship rules", pairs);
-			this.setValue(V.currentRule.set);
-			this.onchange = (value) => V.currentRule.set = value;
+			this.setValue(current_rule.set.relationshipRules);
+			this.onchange = (value) => current_rule.set.relationshipRules = value;
 		}
 	}
 
@@ -1706,8 +1718,8 @@ window.rulesAssistantOptions = (function() {
 				["5000", "5000", 5000]
 			];
 			super("Weekly porn publicity subsidy", pairs);
-			this.setValue(V.currentRule.set.pornFameSpending);
-			this.onchange = (value) => V.currentRule.set.pornFameSpending = value;
+			this.setValue(current_rule.set.pornFameSpending);
+			this.onchange = (value) => current_rule.set.pornFameSpending = value;
 		}
 	}
 
@@ -1721,14 +1733,14 @@ window.rulesAssistantOptions = (function() {
 				["blur with contacts"]
 			];
 			super("Eyewear", pairs);
-			this.setValue(V.currentRule.set.eyewear);
-			this.onchange = (value) => V.currentRule.set.eyewear = value;
+			this.setValue(current_rule.set.eyewear);
+			this.onchange = (value) => current_rule.set.eyewear = value;
 		}
 	}
 
 	class LensesList extends Element {
 		constructor() {
-			super(V.currentRule.set.eyeColor);
+			super(current_rule.set.eyeColor);
 			this.appendChild(new OptionsItem("No default Setting", () => this.setValue("no default setting")));
 			this.colourlist = new LensesColourList();
 			this.shapelist = new LensesShapeList();
@@ -1758,7 +1770,7 @@ window.rulesAssistantOptions = (function() {
 		set_value() {
 			const tmp = this.combine();
 			this.label.innerText = tmp;
-			V.currentRule.set.eyeColor = tmp;
+			current_rule.set.eyeColor = tmp;
 		}
 	}
 
@@ -1822,8 +1834,8 @@ window.rulesAssistantOptions = (function() {
 				["color-coordinate with hair", "color-coordinate with hair", 3],
 				["slutty", "slutty", 4]
 			].forEach(pair => this.appendChild(new ListItem(...pair)));
-			this.setValue(V.currentRule.set.makeup);
-			this.onchange = (value) => V.currentRule.set.makeup = value;
+			this.setValue(current_rule.set.makeup);
+			this.onchange = (value) => current_rule.set.makeup = value;
 		}
 	}
 
@@ -1839,8 +1851,8 @@ window.rulesAssistantOptions = (function() {
 				["bright and glittery", "bright and glittery", 4],
 				["hooker nails", "hooker nails", 5]
 			].forEach(pair => this.appendChild(new ListItem(...pair)));
-			this.setValue(V.currentRule.set.nails);
-			this.onchange = (value) => V.currentRule.set.nails = value;
+			this.setValue(current_rule.set.nails);
+			this.onchange = (value) => current_rule.set.nails = value;
 		}
 	}
 
@@ -1856,8 +1868,8 @@ window.rulesAssistantOptions = (function() {
 				["floor length", "floor length", 150]
 			];
 			super("Hair length", pairs);
-			this.setValue(V.currentRule.set.hLength);
-			this.onchange = (value) => V.currentRule.set.hLength = value;
+			this.setValue(current_rule.set.hLength);
+			this.onchange = (value) => current_rule.set.hLength = value;
 		}
 	}
 	class HairColourList extends List {
@@ -1891,8 +1903,8 @@ window.rulesAssistantOptions = (function() {
 				["neon pink"]
 			];
 			super("Hair color", pairs);
-			this.setValue(V.currentRule.set.hColor);
-			this.onchange = (value) => V.currentRule.set.hColor = value;
+			this.setValue(current_rule.set.hColor);
+			this.onchange = (value) => current_rule.set.hColor = value;
 		}
 	}
 
@@ -1918,8 +1930,8 @@ window.rulesAssistantOptions = (function() {
 				["strip"]
 			];
 			super("Hair style", pairs);
-			this.setValue(V.currentRule.set.hStyle);
-			this.onchange = (value) => V.currentRule.set.hStyle = value;
+			this.setValue(current_rule.set.hStyle);
+			this.onchange = (value) => current_rule.set.hStyle = value;
 		}
 	}
 
@@ -1954,8 +1966,8 @@ window.rulesAssistantOptions = (function() {
 				["neon pink"]
 			];
 			super("Pubic hair color, when present", pairs);
-			this.setValue(V.currentRule.set.pubicHColor);
-			this.onchange = (value) => V.currentRule.set.pubicHColor = value;
+			this.setValue(current_rule.set.pubicHColor);
+			this.onchange = (value) => current_rule.set.pubicHColor = value;
 		}
 	}
 
@@ -1971,8 +1983,8 @@ window.rulesAssistantOptions = (function() {
 				["very bushy"]
 			];
 			super("Pubic hairstyle", pairs);
-			this.setValue(V.currentRule.set.pubicHStyle);
-			this.onchange = (value) => V.currentRule.set.pubicHStyle = value;
+			this.setValue(current_rule.set.pubicHStyle);
+			this.onchange = (value) => current_rule.set.pubicHStyle = value;
 		}
 	}
 
@@ -2003,8 +2015,8 @@ window.rulesAssistantOptions = (function() {
 				["white"]
 			];
 			super("Underarm hair color, when present", pairs);
-			this.setValue(V.currentRule.set.underArmHColor);
-			this.onchange = (value) => V.currentRule.set.underArmHColor = value;
+			this.setValue(current_rule.set.underArmHColor);
+			this.onchange = (value) => current_rule.set.underArmHColor = value;
 		}
 	}
 
@@ -2018,8 +2030,8 @@ window.rulesAssistantOptions = (function() {
 				["bushy"]
 			];
 			super("Underarm hair style", pairs);
-			this.setValue(V.currentRule.set.underArmHStyle);
-			this.onchange = (value) => V.currentRule.set.underArmHStyle = value;
+			this.setValue(current_rule.set.underArmHStyle);
+			this.onchange = (value) => current_rule.set.underArmHStyle = value;
 		}
 	}
 
@@ -2032,8 +2044,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Ear piercings", pairs);
-			this.setValue(V.currentRule.set.earPiercing);
-			this.onchange = (value) => V.currentRule.set.earPiercing;
+			this.setValue(current_rule.set.earPiercing);
+			this.onchange = (value) => current_rule.set.earPiercing;
 		}
 	}
 
@@ -2046,8 +2058,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Nasal piercings", pairs);
-			this.setValue(V.currentRule.set.nosePiercing);
-			this.onchange = (value) => V.currentRule.set.earPiercing;
+			this.setValue(current_rule.set.nosePiercing);
+			this.onchange = (value) => current_rule.set.earPiercing;
 		}
 	}
 
@@ -2060,8 +2072,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Eyebrow piercings", pairs);
-			this.setValue(V.currentRule.set.eyebrowPiercing);
-			this.onchange = (value) => V.currentRule.set.eyebrowPiercing;
+			this.setValue(current_rule.set.eyebrowPiercing);
+			this.onchange = (value) => current_rule.set.eyebrowPiercing;
 		}
 	}
 
@@ -2074,8 +2086,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Navel piercings", pairs);
-			this.setValue(V.currentRule.set.navelPiercing);
-			this.onchange = (value) => V.currentRule.set.navelPiercing;
+			this.setValue(current_rule.set.navelPiercing);
+			this.onchange = (value) => current_rule.set.navelPiercing;
 		}
 	}
 
@@ -2088,8 +2100,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Nipple piercings", pairs);
-			this.setValue(V.currentRule.set.nipplesPiercing);
-			this.onchange = (value) => V.currentRule.set.nipplesPiercing;
+			this.setValue(current_rule.set.nipplesPiercing);
+			this.onchange = (value) => current_rule.set.nipplesPiercing;
 		}
 	}
 
@@ -2101,8 +2113,8 @@ window.rulesAssistantOptions = (function() {
 				["Studded", 1]
 			];
 			super("Areola studs", pairs);
-			this.setValue(V.currentRule.set.areolaePiercing);
-			this.onchange = (value) => V.currentRule.set.areolaePiercing;
+			this.setValue(current_rule.set.areolaePiercing);
+			this.onchange = (value) => current_rule.set.areolaePiercing;
 		}
 	}
 
@@ -2115,8 +2127,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Lip piercings", pairs);
-			this.setValue(V.currentRule.set.lipsPiercing);
-			this.onchange = (value) => V.currentRule.set.lipsPiercing;
+			this.setValue(current_rule.set.lipsPiercing);
+			this.onchange = (value) => current_rule.set.lipsPiercing;
 		}
 	}
 
@@ -2129,8 +2141,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Tongue piercing", pairs);
-			this.setValue(V.currentRule.set.tonguePiercing);
-			this.onchange = (value) => V.currentRule.set.tonguePiercing;
+			this.setValue(current_rule.set.tonguePiercing);
+			this.onchange = (value) => current_rule.set.tonguePiercing;
 		}
 	}
 
@@ -2144,8 +2156,8 @@ window.rulesAssistantOptions = (function() {
 				["Smart (expensive)", 3]
 			];
 			super("Clit piercing", pairs);
-			this.setValue(V.currentRule.set.clitPiercing);
-			this.onchange = (value) => V.currentRule.set.clitPiercing;
+			this.setValue(current_rule.set.clitPiercing);
+			this.onchange = (value) => current_rule.set.clitPiercing;
 		}
 	}
 
@@ -2158,8 +2170,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Pussylips piercings", pairs);
-			this.setValue(V.currentRule.set.vaginaPiercing);
-			this.onchange = (value) => V.currentRule.set.vaginaPiercing;
+			this.setValue(current_rule.set.vaginaPiercing);
+			this.onchange = (value) => current_rule.set.vaginaPiercing;
 		}
 	}
 
@@ -2172,8 +2184,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Shaft piercings", pairs);
-			this.setValue(V.currentRule.set.dickPiercing);
-			this.onchange = (value) => V.currentRule.set.dickPiercing;
+			this.setValue(current_rule.set.dickPiercing);
+			this.onchange = (value) => current_rule.set.dickPiercing;
 		}
 	}
 
@@ -2186,8 +2198,8 @@ window.rulesAssistantOptions = (function() {
 				["Heavy", 2]
 			];
 			super("Perianal piercings", pairs);
-			this.setValue(V.currentRule.set.anusPiercing);
-			this.onchange = (value) => V.currentRule.set.anusPiercing;
+			this.setValue(current_rule.set.anusPiercing);
+			this.onchange = (value) => current_rule.set.anusPiercing;
 		}
 	}
 
@@ -2199,8 +2211,8 @@ window.rulesAssistantOptions = (function() {
 				["Apply", 1]
 			];
 			super("Corset piercings", pairs);
-			this.setValue(V.currentRule.set.corsetPiercing);
-			this.onchange = (value) => V.currentRule.set.corsetPiercing;
+			this.setValue(current_rule.set.corsetPiercing);
+			this.onchange = (value) => current_rule.set.corsetPiercing;
 		}
 	}
 
@@ -2211,8 +2223,8 @@ window.rulesAssistantOptions = (function() {
 				["Off", 0],
 			];
 			super("Automatic branding", pairs);
-			this.setValue(V.currentRule.set.autoBrand);
-			this.onchange = (value) => V.currentRule.set.autoBrand = value;
+			this.setValue(current_rule.set.autoBrand);
+			this.onchange = (value) => current_rule.set.autoBrand = value;
 		}
 	}
 
@@ -2321,7 +2333,7 @@ window.rulesAssistantOptions = (function() {
 			]);
 			this.appendChild(other);
 
-			this.selectValue(V.brandTarget);
+			this.setValue(V.brandTarget);
 			this.onchange = (value) => V.brandTarget = value;
 		}
 	}
@@ -2444,8 +2456,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"]
 			];
 			super("Facial tattoos", items);
-			this.selectValue(V.currentRule.set.lipsTat);
-			this.onchange = (value) => V.currentRule.set.lipsTat = value;
+			this.setValue(current_rule.set.lipsTat);
+			this.onchange = (value) => current_rule.set.lipsTat = value;
 		}
 	}
 	
@@ -2469,8 +2481,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"]
 			];
 			super("Shoulder tattoos", items);
-			this.selectValue(V.currentRule.set.shouldersTat);
-			this.onchange = (value) => V.currentRule.set.shouldersTat = value;
+			this.setValue(current_rule.set.shouldersTat);
+			this.onchange = (value) => current_rule.set.shouldersTat = value;
 		}
 	}
 
@@ -2494,8 +2506,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"]
 			];
 			super("Chest tattoos", items);
-			this.selectValue(V.currentRule.set.boobsTat);
-			this.onchange = (value) => V.currentRule.set.boobsTat = value;
+			this.setValue(current_rule.set.boobsTat);
+			this.onchange = (value) => current_rule.set.boobsTat = value;
 		}
 	}
 
@@ -2519,8 +2531,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"]
 			];
 			super("Arm tattoos", items);
-			this.selectValue(V.currentRule.set.armsTat);
-			this.onchange = (value) => V.currentRule.set.armsTat = value;
+			this.setValue(current_rule.set.armsTat);
+			this.onchange = (value) => current_rule.set.armsTat = value;
 		}
 	}
 
@@ -2544,8 +2556,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"],
 			];
 			super("Upper back tattoos", items);
-			this.selectValue(V.currentRule.set.backTat);
-			this.onchange = (value) => V.currentRule.set.backTat = value;
+			this.setValue(current_rule.set.backTat);
+			this.onchange = (value) => current_rule.set.backTat = value;
 		}
 	}
 
@@ -2569,8 +2581,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"]
 			];
 			super("Lower back tattoos", items);
-			this.selectValue(V.currentRule.set.stampTat);
-			this.onchange = (value) => V.currentRule.set.stampTat = value;
+			this.setValue(current_rule.set.stampTat);
+			this.onchange = (value) => current_rule.set.stampTat = value;
 		}
 	}
 
@@ -2594,8 +2606,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"],
 			];
 			super("Abdomen tattoos", items);
-			this.selectValue(V.currentRule.set.vaginaTat);
-			this.onchange = (value) => V.currentRule.set.vaginaTat = value;
+			this.setValue(current_rule.set.vaginaTat);
+			this.onchange = (value) => current_rule.set.vaginaTat = value;
 		}
 	}
 
@@ -2618,8 +2630,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"],
 			];
 			super("Dick tattoos", items);
-			this.selectValue(V.currentRule.set.dickTat);
-			this.onchange = (value) => V.currentRule.set.dickTat = value;
+			this.setValue(current_rule.set.dickTat);
+			this.onchange = (value) => current_rule.set.dickTat = value;
 		}
 	}
 
@@ -2643,8 +2655,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"],
 			];
 			super("Buttock tattoos:", items);
-			this.selectValue(V.currentRule.set.buttTat);
-			this.onchange = (value) => V.currentRule.set.buttTat = value;
+			this.setValue(current_rule.set.buttTat);
+			this.onchange = (value) => current_rule.set.buttTat = value;
 		}
 	}
 
@@ -2667,8 +2679,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"],
 			];
 			super("Anal tattoo or bleaching", items);
-			this.selectValue(V.currentRule.set.anusTat);
-			this.onchange = (value) => V.currentRule.set.anusTat = value;
+			this.setValue(current_rule.set.anusTat);
+			this.onchange = (value) => current_rule.set.anusTat = value;
 		}
 	}
 
@@ -2692,8 +2704,8 @@ window.rulesAssistantOptions = (function() {
 				["paternalist"],
 			];
 			super("Leg tattoos", items);
-			this.selectValue(V.currentRule.set.legsTat);
-			this.onchange = (value) => V.currentRule.set.legsTat = value;
+			this.setValue(current_rule.set.legsTat);
+			this.onchange = (value) => current_rule.set.legsTat = value;
 		}
 	}
 
@@ -2705,8 +2717,8 @@ window.rulesAssistantOptions = (function() {
 				["blurred", -1],
 			];
 			super("Vision correction", items);
-			this.selectValue(V.currentRule.set.surgery_eyes);
-			this.onchange = (value) => V.currentRule.set.surgery_eyes = value;
+			this.setValue(current_rule.set.surgery_eyes);
+			this.onchange = (value) => current_rule.set.surgery_eyes = value;
 		}
 	}
 
@@ -2718,8 +2730,8 @@ window.rulesAssistantOptions = (function() {
 				["removed", 0],
 			];
 			super("Lactation drug implants", items);
-			this.selectValue(V.currentRule.set.surgery_lactation);
-			this.onchange = (value) => V.currentRule.set.surgery_lactation = value;
+			this.setValue(current_rule.set.surgery_lactation);
+			this.onchange = (value) => current_rule.set.surgery_lactation = value;
 		}
 	}
 
@@ -2731,8 +2743,8 @@ window.rulesAssistantOptions = (function() {
 				["removed", 0],
 			];
 			super("Prostate production enhancing drug implants", items);
-			this.selectValue(V.currentRule.set.surgery_prostate);
-			this.onchange = (value) => V.currentRule.set.surgery_prostate = value;
+			this.setValue(current_rule.set.surgery_prostate);
+			this.onchange = (value) => current_rule.set.surgery_prostate = value;
 		}
 	}
 
@@ -2744,8 +2756,8 @@ window.rulesAssistantOptions = (function() {
 				["invasive", 2],
 			];
 			super("Cosmetic Surgery", items);
-			this.selectValue(V.currentRule.set.surgery_cosmetic);
-			this.onchange = (value) => V.currentRule.set.surgery_cosmetic = value;
+			this.setValue(current_rule.set.surgery_cosmetic);
+			this.onchange = (value) => current_rule.set.surgery_cosmetic = value;
 		}
 	}
 
@@ -2760,8 +2772,8 @@ window.rulesAssistantOptions = (function() {
 				["facepussy", 95],
 			];
 			super("Lip implants", items);
-			this.selectValue(V.currentRule.set.surgery_lips);
-			this.onchange = (value) => V.currentRule.set.surgery_lips = value;
+			this.setValue(current_rule.set.surgery_lips);
+			this.onchange = (value) => current_rule.set.surgery_lips = value;
 		}
 	}
 
@@ -2776,8 +2788,8 @@ window.rulesAssistantOptions = (function() {
 				["maximised", 9],
 			];
 			super("Buttock implants", items);
-			this.selectValue(V.currentRule.set.surgery_butt);
-			this.onchange = (value) => V.currentRule.set.surgery_butt = value;
+			this.setValue(current_rule.set.surgery_butt);
+			this.onchange = (value) => current_rule.set.surgery_butt = value;
 		}
 	}
 
@@ -2793,8 +2805,8 @@ window.rulesAssistantOptions = (function() {
 				["maximised", 48000]
 			];
 			super("Breast implants", items);
-			this.selectValue(V.currentRule.set.surgery_boobs);
-			this.onchange = (value) => V.currentRule.set.surgery_boobs = value;
+			this.setValue(current_rule.set.surgery_boobs);
+			this.onchange = (value) => current_rule.set.surgery_boobs = value;
 		}
 	}
 
@@ -2806,8 +2818,8 @@ window.rulesAssistantOptions = (function() {
 				["virginity restoration", 2],
 			];
 			super("Orifice Tightening", items);
-			this.selectValue(V.currentRule.set.surgery_holes);
-			this.onchange = (value) => V.currentRule.set.surgery_holes = value;
+			this.setValue(current_rule.set.surgery_holes);
+			this.onchange = (value) => current_rule.set.surgery_holes = value;
 		}
 	}
 
@@ -2819,8 +2831,8 @@ window.rulesAssistantOptions = (function() {
 				["removal", 2],
 			];
 			super("Orifice Tightening", items);
-			this.selectValue(V.currentRule.set.surgery_bodyhair);
-			this.onchange = (value) => V.currentRule.set.surgery_bodyhair = value;
+			this.setValue(current_rule.set.surgery_bodyhair);
+			this.onchange = (value) => current_rule.set.surgery_bodyhair = value;
 		}
 	}
 
@@ -2832,8 +2844,8 @@ window.rulesAssistantOptions = (function() {
 				["removal", 2],
 			];
 			super("Orifice Tightening", items);
-			this.selectValue(V.currentRule.set.surgery_hair);
-			this.onchange = (value) => V.currentRule.set.surgery_hair = value;
+			this.setValue(current_rule.set.surgery_hair);
+			this.onchange = (value) => current_rule.set.surgery_hair = value;
 		}
 	}
 	
