@@ -1,30 +1,5 @@
 Common problems:
 
-I want to report a sanityCheck issue.
--Great, however a large majority of the results are false postivies coming from those specific sections breing split over several lines in the name of readability and git grep's intentionally (http://git.661346.n2.nabble.com/bug-git-grep-P-and-multiline-mode-td7613900.html ) lacking support for multiline. An Attempt to add -Pzl (https://gitgud.io/pregmodfan/fc-pregmod/merge_requests/2108 ) created a sub condition black hole. What follows is the entire list of false positives that can safely be ignored;
-
-	[MissingClosingAngleBracket]src/art/vector/Generate_Stylesheet.tw:11:<<print "<style>."+_art_display_class+" {
-	[MissingOpeningBracket2]src/uncategorized/RESS.tw:1893:			<<set _possibleDrugs.push({type: "dick", text: "peni<<s>> enhan<<c>>ement? I know I'm a <<s>>e<<x>> <<s>>lave and it'<<s>> my pla<<c>>e to get fucked, but when I do get to do a girl, <<Master>>, I want to <<if canSee($activeSlave)>><<s>>ee a little fear in her eye<<s>><<else>>feel her a<<ss>> clench in fear<</if>>."})>>
-	[MissingClosingBracket2]src/uncategorized/RESS.tw:1893:			<<set _possibleDrugs.push({type: "dick", text: "peni<<s>> enhan<<c>>ement? I know I'm a <<s>>e<<x>> <<s>>lave and it'<<s>> my pla<<c>>e to get fucked, but when I do get to do a girl, <<Master>>, I want to <<if canSee($activeSlave)>><<s>>ee a little fear in her eye<<s>><<else>>feel her a<<ss>> clench in fear<</if>>."})>>
-	[MissingClosingAngleBrackets]src/init/setupVars.tw:1021:<<set _namePool =
-	[MissingClosingAngleBrackets]src/pregmod/widgets/economyWidgets.tw:10:		<<run
-	[MissingClosingAngleBrackets]src/pregmod/widgets/economyWidgets.tw:116:		<<run
-	[MissingClosingAngleBrackets]src/pregmod/widgets/economyWidgets.tw:222:		<<run
-	[MissingClosingAngleBrackets]src/pregmod/widgets/economyWidgets.tw:307:		<<run
-	[MissingClosingAngleBrackets]src/pregmod/widgets/marketWidgets.tw:13:	<<set _widgets = _(Story.widgets)
-	[MissingClosingAngleBrackets]src/pregmod/widgets/pregmodWidgets.tw:1224:<<set _namePool =
-	[MissingClosingAngleBrackets]src/pregmod/widgets/pregmodWidgets.tw:1233:		<<set _namePool =
-	[MissingClosingAngleBrackets]src/pregmod/widgets/pregmodWidgets.tw:1254:<<set $args[0].birthName =
-	[MissingClosingAngleBrackets]src/uncategorized/main.tw:37:	<<= _($slaves)
-	[MissingClosingAngleBrackets]src/uncategorized/main.tw:59:<<set
-	[MissingClosingAngleBrackets]src/uncategorized/slaveSummary.tw:189:				<<if (_Slave.assignment == "be your Head Girl")
-	[MissingClosingAngleBrackets]src/utility/slaveGenerationWidgets.tw:4:<<set $args[0].race
-	[MissingClosingAngleBrackets]src/utility/slaveGenerationWidgets.tw:9:<<set $args[0].birthName =
-	[MissingClosingAngleBrackets]src/utility/slaveGenerationWidgets.tw:13:<<set $args[0].birthSurname =
-	[OnlyUsedOnce]pregmod/widgets/pregmodWidgets.tw:340:		<<set $Hers = capFirstChar($hers)>>
-	[OnlyUsedOnce]pregmod/widgets/pregmodWidgets.tw:342:		<<set $Himself = capFirstChar($himself)>>
-	[OnlyUsedOnce]pregmod/widgets/pregmodWidgets.tw:343:		<<set $Girl = capFirstChar($girl)>>
-
 How do I start the game?
 -Run the compile file, go to folder "bin", click the "FC_Pregmod" and play. (Recommendation: Drag it into incognito mode)
 
@@ -34,6 +9,35 @@ I get an error on gamestart.
 I can't save more than once or twice.
 -Known issue caused by sugarcube level changes. Save to file doesn't have this problem and will likely avoid the first problem as well.
 
+I wish to report a sanityCheck issue.
+-Great, however a large majority of the results are false positives coming from those specific sections being split over several lines in the name of readability and git grep's intentionally (http://git.661346.n2.nabble.com/bug-git-grep-P-and-multiline-mode-td7613900.html ) lacking support for multiline. An Attempt to add -Pzl (https://gitgud.io/pregmodfan/fc-pregmod/merge_requests/2108 ) created a sub condition black hole. What follows are examples of common false positives that can safely be ignored;
+
+	[MissingClosingAngleBracket]src/art/vector/Generate_Stylesheet.tw:11:<<print "<style>."+_art_display_class+" {
+		<<print "<style>."+_art_display_class+" {
+    position: absolute;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+		}
+
+
+	[MissingClosingAngleBrackets]src/pregmod/widgets/economyWidgets.tw:10:		<<run
+		<<run
+			_b.whoreIncome = (def _b.whoreIncome) ? _b.whoreIncome : 0;
+			_b.rep = (def _b.rep) ? _b.rep : 0;
+			_b.whoreCosts = (def _b.whoreCosts) ? _b.whoreCosts : 0;
+			_b.adsIncome = (def _b.adsIncome) ? _b.adsIncome : 0;
+			_b.maintenance = (def _b.maintenance) ? _b.maintenance : 0;
+			_b.adsCosts = (def _b.adsCosts) ? _b.adsCosts : 0;
+			_b.totalIncome = (def _b.totalIncome) ? _b.totalIncome : 0;
+			_b.totalExpenses = (def _b.totalExpenses) ? _b.totalExpenses : 0;
+			_b.profit = (def _b.profit) ? _b.profit : 0;
+		>>
+
+	[MissingOpeningBracket2]src/uncategorized/RESS.tw:1893:			<<set _possibleDrugs.push({type: "dick", text: "peni<<s>> enhan<<c>>ement? I know I'm a <<s>>e<<x>> <<s>>lave and it'<<s>> my pla<<c>>e to get fucked, but when I do get to do a girl, <<Master>>, I want to <<if canSee($activeSlave)>><<s>>ee a little fear in her eye<<s>><<else>>feel her a<<ss>> clench in fear<</if>>."})>>
+		<<set _possibleDrugs.push({type: "dick", text: "peni<<s>> enhan<<c>>ement? I know I'm a <<s>>e<<x>> <<s>>lave and it'<<s>> my pla<<c>>e to get fucked, but when I do get to do a girl, <<Master>>, I want to <<if canSee($activeSlave)>><<s>>ee a little fear in her eye<<s>><<else>>feel her a<<ss>> clench in fear<</if>>."})>>
 
 How to mod (basic doc):
 
