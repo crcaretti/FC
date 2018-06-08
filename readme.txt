@@ -22,23 +22,6 @@ I wish to report a sanityCheck issue.
     right: 0;
 		}
 
-
-	[MissingClosingAngleBrackets]src/pregmod/widgets/economyWidgets.tw:10:		<<run
-		<<run
-			_b.whoreIncome = (def _b.whoreIncome) ? _b.whoreIncome : 0;
-			_b.rep = (def _b.rep) ? _b.rep : 0;
-			_b.whoreCosts = (def _b.whoreCosts) ? _b.whoreCosts : 0;
-			_b.adsIncome = (def _b.adsIncome) ? _b.adsIncome : 0;
-			_b.maintenance = (def _b.maintenance) ? _b.maintenance : 0;
-			_b.adsCosts = (def _b.adsCosts) ? _b.adsCosts : 0;
-			_b.totalIncome = (def _b.totalIncome) ? _b.totalIncome : 0;
-			_b.totalExpenses = (def _b.totalExpenses) ? _b.totalExpenses : 0;
-			_b.profit = (def _b.profit) ? _b.profit : 0;
-		>>
-
-	[MissingOpeningBracket2]src/uncategorized/RESS.tw:1893:			<<set _possibleDrugs.push({type: "dick", text: "peni<<s>> enhan<<c>>ement? I know I'm a <<s>>e<<x>> <<s>>lave and it'<<s>> my pla<<c>>e to get fucked, but when I do get to do a girl, <<Master>>, I want to <<if canSee($activeSlave)>><<s>>ee a little fear in her eye<<s>><<else>>feel her a<<ss>> clench in fear<</if>>."})>>
-		<<set _possibleDrugs.push({type: "dick", text: "peni<<s>> enhan<<c>>ement? I know I'm a <<s>>e<<x>> <<s>>lave and it'<<s>> my pla<<c>>e to get fucked, but when I do get to do a girl, <<Master>>, I want to <<if canSee($activeSlave)>><<s>>ee a little fear in her eye<<s>><<else>>feel her a<<ss>> clench in fear<</if>>."})>>
-
 How to mod (basic doc):
 
 1. All sources now in the src subdir, in separate files. 1 passage = 1 file.
