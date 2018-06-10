@@ -17,11 +17,13 @@ window.rulesAssistantOptions = (function() {
 		V.returnTo = "Main";
 		V.showEncyclopedia = 1;
 		V.encyclopedia = "Personal Assistant";
-		const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule);
-		if (idx === -1)
-			current_rule = V.defaultRules[0];
-		else
-			current_rule = V.defaultRules[idx];
+		if (V.currentRule !== null) {
+			const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule);
+			if (idx === -1)
+				current_rule = V.defaultRules[0];
+			else
+				current_rule = V.defaultRules[idx];
+		}
 		const root = new Root(element);
 	}
 
@@ -40,7 +42,10 @@ window.rulesAssistantOptions = (function() {
 	function removeRule(root) {
 		const idx = V.defaultRules.findIndex(rule => rule.ID === current_rule.ID);
 		V.defaultRules.splice(idx, 1);
-		V.currentRule = V.defaultRules[idx < V.defaultRules.length ? idx : V.defaultRules.length - 1].ID;
+		if (V.defaultRules.length > 0) {
+			const new_idx = idx < V.defaultRules.length ? idx : V.defaultRules.length - 1;
+			V.currentRule = V.defaultRules[new_idx].ID;
+		} else V.currentRule = null;
 		reload(root);
 	}
 
@@ -114,6 +119,12 @@ window.rulesAssistantOptions = (function() {
 		// return the first argument to simplify creation of basic container items
 		render(...args) {
 			return args[0];
+		}
+
+		remove() {
+			const idx = this.parent.children.findIndex(child => child === this);
+			this.parent.children.slice(idx, 1);
+			this.element.remove();
 		}
 	}
 	
@@ -430,7 +441,7 @@ window.rulesAssistantOptions = (function() {
 			super("Current rule", V.defaultRules.map(i => [i.name, i]));
 			this.setValue(current_rule.name)
 			this.onchange = function (rule) {
-				current_rule = rule.ID;
+				V.currentRule = rule.ID;
 				reload(root);
 			};
 		}
@@ -532,11 +543,24 @@ window.rulesAssistantOptions = (function() {
 				case true:
 					break;
 				case "custom":
-					this.appendChild(new CustomEditor(current_rule.condition.data));
+					this.show_custom_editor(CustomEditor, current_rule.condition.data);
 					break;
 				default:
-					this.appendChild(new RangeEditor(current_rule.condition.function, current_rule.condition.data));
+					this.show_custom_editor(RangeEditor, current_rule.condition.function, current_rule.condition.data);
 					break;
+			}
+		}
+
+		show_custom_editor(what, ...args) {
+			if (this.custom_editor !== null) this.hide_custom_editor();
+			this.custom_editor = new what(...args);
+			this.appendChild(this.custom_editor);
+		}
+
+		hide_custom_editor() {
+			if (this.custom_editor) {
+				this.custom_editor.remove();
+				this.custom_editor = null;
 			}
 		}
 
@@ -554,20 +578,22 @@ window.rulesAssistantOptions = (function() {
 				case true:
 					current_rule.condition.function = false;
 					current_rule.condition.data = {};
+					this.hide_custom_editor();
 					break;
 				case false:
 					current_rule.condition.function = true;
 					current_rule.condition.data = {};
+					this.hide_custom_editor();
 					break;
 				case "custom":
 					current_rule.condition.function = "custom";
-					current_rule.condition.data = {};
-					this.appendChild(new CustomEditor(current_rule.condition.data));
+					current_rule.condition.data = "";
+					this.show_custom_editor(CustomEditor, current_rule.condition.data);
 					break;
 				default:
 					current_rule.condition.function = "between";
 					current_rule.condition.data = { attribute: value, value: [null, null] };
-					this.appendChild(new RangeEditor(current_rule.condition.data));
+					this.show_custom_editor(RangeEditor, current_rule.condition.function, current_rule.condition.data);
 					break;
 			}
 		}
@@ -575,14 +601,15 @@ window.rulesAssistantOptions = (function() {
 
 	class CustomEditor extends Element {
 		constructor(data) {
+			console.log(current_rule.condition, data);
 			if (data.length === 0) data = "function(slave) { return slave.slaveName === 'Fancy Name'; }";
 			super(data);
-			this.elem.onfocusout = () => current_rule.data = this.elem.value;
 		}
 
 		render(data) {
 			const elem = document.createElement("textarea");
-			elem.setAttribute(value, data);
+			elem.innerHTML = data;
+			elem.onfocusout = () => current_rule.condition.data = elem.value
 			return elem;
 		}
 	}
@@ -597,9 +624,10 @@ window.rulesAssistantOptions = (function() {
 
 			const min = document.createElement("input");
 			min.setAttribute("type", "text");
-			min.value = data.value[0];
+			min.value = "" + data.value[0];
 			min.onkeypress = e => onreturn(e, () => this.setmin(min.value));
 			min.onfocusout = e => this.setmin(min.value);
+			this.min = min;
 			elem.appendChild(min);
 
 			elem.appendChild(document.createElement("br"));
@@ -610,9 +638,10 @@ window.rulesAssistantOptions = (function() {
 
 			const max = document.createElement("input");
 			max.setAttribute("type", "text");
-			max.value = data.value[0];
+			max.value = "" + data.value[1];
 			max.onkeypress = e => onreturn(e, () => this.setmax(max.value));
 			max.onfocusout = e => this.setmax(max.value);
+			this.max = max;
 			elem.appendChild(max);
 
 			const infobar = document.createElement("div");
@@ -623,21 +652,23 @@ window.rulesAssistantOptions = (function() {
 		}
 
 		parse(value) {
-			value = value.strip();
+			value = value.trim();
 			if (value === "null") value = null;
 			else {
 				value = parseInt(value);
-				if (isNan(value)) value = null;
+				if (isNaN(value)) value = null;
 			}
 			return value;
 		}
 
 		setmin(value) {
-			current_rule.data.value[0] = this.parse(value);
+			current_rule.condition.data.value[0] = this.parse(value);
+			this.min.value = ""+current_rule.condition.data.value[0];
 		}
 
 		setmax(value) {
-			current_rule.data.value[1] = this.parse(value);
+			current_rule.condition.data.value[1] = this.parse(value);
+			this.max.value = ""+current_rule.condition.data.value[1];
 		}
 
 		info(attribute) {
