@@ -30,7 +30,7 @@ window.getCost = function(array) {
 		+ (State.variables.incubator * facilityCost * 10);
 	var secExpCost = 0;
 	var soldierMod = 0;
-		
+
 	//facility expenses
 	costs += (0.1 * State.variables.brothelUpgradeDrugs * brothel * facilityCost)
 	+ (0.2 * State.variables.arcadeUpgradeInjectors * arcade * facilityCost)
@@ -45,7 +45,7 @@ window.getCost = function(array) {
 	+ (0.2 * State.variables.incubatorUpgradeReproduction * incubator * facilityCost)
 	+ (0.2 * State.variables.incubatorUpgradeGrowthStims * incubator * facilityCost)
 	+ (0.5 * State.variables.incubatorUpgradeSpeed * incubator * facilityCost);
-	
+
 	if(dairy > 0) {
 		costs += ((State.variables.bioreactorsXY + State.variables.bioreactorsXX + State.variables.bioreactorsHerm + State.variables.bioreactorsBarren) * 100);
 	}
@@ -64,7 +64,7 @@ window.getCost = function(array) {
 	if(State.variables.masterSuitePregnancyFertilitySupplements === 1) {
 		costs += 1000;
 	}
-	
+
 	//security expansion
 	if(State.variables.secExp == 1) {
 		if(State.variables.edictsUpkeep > 0) {
@@ -117,24 +117,24 @@ window.getCost = function(array) {
 		}
 		costs += secExpCost;
 	}
-	
+
 	//general arcology costs
 	costs += (State.variables.girls * (250 + (economy * 500)));
-	
+
 	if(State.variables.arcologies[0].FSRepopulationFocusLaw === 1 && State.variables.PC.pregKnown == 1) {
 		costs -= 500;
 	}
-	
+
 	costs += State.variables.citizenOrphanageTotal * 100;
 	costs += State.variables.privateOrphanageTotal * 500;
 	if(State.variables.breederOrphanageTotal > 0) {
 		costs += 50;
 	}
-	
+
 	if(State.variables.peacekeepers !== 0 && State.variables.peacekeepers.undermining !== 0) {
 		costs += State.variables.peacekeepers.undermining;
 	}
-	
+
 	if(State.variables.mercenaries > 0) {
 		if(State.variables.barracks) {
 			mercCosts *= 0.5;
@@ -146,7 +146,7 @@ window.getCost = function(array) {
 	}
 
 	costs += State.variables.FSSpending;
-	
+
 	//slave expenses
 	for (var slave of array) {
 		costs += getSlaveCost(slave);
@@ -181,12 +181,12 @@ window.getCost = function(array) {
 			if(slave.assignment === Job.SERVANT) {
 				costs -= rulesCost;
 			}
-			if(setup.servantCareers.includes(slave.career)) {
+			if(setup.servantCareers.includes(slave.career) || slave.skillS >= State.variables.masteredXP) {
 				costs -= rulesCost;
 			}
 		}
 	}
-	
+
 	// policy and other expenses
 	if(State.variables.Recruiter !== 0) {
 		costs += 250;
@@ -315,17 +315,17 @@ window.getCost = function(array) {
 			costs *= (1 - State.variables.railway * 0.05);
 		}
 	}
-	
+
 	// clean up
 	if(costs < 0) {
 		costs = 0;
 	} else {
 		costs = Math.trunc(costs);
 	}
-	
+
 	return costs;
 }
-	
+
 window.getSlaveCost = function(s) {
 	if(!s) { return 0; }
 	// Data duplicated from Cost Report
@@ -333,8 +333,8 @@ window.getSlaveCost = function(s) {
 	var rulesCost = State.variables.rulesCost;
 	var foodCost = State.variables.foodCost;
 	var drugsCost = State.variables.drugsCost;
-	
-	// Living expenses	
+
+	// Living expenses
 	switch(s.assignment) {
 	case Job.ARCADE:
 		cost += rulesCost * .75;
@@ -400,7 +400,7 @@ window.getSlaveCost = function(s) {
 	case Job.ATTEND: case Job.STEWARD: case Job.MILKMAID: case Job.TEACHER:
 		cost += rulesCost * 2;
 		break;
-	default:	
+	default:
 		if(s.livingRules === LivingRule.LUXURIOUS) {
 			cost += rulesCost * (s.relationship >= 4 ? 3 : 4);
 		} else if(s.livingRules == LivingRule.NORMAL) {
@@ -453,7 +453,7 @@ window.getSlaveCost = function(s) {
 	} else if(s.diet === 'XXY') {
 		cost += 75;
 	}
-	
+
 	// Accessibility costs
 	if(State.variables.boobAccessibility !== 1 && s.boobs > 20000
 		&& (s.assignment != Job.DAIRY || State.variables.dairyRestraintsSetting < 2) && (s.assignment != Job.ARCADE)) {
@@ -490,7 +490,7 @@ window.getSlaveCost = function(s) {
 			cost += rulesCost;
 		}
 	}
-	
+
 	// Maintenance
 	if(s.boobs > 10000 && s.boobsImplantType === 1) {
 		cost += 50;
@@ -508,7 +508,7 @@ window.getSlaveCost = function(s) {
 	if(State.variables.CitizenRetirement === 1) {
 		cost += 250;
 	}
-	
+
 	// Enemas
 	if(s.inflation === 3) {
 		switch(s.inflationType) {
@@ -584,14 +584,14 @@ window.getSlaveCost = function(s) {
 	if(s.preg === -1 && isFertile(s)) {
 		cost += (drugsCost * 0.5);
 	}
-	
+
 	// Promotion costs
 	if(State.variables.studio === 1) {
 		if(s.pornFameSpending > 0) {
 			cost += s.pornFameSpending;
 		}
 	}
-	
+
 	if(isNaN(cost)) {
 		throw new Error('Cost calculation for slave ' + s.slaveName + ' (' + s.ID + ') failed.');
 	}
@@ -612,11 +612,11 @@ window.getSlaveStatisticData = function(s, facility) {
 			customers: 0 /* brothel, club, ... */
 		};
 	}
-	
+
 	if(!facility.income) {
 		facility.income = new Map();
 	}
-	
+
 	if(facility.income.has(s.ID)) {
 		return facility.income.get(s.ID);
 	} else {
