@@ -627,35 +627,41 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 	<</if>>
 	/* finished checking _slaveOrgans */
 	/* limbs */
-	<<if $slaves[_i].amp != 0>>
+	<<if $activeSlave.amp != 0>>
 		<<for _l = 0; _l < $limbs.length; _l++>>
-			<<if ($limbs[_l].ID == $slaves[_i].ID) && ($limbs[_l].weeksToCompletion <= 0)>>
-				<<set $activeSlave = $slaves[_i]>>
-				<<switch $limbs[_l].type>>
-				<<case "simple">>
-					<<set $activeSlave.amp = -1>>
-					<<set $surgeryType = "basicPLimbs">>
-				<<case "sex">>
-					<<set $activeSlave.amp = -2>>
-					<<set $surgeryType = "sexPLimbs">>
-				<<case "beauty">>
-					<<set $activeSlave.amp = -3>>
-					<<set $surgeryType = "beautyPLimbs">>
-				<<case "combat">>
-					<<set $activeSlave.amp = -4>>
-					<<set $surgeryType = "combatPLimbs">>
-				<<case "cyber">>
-					<<set $activeSlave.amp = -5>>
-					<<set $surgeryType = "cyberPLimbs">>
-				<</switch>>
-				
-				<<set $cash -= $surgeryCost>>
-				<<set $activeSlave.health -= 10>>
-				<br><hr>
-				<<include "Surgery Degradation">>
-				<<set $limbs.deleteAt(_l)>>
+			<<if ($limbs[_l].ID == $activeSlave.ID) && ($limbs[_l].weeksToCompletion <= 0)
+				<<if $activeSlave.PLimb != 0>>
+					<<if $activeSlave.amp < 0>>
+						<<set _oldLimbs = {type: 0, armsTat: 0, legsTat: 0}>>
+						<<set _oldLimbs.type = $activeSlave.amp, _oldLimbs.armsTat = $activeSlave.armsTat, _oldLimbs.legsTat = $activeSlave.legsTat>>
+						<<set $activeSlave.readyLimbs.push(_oldLimbs)>>
+					<</if>>
 
-				<<set $slaves[_i] = $activeSlave>>
+					<<switch $limbs[_l].type>>
+					<<case "simple">>
+						<<set $activeSlave.amp = -1>>
+						<<set $surgeryType = "basicPLimbs">>
+					<<case "sex">>
+						<<set $activeSlave.amp = -2>>
+						<<set $surgeryType = "sexPLimbs">>
+					<<case "beauty">>
+						<<set $activeSlave.amp = -3>>
+						<<set $surgeryType = "beautyPLimbs">>
+					<<case "combat">>
+						<<set $activeSlave.amp = -4>>
+						<<set $surgeryType = "combatPLimbs">>
+					<<case "cyber">>
+						<<set $activeSlave.amp = -5>>
+						<<set $surgeryType = "cyberPLimbs">>
+					<</switch>>
+					<br><hr>
+					<<include "Surgery Degradation">>
+					<<set $limbs.deleteAt(_l)>>
+					<<set $activeSlave.armsTat = 0, $activeSlave.legsTat = 0>>
+				<<else>>
+					<br><hr>
+					@@.red;Could not install prosthetic limbs on $activeSlave.slaveName: she lacks a prosthetic interface.@@
+				<</if>>
 				<<break>>
 			<</if>>
 		<</for>>
