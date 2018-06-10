@@ -32,7 +32,7 @@ def data_uri_from_file(filename, mimetype):
 if __name__ == "__main__":
     # find project root directory path
     # (script file is expected to reside in devTools)
-    project_root_path = os.path.dirname(os.path.dirname(__file__))
+    project_root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     # path to SugarCube's header.html
     header_html_path = os.path.join(
         project_root_path,
@@ -78,12 +78,12 @@ if __name__ == "__main__":
         lines_in = hf.readlines() # read whole file
         lines_out = []
         for line in lines_in:
+            # embed favicons into head
+            if (line.startswith('</head>')):
+                lines_out.extend(favicons_html)
             # remove all currently embedded favicons
             if (not (line.startswith('<link') and 'icon' in line)):
                 lines_out.append(line)
-            # embed favicons into head
-            if (line.startswith('<head>')):
-                lines_out.extend(favicons_html)
         hf.seek(0) # move to beginning of file
         hf.write(''.join(lines_out)) # overwrite with new data
         hf.truncate() # remove trailing old data
