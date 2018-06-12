@@ -391,7 +391,7 @@
 <<link "Buy">>
 	<<if !Number.isInteger(Number.parseFloat(eval(parse('_Num' + $args[0]))))>> /* Checks if _Numasset is string */
 /* Buy all */
-		<<if State.temporary[$args[1]].toLowerCase() == "all" || "max">> 
+		<<if ["all", "max"].includes(State.temporary[$args[1]].toLowerCase())>> 
 			<<set State.temporary[$args[1]] = Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500))>>
 			<<replace `'#'+$args[0]+'AssetsPurchasing'`>> 
 				Bought <<print commaNum(Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500)))>> units for <<print cashFormat(Math.floor($corpCash/(State.variables[$args[0]+"AssetPrice"] * 500))*500*State.variables[$args[0]+"AssetPrice"])>>
@@ -409,8 +409,11 @@
 /* Error if decimal or not "all" or "max" string */
 			<<replace `'#'+$args[0]+'AssetsPurchasing'`>> Please input a round number. <</replace>>
 		<</if>>
+/* Negative number, try again */
+	<<elseif Number.parseFloat(eval(parse('_Num' + $args[0]))) < 0>>
+		<<replace `'#'+$args[0]+'AssetsPurchasing'`>>Please input a positive number.<</replace>>
 /* Buy % */
-		<<elseif State.temporary[$args[1]].toString().includes("%")>> 
+	<<elseif State.temporary[$args[1]].toString().includes("%")>> 
 		<<set _DesPerc = State.temporary[$args[1]]>>
 		<<set State.temporary[$args[1]] = Math.floor((Math.clamp((Number.parseFloat(State.temporary[$args[1]])/100),0,1)*$corpCash)/(State.variables[$args[0]+"AssetPrice"] * 500))>>
 		<<replace `'#'+$args[0]+'AssetsPurchasing'`>>
@@ -445,13 +448,13 @@
 		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 10);<</script>>
 /* Unsuccessful buy */
 	<<else>> 
-	<<replace `'#'+$args[0]+'AssetsPurchasing'`>>There are insufficient funds for additional purchases.<</replace>> 
+		<<replace `'#'+$args[0]+'AssetsPurchasing'`>>There are insufficient funds for additional purchases.<</replace>> 
 	<</if>>
 <</link>>
 | <<link "Sell">>
 	<<if !Number.isInteger(Number.parseFloat(eval(parse('_Num' + $args[0]))))>> 
 /* Sell all */
-		<<if State.temporary[$args[1]].toLowerCase() == "all" || "max">>
+		<<if ["all", "max"].includes(State.temporary[$args[1]].toLowerCase())>>
 			<<replace `'#'+$args[0]+'AssetsPurchasing'`>>
 				Sold <<print commaNum(Math.ceil((State.variables[$args[0]+"Assets"]-500)/500))>> units for <<print cashFormat(Math.ceil((State.variables[$args[0]+"Assets"]-500)/500)*500*State.variables[$args[0]+"AssetPrice"])>>
 			<</replace>>
@@ -469,6 +472,9 @@
 		<<else>>
 			<<replace `'#'+$args[0]+'AssetsPurchasing'`>> Please input a round number. <</replace>>
 		<</if>>
+/* Negative number, try again */
+	<<elseif Number.parseFloat(eval(parse('_Num' + $args[0]))) < 0>>
+		<<replace `'#'+$args[0]+'AssetsPurchasing'`>>Please input a positive number.<</replace>>
 /* Sell % */
 	<<elseif State.temporary[$args[1]].toString().includes("%")>>
 		<<set _DesPerc = State.temporary[$args[1]]>>
@@ -505,7 +511,7 @@
 		<<replace `'#'+'controls'+$args[0]`>><<CorpDevBuySell $args[0] $args[1]>><</replace>><<script>>setReplaceTextboxMaxLength(State.temporary["textboxMLArg"], 10);<</script>>
 /* Unsuccessful sell */
 	<<else>>
-	<<replace `'#'+$args[0]+'AssetsPurchasing'`>>The corp cannot sell any more $args[0] assets.<</replace>>
+		<<replace `'#'+$args[0]+'AssetsPurchasing'`>>The corp cannot sell any more $args[0] assets.<</replace>>
 	<</if>>
 <</link>>
 <</widget>>
