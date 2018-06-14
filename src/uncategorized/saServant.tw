@@ -1,79 +1,94 @@
-:: SA servant [nobr]
+:: SA servant [script]
 
-<<SlavePronouns $slaves[$i]>>
+window.saServant = function saServant(slave) {
 
-works as a servant. $pronounCap performs the lowest jobs in your penthouse, cleaning up after your other slaves, bathing them, helping them dress, and giving them sexual relief.
+	var pronouns = getPronouns(slave);
+	var he = pronouns.pronoun, him = pronouns.object, his = pronouns.possessive, hers = pronouns.possessivePronoun, himself = pronouns.objectReflexive, boy = pronouns.noun;
+	var He = capFirstChar(he), His = capFirstChar(his);
+	var V = State.variables;
+	
+	var t = "works as a servant. " + He + " performs the lowest jobs in your penthouse, cleaning up after your other slaves, bathing them, helping them dress, and giving them sexual relief.";
 
-<<if $servantsQuarters > 0>>
-	<<if (($universalRulesFacilityWork == 1) && ($slaves[$i].assignment == "be a servant") && ($servantsQuartersSpots > 0)) || ($slaves[$i].assignment == "work as a servant")>>
-	<<if ($slaves[$i].assignment == "be a servant")>>
-		Since there's extra space in the servants' quarters, $assistantName attaches $object to the cadre of maids there.
-		<<set $servantsQuartersSpots -= 1>>
-	<</if>>
-	<<if ($Stewardess != 0)>>
-		This brings $object under $Stewardess.slaveName's supervision. The Stewardess <<if $slaves[$i].devotion < -20>>subjects $object to corrective rape when $possessive service is imperfect, or when the Stewardess feels like raping $object, forcing the poor slave to @@.yellowgreen;find refuge in work.@@<<elseif $slaves[$i].devotion <= 20>>molests $object, encouraging the poor slave to keep $possessive head down and @@.yellowgreen;work harder.@@<<else>>uses sex as a reward, getting $object off when $pronoun @@.yellowgreen;works harder.@@<</if>>
-		<<set $cash += $stewardessBonus>>
-	<</if>>
-	<</if>>
-<</if>>
+	if (V.servantsQuarters > 0) {
+		if ((V.universalRulesFacilityWork == 1 && slave.assignment == "be a servant" && V.servantsQuartersSpots > 0) || (slave.assignment == "work as a servant")) {
+			if (slave.assignment == "be a servant") {
+				t += " Since there's extra space in the servants' quarters, " + V.assistantName + " attaches " + him + " to the cadre of maids there.";
+				V.servantsQuartersSpots--;
+			}
+			if (V.Stewardess != 0) {
+				t += " This brings " + him + " under " + V.Stewardess.slaveName + "'s supervision. The Stewardess ";
+				if (slave.devotion < -20) {
+					t += "subjects " + him + " to corrective rape when " + his + "service is imperfect, or when the Stewardess feels like raping " + him + ", forcing the poor slave to <span class='yellowgreen'>find refuge in work.</span>";
+				} else if (slave.devotion <= 20) {
+					t += "molests " + him + ", encouraging the poor slave to keep " + his + " head down and <span class='yellowgreen'>work harder.</span>";
+				} else {
+					t += "uses sex as a reward, getting " + him + " off when " + he + " <span class='yellowgreen'>works harder.</span>";
+				}
+				V.cash += V.stewardessBonus;
+			}
+		}
+	}
 
-<<if ($slaves[$i].trust < -20)>>
-	$pronounCap is frightened of punishment and works very hard, @@.yellowgreen;reducing the upkeep@@ of your slaves.
-<<elseif ($slaves[$i].devotion < -20)>>
-	$pronounCap is reluctant, requiring your other slaves to force $possessive services, and does not @@.yellowgreen;reduce upkeep@@ of your slaves much.
-<<elseif ($slaves[$i].devotion <= 20)>>
-	$pronounCap is hesitant, requiring your other slaves to demand $possessive services, and only slightly @@.yellowgreen;reduces upkeep@@ of your slaves.
-<<elseif ($slaves[$i].devotion <= 50)>>
-	$pronounCap is obedient, offering your other slaves $possessive services, and moderately @@.yellowgreen;reduces the upkeep@@ of your slaves.
-<<elseif ($slaves[$i].devotion <= 95)>>
-	$pronounCap is devoted, happily giving your other slaves $possessive services, and @@.yellowgreen;reduces the upkeep@@ of your slaves.
-<<else>>
-	$pronounCap is so happy to serve your other slaves that $pronoun often sees to their needs before they know they have them, and greatly @@.yellowgreen;reduces the upkeep@@ of your slaves.
-<</if>>
+	t += " " + He + " is ";
+	if (slave.trust < -20) {
+		t += "frightened of punishment and works very hard, <span class='yellowgreen'>reducing the upkeep</span> of your slaves.";
+	} else if (slave.devotion < -20) {
+		t += "reluctant, requiring your other slaves to force " + his + " services, and does not <span class='yellowgreen'>reduce upkeep</span> of your slaves much.";
+	} else if (slave.devotion <= 20) {
+		t += "hesitant, requiring your other slaves to demand " + his + " services, and only slightly <span class='yellowgreen'>reduces upkeep</span> of your slaves.";
+	} else if (slave.devotion <= 50) {
+		t += "obedient, offering your other slaves " + his + " services, and moderately <span class='yellowgreen'>reduces the upkeep</span> of your slaves.";
+	} else if (slave.devotion <= 95) {
+		t += "devoted, happily giving your other slaves " + his + " services, and <span class='yellowgreen'>reduces the upkeep</span> of your slaves.";
+	} else {
+		t += "so happy to serve your other slaves that " + he + " often sees to their needs before they know they have them, and greatly <span class='yellowgreen'>reduces the upkeep</span> of your slaves.";
+	}
 
-<<set _oral = random(5,10)>>
-<<set $slaves[$i].oralCount += _oral>>
-<<set $oralTotal += _oral>>
+	let _oral = jsRandom(5,10);
+	slave.oralCount += _oral;
+	V.oralTotal += _oral;
 
-<<if ($slaves[$i].relationship == -2)>>
-	$pronounCap does $possessive best to perfect your domesticity due to $possessive emotional bond to you.
-<<elseif ($slaves[$i].relationship == -3) && $slaves[$i].devotion > 50>>
-	$pronounCap does $possessive very best to be the perfect housewife, making $possessive an outstanding servant.
-<</if>>
+	if (slave.relationship == -2) {
+		t +=  " " + He + " does " + his + " best to perfect your domesticity due to " + his + " emotional bond to you.";
+	} else if (slave.relationship == -3 && slave.devotion > 50) {
+		t +=  " " + He + " does " + his + "very best to be the perfect housewife, making " + him + " an outstanding servant.";
+	}
 
-<<if !setup.servantCareers.includes($slaves[$i].career) && $slaves[$i].skillS < $masteredXP>>
-	<<set $slaves[$i].skillS += random(1,($slaves[$i].intelligence+4)*2)>>
-<</if>>
-<<if setup.servantCareers.includes($slaves[$i].career)>>
-	She has experience with house keeping from her life before she was a slave, making her more effective.
-<<elseif $slaves[$i].skillS >= $masteredXP>>
-	She has experience with house keeping from working for you, making her more effective.
-<</if>>
+	if (setup.servantCareers.includes(slave.career)) {
+		t +=  " " + He + " has experience with house keeping from " + his + " life before " + he + " was a slave, making " + him + " more effective.";
+	} else if (slave.skillS >= V.masteredXP) {
+		t +=  " " + He + " has experience with house keeping from working for you, making " + him + " more effective.";
+	} else {
+		slave.skillS += jsRandom(1,(slave.intelligence+4)*2);
+	}
 
-<<if ($slaves[$i].fetishStrength > 60)>>
-<<if ($slaves[$i].fetish == "submissive") && ($slaves[$i].fetishKnown == 1)>>
-	$possessiveCap natural affinity for submission increases $possessive effectiveness.
-<<elseif ($slaves[$i].fetishKnown == 1) && ($slaves[$i].fetish == "dom")>>
-	$possessiveCap sexual appetite for domination reduces $possessive effectiveness.
-<</if>>
-<</if>>
+	if (slave.fetishStrength > 60) {
+		if (slave.fetish == "submissive" && slave.fetishKnown == 1) {
+			t +=  " " + His + " natural affinity for submission increases " + his + " effectiveness.";
+		} else if (slave.fetishKnown == 1 && slave.fetish == "dom") {
+			t +=  " " + His + " sexual appetite for domination reduces " + his + " effectiveness.";
+		}
+	}
 
-<<if ($slaves[$i].energy < 20)>>
-	$possessiveCap frigidity allows $object to ignore the intercourse all around $object, making $object very efficient.
-<<elseif ($slaves[$i].energy < 40)>>
-	$possessiveCap low sex drive keeps $object from becoming too distracted by the intercourse all around $object, making $object more efficient.
-<</if>>
+	if (slave.energy < 20) {
+		t +=  " " + His + " frigidity allows " + him + " to ignore the intercourse all around " + him + ", making " + him + " very efficient.";
+	} else if (slave.energy < 40) {
+		t += " " + His + " low sex drive keeps " + him + " from becoming too distracted by the intercourse all around " + him + ", making " + him + " more efficient.";
+	}
 
-<<if (($slaves[$i].eyes <= -1) && ($slaves[$i].eyewear != "corrective glasses") && ($slaves[$i].eyewear != "corrective contacts")) || ($slaves[$i].eyewear == "blurring glasses") || ($slaves[$i].eyewear == "blurring contacts")>>
-	$possessiveCap bad vision makes $object a worse servant.
-<</if>>
+	if ((slave.eyes <= -1 && slave.eyewear != "corrective glasses" && slave.eyewear != "corrective contacts") || (slave.eyewear == "blurring glasses") || (slave.eyewear == "blurring contacts")) {
+		t +=  " " + His + " bad vision makes " + him + " a worse servant.";
+	}
 
-<<if ($slaves[$i].lactation > 0)>>
-	Since $pronoun is
-	<<if ($slaves[$i].devotion > 20) || ($slaves[$i].trust < -20)>>
-	lactating, $pronoun serves
-	<<else>>
-	lactating, and disobedient, $pronoun is restrained to serve
-	<</if>>
-	as a drink dispenser at mealtimes, and makes a meaningful contribution to $possessive fellow slaves' nutrition in concert with the feeding systems.
-<</if>>
+	if (slave.lactation > 0) {
+		t += " Since " + he + " is lactating, ";
+		if (slave.devotion > 20 || slave.trust < -20) {
+			t += he + " serves ";
+		} else {
+			t += "and disobedient, " + he + " is restrained to serve ";
+		}
+		t += "as a drink dispenser at mealtimes, and makes a meaningful contribution to " + his + " fellow slaves' nutrition in concert with the feeding systems.";
+	}
+
+	return t;
+};
