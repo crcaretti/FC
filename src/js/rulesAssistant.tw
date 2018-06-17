@@ -1,22 +1,16 @@
 :: rulesAssistant [script]
 
 // RAJS
-/*
 
 window.hasSurgeryRule = function(slave, rules) {
-	if (!slave || !rules || !slave.currentRules)
-		return false;
-
-	for (var d = rules.length-1; d >= 0; d--) {
-		if (ruleApplied(slave, rules[d].ID)) {
-			if (rules[d].autoSurgery > 0) {
-				return true;
-			}
-		}
-	}
-	return false;
+	return rules.some(rule => {
+		if (ruleApplied(slave, rule.ID) && rule.autoSurgery > 0)
+			return true;
+		else return false;
+	})
 };
 
+/*
 window.hasRuleFor = function(slave, rules, what) {
 	if (!slave || !rules || !slave.currentRules)
 		return false;
@@ -441,14 +435,12 @@ window.CheckAutoRulesActivate = function CheckAutoRulesActivate(slave) {
 // remove the RA rule from the slave
 window.RARemoveRule = function RARemoveRule(slave, rule) {
 	let r = ""
-	slave.currentRules.some((rule, i) => {
-		if (rule.ID === rule) {
-			slave.currentRules.splice(i, 1)
-			r += `<br><span class="tan">Rule ${rule.ID} (${rule.name}) no longer applies to ${slave.slaveName}, who is assignmed to ${slave.assignment}</span>`
-			r += RAFacilityRemove(slave, rule.set)
-			return true
-		} else return false
-	})
+	const index = slave.currentRules.findIndex(rule => rule.ID === rule)
+	if (index === -1) return r
+	const slave_rule = slave.currentRules[index];
+	slave.currentRules.splice(index, 1)
+	r += `<br><span class="tan">Rule ${rule.ID} (${rule.name}) no longer applies to ${slave.slaveName}, who is assignmed to ${slave.assignment}</span>`
+	r += RAFacilityRemove(slave, slave_rule.set)
 	return r
 }
 
