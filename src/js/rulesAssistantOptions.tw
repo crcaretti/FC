@@ -5,7 +5,6 @@
 // uses an object-oriented widget pattern
 // wrapped in a closure so as not to polute the global namespace
 // the widgets are generic enough to be reusable; if similar user interfaces are ported to JS, we could move the classes to the global scope
-// TODO: specific inclusion and exclusion fix
 
 window.rulesAssistantOptions = (function() {
 	"use strict";
@@ -28,11 +27,8 @@ window.rulesAssistantOptions = (function() {
 		const root = new Root(element);
 	}
 
-	function onreturn(e, cb) {
-		if (e.keyCode === 13) cb();
-	}
+	function returnP(e) { return e.keyCode === 13; }
 
-	// create a new rule and reload
 	function newRule(root) {
 		const rule = emptyDefaultRule();
 		V.defaultRules.push(rule);
@@ -188,7 +184,7 @@ window.rulesAssistantOptions = (function() {
 				value.classList.add("rajs-value"); // 
 				// call the variable binding when the input field is no longer being edited, and when the enter key is pressed
 				value.onfocusout = () => { this.inputEdited(); };
-				value.onkeypress = (e) => { onreturn(e, () => { this.inputEdited(); }); };
+				value.onkeypress = (e) => { if (returnP(e)) this.inputEdited(); };
 			} else {
 				value = document.createElement("strong");
 			}
@@ -477,7 +473,7 @@ window.rulesAssistantOptions = (function() {
 		constructor(root) {
 			super();
 			this.element.onfocusout = () => changeName(this.element.value, root);
-			this.element.onkeypress = (e) => onreturn(e, () => changeName(this.element.value, root));
+			this.element.onkeypress = (e) => { if (returnP(e)) changeName(this.element.value, root); };
 		}
 
 		render() {
@@ -506,9 +502,8 @@ window.rulesAssistantOptions = (function() {
 			super("Activation Condition");
 			this.appendChild(new ConditionFunction());
 			this.appendChild(new AssignmentInclusion());
-			this.appendChild(new FacilityInclusion());
 			this.appendChild(new SpecialExclusion());
-			//this.appendChild(new SpecificInclusionExclusion());
+			this.appendChild(new SpecificInclusionExclusion());
 		}
 	}
 
@@ -603,7 +598,7 @@ window.rulesAssistantOptions = (function() {
 
 	class CustomEditor extends Element {
 		constructor(data) {
-			if (data.length === 0) data = "function(slave) { return slave.slaveName === 'Fancy Name'; }";
+			if (data.length === 0) data = "(function(slave) { return slave.slaveName === 'Fancy Name'; })";
 			super(data);
 		}
 
@@ -626,7 +621,7 @@ window.rulesAssistantOptions = (function() {
 			const min = document.createElement("input");
 			min.setAttribute("type", "text");
 			min.value = "" + data.value[0];
-			min.onkeypress = e => onreturn(e, () => this.setmin(min.value));
+			min.onkeypress = e => { if (returnP(e)) this.setmin(min.value); };
 			min.onfocusout = e => this.setmin(min.value);
 			this.min = min;
 			elem.appendChild(min);
@@ -640,7 +635,7 @@ window.rulesAssistantOptions = (function() {
 			const max = document.createElement("input");
 			max.setAttribute("type", "text");
 			max.value = "" + data.value[1];
-			max.onkeypress = e => onreturn(e, () => this.setmax(max.value));
+			max.onkeypress = e => { if (returnP(e)) this.setmax(max.value); };
 			max.onfocusout = e => this.setmax(max.value);
 			this.max = max;
 			elem.appendChild(max);
@@ -679,8 +674,20 @@ window.rulesAssistantOptions = (function() {
 
 	class AssignmentInclusion extends ButtonList {
 		constructor() {
-			super("Apply to assignments");
-			["Rest", "Fucktoy", "Subordinate Slave", "House Servant", "Confined", "Whore", "Public Servant", "Classes", "Milked", "Gloryhole"].forEach(
+			super("Apply to assignments and facilities");
+			const items = ["Rest", "Fucktoy", "Subordinate Slave", "House Servant", "Confined", "Whore", "Public Servant", "Classes", "Milked", "Gloryhole"];
+			if (V.HGSuite > 0) items.push("Head Girl Suite");
+			if (V.brothel > 0) items.push("Brothel");
+			if (V.club > 0) items.push("Club");
+			if (V.arcade > 0) items.push("Arcade");
+			if (V.dairy > 0) items.push("Dairy");
+			if (V.servantQuarters > 0) items.push("Servant Quarters");
+			if (V.masterSuite > 0) items.push("Master Suite");
+			if (V.schoolroom > 0) items.push("Schoolroom");
+			if (V.spa > 0) items.push("Spa");
+			if (V.clinic > 0) items.push("Clinic");
+			if (V.cellblock > 0) items.push("Cellblock");
+			items.forEach(
 				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), current_rule.condition.assignment.includes(i))));
 		}
 
@@ -700,35 +707,6 @@ window.rulesAssistantOptions = (function() {
 				"Classes": "take classes",
 				"Milked": "get milked",
 				"Gloryhole": "work a glory hole",
-			}[what];
-		}
-	}
-
-	class FacilityInclusion extends ButtonList {
-		constructor() {
-			super("Apply to facilities");
-			const facilities = [];
-			if (V.HGSuite > 0) facilities.push("Head Girl Suite");
-			if (V.brothel > 0) facilities.push("Brothel");
-			if (V.club > 0) facilities.push("Club");
-			if (V.arcade > 0) facilities.push("Arcade");
-			if (V.dairy > 0) facilities.push("Dairy");
-			if (V.servantQuarters > 0) facilities.push("Servant Quarters");
-			if (V.masterSuite > 0) facilities.push("Master Suite");
-			if (V.schoolroom > 0) facilities.push("Schoolroom");
-			if (V.spa > 0) facilities.push("Spa");
-			if (V.clinic > 0) facilities.push("Clinic");
-			if (V.cellblock > 0) facilities.push("Cellblock");
-			facilities.forEach(
-				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), current_rule.condition.facility.includes(i))));
-		}
-
-		onchange(value) {
-			current_rule.condition.facility = this.getSelection();
-		}
-
-		getAttribute(what) {
-			return {
 				"Head Girl Suite": "live with your Head Girl",
 				"Brothel": "work in the brothel",
 				"Club": "serve in the club",
@@ -759,8 +737,49 @@ window.rulesAssistantOptions = (function() {
 	class SpecificInclusionExclusion extends Options {
 		constructor() {
 			super();
-			this.appendChild(new OptionsItem("Limit to specific slaves", () => Engine.display("Rules Slave Select")));
-			this.appendChild(new OptionsItem("Exclude specific slaves", () => Engine.display("Rules Slave Exclude")));
+			this.appendChild(new OptionsItem("Limit to specific slaves", () => this.show_slave_selection()));
+			this.appendChild(new OptionsItem("Exclude specific slaves", () => this.show_slave_exclusion()));
+			this.subwidget = null;
+		}
+
+		show_slave_selection() {
+			if (this.subwidget) this.subwidget.remove();
+			this.subwidget = new SlaveSelection();
+			this.appendChild(this.subwidget);
+		}
+
+		show_slave_exclusion() {
+			if (this.subwidget) this.subwidget.remove();
+			this.subwidget = new SlaveExclusion();
+			this.appendChild(this.subwidget);
+		}
+	}
+
+	class SlaveSelection extends ButtonList {
+		constructor() {
+			super("Include specific slaves");
+			V.slaves.forEach(slave => this.appendChild(new ButtonItem(
+				[slave.slaveName, slave.slaveSurname].join(" "),
+				slave.ID,
+				current_rule.condition.selectedSlaves.includes(slave.ID))));
+		}
+
+		onchange() {
+			current_rule.condition.selectedSlaves = this.getSelection();
+		}
+	}
+
+	class SlaveExclusion extends ButtonList {
+		constructor() {
+			super("Exclude specific slaves");
+			V.slaves.forEach(slave => this.appendChild(new ButtonItem(
+				[slave.slaveName, slave.slaveSurname].join(" "),
+				slave.ID,
+				current_rule.condition.excludedSlaves.includes(slave.ID))));
+		}
+
+		onchange() {
+			current_rule.condition.excludedSlaves = this.getSelection();
 		}
 	}
 
