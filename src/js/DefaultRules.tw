@@ -8,9 +8,9 @@ window.DefaultRules = (function() {
 
 	function DefaultRules(slave) {
 		console.log("default ruling for", slave);
-		console.log("the passage is", State.passage);
 		V = State.variables
 		let rule = MergeRules(slave)
+		console.log("done merging", rule)
 
 		if (Object.keys(rule).length === 0) return r // no rules apply
 
@@ -57,18 +57,11 @@ window.DefaultRules = (function() {
 
 	function MergeRules(slave) {
 		// merge all rules applying on a slave into one big rule
-		let combinedRule = {}
-		V.defaultRules.forEach(rule => {
-			rule = Object.assign({}, rule.set)
-			
-			// skip inapplicable rules 
-			if (!ruleApplied(slave, rule)) return
-			ProcessAssignments(rule)
-
-			// merge the current rule (possibly modified by the code above) into the combined rule 
-			combinedRule = mergeRules([combinedRule, rule])
-		})
-		return combinedRule
+		const rules = (V.defaultRules
+			.filter(rule => ruleAppliesP(rule.condition, slave))
+			.map(rule => ProcessAssignments(slave, Object.assign({}, rule.set)))
+		);
+		return mergeRules(rules);
 	}
 
 	function ProcessAssignments(slave, rule) {
@@ -239,6 +232,7 @@ window.DefaultRules = (function() {
 				r += `<span class="red">raWidgets missing case for assignment 'V.{rule.setAssignment}'</span>.`
 				break
 		}
+		return rule
 	}
 
 	function AssignJobToSlave(slave, rule) {
