@@ -16,13 +16,17 @@
 	<<elseif $activeSlave.devotion >= -50>>
 		reluctantly accepts her new name.
 	<<else>>
-		angrily tries to resist her new name, insisting that her name is 
-		<<switch $activeSlave.nationality>>
-		<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian" "Mongolian">>
-			<<if $activeSlave.birthSurname>>$activeSlave.birthSurname <</if>>$activeSlave.birthName.
-		<<default>>
+		angrily tries to resist her new name, insisting that her name is
+		<<if $surnameOrder != 1>>
+			<<switch $activeSlave.nationality>>
+			<<case "Cambodian" "Chinese" "Hungarian" "Japanese" "Korean" "Mongolian" "Taiwanese" "Vietnamese">>
+				<<if $activeSlave.birthSurname>>$activeSlave.birthSurname <</if>>$activeSlave.birthName.
+			<<default>>
+				$activeSlave.birthName<<if $activeSlave.birthSurname>> $activeSlave.birthSurname<</if>>.
+			<</switch>>
+		<<else>>
 			$activeSlave.birthName<<if $activeSlave.birthSurname>> $activeSlave.birthSurname<</if>>.
-		<</switch>>
+		<</if>>
 		This resistance @@.mediumorchid; increases her rebelliousness.@@
 		<<set $activeSlave.devotion -= 5>>
 	<</if>>
@@ -30,26 +34,23 @@
 	Since $activeSlave.slaveName has already had a new name <<if $activeSlave.devotion > 20>>given to<<else>>forced on<</if>> her before, the mere fact of having it changed again doesn't really affect her.
 <</if>>
 
-/* Rude name reaction */
-/* Disabled until a fix for the .toLowerCase and .indexOf */
-/*
 <<set _insultingName = 0>>
-<<if $oldName != $activeSlave.slaveName>>
-	<<set _toSearch = $activeSlave.slaveName>>
-	<<set _toSearch = _toSearch.toLowerCase();>>
+<<if $oldName != $activeSlave.slaveName && typeof $activeSlave.slaveName == "string">>
+	<<set _toSearch = $activeSlave.slaveName.toLowerCase()>>
 	<<for $i = 0; $i < setup.badWords.length; $i++>>
 	<<if _toSearch.indexOf(setup.badWords[$i]) != -1>>
 		<<set _insultingName = 1>>
+		<<break>>
 	<</if>>
 	<</for>>
 <</if>>
 <<if !_insultingName>>
-<<if $oldSurname != $activeSlave.slaveSurname>>
-	<<set _toSearch = $activeSlave.slaveSurname>>
-	<<set _toSearch = _toSearch.toLowerCase();>>
+<<if $oldSurname != $activeSlave.slaveSurname && typeof $activeSlave.slaveSurname == "string">>
+	<<set _toSearch = $activeSlave.slaveSurname.toLowerCase()>>
 	<<for $i = 0; $i < setup.badWords.length; $i++>>
 	<<if _toSearch.indexOf(setup.badWords[$i]) != -1>>
 		<<set _insultingName = 1>>
+		<<break>>
 	<</if>>
 	<</for>>
 <</if>>
@@ -65,26 +66,21 @@
 	<<set $activeSlave.trust -= 5>>
 <</if>>
 <</if>>
-*/
 
 /* Wife's surname reaction */
 <<if $oldSurname != $activeSlave.slaveSurname>>
 <<if $activeSlave.relationship >= 5>>
-	<<for _i = 0; _i < $slaves.length; _i++>>
-	<<if $activeSlave.relationshipTarget == $slaves[_i].ID>>
-		<<if $slaves[_i].slaveSurname>>
-		<<if $activeSlave.slaveSurname == $slaves[_i].slaveSurname>>
-			She's touched that she now shares a surname with her wife $slaves[_i].slaveName $slaves[_i].slaveSurname, and is @@.mediumaquamarine;more confident than ever@@ that you intend to keep them together in marital bliss.
-			<<set $activeSlave.trust += 5>>
-			<<break>>
-		<<elseif $oldSurname == $slaves[_i].slaveSurname>>
-			She's concerned that she no longer shares a surname her wife $slaves[_i].slaveName $slaves[_i].slaveSurname, and is @@.gold;very worried@@ that you might be considering splitting them up.
-			<<set $activeSlave.trust -= 5>>
-			<<break>>
-		<</if>>
-		<</if>>
+	<<set _i = $slaveIndices[$activeSlave.relationshipTarget]>>
+	<<if ndef _i>>@@.red;Error, relationshipTarget not found.@@<</if>>
+	<<if $slaves[_i].slaveSurname>>
+	<<if $activeSlave.slaveSurname == $slaves[_i].slaveSurname>>
+		She's touched that she now shares a surname with her wife $slaves[_i].slaveName $slaves[_i].slaveSurname, and is @@.mediumaquamarine;more confident than ever@@ that you intend to keep them together in marital bliss.
+		<<set $activeSlave.trust += 5>>
+	<<elseif $oldSurname == $slaves[_i].slaveSurname>>
+		She's concerned that she no longer shares a surname her wife $slaves[_i].slaveName $slaves[_i].slaveSurname, and is @@.gold;very worried@@ that you might be considering splitting them up.
+		<<set $activeSlave.trust -= 5>>
 	<</if>>
-	<</for>>
+	<</if>>
 <</if>>
 <</if>>
 

@@ -12,7 +12,7 @@
 <<set $facility = $facility || {}, $facility.dairy = initFacilityStatistics($facility.dairy)>>
 
 <<if ($Milkmaid != 0)>>
-	<<set _FLs = $slaves.findIndex(function(s) { return s.ID == $Milkmaid.ID; })>>
+	<<set _FLs = $slaveIndices[$Milkmaid.ID]>>
 
 	<<if $slaves[_FLs].health < 90>>
 		<<set $slaves[_FLs].curatives = 2>>
@@ -92,7 +92,7 @@
 	<</if>>
 	<<if $dairyRestraintsSetting != 2>> /* how much effort the MM must take to force a slave into a stall */
 		<<for _dI = 0; _dI < _DL; _dI++>>
-			<<set $i =  $slaveIndices[$DairyiIDs[_dI]]>>
+			<<set $i = $slaveIndices[$DairyiIDs[_dI]]>>
 			<<if $slaves[$i].devotion < 20>>
 				<<set _MMWorkout++>>
 			<</if>>
@@ -167,7 +167,7 @@
 	<<if ($dairyStimulatorsSetting < 2) && ($Milkmaid.dick > 4) && (canPenetrate($Milkmaid))>>
 		<<for _dI = 0; _dI < _DL; _dI++>>
 			<<set $i = $slaveIndices[$DairyiIDs[_dI]]>>
-			<<if ($slaves[$i].balls > 0)>>
+			<<if ($slaves[$i].balls > 0) && ($slaves[$i].prostate > 0)>>
 				She uses her turgid cock to give prostate stimulation to slaves that need help ejaculating.
 				<<set $slaves[_FLs].need -= 50>>
 				<<break>>
@@ -223,7 +223,7 @@
 		<</if>>
 		<<if $slaves[$i].prestigeDesc == "She is remembered for winning best in show as a cockmilker.">>
 			<<if (($slaves[$i].balls > 6) && ($slaves[$i].dick != 0)) || (($slaves[$i].balls > 4) && ($slaves[$i].dick != 0) && ($slaves[$i].prostate > 1))>>
-				She spends extra time with $slaves[$i].slaveName, the massive ejaculating cow.  She can't help but massage the cow's dick and testes to stimulate them further and coax more from them.
+				She spends extra time with $slaves[$i].slaveName, the massive ejaculating cow. She can't help but massage the cow's dick and testes to stimulate them further and coax more from them.
 				<<set $slaves[$i].devotion += 3, $slaves[$i].trust += 3>>
 			<<else>>
 				She is disappointed that the (formerly) massive ejaculating cow $slaves[$i].slaveName<<if $slaves[$i].balls == 0 || $slaves[$i].dick == 0>> is incapable of giving cum. <<elseif $slaves[$i].prostate < 2>> no longer possesses a hyperactive prostate. <<else>>'s balls are considerably smaller than at their heyday.<</if>>
@@ -322,7 +322,7 @@
 				<<set $slaves[$i].diet = "healthy">>
 			<</if>>
 		<<elseif $dairyWeightSetting == 4>>
-			<<if $slaves[$i].weight <= 200>>
+			<<if $slaves[$i].weight <= 195>>
 				<<set $slaves[$i].diet = "fattening">>
 			<<else>>
 				<<set $slaves[$i].diet = "healthy">>
@@ -408,12 +408,18 @@
 	<</if>>
 	<<if ($slaves[$i].lactation > 0) && (($dairySlimMaintain == 0) || ($slaves[$i].boobs > 700))>>
 		<<if ($slaves[$i].boobs < 2000)>>
-			<<set $slaves[$i].boobs += 100>>
+			<<set _growth = 100>>
 		<<elseif ($slaves[$i].boobs < 5000)>>
-			<<set $slaves[$i].boobs += 50>>
+			<<set _growth = 50>>
 		<<elseif ($slaves[$i].boobs < 10000)>>
-			<<set $slaves[$i].boobs += 25>>
+			<<set _growth = 25>>
+		<<else>>
+			<<set _growth = 0>>
 		<</if>>
+		<<if ($slaves[$i].inducedNCS == 1)>>
+			<<set _growth = Math.trunc(_growth/2)>>
+		<</if>>
+		<<set $slaves[$i].boobs += _growth>>
 	<</if>>
 	<<if $slaves[$i].prostate == 1>>
 		<<set $slaves[$i].prostate = 2, $slaves[$i].health -= 10, $cash -= $surgeryCost>>
@@ -442,7 +448,7 @@
 					<<if $slaves[$i].boobs < 50000>>
 						<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
 							<<if ($slaves[$i].boobs < 2000)>>
-								<<set _growth  = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
+								<<set _growth = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 							<<elseif ($slaves[$i].boobs < 5000)>>
 								<<set _growth = 50*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 							<<else>>
@@ -453,6 +459,9 @@
 						<</if>>
 						<<if $slaves[$i].boobs <= 20000 && $slaves[$i].boobs+_growth > 20000>>
 							<<set _boobtacular++>>
+						<</if>>
+						<<if ($slaves[$i].inducedNCS == 1)>>
+							<<set _growth = Math.trunc(_growth/2)>>
 						<</if>>
 						<<set $slaves[$i].boobs += _growth>>
 					<<else>>
@@ -462,7 +471,7 @@
 					<<if $slaves[$i].boobs < 25000>>
 						<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
 							<<if ($slaves[$i].boobs < 2000)>>
-								<<set _growth  = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
+								<<set _growth = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 							<<elseif ($slaves[$i].boobs < 5000)>>
 								<<set _growth = 50*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 							<<else>>
@@ -473,6 +482,9 @@
 						<</if>>
 						<<if $slaves[$i].boobs <= 20000 && $slaves[$i].boobs+_growth > 20000>>
 							<<set _boobtacular++>>
+						<</if>>
+						<<if ($slaves[$i].inducedNCS == 1)>>
+							<<set _growth = Math.trunc(_growth/2)>>
 						<</if>>
 						<<set $slaves[$i].boobs += _growth>>
 					<</if>>
@@ -480,7 +492,7 @@
 					<<if $slaves[$i].boobs < 10000>>
 						<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
 							<<if ($slaves[$i].boobs < 2000)>>
-								<<set _growth  = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
+								<<set _growth = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 							<<elseif ($slaves[$i].boobs < 5000)>>
 								<<set _growth = 50*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 							<<else>>
@@ -491,6 +503,9 @@
 						<</if>>
 						<<if $slaves[$i].boobs <= 20000 && $slaves[$i].boobs+_growth > 20000>>
 							<<set _boobtacular++>>
+						<</if>>
+						<<if ($slaves[$i].inducedNCS == 1)>>
+							<<set _growth = Math.trunc(_growth/2)>>
 						<</if>>
 						<<set $slaves[$i].boobs += _growth>>
 					<</if>>
@@ -498,7 +513,7 @@
 					<<if $slaves[$i].boobs < 5000>>
 						<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
 							<<if ($slaves[$i].boobs < 2000)>>
-								<<set _growth  = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
+								<<set _growth = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 							<<elseif ($slaves[$i].boobs < 5000)>>
 								<<set _growth = 50*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 							<<else>>
@@ -510,20 +525,27 @@
 						<<if $slaves[$i].boobs <= 20000 && $slaves[$i].boobs+_growth > 20000>>
 							<<set _boobtacular++>>
 						<</if>>
+						<<if ($slaves[$i].inducedNCS == 1)>>
+							<<set _growth = Math.trunc(_growth/2)>>
+						<</if>>
 						<<set $slaves[$i].boobs += _growth>>
 					<</if>>
 				<</if>>
 			<</if>>
 			<<if ($slaves[$i].balls > 0)>>
 				<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
-					<<if ($slaves[$i].balls < 125)>>
+					<<if ($slaves[$i].inducedNCS == 0) && ($slaves[$i].balls < 125)>>
+						<<set $slaves[$i].balls++>>
+					<<elseif ($slaves[$i].inducedNCS == 1) && ($slaves[$i].balls < 125) && (random(1,600) > (30+(10*$slaves[$i].balls)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
 						<<set $slaves[$i].balls++>>
 					<</if>>
 					<<if ($slaves[$i].balls == 125)>>
 						<<set _balltacular++>>
 					<</if>>
 				<<elseif ($slaves[$i].balls < 10)>>
-					<<if (random(1,100) > (40+(10*$slaves[$i].balls)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
+					<<if ($slaves[$i].inducedNCS == 0) && (random(1,100) > (40+(10*$slaves[$i].balls)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
+						<<set $slaves[$i].balls++>>
+					<<elseif ($slaves[$i].inducedNCS == 1) && ($slaves[$i].balls < 125) && (random(1,50) > (40+(10*$slaves[$i].balls)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
 						<<set $slaves[$i].balls++>>
 					<</if>>
 					<<if ($slaves[$i].balls == 10)>>
@@ -532,7 +554,9 @@
 				<</if>>
 				<<if $slaves[$i].dick > 0>>
 					<<if $slaves[$i].dick < 10>>
-						<<if (random(1,100) > (40+(10*$slaves[$i].dick)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10)))>>
+						<<if (($slaves[$i].inducedNCS == 0) && (random(1,100) > (40+(10*$slaves[$i].dick)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10))))>>
+							<<set $slaves[$i].dick++>>
+						<<elseif (($slaves[$i].inducedNCS == 1) && (random(1,50) > (40+(10*$slaves[$i].dick)-(10*$dairyRestraintsSetting)-($injectionUpgrade*10))))>>
 							<<set $slaves[$i].dick++>>
 						<</if>>
 					<</if>>
@@ -556,7 +580,7 @@
 				<<if $slaves[$i].boobs < 50000>>
 					<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
 						<<if ($slaves[$i].boobs < 2000)>>
-							<<set _growth  = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
+							<<set _growth = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 						<<elseif ($slaves[$i].boobs < 5000)>>
 							<<set _growth = 50*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 						<<else>>
@@ -568,15 +592,16 @@
 					<<if $slaves[$i].boobs <= 20000 && $slaves[$i].boobs+_growth > 20000>>
 						<<set _boobtacular++>>
 					<</if>>
+					<<if ($slaves[$i].inducedNCS == 1)>>
+						<<set _growth = Math.trunc(_growth/2)>>
+					<</if>>
 					<<set $slaves[$i].boobs += _growth>>
-				<<else>>
-					<<set $slaves[$i].boobs = 50000>>
 				<</if>>
 			<<elseif $dairyFeedersSetting > 0>>
 				<<if $slaves[$i].boobs < 25000>>
 					<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
 						<<if ($slaves[$i].boobs < 2000)>>
-							<<set _growth  = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
+							<<set _growth = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 						<<elseif ($slaves[$i].boobs < 5000)>>
 							<<set _growth = 50*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 						<<else>>
@@ -587,6 +612,9 @@
 					<</if>>
 					<<if $slaves[$i].boobs <= 20000 && $slaves[$i].boobs+_growth > 20000>>
 						<<set _boobtacular++>>
+					<</if>>
+					<<if ($slaves[$i].inducedNCS == 1)>>
+						<<set _growth = Math.trunc(_growth/2)>>
 					<</if>>
 					<<set $slaves[$i].boobs += _growth>>
 				<</if>>
@@ -594,7 +622,7 @@
 				<<if $slaves[$i].boobs < 10000>>
 					<<if $arcologies[0].FSAssetExpansionistResearch == 1>>
 						<<if ($slaves[$i].boobs < 2000)>>
-							<<set _growth  = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
+							<<set _growth = 75*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 						<<elseif ($slaves[$i].boobs < 5000)>>
 							<<set _growth = 50*Math.trunc(($injectionUpgrade*2)+$dairyFeedersSetting+$dairyRestraintsSetting+((50)/4))>>
 						<<else>>
@@ -605,6 +633,9 @@
 					<</if>>
 					<<if $slaves[$i].boobs <= 20000 && $slaves[$i].boobs+_growth > 20000>>
 						<<set _boobtacular++>>
+					<</if>>
+					<<if ($slaves[$i].inducedNCS == 1)>>
+						<<set _growth = Math.trunc(_growth/2)>>
 					<</if>>
 					<<set $slaves[$i].boobs += _growth>>
 				<</if>>
@@ -885,7 +916,7 @@
 <<if $intelligenceLost > 1>>
 	$intelligenceLost cows suffered some loss of intelligence due to accumulated mental stress from life attached to a milking machine.
 <<elseif $intelligenceLost > 0>>
-	One cow  suffered some loss of intelligence due to accumulated mental stress from life attached to a milking machine.
+	One cow suffered some loss of intelligence due to accumulated mental stress from life attached to a milking machine.
 <</if>>
 <<if _stupidified > 1>>
 	_stupidified cows were so mentally dulled by use as biological factories that they were reduced to a very low level of intelligence.
@@ -977,9 +1008,11 @@ $dairyNameCaps produced <<print _milkWeek+_outputMilk>> liters of milk<<if _cumW
 	b.profit = b.totalIncome - b.totalExpenses;
 <</script>>
 <<if (_profits > 0)>>
-These sale of these products makes a profit of @@.yellowgreen;<<print cashFormat(_profits)>>@@.
+	The sale of these products makes a profit of @@.yellowgreen;<<print cashFormat(_profits)>>@@.
 <<elseif (_profits < 0)>>
-Due to one-off costs of hormonal implants to encourage fluid production, your dairy made a loss of @@.red;<<print cashFormat(_profits)>>@@.
+	Due to one-off costs of hormonal implants to encourage fluid production, your dairy made a loss of @@.red;<<print cashFormat(_profits)>>@@.
+<<else>>
+	Due to one-off costs of hormonal implants to encourage fluid production paired with existing output, your dairy broke even this week.
 <</if>>
 
 <<if ($arcologies[0].FSPastoralistLaw == 1)>>
@@ -1027,7 +1060,7 @@ Due to one-off costs of hormonal implants to encourage fluid production, your da
 <</if>>
 
 <<if $dairyDecoration != "standard">>
-	$dairyNameCaps's @@.green;$dairyDecoration style is well known.@@
+	<br><br>&nbsp;&nbsp;&nbsp;&nbsp;$dairyNameCaps's @@.green;$dairyDecoration style is well known.@@
 <</if>>
 
 <<if _DL > 0>>

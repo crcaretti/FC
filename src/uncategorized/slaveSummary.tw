@@ -70,23 +70,90 @@
 	"Rules Slave Exclude":       s => (($Flag == 0 && !ruleSlaveExcluded(s, $currentRule)) || ($Flag != 0 && ruleSlaveExcluded(s, $currentRule))),
 	"Matchmaking":               s => (s.devotion >= 100 && s.relationship == $activeSlave.relationship && s.ID != $activeSlave.ID),
 }>>
-<<set _Pass = passage(), _SL = $slaves.length, $assignTo = _Pass,
+<<set _Pass = passage(), _SL = $slaves.length, $assignTo = _Pass, _indexed = 0,
 	_passagePreFilter = (s => s.assignment != "be your agent" && s.assignment != "live with your agent" && (!setup.passagePreFilters.hasOwnProperty(_Pass) || setup.passagePreFilters[_Pass](s))),
-	_filteredSlaveIdxs = $slaves.map(function(slave, idx) { return _passagePreFilter(slave) ? idx : null; }).filter(function(idx) { return idx !== null; })>>
+	_filteredSlaveIdxs = $slaves.map(function(slave, idx) { return _passagePreFilter(slave) ? idx : null; }).filter(function(idx) { return idx !== null; }),
+        _indexSlavesIdxs = $slaves.map(function(slave, idx) { return _passagePreFilter(slave) ? idx : null; }).filter(function(idx) { return idx !== null; })>>
 <<for !_.isUndefined(_ssi = _filteredSlaveIdxs.shift())>>
 <<set _Slave = $slaves[_ssi]>>
-<<if ["Chinese", "Japanese", "Korean", "Cambodian", "Vietnamese", "Hungarian", "Mongolian"].includes(_Slave.nationality)>>
-	<<set _slaveName = [_Slave.slaveSurname || "", _Slave.slaveName].join(" ").trim()>>
-<<else>>
-	<<set _slaveName = [_Slave.slaveName, _Slave.slaveSurname || ""].join(" ").trim()>>
-<</if>>
-
+<<set _slaveName = getSlaveDisplayName(_Slave);>>
 
 <<capture _ssi>>
 
+<<if $useSlaveListInPageJSNavigation == 1>>
+        <<set _Count = _indexSlavesIdxs.length>>
+        /* Useful for finding weird combinations -- usages of this passage that don't yet generate the quick index.
+        *   <<print 'pass/count/indexed/flag::[' + _Pass + '/' + _Count + '/' + _indexed + '/' + $Flag + ']'>>
+        */
+        <<if ((_Count > 1) && (_indexed == 0) && (((_Pass == 'Main') && (ndef $Flag) && (($useSlaveSummaryTabs == 0) || ($slaveAssignmentTab == "all"))) || ($Flag == 1)))>>
+                <<set _indexed = 1, _counter = 0, _buttons = [], _offset = -50>>
+                <<if (/Select/i.test(_Pass))>>
+                        <<set _offset = -25>>
+                <</if>>
+		<br />
+                <<set _tableCount = _tableCount || 0>>
+                <<set _tableCount++>>
+                /*
+                 *  we want <button data-quick-index="<<= _tableCount>>"> ...
+                 */
+                <<set _buttonAttributes = { 'data-quick-index': _tableCount }>>
+                <<htag _buttonAttributes 'button'>>Quick Index<</htag>>
+                /*
+                 *  we want <div id="list_index3" class=" hidden">...
+                 */
+                <<set _divAttributes = { id: 'list_index' + _tableCount, class: 'hidden'}>>
+                <<htag _divAttributes>>
+                <<for !_.isUndefined(_ssii = _indexSlavesIdxs.shift())>>
+                        <<set _IndexSlave = $slaves[_ssii]>>
+                        <<set _indexSlaveName = getSlaveDisplayName(_IndexSlave);>>
+                        <<set _devotionClass = getSlaveDevotionClass(_IndexSlave);>>
+                        <<set _trustClass = getSlaveTrustClass(_IndexSlave);>>
+                        <<set _buttons.push({'data-name': _indexSlaveName, 'data-scroll-to': '#slave-' + _IndexSlave.ID, 'data-scroll-offset': _offset, 'data-devotion': _IndexSlave.devotion, 'data-trust': _IndexSlave.trust, class: _devotionClass + ' ' + _trustClass }); >>
+                <</for>>
+		<<if !_.isUndefined(_buttons[0])>>
+                        <<set $sortQuickList = $sortQuickList || 'Devotion'>>
+	                //Sorting:// ''<span id="qlSort">$sortQuickList</span>.''
+                        <<link "Sort by Devotion">>
+                                <<set $sortQuickList = 'Devotion'>>
+                                <<replace "#qlSort">>$sortQuickList<</replace>>
+                                <<script>>
+                                        $('#qlWrapper').removeClass('trust').addClass('devotion');
+                                        sortButtonsByDevotion();
+                                <</script>>
+                        <</link>> |
+                        <<link "Sort by Trust">>
+                                <<set $sortQuickList = 'Trust'>>
+                                <<replace "#qlSort">>$sortQuickList<</replace>>
+                                <<script>>
+                                        $('#qlWrapper').removeClass('devotion').addClass('trust');
+                                        sortButtonsByTrust();
+                                <</script>>
+                        <</link>>
+                        <br/>
+                        <div id="qlWrapper" class="quicklist devotion">
+			<<for !_.isUndefined(_buttons[0])>>
+                                <<set _button = _buttons.shift()>>
+                                <<if !_.isUndefined(_button)>>
+                                        <<set _buttonSlaveName = _button['data-name'];>>
+                                        <<htag _button 'button'>>_buttonSlaveName<</htag>>
+                                <</if>>
+                        <</for>>
+			</div>
+                        <script>
+				$("[data-quick-index]").click(function () {
+                                        var $this = $(this), which = $this.attr('data-quick-index');
+                                        var $quick = $('div#list_index' + which);
+                                        $quick.toggleClass("hidden");
+                                });
+                                quickListBuildLinks();
+                        </script>
+                <</if>>
+                <</htag>>
+        <</if>>
+<</if>>
 <<switch _Pass>>
 <<case "Main">>
-	
+
 	<<if $useSlaveSummaryTabs == 1>>
 		<<if $slaveAssignmentTab == "overview">>
 			<<if $showOneSlave == "Head Girl">>
@@ -96,7 +163,7 @@
 			<<elseif $showOneSlave == "guard you">>
 				<<if (_Slave.assignment != "guard you")>><<continue>><</if>>
 			<</if>>
-			
+
 		<<elseif $slaveAssignmentTab == "resting">>
 			<<if _Slave.assignment != "rest">><<continue>><</if>>
 		<<elseif $slaveAssignmentTab == "stay confined">>
@@ -125,7 +192,7 @@
 			<</if>>
 		<</if>>
 	<</if>>
-	
+
 	<<if (_Slave.choosesOwnClothes == 1) && (_Slave.clothes == "choosing her own clothes")>>
 		<<set $i = _ssi, _oldDevotion = _Slave.devotion>>
 		<<silently>><<include "SA chooses own clothes">><</silently>>
@@ -138,7 +205,7 @@
 	<</if>>
 	<<if Array.isArray($personalAttention) && $personalAttention.findIndex(function(s) { return s.ID == _Slave.ID; }) != -1>>''@@.lightcoral;PA@@''<</if>>
 	[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]] /* lists their names */
-	
+
 <<case "Personal Attention Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 	<<link _slaveName>>
@@ -199,7 +266,8 @@
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
-		<<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
+		<<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
+		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <</if>>
 <<case "Attendant Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -223,7 +291,8 @@
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <<else>>
-		<<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
+		<<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
+                [[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 <</if>>
 <<case "Madam Select">>
 	<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -234,7 +303,7 @@
 	<<if _Slave.breedingMark != 1>>
 	<<if (_Slave.devotion > 50) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50) || (_Slave.trust > 50)>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
+ 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 	<<else>>
 		<br>//_Slave.slaveName must be either more fearful of you or devoted to you//
 		<<continue>>
@@ -279,7 +348,7 @@
 	<<if (_Slave.devotion >= -20) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50)>>
 		<<if (_Slave.intelligenceImplant < 1) || (_Slave.voice != 0 && _Slave.accent+$schoolroomUpgradeLanguage > 2) || (_Slave.oralSkill <= 10+$schoolroomUpgradeSkills*20) || (_Slave.whoreSkill <= 10+$schoolroomUpgradeSkills*20) || (_Slave.entertainSkill <= 10+$schoolroomUpgradeSkills*20) || (_Slave.analSkill < 10+$schoolroomUpgradeSkills*20) || ((_Slave.vagina >= 0) && (_Slave.vaginalSkill < 10+$schoolroomUpgradeSkills*20))>>
 			<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-			[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
+ 			[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
 		<<else>>
 			<br>//_Slave.slaveName already has a basic education//
 			<<continue>>
@@ -309,7 +378,7 @@
 	<<elseif (_Slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)>>
 		<br>//_Slave.slaveName's indenture allows only free range milking.//
 		<<continue>>
-	<<elseif _Slave.breedingMark == 1 && $dairyRestriantsSettings > 0>>
+	<<elseif _Slave.breedingMark == 1 && $dairyRestraintsSetting > 0>>
 		<br>//_Slave.slaveName may only be a free range cow//
 		<<continue>>
 	<<elseif ($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother != 0))>>
@@ -335,7 +404,7 @@
 				<<continue>>
 			<</if>>
 		<<elseif (($dairySlimMaintainUpgrade == 1 && $dairySlimMaintain == 1) || ($dairyImplantsSetting == 2) || (_Slave.boobs <= 300 && _Slave.dick > 0 && $dairyImplantsSetting == 0))>>
-			<br>//_Slave.slaveName is not lactating<<if $seeDicks > 0>> or producing semen<</if>>, and <<print $dairyName>>'s current settings forbid the automatic implantation of lactation inducing drugs, so she can not be a cow//
+			<br>//_Slave.slaveName is not lactating<<if $seeDicks > 0>> or producing semen<</if>>, and <<print $dairyName>>'s current settings forbid the automatic implantation of lactation inducing drugs, so she cannot be a cow//
 			<<continue>>
 		<<else>>
 			<br>//_Slave.slaveName is not lactating<<if $seeDicks > 0>> or producing semen<</if>> and cannot be a cow//
@@ -445,8 +514,8 @@
 		<br>//_Slave.slaveName may not participate in combat//
 		<<continue>>
 	<<else>>
-				<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
-				[[_slaveName|Assign][$i = _ssi]]
+		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
+		[[_slaveName|Assign][$i = _ssi]]
 	<</if>>
 <<else>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
@@ -504,18 +573,18 @@ will
 
 <<if ($displayAssignments == 1) && (_Pass == "Main") && (_Slave.ID != $HeadGirl.ID) && (_Slave.ID != $Recruiter.ID) && (_Slave.ID != $Bodyguard.ID)>>
 	<<if _Slave.assignment != "rest">>
-		[[Rest|Rest Workaround][$i = _ssi]]
+		<<link "Rest" "Main">><<removeJob $slaves[_ssi] $slaves[_ssi].assignment>><</link>>
 	<<else>>
 		Rest
 	<</if>>
 	<<if _Slave.assignment != "please you">>
-		| [[Fucktoy|Fucktoy Workaround][$i = _ssi]]
+		| <<link "Fucktoy" "Main">><<assignJob $slaves[_ssi] "please you">><</link>>
 	<<else>>
 		| Fucktoy
 	<</if>>
 	<<if _Slave.indentureRestrictions <= 0 && _Slave.breedingMark != 1>>
 		<<if _Slave.assignment != "work a glory hole">>
-			| [[Gloryhole|Hole Workaround][$i = _ssi]]
+			| <<link "Gloryhole" "Main">><<assignJob $slaves[_ssi] "work a glory hole">><</link>>
 		<<else>>
 			| Hole
 		<</if>>
@@ -523,37 +592,37 @@ will
 	<<if _Slave.fuckdoll == 0>> /* NON-FUCKDOLL ASSIGNMENTS */
 		<<if (_Slave.assignment != "take classes")>>
 			<<if (_Slave.intelligenceImplant != 1) && ((_Slave.devotion >= -20) || ((_Slave.trust < -20) && (_Slave.devotion >= -50)) || (_Slave.trust < -50)) && (_Slave.fetish != "mindbroken")>>
-				| [[Classes|Classes Workaround][$i = _ssi]]
+				| <<link "Classes" "Main">><<assignJob $slaves[_ssi] "take classes">><</link>>
 			<</if>>
 		<<else>>
 			| Classes
 		<</if>>
 		<<if (_Slave.assignment != "be a servant")>>
 			<<if ((_Slave.devotion >= -20) || ((_Slave.trust < -20) && (_Slave.devotion >= -50)) || (_Slave.trust < -50)) && canWalk(_Slave) && canSee(_Slave)>>
-				| [[House Servant|Servant Workaround][$i = _ssi]]
+				| <<link "House Servant" "Main">><<assignJob $slaves[_ssi] "be a servant">><</link>>
 			<</if>>
 		<<else>>
 			| House Servant
 		<</if>>
 		<<if (_Slave.assignment != "whore") && _Slave.breedingMark != 1>>
-			| [[Whore|Whore Workaround][$i = _ssi]]
+			| <<link "Whore" "Main">><<assignJob $slaves[_ssi] "whore">><</link>>
 		<<else>>
 			| Whore
 		<</if>>
 		<<if (_Slave.assignment != "serve the public") && _Slave.breedingMark != 1>>
-			| [[Public Servant|Public Servant Workaround][$i = _ssi]]
+			| <<link "Public Servant" "Main">><<assignJob $slaves[_ssi] "serve the public">><</link>>
 		<<else>>
 			| Public Servant
 		<</if>>
 		<<if (_Slave.lactation > 0) || (_Slave.balls > 0)>>
 			<<if (_Slave.assignment != "get milked")>>
-				| [[Milked|Milking Workaround][$i = _ssi]]
+			    | <<link "Milked" "Main">><<assignJob $slaves[_ssi] "get milked">><</link>>
 			<<else>>
 				| Milked
 			<</if>>
 		<</if>>
 		<<if (_Slave.assignment != "stay confined")>>
-			| [[Confinement|Confinement Workaround][$i = _ssi]]
+			| <<link "Confinement" "Main">><<assignJob $slaves[_ssi] "stay confined">><</link>>
 		<<else>>
 			| Confinement
 		<</if>>
@@ -561,7 +630,7 @@ will
 <</if>>
 
 <<set _numFacilities = $brothel+$club+$dairy+$servantsQuarters+$masterSuite+$spa+$clinic+$schoolroom+$cellblock+$arcade+$HGSuite>>
-	
+
 <<if _numFacilities > 0>>
 
 	<<if _Pass == "Main" || _Pass == "Head Girl Suite" || _Pass == "Spa" || _Pass == "Brothel" || _Pass == "Club" || _Pass == "Arcade" || _Pass == "Clinic" || _Pass == "Schoolroom" || _Pass == "Dairy" || _Pass == "Servants' Quarters" || _Pass == "Master Suite" || _Pass == "Cellblock" >>
@@ -570,11 +639,11 @@ will
 	<br>Transfer to:
 
 	<<if _Slave.assignment != "rest" && _Slave.assignment != "please you" && _Slave.assignment != "take classes" && _Slave.assignment != "be a servant" && _Slave.assignment != "whore" && _Slave.assignment != "serve the public" && _Slave.assignment != "get milked" && _Slave.assignment != "stay confined">>
-		[[Penthouse|Rest Workaround][$i = _ssi]] |
+		<<link "Penthouse" "Main">><<removeJob $slaves[_ssi] $slaves[_ssi].assignment>><</link>>
 	<<else>>
 		Penthouse |
 	<</if>>
-			
+
 	<<if $arcade != 0>>
 		<<if $arcade > $arcadeSlaves && (_Slave.indentureRestrictions <= 0) && _Slave.breedingMark != 1>>
 			[[Arcade|Assign][$assignTo = "Arcade", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
@@ -637,7 +706,7 @@ will
 		<<set _dairySeed = $bioreactorsXY+$bioreactorsXX+$bioreactorsHerm+$bioreactorsBarren>>
 		<<if $dairy <= $dairySlaves+_dairySeed>>
 			Dairy
-		<<elseif (((_Slave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) || ((_Slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || (_Slave.breedingMark == 1 && $dairyRestriantsSettings > 0) || (($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother > 0))))>>
+		<<elseif (((_Slave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) || ((_Slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || (_Slave.breedingMark == 1 && $dairyRestraintsSetting > 0) || (($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother > 0))))>>
 			Dairy
 		<<elseif ((_Slave.lactation > 0) || (_Slave.balls > 0)) || (($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0) && ($dairySlimMaintainUpgrade == 0))>>
 			 [[Dairy|Assign][$assignTo = "Dairy", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
@@ -657,7 +726,11 @@ will
 
 <</if>> /* closes _numFacilities */
 
-<br><<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
+<<if ((_Pass != 'Main') || (def $Flag) || ($useSlaveSummaryTabs == 0) || ($slaveAssignmentTab == "all"))>>
+        <<print '<span id="slave-' + $slaves[_ssi].ID + '">&nbsp;</span>'>>
+<</if>>
+<br/>
+<<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
 
 <<SlaveSummary _Slave>>
 

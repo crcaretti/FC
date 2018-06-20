@@ -1,4 +1,4 @@
-:: SE Player Birth [nobr] 
+﻿:: SE Player Birth [nobr] 
  
 <<set $nextButton = "Continue", $nextLink = "Scheduled Event">>
 
@@ -6,7 +6,7 @@
 
 /*
 PC.pregSource documentation
-0  - unknown
+0 - unknown
 -1 - Societal Elite
 -2 - client
 -3 - former master
@@ -25,7 +25,7 @@ PC.pregSource documentation
 <<set _curBabies = $PC.curBabies.length>> 
 <<set _stilBirth = $PC.womb.length>>
 <<set WombFlush($PC)>>
-/* difference in code below: _curBabies - count of live babies after birth, $PC.pregType = all babies in PC. I assume that dead fetuses do not count to reputation, etc, and PC manage to hide them. This mainly for future possibilities, or early birth trigger's. PC will not support partial birth - even she happens to be prenant at different stages at once, undeveloped babies will be dead as result. _stilBirth currently not used - it's just for future improvements.*/
+/* difference in code below: _curBabies - count of live babies after birth, $PC.pregType = all babies in PC. I assume that dead fetuses do not count to reputation, etc, and PC manages to hide them. This mainly for future possibilities, or early birth triggers. PC will not support partial birth - even she happens to be pregnant at different stages at once, undeveloped babies will be dead as result. _stilBirth currently not used - it's just for future improvements.*/
 
 <<set $PC.preg = 0, $PC.pregKnown = 0, $PC.labor = 0, $PC.births += _curBabies>>
 <<if $PC.pregSource == 0>>
@@ -44,8 +44,8 @@ PC.pregSource documentation
 	<<set $PC.birthSelf += _curBabies>>
 <<else>>
 	<<set $PC.birthDegenerate += _curBabies>>
-	<<set _babyDaddy = $slaves.findIndex(function(s) { return s.ID == $slaves[$i].pregSource; })>>
-	<<if _babyDaddy != -1>>
+	<<set _babyDaddy = $slaveIndices[$PC.pregSource]>>
+	<<if def _babyDaddy>>
 		<<set $slaves[_babyDaddy].PCChildrenFathered += _curBabies>>
 	<</if>>
 <</if>>
@@ -265,7 +265,7 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 			<<if _concubinePresent == 1>>
 				Or it would have been, had $Concubine.slaveName not driven you to an intense orgasm right as your first child entered the world.<<if $PC.balls > 1>> An orgasm that resulted in $Concubine.slaveName, $Nurse.slaveName, and your newborn getting sprayed with cum.<</if>> But it isn't over; before you've even had a chance to come down from your climax, the next infant slips into your birth canal and immediately pushes you back over the edge. $Concubine.slaveName slides in behind you to snuggle with you as you return to your senses after such an intense orgasm.
 			<<else>>
-				With one out, you realize your rounded belly still houses another. You moan as they begins their decent; with $Nurse.slaveName around, you aren't worried at all.
+				With one out, you realize your rounded belly still houses another. You moan as they begin their decent; with $Nurse.slaveName around, you aren't worried at all.
 			<</if>>
 			$Nurse.slaveName cuts the cords, swaddles your children, and hands you @@.lime;your new twins.@@
 		<</if>>
@@ -322,7 +322,7 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 			<<if _concubinePresent == 1>>
 				Or it would have, had $Concubine.slaveName not driven you to an intense orgasm right as your child entered the world.<<if $PC.balls > 1>> An orgasm that resulted in $Concubine.slaveName, $Bodyguard.slaveName, and your newborn getting sprayed with cum.<</if>> But it isn't over; before you've even had a chance to come down from your climax, the next infant slips into your birth canal and immediately pushes you back over the edge. $Concubine.slaveName slides in behind you to snuggle with you as you return to your senses after such an intense orgasm.
 			<<else>>
-				With one out, you realize your rounded belly still houses another. You moan as they begins their decent; with $Bodyguard.slaveName around, you feel completely safe.
+				With one out, you realize your rounded belly still houses another. You moan as they begin their decent; with $Bodyguard.slaveName around, you feel completely safe.
 			<</if>>
 			$Bodyguard.slaveName cuts the cords with her blade, and hands you @@.lime;your new twins.@@
 		<</if>>
@@ -376,7 +376,7 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 			<<if _concubinePresent == 1>>
 				Or it would have been, had $Concubine.slaveName not driven you to an intense orgasm right as your first child entered the world.<<if $PC.balls > 1>> An orgasm that resulted in $Concubine.slaveName, $HeadGirl.slaveName, and your newborn getting sprayed with cum.<</if>> But it isn't over; before you've even had a chance to come down from your climax, the next infant slips into your birth canal and immediately pushes you back over the edge. $Concubine.slaveName slides in behind you to snuggle with you as you return to your senses after such an intense orgasm.
 			<<else>>
-				With one out, you realize your rounded belly still houses another. You moan as they begins their decent; with $HeadGirl.slaveName around, you know everything is under control.
+				With one out, you realize your rounded belly still houses another. You moan as they begin their decent; with $HeadGirl.slaveName around, you know everything is under control.
 			<</if>>
 			$HeadGirl.slaveName cuts the cords, swaddles your children, and hands you @@.lime;your new twins.@@
 		<</if>>
@@ -439,9 +439,24 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 		<<set $PC.reservedChildren-- >>
 	<</if>>
 
-<<elseif  _curBabies > 1>>
+<<elseif _curBabies > 1>>
+	<<set _identicalChildGen = 0, _shiftDegree = 0>>
 	<<for _p = 0; _p < _curBabies; _p++>>
-		<<include "Generate Child">>
+		<<if _identicalChildGen == 0>>
+			<<if _p == $PC.curBabies.length-1 && $PC.curBabies.length > 1 && $PC.curBabies[_p].identical == 1>> /* catch for improperly placed indentical twin flag to still generate*/
+				<<set _twin = clone($activeSlave)>>
+				<<set _twin.ID = $IDNumber++>>
+				<<set $activeSlave = 0>>
+				<<set $activeSlave = _twin>>
+			<<else>>
+				<<include "Generate Child">>
+			<</if>>
+		<<else>>
+			<<set _twin = clone($activeSlave)>>
+			<<set _twin.ID = $IDNumber++>>
+			<<set $activeSlave = 0>>
+			<<set $activeSlave = _twin>>
+		<</if>>
 
 		<<if $activeSlave.race == $PC.race>>
 			<<set _PCDegree++>>
@@ -457,7 +472,9 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 		<</if>>
 
 		<<if _p == 0>>Your first<<else>>The next<</if>> little <<if $babyGender == 1>>girl<<else>>boy<</if>>
-		<<if $PC.pregSource == -6>>
+		<<if _identicalChildGen == 1>>
+			looks exactly like the previous; they're identical twins.
+		<<elseif $PC.pregSource == -6>>
 			looks exactly like you<<if _p == 0>>, in fact, the resemblance seems uncanny. Since she has the exact same genetics as you, she'll likely look almost identical to you when she's your age<</if>>. Every one of your children look this way; it's kind of hard to tell them apart.
 		<<elseif _PCDegree == 4>>
 			looks just like you; she will likely grow up to closely resemble yourself.
@@ -472,11 +489,21 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 			You set <<if $babyGender == 1>>her<<else>>him<</if>> aside for incubation.
 			<<include "Incubator Workaround">>
 			<<set $reservedChildren-->>
-			<<set $PC.curBabies.shift()>>
+			<<set _shiftDegree++>>
 			<<set $PC.reservedChildren-- >>
 		<</if>>
-	<<set $babyGender = Math.floor(Math.random()*100) < $seeDicks ? 2 : 1>>
+		<<if $PC.curBabies[_p].identical === 1>>
+			<<set _identicalChildGen = 1>>
+		<<else>>
+			<<set _identicalChildGen = 0>>
+			<<set $babyGender = Math.floor(Math.random()*100) < $seeDicks ? 2 : 1>>
+		<</if>>
 	<</for>>
+	<<if _shiftDegree > 0>>
+		<<for _spb = 0; _spb < _shiftDegree; _spb++>>
+			<<set $PC.curBabies.shift()>>
+		<</for>>
+	<</if>>
 
 <</if>>
 
@@ -486,8 +513,8 @@ You arrange yourself to give birth, relaxing until your body urges you to begin 
 <</if>>
 
 <<if $PC.pregSource > 0 && _curBabies > 0>>
-	<<set _pb = $slaves.findIndex(function(s) { return s.ID == $PC.pregSource; })>>
-	<<if _pb != -1>>
+	<<set _pb = $slaveIndices[$PC.pregSource]>>
+	<<if def _pb>>
 		<<if $arcologies[0].FSRestartDecoration == 100>>
 			Word spreads fast through your peers that you gave birth to <<if _curBabies > 1>>low class infants<<else>>a low class child<</if>> @@.red;utterly devastating your standing among the Elite.@@
 			<<set $failedElite += 200>>

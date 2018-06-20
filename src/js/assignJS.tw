@@ -8,7 +8,7 @@ window.assignJob = function assignJob(slave, job) {
 		return r
 	
 	removeJob(slave, slave.assignment)
-	const idx = V.slaves.findIndex(s => s.ID === slave.ID)
+	const idx = V.slaveIndices[slave.ID]
 
 	/* use .toLowerCase() to get rid of a few dupe conditions. */
 	switch (job.toLowerCase()) {
@@ -143,6 +143,10 @@ window.assignJob = function assignJob(slave, job) {
 			slave.assignmentVisible = 0
 			V.masterSuiteSlaves++
 			V.MastSiIDs.push(slave.ID)
+			if(V.masterSuiteUpgradeLuxury > 0)
+				slave.livingRules = "luxurious"
+			else
+				slave.livingRules = "spare"
 			break
 
 		case "learn in the schoolroom":
@@ -201,7 +205,6 @@ window.assignJob = function assignJob(slave, job) {
 			break
 
 		case "be the attendant":
-		case "be your concubine":
 		case "be the dj":
 		case "be the madam":
 		case "be the milkmaid":
@@ -212,6 +215,15 @@ window.assignJob = function assignJob(slave, job) {
 			slave.assignment = job
 			slave.assignmentVisible = 0     /* non-visible leadership roles */
 			slave.livingRules = "luxurious"
+			break
+
+		case "be your concubine":
+			slave.assignment = job
+			slave.assignmentVisible = 0     /* non-visible leadership roles */
+			if(V.masterSuiteUpgradeLuxury > 0)
+				slave.livingRules = "luxurious"
+			else
+				slave.livingRules = "normal"
 			break
 
 		case "be your head girl":
@@ -226,6 +238,8 @@ window.assignJob = function assignJob(slave, job) {
 			if (V.dojo > 1) {
 				slave.livingRules = "luxurious"
 			}
+			if (V.pitBG == 1 && V.fighterIDs.includes(slave.ID))
+				V.fighterIDs.delete(slave.ID)
 			break
 
 		case "be your agent":
@@ -271,7 +285,7 @@ window.removeJob = function removeJob(slave, assignment) {
 	const V = State.variables
 	let r = ""
 	
-	const idx = V.slaves.findIndex(function(s) { return s.ID === slave.ID; })
+	const idx = V.slaveIndices[slave.ID]
 
 	if (assignment === "Pit")
 		V.fighterIDs.delete(slave.ID)
@@ -326,7 +340,7 @@ window.removeJob = function removeJob(slave, assignment) {
 		case "be confined in the cellblock":
 		case "cellblock":
 			slave.assignment = "rest"
-			if ((V.slaves[idx].inflation > 0)) {
+			if (slave.inflation > 0) {
 				slave.inflation = 0
 				slave.inflationType = "none"
 				slave.inflationMethod = 0
@@ -430,11 +444,13 @@ window.removeJob = function removeJob(slave, assignment) {
 			break
 		}
 
+		
+		if (slave.livingRules === "luxurious" && slave.assignmentVisible !== 1)
+			slave.livingRules = "normal"
+		
 		slave.assignmentVisible = 1
 		slave.choosesOwnAssignment = 0
 		slave.sentence = 0
-		if (slave.livingRules === "luxurious")
-			slave.livingRules = "normal"
 	}
 	return r
 }

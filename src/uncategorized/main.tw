@@ -5,7 +5,7 @@
 <<if $releaseID >= 1000 || $ver.includes("0.9") || $ver.includes("0.8") || $ver.includes("0.7") || $ver.includes("0.6")>>
 	<<if $releaseID >= 1022>>
 	<<elseif $releaseID >= 1019>>
-		''@@.red;INCOMPATIBILITY WARNING:@@'' your saved game was created using version $ver build $releaseID. Due to a major change to nationality weighting, you must run backwards compatiblity.
+		''@@.red;INCOMPATIBILITY WARNING:@@'' your saved game was created using version $ver build $releaseID. Due to a major change to nationality weighting, you must run backwards compatibility.
 	<<else>>
 		''@@.red;INCOMPATIBLE SAVE WARNING:@@'' your saved game was created using version $ver build $releaseID. Please select New Game Plus from the Options menu or start a new game.
 		<br><br>
@@ -42,14 +42,14 @@
 	$slavesVisible = _visibleSlaves.length,
 	$dormitoryPopulation = _visibleSlaves.filter(s => s.livingRules != "luxurious").length,
 	$roomsPopulation = $slavesVisible - $dormitoryPopulation - _visibleSlaves.filter(s => s.livingRules == "luxurious" && s.relationship >= 4).length * 0.5,
-	_PA = (Array.isArray($personalAttention) ? $personalAttention.map(function(x) { return $slaves.find(function(s) { return s.ID == x.ID; }); }) : []),
-	_HG = $slaves.findIndex(s => s.ID == $HeadGirl.ID),
-	_RC = $slaves.findIndex(s => s.ID == $Recruiter.ID),
-	_BG = $slaves.findIndex(s => s.ID == $Bodyguard.ID)>>
+	_PA = (Array.isArray($personalAttention) ? $personalAttention.map(function(x) { return getSlave(x.ID); }) : []),
+	_HG = $slaveIndices[$HeadGirl.ID],
+	_RC = $slaveIndices[$Recruiter.ID],
+	_BG = $slaveIndices[$Bodyguard.ID]>>
 
-<<if (_HG > -1 && $HGSuite > 0)>><<set $slavesVisible++>><</if>>
+<<if (def _HG && $HGSuite > 0)>><<set $slavesVisible++>><</if>>
 <<if ($HGSuiteSlaves > 0)>><<set $slavesVisible++>><</if>>
-<<if (_BG > -1 && $dojo > 1)>><<set $slavesVisible++>><</if>>
+<<if (def _BG && $dojo > 1)>><<set $slavesVisible++>><</if>>
 
 
 <<set $nextButton = "END WEEK", $nextLink = "End Week", $showEncyclopedia = 1, $encyclopedia = "How to Play">>
@@ -116,6 +116,7 @@ __''MAIN MENU''__&nbsp;&nbsp;&nbsp;&nbsp;//[[Summary Options]]//
 	<<if $positionMainLinks >= 0>>
 		<<MainLinks>>
 	<</if>>
+	<<set _j = "Back", _k = "AS Dump", _l = "Main">>
 
 	<<CreateSimpleTabs>>
 	<body>
@@ -140,18 +141,18 @@ __''MAIN MENU''__&nbsp;&nbsp;&nbsp;&nbsp;//[[Summary Options]]//
 	<div id="overview" class="tabcontent">
 		<div class="content">
 			<<set $slaveAssignmentTab = "overview">>			
-			<<if _HG > -1>>
-				''__@@.pink;<<SlaveFullName $HeadGirl>>@@__'' is <<if ndef $headGirlFocus>>serving as your head girl<<if $arcologies[0].FSEgyptianRevivalistLaw == 1>> and Consort<</if>>.<<else>>your head girl<<if $arcologies[0].FSEgyptianRevivalistLaw == 1>> and Consort,<</if>> and is focusing on your slaves' $headGirlFocus.<</if>>
+			<<if def _HG>>
+				''__@@.pink;<<SlaveFullName $HeadGirl>>@@__'' is serving as your head girl<<if $arcologies[0].FSEgyptianRevivalistLaw == 1>> and Consort<</if>>.
 				<span id="manageHG"><strong><<link "Manage Head Girl">><<goto "HG Select">><</link>></strong></span> @@.cyan;[H]@@
 				<<set $showOneSlave = "Head Girl">>
 				<<include "Slave Summary">>
-			<<elseif (_HG == -1) && ($slaves.length > 1)>>
+			<<elseif (ndef _HG) && ($slaves.length > 1)>>
 				You have @@.red;not@@ selected a Head Girl<<if $arcologies[0].FSEgyptianRevivalistLaw == 1>> and Consort<</if>>. <span id="manageHG"><strong><<link "Select one">><<goto "HG Select">><</link>></strong></span> @@.cyan;[H]@@
-			<<elseif (_HG == -1)>>
+			<<elseif (ndef _HG)>>
 				//You do not have enough slaves to keep a Head Girl//
 			<</if>>
 			<br><br>
-			<<if _RC > -1>>
+			<<if def _RC>>
 				''__@@.pink;<<SlaveFullName $Recruiter>>@@__'' is working
 				<<if $recruiterTarget != "other arcologies">>
 					to recruit girls.
@@ -172,7 +173,7 @@ __''MAIN MENU''__&nbsp;&nbsp;&nbsp;&nbsp;//[[Summary Options]]//
 			<</if>>
 			<<if ($dojo != 0)>>
 				<br><br>
-				<<if _BG > -1>>
+				<<if def _BG>>
 					''__@@.pink;<<SlaveFullName $Bodyguard>>@@__'' is serving as your bodyguard. <span id="manageBG"><strong><<link "Manage Bodyguard">><<goto "BG Select">><</link>></strong></span> @@.cyan;[B]@@
 					<<set $showOneSlave = "guard you">>
 					<<include "Slave Summary">>
@@ -181,8 +182,8 @@ __''MAIN MENU''__&nbsp;&nbsp;&nbsp;&nbsp;//[[Summary Options]]//
 				<</if>>
 					
 				/* Start Italic event text */
-				<<if (_BG > -1) && ($slaves[_BG].assignment == "guard you")>>
-					<<set $i = _BG>>
+				<<if (def _BG) && ($slaves[_BG].assignment == "guard you")>>
+				    <<set $i = _BG>>
 					<<set _GO = "idiot ball">>
 					<br><<include "Use Guard">>
 					<br>&nbsp;&nbsp;&nbsp;&nbsp;<<print "[[Use her mouth|FLips][$activeSlave = $slaves["+_BG+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>
@@ -431,8 +432,8 @@ __''MAIN MENU''__&nbsp;&nbsp;&nbsp;&nbsp;//[[Summary Options]]//
 <<if $positionMainLinks >= 0>>
 	<<MainLinks>>
 <</if>>
+
 /* TASK ARRAY */
-<<if $assignFilter == 1>>
 <<set $jobTypes = [{title: "Rest", asgn: "rest"}, {title: "Subordinate", asgn: "be a subordinate slave"}, {title: "Whore", asgn: "whore"}, {title: "Public Servant", asgn: "serve the public"}, {title: "Hole", asgn: "work a glory hole"}, {title: "Milking", asgn: "get milked"}, {title: "House Servant", asgn: "be a servant"}, {title: "Fucktoy", asgn: "please you"}, {title: "Confinement", asgn: "stay confined"}, {title: "Classes", asgn: "take classes"}, {title: "Choose own", asgn: "choose her own job"}]>>
 <br>
 <<link Reset>><<resetAssignmentFilter>><<replace '#summarylist'>><<include "Slave Summary">><</replace>><</link>>
@@ -449,7 +450,7 @@ Filter by assignment: |
 		">>	|
 	<</if>>
 <</for>>
-<</if>>
+
 <span id='summarylist'><<include "Slave Summary">></span>
 
 <<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>>
@@ -508,8 +509,8 @@ Filter by assignment: |
 <</for>>
 <</if>>
 
-<<if (_BG > -1) && ($slaves[_BG].assignment == "guard you") && ($useSlaveSummaryOverviewTab != 1)>>
-	<<set $i = _BG>>
+<<if (def _BG) && ($slaves[_BG].assignment == "guard you") && ($useSlaveSummaryOverviewTab != 1)>>
+    <<set $i = _BG>>
 	<<set _GO = "idiot ball">>
 	<br><<include "Use Guard">>
 	<br>&nbsp;&nbsp;&nbsp;&nbsp;<<print "[[Use her mouth|FLips][$activeSlave = $slaves["+_BG+"], $nextButton = _j, $nextLink = _k, $returnTo = _l]]">>

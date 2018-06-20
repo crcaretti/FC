@@ -134,15 +134,29 @@ $clubNameCaps
 	$clubNameCaps is doing business normally, without a complement of sex slaves to spice things up. $DJ.slaveName is alone in $clubName, and can accomplish little by herself.
 <<else>>
 	$clubNameCaps is doing business normally, without a complement of sex slaves to spice things up.
-	<<link "Decommission the club">>
-		<<set $club = 0, $clubDecoration = "standard", $clubUpgradePDAs = 0>>
-		<<for _i = 0; _i < $sectors.length; _i++>>
-		<<if $sectors[_i].type == "Club">>
-			<<set $sectors[_i].type = "Shops">><<break>>
+	<<link "Decommission the club" "Main">>
+		<<set $club = 0, $clubDecoration = "standard", $clubUpgradePDAs = 0, $clubAdsSpending = 0>>
+		<<set _club = $sectors.findIndex(function(s) { return s.type == "Club"; })>>
+		<<if _club != -1>>
+			<<set $sectors[_club].type = "Shops">>
 		<</if>>
-		<</for>>
-		<<goto "Main">>
 	<</link>>
+<</if>>
+
+<<if $clubSlaves > 0>>
+	<<if $DJ != 0>><<set _X = 1>><<else>><<set _X = 0>><</if>>
+	<<set _NewPop = $clubSlaves+$dormitoryPopulation+_X>>
+	<<link "Remove all slaves" "Club">>
+		<<if $DJ != 0>>
+			<<assignJob $DJ "rest">>
+		<</if>>
+		<<for $clubSlaves > 0>>
+			<<assignJob $slaves[$slaveIndices[$ClubiIDs[0]]] "serve the public">>
+		<</for>>
+	<</link>>
+	<<if _NewPop > $dormitory>>
+		@@.red;Dormitory capacity will be exceeded.@@
+	<</if>>
 <</if>>
 
 <<if $clubSlaves > 2>>
@@ -212,13 +226,22 @@ $clubNameCaps
 	The rooms are standard. [[Upgrade them with PDAs to help your recruiter|Club][$cash -= _Tmult1, $clubUpgradePDAs = 1]] //Costs <<print cashFormat(_Tmult1)>> and will increase upkeep costs//
 <</if>>
 
+<<if $DJ != 0>>
+	<br>
+	<<if $DJignoresFlaws != 1>>
+		$DJ.slaveName will attempt to fix flaws in <<print $clubName>>'s sluts. [[Ignore flaws|Club][$DJignoresFlaws = 1]]
+	<<else>>
+		$DJ.slaveName has been instructed to ignore flaws in <<print $clubName>>'s sluts. [[Fix flaws|Club][$DJignoresFlaws = 0]]
+	<</if>>
+<</if>>
+
 <br>
 <<if $clubAdsSpending > 0>>
 	$clubNameCaps is the subject of an active ad campaign.
 <<else>>
 	$clubNameCaps is not being advertised.
 <</if>>
-<<link "Manage club Advertisements">><<set $nextLink = passage()>><<set $nextButton = "Back">><<goto "Club Advertisement">><</link>>
+<<link "Manage club Advertisements" "Club Advertisement">><<set $nextLink = passage()>><<set $nextButton = "Back">><</link>>
 
 <!-- Statistics output -->
 <<ClubStatistics 1>>
@@ -238,7 +261,7 @@ $clubNameCaps
 	<<link "''Send a slave to slut around $clubName''">>
 		<<replace #ComingGoing>>
 			<<resetAssignmentFilter>>
-			<<set $Flag to 0>>
+			<<set $Flag = 0>>
 			<<include "Slave Summary">>
 		<</replace>>
 	<</link>>

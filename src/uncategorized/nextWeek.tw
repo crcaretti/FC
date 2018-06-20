@@ -1,12 +1,10 @@
 :: Next Week [nobr]
 
 <<if $rivalOwner != 0>>
-	<<set _SL = $arcologies.length>>
-	<<for _i = 0; _i < _SL; _i++>>
-	<<if $arcologies[_i].rival == 1>>
-		<<set $rivalOwner = $arcologies[_i].prosperity>>
+	<<set _rival = $arcologies.find(function(s) { return s.rival == 1; })>>
+	<<if def _rival>>
+		<<set $rivalOwner = _rival.prosperity>>
 	<</if>>
-	<</for>>
 <</if>>
 
 <<if $playerAging != 0>>
@@ -30,9 +28,16 @@
 		<<if $slaves[_i].birthWeek >= 52>>
 			<<set $slaves[_i].birthWeek = 0>>
 			<<if $seeAge == 1>>
-				<<set $slaves[_i].physicalAge += 1, $slaves[_i].actualAge += 1, $slaves[_i].visualAge += 1>>
-				<<set $slaves[_i].ovaryAge += either(.8, .9, .9, 1, 1, 1, 1.1)>> /*Hopefully this works. It is intended, over a slave's lifetime, to cause her menopause to shift.*/
-				<<if $slaves[$i].broodmother == 1>>
+				<<set $slaves[_i].physicalAge += 1, $slaves[_i].actualAge += 1>>
+				/* Note Induced NCS completely takes over visual aging, so the increment from pre-existing code simply is trapped behind a !NCS test. Additionally, because of the neotony aspects of NCS, ovaries don't age quite as fast. */
+				<<if $slaves[_i].inducedNCS == 0>>
+					<<set $slaves[_i].visualAge += 1>>
+					/* (prev comment) Hopefully this works. It is intended, over a slave's lifetime, to cause her menopause to shift. */
+					<<set $slaves[_i].ovaryAge += either(.8, .9, .9, 1, 1, 1, 1.1)>> 
+				<<else>>
+					<<set $slaves[_i].ovaryAge += either(.5, .6, .7, .7, .8, .9, 1)>> 
+				<</if>>
+				<<if $slaves[_i].broodmother == 1>>
 					<<set $slaves[_i].ovaryAge += .2>>
 				<</if>>
 				<<if $slaves[_i].physicalAge <= 18 && $loliGrow == 0>>
@@ -51,8 +56,8 @@
 	<<elseif $slaves[_i].sentence == 1>>
 		<<removeJob $slaves[_i] $slaves[_i].assignment>>
 	<</if>>
-	<<if $slaves[_i].weekAcquired == 0>>
-		<<set $slaves[_i].weekAcquired = $week>>
+	<<if $slaves[_i].weekAcquired < 0>>
+		<<set $slaves[_i].weekAcquired = 0>>
 	<</if>>
 	<<if $slaves[_i].relation == 0>>
 		<<set $slaves[_i].relationTarget = 0>>
@@ -62,6 +67,8 @@
 	<</if>>
 	<<if $slaves[_i].rivalry == 0>>
 		<<set $slaves[_i].rivalryTarget = 0>>
+	<<elseif $slaves[_i].rivalry < 0>>
+		<<set $slaves[_i].rivalryTarget = 0, $slaves[_i].rivalry = 0>>
 	<</if>>
 	<<if $slaves[_i].vagina < 0 && $slaves[_i].vaginalAccessory != "none">>
 		<<set $slaves[_i].vaginalAccessory = "none">>
@@ -237,25 +244,24 @@
 	<</if>>
 <</if>>
 
-<<if $boomerangWeeks>><<set $boomerangWeeks++>><</if>>
+<<if $boomerangWeeks>><<set $boomerangWeeks++>><<else>><<set $boomerangSlave = 0>><</if>>
 
-<<set $coursed = 0, $eventDescription = 0, $manuallyRetired = 0, $pitFought = 0, $preOwnedViewed = 0, $prestigeAuctioned = 0, $repGain = 0, $shelterSlave = 0, $shelterSlaveBought = 0, $slaveMarketLimit = 10 + ($rep / 1000), $slavesSeen = 0, $slavesSacrificedThisWeek = 0, $subSlaves = 0>>
+<<set $thisWeeksFSWares = $merchantFSWares.randomMany(2)>>
+
+<<set $coursed = 0, $eventDescription = 0, $pitFought = 0, $preOwnedViewed = 0, $prestigeAuctioned = 0, $eliteAuctioned = 0, $repGain = 0, $shelterSlave = 0, $shelterSlaveBought = 0, $slaveMarketLimit = 10 + ($rep / 1000), $slavesSeen = 0, $slavesSacrificedThisWeek = 0, $subSlaves = 0>>
 
 /% These are variables that either should be made into _temp vars or should be Zeroed out once done with them instead of here. This can also interfere with debugging or hide NaN's as zeroing things out would clear a NaN. Also could stop from NaN's getting worse? %/
 /% Integer and float variables. No real need to zero them out but doesn't hurt to have them in a known state, though this might mask variables NaN'ing out. Takes up the least amount of Memory besides a "" string. %/
-<<set $averageProsperity = 0, $beauty = 0, $beautyMultiplier = 0, $boobsID = -1, $boobsInterestTargetID = -1, $brideSlave = -1, $buttslutID = -1, $buttslutInterestTargetID = -1, $cumslutID = -1, $FResult = 0, $groomSlave = -1, $humiliationID = -1, $humiliationInterestTargetID = -1, $i = 0, $individualCosts = 0, $influenceBonus = 0, $j = 0, $masochistID = -1, $masochistInterestTargetID = -1, $opinion = 0, $r = 0, $subID = -1, $submissiveInterestTargetID = -1, $weddingSlaveID = -1, $x = 0>>
+<<set $averageProsperity = 0, $beauty = 0, $beautyMultiplier = 0, $boobsID = -1, $boobsInterestTargetID = -1, $brideSlave = -1, $buttslutID = -1, $buttslutInterestTargetID = -1, $cumslutID = -1, $FResult = 0, $groomSlave = -1, $humiliationID = -1, $humiliationInterestTargetID = -1, $i = 0, $individualCosts = 0, $influenceBonus = 0, $j = 0, $masochistID = -1, $masochistInterestTargetID = -1, $opinion = 0, $r = 0, $subID = -1, $submissiveInterestTargetID = -1, $weddingSlaveID = -1, $x = 0, $mother = -1, $daughter = -1, $devMother = -1, $devDaughter = -1, $alphaTwin = -1, $betaTwin = -1, $youngerSister = -1, $olderSister = -1, $recruiterSlave = -1>>
 
 /% Other arrays %/
-<<set $events = [], $RESSevent = [], $RESSTRevent = [], $RETSevent = [], $RECIevent = [], $RecETSevent = [], $REFIevent = [], $REFSevent = [], $PESSevent = [], $PETSevent = [], $FSAcquisitionEvents = [], $FSNonconformistEvents = [], $qualifiedNicknames = [], $REAnalCowgirlSubIDs = [], $REButtholeCheckinIDs = [], $recruit = [], $RETasteTestSubIDs = [], $devotedSlaves = [], $rebelSlaves = [], $REBoobCollisionSubIDs = [], $REIfYouEnjoyItSubIDs = [], $RESadisticDescriptionSubIDs = [], $REShowerForceSubIDs = [], $RESimpleAssaultIDs = [], $RECockmilkInterceptionIDs = [], $REInterslaveBeggingIDs = [], $bedSlaves = [], $qualifiedFS = []>>
+<<set $events = [], $RESSevent = [], $RESSTRevent = [], $RETSevent = [], $RECIevent = [], $RecETSevent = [], $REFIevent = [], $REFSevent = [], $PESSevent = [], $PETSevent = [], $FSAcquisitionEvents = [], $FSNonconformistEvents = [], $qualifiedNicknames = [], $REAnalCowgirlSubIDs = [], $REButtholeCheckinIDs = [], $recruit = [], $RETasteTestSubIDs = [], $devotedSlaves = [], $rebelSlaves = [], $REBoobCollisionSubIDs = [], $REIfYouEnjoyItSubIDs = [], $RESadisticDescriptionSubIDs = [], $REShowerForceSubIDs = [], $RESimpleAssaultIDs = [], $RECockmilkInterceptionIDs = [], $REInterslaveBeggingIDs = [], $bedSlaves = [], $qualifiedFS = [], $eligibleSlaves = [], $slavesInLine = []>>
 
 /% Slave Objects using 0 instead of null. Second most memory eaten up. %/
-<<set $activeSlave = 0, $eventSlave = 0, $RERelationshipSlave = 0, $slaveWithoutBonuses = 0, $subSlave = 0, $milfSlave = 0, $milkTap = 0, $relation = 0>>
+<<set $activeSlave = 0, $eventSlave = 0, $slaveWithoutBonuses = 0, $subSlave = 0, $milkTap = 0, $relation = 0>>
 
 /% Slave Objects that never get zeroed so null them here. Second most memory eaten up. %/
-<<set $assayedSlave = null, $beforeGingering = null, $mother = null, $daughter = null, $devMother = null, $devDaughter = null, $alphaTwin = null, $betaTwin = null, $youngerSister = null, $olderSister = null, $recruiterMother = null, $recruiterSister = null, $sibling = null, $recruiterSlave = null>>
-
-/% Slave Object Arrays. These can take up the most memory. %/
-<<set $eligibleSlaves = [], $slavesInLine = []>>
+<<set $beforeGingering = null, $sibling = null>>
 
 /% Strings Memory varies. %/
 <<set $analSkinDesc = "", $applyDesc = "", $bellyAccessory = "", $buyer = "", $desc = "", $event = "", $goto = "", $malefactor = "", $nickname = "", $notApplyDesc = "", $oldName = "", $oldSurname = "", $situationDesc = "", $skinDesc = "", $k = "">>

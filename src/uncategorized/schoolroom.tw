@@ -1,12 +1,12 @@
 :: Schoolroom [nobr]
 
 <<set $nextButton = "Back to Main", $nextLink = "Main", $returnTo = "Schoolroom", $showEncyclopedia = 1, $encyclopedia = "Schoolroom", $schoolroomSlaves = $SchlRiIDs.length>>
-<<showallAssignmentFilter>>
+
 <<if $schoolroomName != "the Schoolroom">>
 	<<set $schoolroomNameCaps = $schoolroomName.replace("the ", "The ")>>
 <</if>>
 <<schoolAssignmentFilter>>
-$schoolroomNameCaps is well-equipped, with wall screens to display lessons. These are currently
+$schoolroomNameCaps is well-equipped, with wallscreens to display lessons. These are currently
 <<switch $schoolroomDecoration>>
 <<case "Roman Revivalist">>
 	showing the story of a famous Roman slave who sacrificed her life for the life of <<if def $PC.customTitle>>her $PC.customTitle<<elseif $PC.title != 0>>her master<<else>>her mistress<</if>>.
@@ -63,13 +63,30 @@ $schoolroomNameCaps is well-equipped, with wall screens to display lessons. Thes
 <<if $schoolroomSlaves > 2>>
 	$schoolroomNameCaps is busy with slaves, repeating their lessons out loud to drill the instruction home. A few girls are maintaining uncomfortable positions in the corner as punishment for poor work.
 <<elseif $schoolroomSlaves > 0>>
-	$schoolroomNameCaps sparsely populated, the few students repeating their lessons out loud to drill the instruction home. One girl is maintaining an uncomfortable position in the corner as punishment for poor work.
+	$schoolroomNameCaps is sparsely populated, the few students repeating their lessons out loud to drill the instruction home. One girl is maintaining an uncomfortable position in the corner as punishment for poor work.
 <<elseif $Schoolteacher != 0>>
 	$Schoolteacher.slaveName is alone in $schoolroomName, and has nothing to do but work on her lesson plans.
 <<else>>
 	None of your slaves are learning in $schoolroomName.
 	[[Decommission the schoolroom|Main][$schoolroom = 0, $schoolroomUpgradeSkills = 0, $schoolroomUpgradeLanguage = 0, $schoolroomUpgradeRemedial = 0, $schoolroomDecoration = "standard"]]
 <</if>>
+
+<<if $schoolroomSlaves > 0>>
+	<<if $Schoolteacher != 0>><<set _X = 1>><<else>><<set _X = 0>><</if>>
+	<<set _NewPop = $schoolroomSlaves+$dormitoryPopulation+_X>>
+	<<link "Remove all slaves" "Schoolroom">>
+		<<if $Schoolteacher != 0>>
+			<<assignJob $Schoolteacher "rest">>
+		<</if>>
+		<<for $schoolroomSlaves > 0>>
+			<<assignJob $slaves[$slaveIndices[$SchlRiIDs[0]]] "take classes">>
+		<</for>>
+	<</link>>
+	<<if _NewPop > $dormitory>>
+		@@.red;Dormitory capacity will be exceeded.@@
+	<</if>>
+<</if>>
+
 <<set _Tmult0 = Math.trunc($schoolroom*1000*$upgradeMultiplierArcology)>>
 <br>$schoolroomNameCaps has room to house $schoolroom slaves while they learn. Currently $schoolroomSlaves <<if $schoolroomSlaves == 1>>is<<else>>are<</if>> learning.
 [[Expand the schoolroom|Schoolroom][$cash -= _Tmult0, $schoolroom += 5, $PC.engineering += .1]] //Costs <<print cashFormat(_Tmult0)>>//
@@ -111,7 +128,7 @@ $schoolroomNameCaps is well-equipped, with wall screens to display lessons. Thes
 	<<link "''Send a slave to study in $schoolroomName''">>
 		<<replace #ComingGoing>>
 			<<resetAssignmentFilter>>
-			<<set $Flag to 0>>
+			<<set $Flag = 0>>
 			<<include "Slave Summary">>
 		<</replace>>
 	<</link>>

@@ -10,7 +10,7 @@
 <</if>>
 
 <<if $Nurse != 0>>
-	<<set _FLs = $slaves.findIndex(function(s) { return s.ID == $Nurse.ID; })>>
+	<<set _FLs = $slaveIndices[$Nurse.ID]>>
 
 	<<if ($slaves[_FLs].health < 100)>>
 		<<set $slaves[_FLs].health += 20>>
@@ -99,15 +99,18 @@
 			<<elseif $slaves[$i].ID == $Nurse.father>>
 				She makes sure to spend extra time caring for her father, $slaves[$i].slaveName.
 				<<set $slaves[$i].trust++, $slaves[$i].health++>>
-			<<elseif areSisters($slaves[$i], $Nurse) == 1>>
-				She makes sure to spend extra time caring for her twin sister, $slaves[$i].slaveName.
-				<<set $slaves[$i].trust++, $slaves[$i].health++>>
-			<<elseif areSisters($slaves[$i], $Nurse) == 2>>
-				She makes sure to spend extra time caring for her sister, $slaves[$i].slaveName.
-				<<set $slaves[$i].trust++, $slaves[$i].health++>>
-			<<elseif areSisters($slaves[$i], $Nurse) == 3>>
-				She makes sure to spend extra time caring for her half-sister, $slaves[$i].slaveName.
-				<<set $slaves[$i].trust++, $slaves[$i].health++>>
+			<<else>>
+				<<switch areSisters($slaves[$i], $Nurse)>>
+				<<case 1>>
+					She makes sure to spend extra time caring for her twin sister, $slaves[$i].slaveName.
+					<<set $slaves[$i].trust++, $slaves[$i].health++>>
+				<<case 2>>
+					She makes sure to spend extra time caring for her sister, $slaves[$i].slaveName.
+					<<set $slaves[$i].trust++, $slaves[$i].health++>>
+				<<case 3>>
+					She makes sure to spend extra time caring for her half-sister, $slaves[$i].slaveName.
+					<<set $slaves[$i].trust++, $slaves[$i].health++>>
+				<</switch>>
 			<</if>>
 		<<elseif $Nurse.relationTarget == $slaves[$i].ID && $familyTesting == 0>>
 			She makes sure to spend extra time caring for her $slaves[$i].relation, $slaves[$i].slaveName.
@@ -293,7 +296,7 @@
 		<<else>>
 			is receiving treatment in $clinicName.
 		<</if>>
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<include "SA rest">>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;She <<= saRest($slaves[$i])>>
 		<br>&nbsp;&nbsp;&nbsp;
 		<<include "SA chooses own clothes">>
 		<<include "SA rules">>
@@ -306,7 +309,7 @@
 	<<else>>
 		<<silently>>
 		<<include "SA chooses own job">>
-		<<include "SA rest">>
+		<<set _dump = saRest($slaves[$i])>>
 		<<include "SA chooses own clothes">>
 		<<include "SA rules">>
 		<<include "SA diet">>
@@ -327,7 +330,7 @@
 	<</if>>
 	been returned to @@.green;health<<if ($Nurse != 0) && ($clinicUpgradeFilters == 1)>> and purity<</if>>@@ and will be released from the clinic before the end of the week.
 	<<if $clinicDecoration != "standard">>
-		$clinicNameCaps's $clinicDecoration atmosphere @@.hotpink;had an impact on <<if _restedSlaves == 1>>her while she<<else>>them while they<</if>>@@ were getting treatment.
+		<br><br>&nbsp;&nbsp;&nbsp;&nbsp;$clinicNameCaps's $clinicDecoration atmosphere @@.hotpink;had an impact on <<if _restedSlaves == 1>>her while she was<<else>>them while they were<</if>>@@ getting treatment.
 	<</if>>
 <</if>>
 <<if _DL > 0 || $Nurse != 0>>

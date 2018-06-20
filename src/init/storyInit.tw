@@ -3,20 +3,20 @@
 /*
 FREE CITIES
 a text-based slave management game
-Copyright (C) 2017  freecitiesdev
+Copyright (C) 2017 freecitiesdev
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 <<set $returnTo = "init", $nextButton = "Continue", $nextLink = "Alpha disclaimer">>
 
 <<unset $releaseID>>
-<<set $ver = "0.10.7", $releaseID = 1022>>
-<<if ndef $releaseID>><<set $releaseID = 1022>><</if>>
+<<set $ver = "0.10.7", $releaseID = 1024>>
+<<if ndef $releaseID>><<set $releaseID = 1024>><</if>>
 
 /* This needs to be broken down into individual files that can be added to StoryInit instead. */
 
@@ -27,9 +27,8 @@ You should have received a copy of the GNU General Public License along with thi
 		<<set $slaves[_i].ID += 1200000>>
 		<<set $slaves[_i].assignment = "rest">>
 		<<set $slaves[_i].assignmentVisible = 1>>
-		<<set $slaves[_i].weekAcquired = 1>>
+		<<set $slaves[_i].weekAcquired = 0>>
 		<<set $slaves[_i].newGamePlus = 1>>
-		<<set $slaves[$i].HasBeenAssignedToFacilitySupport = 0>>
 		<<PMODinit $slaves[_i]>>
 		<<if $slaves[_i].mother > 0>>
 			<<set $slaves[_i].mother += 1200000>>
@@ -70,7 +69,7 @@ You should have received a copy of the GNU General Public License along with thi
 		<</if>>
 		<<set $slaves[_i].rivalry = 0, $slaves[_i].rivalryTarget = 0, $slaves[_i].subTarget = 0>>
 	<<else>>
-		<<set _dump = $slaves.deleteAt(_i), _i--, _SL-->>
+		<<set _dump = removeSlave(_i), _i--, _SL-->>
 	<</if>>
 	<</for>>
 	<<for _k = 0; _k < _SL; _k++>>
@@ -84,8 +83,8 @@ You should have received a copy of the GNU General Public License along with thi
 		<</for>>
 		<<if $slaves[_k].pregSource > 0>>
 			<<set $slaves[_k].pregSource += 1200000>>
-			<<set _getFather = $slaves.findIndex(function(s) { return s.ID == $slaves[_k].pregSource; })>>
-			<<if _getFather == -1>>
+			<<set _getFather = $slaveIndices[$slaves[_k].pregSource]>>
+			<<if ndef _getFather>>
 				<<set $slaves[_k].pregSource = 0>>
 			<</if>>
 		<</if>>
@@ -107,28 +106,20 @@ You should have received a copy of the GNU General Public License along with thi
 	<<for _i = 0; _i < _SL; _i++>>
 	<<if $slaves[_i].relation != 0>>
 		<<set _seed = 0, _rt = $slaves[_i].relationTarget, _ID = $slaves[_i].ID>>
-		<<for _j = 0; _j < _SL; _j++>>
-		<<if _rt == $slaves[_j].ID>>
-			<<if $slaves[_j].relationTarget == _ID>>
+		<<set _j = $slaveIndices[_rt]>>
+		<<if def _j && $slaves[_j].relationTarget == _ID>>
 			<<set _seed = 1>>
-			<<break>>
-			<</if>>
 		<</if>>
-		<</for>>
 		<<if _seed == 0>>
 		<<set $slaves[_i].relation = 0, $slaves[_i].relationTarget = 0>>
 		<</if>>
 	<</if>>
 	<<if $slaves[_i].relationship > 0>>
 		<<set _seed = 0, _rt = $slaves[_i].relationshipTarget, _ID = $slaves[_i].ID>>
-		<<for _j = 0; _j < _SL; _j++>>
-		<<if _rt == $slaves[_j].ID>>
-			<<if $slaves[_j].relationshipTarget == _ID>>
+		<<set _j = $slaveIndices[_rt]>>
+		<<if def _j && $slaves[_j].relationshipTarget == _ID>>
 			<<set _seed = 1>>
-			<<break>>
-			<</if>>
 		<</if>>
-		<</for>>
 		<<if _seed == 0>>
 		<<set $slaves[_i].relationship = 0, $slaves[_i].relationshipTarget = 0>>
 		<</if>>
@@ -202,6 +193,13 @@ You should have received a copy of the GNU General Public License along with thi
 	<<if ndef $PC.slavesFathered>>
 		<<set $PC.slavesFathered = 0>>
 	<</if>>
+	<<if ndef $PC.pronoun>>
+		<<if $PC.title == 1>>
+			<<set $PC.pronoun = "he", $PC.possessive = "his", $PC.object = "him">>
+		<<else>>
+			<<set $PC.pronoun = "she", $PC.possessive = "her", $PC.object = "her">>
+		<</if>>
+	<</if>>
 	<<if ndef $PC.pregKnown>>
 		<<if $PC.preg > 0>>
 			<<set $PC.pregKnown = 1>>
@@ -240,8 +238,9 @@ You should have received a copy of the GNU General Public License along with thi
 	<<set $genePool = []>>
 <</if>>
 
+<<set $slaveIndices = slaves2indices()>>
 <<set $organs = []>>
-<<set $ArcadeiIDs = [], $BrothiIDs = [], $CellBiIDs = [], $CliniciIDs = [], $ClubiIDs = [], $DairyiIDs = [], $HGSuiteiIDs = [], $MastSiIDs = [], $SchlRiIDs = [], $ServQiIDs = [], $SpaiIDs = [], $FacSupIDs = []>>
+<<set $ArcadeiIDs = [], $BrothiIDs = [], $CellBiIDs = [], $CliniciIDs = [], $ClubiIDs = [], $DairyiIDs = [], $HGSuiteiIDs = [], $MastSiIDs = [], $SchlRiIDs = [], $ServQiIDs = [], $SpaiIDs = []>>
 
 <<if ndef $saveImported>>
 	<<set $saveImported = 0>>
@@ -344,6 +343,52 @@ You should have received a copy of the GNU General Public License along with thi
 	<<set $retainCareer = 1>>
 	<<set $useSlaveSummaryTabs = 0>>
 	<<set $useSlaveSummaryOverviewTab = 0>>
+	<<set $useSlaveListInPageJSNavigation = 0>>
+	
+	/* master suite reporting and alternate descriptions */
+	<<set $verboseDescriptions = 0>>
+	/* Accordion 000-250-006 */
+	<<set $useAccordion = 0>>
+
+	<<set $useTabs = 0>>
+
+	/*onlyintendeddickgirls variables */
+	<<set $makeDicks = 0>>
+
+	/* economy reports variables */
+	<<set $showEconomicDetails = 0>>
+
+	/* Pregmod specific */
+	<<set $economy = 1>>
+	<<set $neighboringArcologies = 3>>
+	<<set $newDescriptions = 0>>
+	<<set $familyTesting = 0>>
+	<<set $inbreeding = 1>>
+	<<set $allowFamilyTitles = 0>>
+
+	/% Begin mod section: toggle whether slaves lisp. %/
+	<<set $disableLisping = 0>>
+	/% End mod section: toggle whether slaves lisp. %/
+
+	<<set $weightAffectsAssets = 1>>
+	<<set $curativeSideEffects = 1>>
+	
+	/*non-vanilla shit*/
+	<<set $pedo_mode = 0>>
+	<<set $minimumSlaveAge = 18>>
+	<<set $fertilityAge = 13>>
+	<<silently>>
+	FertilityAge($fertilityAge)
+	<</silently>>
+	<<set $potencyAge = 13>>
+	<<set $AgePenalty = 1>>
+	<<set $precociousPuberty = 0>>
+	<<set $loliGrow = 1>>
+
+	<<set $retirementAge = 45>>
+	<<set $customRetirementAge = 45>>
+	<<set $FSCreditCount = 5>>
+	<<set $FSCreditCountString = "five">>
 
 	<<include "Init Rules">>
 
@@ -388,7 +433,7 @@ You should have received a copy of the GNU General Public License along with thi
 
 <<set $boomerangSlave = 0, $boomerangWeeks = 0, $boomerangBuyer = 0>>
 
-<<set $bioreactorPerfectedID = []>>
+<<set $bioreactorPerfectedID = 0>>
 
 <<set $independenceDay = 0>>
 <<set $invasionVictory = 0>>
@@ -546,12 +591,11 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $HGSuiteEquality = 0>>
 <<set $HGSuiteName = "the Head Girl Suite">>
 <<set $HGSuiteNameCaps = "The Head Girl Suite">>
-<<set $fighterOne = 0>>
-<<set $fighterTwo = 0>>
 <<set $fighterIDs = []>>
 <<set $pitBG = 0>>
 <<set $pitAudience = "none">>
 <<set $pitLethal = 0>>
+<<set $pitVirginities = 0>>
 <<set $pitFought = 0>>
 <<set $pit = 0>>
 <<set $pitName = "the Pit">>
@@ -566,8 +610,8 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $boobAccessibility = 0>>
 <<set $servantMilkers = 0>>
 <<set $servantMilkersMultiplier = 1>>
-<<set $servantMilkersJobs = ["be a servant", "work as a servant", "take classes", "please you", "be a subordinate slave", "stay confined", "recruit girls", "rest"]>>
 <<set $foodCost = 25>>
+<<set $revealFoodEffects = 0>>
 
 <<set $legendaryWhoreID = 0>>
 <<set $legendaryEntertainerID = 0>>
@@ -578,8 +622,6 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 
 <<set $FSAnnounced = 0>>
 <<set $FSCredits = 0>>
-<<set $FSCreditCount = 5>>
-<<set $FSCreditCountString = "five">>
 <<set $FSGotRepCredits = 0>>
 <<set $FSSingleSlaveRep = 10>>
 <<set $FSSpending = 0>>
@@ -628,18 +670,12 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $drugUpgradeHormones = "unselected">>
 <<set $drugUpgradeInjectionOne = "unselected">>
 <<set $drugUpgradeInjectionTwo = "unselected">>
+<<set $corpValue = 0>>
 
 <<set $shelterSlave = 0>>
 <<set $shelterSlaveBought = 0>>
 <<set $shelterAbuse = 0>>
 <<set $shelterSlaveGeneratedWeek = 0>>
-
-/* master suite reporting and alternate descriptions */
-<<set $verboseDescriptions = 0>>
-/* Accordion 000-250-006 */
-<<set $useAccordion = 0>>
-
-<<set $useTabs = 0>>
 
 /* alternate clothing access variables */
 <<set $clothesBoughtBunny = 0>>
@@ -666,23 +702,14 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 /* assistant FS appearance variable */
 <<set $assistantFSAppearance = "default">>
 
-/*onlyintendeddickgirls variables */
-<<set $makeDicks = 0>>
-
-/* economy reports variables */
-<<set $showEconomicDetails = 0>>
-
-/* filter by assignment mod */
-<<set $assignFilter = 0>>
+<<set $assistantPronouns = {pronoun: "she", possessivePronoun: "hers", possessive: "her", object: "her", objectReflexive: "herself", noun: "girl"}>>
 
 /*pregmod variables */
-<<set $newDescriptions = 0>>
 <<set $specialSlavesPriceOverride = 0>>
 <<set $pregAccessibility = 0>>
 <<set $dickAccessibility = 0>>
 <<set $ballsAccessibility = 0>>
 <<set $buttAccessibility = 0>>
-<<set $loliGrow = 1>>
 <<set $ageMode = 0>>
 <<set $enema = 0>>
 <<set $medicalEnema = 0>>
@@ -696,27 +723,22 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $clinicInflateBelly = 0>>
 <<set $playerBred = 0>>
 <<set $propOutcome = 0>>
-<<set $EliteSires = []>>
 <<set $EliteSires = ["moves", "quick", "crazy", "virgin", "futa", "preggo"]>>
 <<set $startingPoint = -1>>
 <<set $PhysicalRetirementAgePolicy = 0>>
 <<set $raped = -1>>
-<<set $familyTesting = 0>>
-<<set $children = 0>>
 <<set $children = []>>
 <<set $missingParentID = -10000>>
 <<set $startingSlaveRelative = 0>>
 <<set $mom = 0>>
 <<set $animalParts = 0>>
 <<set $showBestiality = 0>>
-<<set $inbreeding = 1>>
 <<set $originOveride = 0>>
 <<set $playerAging = 2>>
 <<set $pregSpeedControl = 0>>
 <<set $clinicSpeedGestation = 0>>
 <<set $playerSurgery = 0>>
 <<set $bodyswapAnnounced = 0>>
-<<set $allowFamilyTitles = 0>>
 <<set $surnamesForbidden = 0>>
 <<set $menstruation = 0>>
 <<set $FCTVcount = 0>>
@@ -737,6 +759,7 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $swanSong = 0>>
 <<set $failedElite = 0>>
 <<set $eugenicsFullControl = 0>>
+<<set $badC = 0, $badB = 0>>
 
 <<set $schoolSuggestion = 0>>
 <<set $TSS = {schoolUpgrade: 0, schoolPresent: 0, schoolProsperity: 0, subsidize: 0, schoolAnnexed: 0, studentsBought: 0, schoolSale: 0}>>
@@ -892,8 +915,6 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $SPcost = 1000>>
 <<set $preOwnedViewed = 0>>
 <<set $debtWarned = 0>>
-<<set $economy = 1>>
-<<set $neighboringArcologies = 3>>
 <<set $internationalTrade = 1>>
 <<set $internationalVariety = 0>>
 <<set $slaveCostFactor = 0.95>>
@@ -1018,8 +1039,6 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $expiree = 0>>
 <<set $retiree = 0>>
 <<set $birthee = 0>>
-<<set $retirementAge = 45>>
-<<set $customRetirementAge = 45>>
 <<set $CustomRetirementAgePolicy = 0>>
 <<set $BioreactorRetirement = 0>>
 <<set $ArcadeRetirement = 0>>
@@ -1040,6 +1059,8 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $nicaeaPower = 0>>
 <<set $nicaeaHeld = 0>>
 <<set $peacekeepers = 0>>
+<<set $peacekeepersFate = 0>>
+<<set $mercRomeo = 0>>
 
 <<set $oralUseWeight = 5>>
 <<set $vaginalUseWeight = 5>>
@@ -1097,18 +1118,10 @@ DairyRestraintsSetting($dairyRestraintsSetting)
 <<set $huskSlave = {age: 18, nationality: "Stateless", race: "white", sex: 1, virgin: 0}>>
 
 /*non-vanilla shit*/
-<<set $pedo_mode = 0>>
+
 <<set $one_time_age_overrides_pedo_mode = 0>>
-<<set $minimumSlaveAge = 16>>
-<<set $fertilityAge = 13>>
-<<silently>>
-FertilityAge($fertilityAge)
-<</silently>>
-<<set $potencyAge = 13>>
 <<set $activeSlaveOneTimeMinAge = 0>>
 <<set $activeSlaveOneTimeMaxAge = 999>>
-<<set $AgePenalty = 1>>
-<<set $precociousPuberty = 0>>
 <<set $targetAge = $minimumSlaveAge>>
 <<set $pubertyLength = 5>>
 <<set $maxGrowthAge = 24>>
@@ -1116,13 +1129,8 @@ FertilityAge($fertilityAge)
 /* Job Fulfillment Center */
 <<set $JFCOrder = 0, $Role = "">>
 
-/% Begin mod section: toggle whether slaves lisp. %/
-<<set $disableLisping = 0>>
-/% End mod section: toggle whether slaves lisp. %/
 <<set $cheatMode = 0>>
 <<set $cheatModeM = 1>>
-<<set $weightAffectsAssets = 1>>
-<<set $curativeSideEffects = 1>>
 
 <<set $fcnn = []>>
 <<set $fcnn.push("...coming up at the top of the hour: Catgirl slaves, science fact or science fiction...")>>
@@ -1211,9 +1219,9 @@ FertilityAge($fertilityAge)
 <<set $securityForceSpacePlanePower = 0>>			/* Has the SF found a busted down spaceplane begging for work? */
 <<set $securityForceFortressZeppelin = 0>>			/* Has the SF found a busted down fortress zeppelin begging for work? */
 <<set $securityForceAC130 = 0>>						/* Has the SF found a busted down AC-130 begging for work? */
-<<set $securityForceHeavyTransport = 0>>				/* Has the SF found a busted down heavy yransport begging for work? */
+<<set $securityForceHeavyTransport = 0>>			/* Has the SF found a busted down heavy yransport begging for work? */
 <<set $securityForceDronePower = 0>>				/* How many drone upgrades has the player bought? */
-<<set $securityForceSatellitePower = 0>>				/* Has the SF commendeered a Satellite relay? */
+<<set $securityForceSatellitePower = 0>>			/* Has the SF commendeered a Satellite relay? */
 <<set $securityForceGiantRobot = 0>>				/* Has the player assembled a makeshift giant robot */
 <<set $securityForceMissileSilo = 0>>				/* Has the SF found a disused missile silo in need of reassignement?*/
 <<set $securityForceAircraftCarrier = 0>> 			/* Has the SF found a busted down aircraft carrier begging for work? */
@@ -1221,23 +1229,19 @@ FertilityAge($fertilityAge)
 <<set $securityForceHeavyAmphibiousTransport = 0>>	/* Has the SF found a busted down heavy amphibious transport begging for work? */
 <<set $securityForceMissionEfficiency = 1>>			/* How efficient is the SF at completing its assigned task? (Upgrades*Drug Multiplier) */
 
-/* FacilitySupport */
-<<set $Lieutenantcolonel = 0>>						/* Has a slave been selected to be a Lieutenant colonel? */
-<<set $FacilitySupportSlaves = 0>>					/* How many slaves are assiting in the facility support? */
-<<set $FacilitySupportEfficiency = 0>>				/* How efficient is the support facility? */
-<<set $FacilitySupportUpgrade = 0>>					/* How many support facility upgrades has the play brought? */
-<<set $FacilitySupportCapacity = 5>>					/* How many slaves can the support facility house? */
+/* SupportFacility */
+<<set $SupportFacility = 0>>						/* Is the support facility built ? */
 
 /* Colonel */
-<<set $securityForceSexedColonelToken = 0>>			/* Has the player sexed The colonel this week? */
+<<set $securityForceSexedColonelToken = 0>>			/* Has the player sexed The Colonel this week? */
 <<set $ColonelCore = "">>							/* What is the core of The Colonel? */
-<<set $securityForceColonelToken = 0>>				/* Flag to keep track of talking to the colonel. */
-<<set $securityForceColonelSexed = 0>>				/* Has the player sexed The colonel this week? */
+<<set $securityForceColonelToken = 0>>				/* Flag to keep track of talking to The Colonel. */
+<<set $securityForceColonelSexed = 0>>				/* Has the player sexed The Colonel this week? */
 
 /* TradeShow */
 <<set $TradeShowAttendanceGranted = 0>>				/* Has The Colonel been allowed to go the TradeShow? */
 <<set $OverallTradeShowAttendance = 0>>				/* how many times has The Colonel gone to the TradeShow */
-<<set $CurrentTradeShowAttendance = 0>>				/* Has the Colonel attended the current TradeShow? */
+<<set $CurrentTradeShowAttendance = 0>>				/* Has The Colonel attended the current TradeShow? */
 <<set $TradeShowIncome = 0>>						/* How much was The Colonel able to make at the TradeShow selling generic scematics? */
 <<set $TotalTradeShowIncome = 0>>					/* Total TradeShowIncome */
 <<set $TradeShowHelots = 0>>						/* How many menail slaves were sent as a bonus from generic scematic sales during the current TradeShow?
@@ -1297,6 +1301,9 @@ cyberneticPLimb: 0,
 ocularImplant: 0,
 erectileImplant: 0
 } >>
+
+<<set $merchantFSWares = ["GenderRadicalistResearch", "TransformationFetishistResearch", "AssetExpansionistResearch", "SlimnessEnthusiastResearch", "YouthPreferentialistResearch", "HedonisticDecadenceResearch"]>>
+<<set $merchantIllegalWares = ["childhoodFertilityInducedNCS"]>>
 
 <<if ndef $PC.hacking>>
 	<<set $PC.hacking = 0>>
