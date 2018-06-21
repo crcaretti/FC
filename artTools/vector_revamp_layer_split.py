@@ -17,7 +17,7 @@ import sys
 import os
 import copy
 import re
-import inkscape_svg_fixup
+import normalize_svg
 
 input_file = sys.argv[1]
 output_format = sys.argv[2]
@@ -35,7 +35,7 @@ ns = {
 p = XMLParser(huge_tree=True)
 tree = parse(input_file, parser=p)
 #tree = etree.parse(input_file)
-inkscape_svg_fixup.fix(tree)
+normalize_svg.fix(tree)
 
 # prepare output template
 template = copy.deepcopy(tree)

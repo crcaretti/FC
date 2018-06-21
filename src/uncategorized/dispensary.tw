@@ -36,7 +36,7 @@ The Organ Farm
 	//The fabricator must upgraded before it can be fitted with perfected organ farm parts//
 	<br>
 <<elseif $organs.length > 0>>
-	//The organ farm can not be upgraded while it is use//
+	//The organ farm cannot be upgraded while it is use//
 	<br>
 <<elseif ($organFarmUpgrade == 2) && ($rep > 10000*_PCSkillCheck)>>
 	[[Upgrade to the organ farm to the cutting edge model|Dispensary][$cash -= 150000*_PCSkillCheck, $organFarmUpgrade = 3]]
@@ -67,20 +67,20 @@ The Organ Farm
 <<if $organs.length > 0>>
 It is currently working on the following organs:
 	<<for $i = 0; $i < $organs.length; $i++>>
-		<<for $j = 0; $j < $slaves.length; $j++>>
-			<<if $slaves[$j].ID == $organs[$i].ID>>
-				<br>
-				$slaves[$j].slaveName's $organs[$i].type,
-				<<if $organFarmUpgrade == 1>>
-					<<print $organs[$i].weeksToCompletion>>
-				<<elseif $organFarmUpgrade == 2>>
-					<<print Math.ceil($organs[$i].weeksToCompletion/2)>>
-				<<elseif $organFarmUpgrade == 3>>
-					<<print Math.ceil($organs[$i].weeksToCompletion/4)>>
-				<</if>> weeks from completion.
-				<<break>>
-			<</if>>
-		<</for>>
+		<<set $j = $slaveIndices[$organs[$i].ID]>>
+		<<if def $j>>
+			<br>
+			$slaves[$j].slaveName's $organs[$i].type,
+			<<if $organFarmUpgrade == 1>>
+				<<print $organs[$i].weeksToCompletion>>
+			<<elseif $organFarmUpgrade == 2>>
+				<<print Math.ceil($organs[$i].weeksToCompletion/2)>>
+			<<elseif $organFarmUpgrade == 3>>
+				<<print Math.ceil($organs[$i].weeksToCompletion/4)>>
+			<</if>> weeks from completion.
+		<<else>>
+			@@.red;Error: organID not found.@@
+		<</if>>
 	<</for>>
 	<br>
 <</if>>
@@ -111,12 +111,12 @@ It is currently working on the following organs:
 	<br>
 	Currently the following organs are completed and ready for implantation:
 	<<for $i = 0; $i < $completedOrgans.length; $i++>>
-		<<for $j = 0; $j < $slaves.length; $j++>>
-			<<if $slaves[$j].ID == $completedOrgans[$i].ID>>
-				<br>$slaves[$j].slaveName's $completedOrgans[$i].type.
-				<<break>>
-			<</if>>
-		<</for>>
+		<<set $j = $slaveIndices[$completedOrgans[$i].ID]>>
+		<<if def $j>>
+			<br>$slaves[$j].slaveName's $completedOrgans[$i].type.
+		<<else>>
+			@@.red;Error: completedOrganID not found.@@
+		<</if>>
 	<</for>>
 	<br>
 <</if>>
@@ -341,7 +341,7 @@ Pharmacological Upgrades
 <<if ($aphrodisiacUpgradeRefine == 0) && ($rep > 6000*_PCSkillCheck)>>
 	[[Purchase data on refined aphrodisiacs|Dispensary][$cash -= 20000*_PCSkillCheck, $aphrodisiacUpgradeRefine = 1]]
 	//Costs <<print cashFormat(20000*_PCSkillCheck)>>//
-	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will prevent most physical side effects of aphrodisiacs. Once the formulas are changed they can not be changed back.//
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will prevent most physical side effects of aphrodisiacs. Once the formulas are changed they cannot be changed back.//
 	<br>
 <<elseif ($aphrodisiacUpgradeRefine == 1)>>
 	The fabricator is producing refined aphrodisiacs with limited hormonal effects.
@@ -439,9 +439,9 @@ Implant Production
 <</if>>
 
 <<if ($ImplantProductionUpgrade == 0) && ($rep > 2000*_PCSkillCheck)>>
-    [[Upgrade the fabricator with an experimental implant manufacturer|Dispensary][$cash -= 20000*_PCSkillCheck, $ImplantProductionUpgrade = 1]]
+	[[Upgrade the fabricator with an experimental implant manufacturer|Dispensary][$cash -= 20000*_PCSkillCheck, $ImplantProductionUpgrade = 1]]
 	//Costs <<print cashFormat(20000*_PCSkillCheck)>>//
-    <br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of special implants using the autosurgery.//
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;//Will allow the fabrication of special implants using the autosurgery.//
 	<br>
 <<elseif ($ImplantProductionUpgrade > 0)>>
 	The fabricator is capable of crafting special implants.
@@ -449,7 +449,7 @@ Implant Production
 <</if>>
 
 <<if $ImplantProductionUpgrade == 1 && $seeHyperPreg == 1 && $seeExtreme == 1 && $seePreg != 0>>
-	<<if ($permaPregImplant == 0) and ($rep <= 4000*_PCSkillCheck)>>
+	<<if ($permaPregImplant == 0) && ($rep <= 4000*_PCSkillCheck)>>
 		//You lack the reputation to access experimental pregnancy generator schematics//
 		<br>
 	<</if>>
@@ -552,8 +552,8 @@ Future Societies Research
 <</if>>
 <</if>>
 
-<<if ($ImplantProductionUpgrade == 1) and ($arcologies[0].FSTransformationFetishistDecoration >= 100)>>
-	<<if ($arcologies[0].FSTransformationFetishistResearch == 0) and ($rep <= 5000*_PCSkillCheck)>>
+<<if ($ImplantProductionUpgrade == 1) && ($arcologies[0].FSTransformationFetishistDecoration >= 100)>>
+	<<if ($arcologies[0].FSTransformationFetishistResearch == 0) && ($rep <= 5000*_PCSkillCheck)>>
 		//You lack the reputation to access experimental gigantic implants and elasticizing filler.//
 		<br>
 	<<elseif ($arcologies[0].FSTransformationFetishistResearch == 0)>>
@@ -648,9 +648,11 @@ Future Societies Research
 	<<else>>
 		The fabricator has been upgraded to manufacture tasty, extremely addictive, solid slave food in various familiar shapes and flavors. While they look and taste like real food, their consistency is all wrong. Slaves gorging on them are likely to experience steady weight gain.<<if $arcologies[0].FSDegradationist != "unset">> Since your slaves don't deserve luxuries, all food crafted will cause severe stomach cramps minutes after ingestion. Coupled with their addictive nature, it ought to be quite torturous.<</if>>
 		<<if $arcologies[0].FSSlimnessEnthusiast > 50 && $arcologies[0].FSHedonisticDecadenceDietResearch == 0>>
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;
 			[[Purchase diet recipes|Dispensary][$cash -= 10000*_PCSkillCheck,$arcologies[0].FSHedonisticDecadenceDietResearch = 1]]
 			//Costs <<print cashFormat(10000*_PCSkillCheck)>>//
-			<br>&nbsp;&nbsp;&nbsp;&nbsp;Will prevent rampant weight gain from ruining your slim slaves.
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;
+			Will prevent rampant weight gain from ruining your slim slaves.
 			<br>
 		<<elseif $arcologies[0].FSHedonisticDecadenceDietResearch == 1>>
 			A diet recipe is being utilized to prevent unwanted weight gain.
@@ -659,17 +661,23 @@ Future Societies Research
 	<</if>>
 <<elseif $arcologies[0].FSHedonisticDecadenceResearch == 1>>
 	The fabricator has been upgraded to manufacture tasty, extremely addictive, solid slave food in various familiar shapes and flavors. While they look and taste like real food, their consistency is all wrong. Slaves gorging on them are likely to experience steady weight gain.<<if $arcologies[0].FSDegradationist != "unset">> Since your slaves don't deserve luxuries, all food crafted will cause severe stomach cramps minutes after ingestion. Coupled with their addictive nature, it ought to be quite torturous.<</if>>
-	<<if $arcologies[0].FSSlimnessEnthusiast > 50 && $arcologies[0].FSHedonisticDecadenceDietResearch == 0>>
+	<<if $arcologies[0].FSHedonisticDecadenceDietResearch == 0>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;
 		[[Purchase diet recipes|Dispensary][$cash -= 10000*_PCSkillCheck,$arcologies[0].FSHedonisticDecadenceDietResearch = 1]]
 		//Costs <<print cashFormat(10000*_PCSkillCheck)>>//
-		<br>&nbsp;&nbsp;&nbsp;&nbsp;Will prevent rampant weight gain from ruining your slim slaves.
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		Will prevent rampant unwanted weight gain from ruining your <<if $arcologies[0].FSSlimnessEnthusiast > 20>>slim <</if>>slaves.
 		<br>
 	<<elseif $arcologies[0].FSHedonisticDecadenceDietResearch == 1>>
 		A diet recipe is being utilized to prevent unwanted weight gain.
 		<br>
 	<</if>>
+	&nbsp;&nbsp;&nbsp;&nbsp;
+	<<link "Cancel solid slave food production" "Dispensary">><<set $arcologies[0].FSHedonisticDecadenceResearch = 0>><<set $merchantFSWares.push("HedonisticDecadenceResearch")>><</link>>
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	Will //completely// remove this research.
+	<br>
 <<else>>
 	// Hedonistic Decadence focused research unavailable. //
 	<br>
 <</if>>
-

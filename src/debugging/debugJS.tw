@@ -1,0 +1,70 @@
+:: DebugJS [script]
+
+/*
+Given an object, this will return an array where for each property of the original object, we include the object
+{variable: property, oldVal: _oldDiff.property, newVal: _newDiff.property}
+*/
+window.generateDiffArray = function generateDiffArray(obj) {
+	var diffArray = Object.keys(obj).map(function(key) {
+		return {variable: key, oldVal: State.temporary.oldDiff[key], newVal: State.temporary.newDiff[key]};
+	});
+	return diffArray;
+};
+
+/* 
+Shamelessly copied from https://codereview.stackexchange.com/a/11580
+Finds and returns the difference between two objects. Potentially will have arbitrary nestings of objects.
+*/
+window.difference = function difference(o1, o2) {
+	var k, kDiff, diff = {};
+	for (k in o1) {
+		if (!o1.hasOwnProperty(k)) {
+		} else if (typeof o1[k] != 'object' || typeof o2[k] != 'object') {
+			if (!(k in o2) || o1[k] !== o2[k]) {
+				diff[k] = o2[k];
+			}
+		} else if (kDiff = difference(o1[k], o2[k])) {
+			diff[k] = kDiff;
+		}
+	}
+	for (k in o2) {
+		if (o2.hasOwnProperty(k) && !(k in o1)) {
+			diff[k] = o2[k];
+		}
+	}
+	for (k in diff) {
+		if (diff.hasOwnProperty(k)) {
+			return diff;
+		}
+	}
+	return false;
+};
+
+/* 
+Shamelessly copied from https://stackoverflow.com/a/19101235
+Flattens an object while concatenating property names. 
+For example {id: {number: 4, name: "A"}} --> {id.number: 4, id.name: "A"}
+*/
+window.diffFlatten = function diffFlatten(data) {
+	var result = {};
+	function recurse (cur, prop) {
+		if (Object(cur) !== cur) {
+			result[prop] = cur;
+		} else if (Array.isArray(cur)) {
+			for(var i=0, l=cur.length; i<l; i++)
+				recurse(cur[i], prop + "[" + i + "]");
+			if (l == 0)
+				result[prop] = [];
+		} else {
+			var isEmpty = true;
+			for (var p in cur) {
+				isEmpty = false;
+				recurse(cur[p], prop ? prop+"."+p : p);
+			}
+			if (isEmpty && prop)
+				result[prop] = {};
+		}
+	}
+	recurse(data, "");
+	return result;
+};

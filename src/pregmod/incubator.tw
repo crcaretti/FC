@@ -31,21 +31,63 @@ $incubatorNameCaps is a clean, cold hall designed to be lined with tanks and the
 
 <br><br>
 Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $incubator tanks, <<print $freeTanks>> <<if $freeTanks == 1>>is<<else>>are<</if>> unoccupied. Of those, $reservedChildren <<if $reservedChildren == 1>>tank is<<else>>tanks are<</if>> reserved.
+/*
+**  With hundreds of slaves, navigating the Incubator room was giving me as much of a headache as other lists.
+**  So, I borrowed the sorting list and dropped a few options here.
+*/
+<<if (0 < _SL)>>
+        <<set $sortIncubatorList = $sortIncubatorList || 'Unsorted'>>
+        <br/>//Sorting:// ''<span id="qlIncubatorSort">$sortIncubatorList</span>.''
+        <<link "Sort by Name">>
+                <<set $sortIncubatorList = 'Name'>>
+                <<replace "#qlIncubatorSort">>$sortIncubatorList<</replace>>
+                <<script>>
+                        sortIncubatorPossiblesByName();
+                <</script>>
+        <</link>> |
+        <<link "Sort by Reserved Incubator Spots">>
+                <<set $sortIncubatorList = 'Reserved Incubator Spots'>>
+                <<replace "#qlIncubatorSort">>$sortIncubatorList<</replace>>
+                <<script>>
+                        sortIncubatorPossiblesByReservedSpots();
+                <</script>>
+        <</link>> |
+        <<link "Sort by Pregnancy Week">>
+                <<set $sortIncubatorList = 'Pregnancy Week'>>
+                <<replace "#qlIncubatorSort">>$sortIncubatorList<</replace>>
+                <<script>>
+                        sortIncubatorPossiblesByPregnancyWeek();
+                <</script>>
+        <</link>> |
+        <<link "Sort by Number of Children">>
+                <<set $sortIncubatorList = 'Number of Children'>>
+                <<replace "#qlIncubatorSort">>$sortIncubatorList<</replace>>
+                <<script>>
+                        sortIncubatorPossiblesByPregnancyCount();
+                <</script>>
+        <</link>>
+        <br/>
+<</if>>
+<div id="qlIncubator">
 <<for _u = 0; _u < _SL; _u++>>
 	<<if $slaves[_u].preg > 0 && $slaves[_u].broodmother == 0 && $slaves[_u].pregKnown == 1 && $slaves[_u].eggType == "human">>
 	<<if $slaves[_u].assignment == "work in the dairy" && $dairyPregSetting > 0>>
 	<<else>>
-		<br><<print "[[$slaves[" + _u + "].slaveName|Long Slave Description][$activeSlave = $slaves[" + _u + "], $nextLink = passage()]]">> is $slaves[_u].pregWeek weeks pregnant with
+		<<set _slaveId = "slave-" + $slaves[_u].ID>>
+		<<set _pregCount = $slaves[_u].pregType>>
+		<<set _reservedSpots = $slaves[_u].reservedChildren>>
+		<<set _pregWeek = $slaves[_u].pregWeek>>
+		<<set _slaveName = getSlaveDisplayName($slaves[_u])>>
+		<div class="possible" @id="_slaveId" @data-preg-count="_pregCount" @data-reserved-spots="_reservedSpots" @data-preg-week="_pregWeek" @data-name="_slaveName">
+		<<print "[[_slaveName|Long Slave Description][$activeSlave = $slaves[" + _u + "], $nextLink = passage()]]">> is $slaves[_u].pregWeek weeks pregnant with
 		<<if $slaves[_u].pregSource == 0 || $slaves[_u].preg <= 5>>someone's<<if $slaves[_u].preg <= 5>>, though it is too early to tell whose,<</if>>
 		<<elseif $slaves[_u].pregSource == -1>>your
 		<<elseif $slaves[_u].pregSource == -2>>a citizen's
 		<<else>>
-			<<for _t = 0; _t < _SL; _t++>>
-				<<if $slaves[_u].pregSource == $slaves[_t].ID>>
-					<<print $slaves[_t].slaveName>>'s
-					<<break>>
-				<</if>>
-			<</for>>
+			<<set _t = $slaveIndices[$slaves[_u].pregSource]>>
+			<<if def _t>>
+				<<print $slaves[_t].slaveName>>'s
+			<</if>>
 		<</if>>
 		<<if $slaves[_u].pregType > 1>>$slaves[_u].pregType babies<<else>>baby<</if>>.
 		<<if $slaves[_u].reservedChildren > 0>>
@@ -90,9 +132,14 @@ Reserve an eligible mother-to-be's child to be placed in a tank upon birth. Of $
 			You have @@.red;no room for her offspring.@@
 		<</if>>
 		<<set _eligibility = 1>>
+		</div>
 	<</if>>
 	<</if>>
 <</for>>
+</div>
+<<script>>
+        $('div#qlIncubator').ready(sortIncubatorPossiblesByPreviousSort);
+<</script>>
 <<if _eligibility == 0>>
 	<br>
 	//You have no pregnant slaves bearing eligible children.//
@@ -281,7 +328,7 @@ Target age for release: <<textbox "$targetAge" $targetAge "Incubator">> [[Minimu
 			<</if>>
 			while her rear will be
 			<<if $tanks[$i].butt <= 3>>
-				an healthy size.
+				a healthy size.
 			<<elseif $tanks[$i].butt <= 6>>
 				quite impressive.
 			<<elseif $tanks[$i].butt <= 9>>

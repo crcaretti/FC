@@ -134,20 +134,43 @@ $brothelNameCaps
 	$Madam.slaveName is alone in $brothelName, and has nothing to do but keep the place clean and plan future sales efforts.
 <<else>>
 	$brothelNameCaps is empty and desolate.
-	<<link "Decommission the brothel">>
-		<<set $brothel = 0, $brothelUpgradeDrugs = 0, $brothelDecoration = "standard">>
-		<<for _i = 0; _i < $sectors.length; _i++>>
-		<<if $sectors[_i].type == "Brothel">>
-			<<set $sectors[_i].type = "Shops">><<break>>
+	<<link "Decommission the brothel" "Main">>
+		<<set $brothel = 0, $brothelUpgradeDrugs = 0, $brothelDecoration = "standard", $brothelAdsSpending = 0>>
+		<<set _broth = $sectors.findIndex(function(s) { return s.type == "Brothel"; })>>
+		<<if _broth != -1>>
+			<<set $sectors[_broth].type = "Shops">>
 		<</if>>
-		<</for>>
-		<<goto "Main">>
 	<</link>>
 <</if>>
 
+<<if $brothelSlaves > 0>>
+	<<if $Madam != 0>><<set _X = 1>><<else>><<set _X = 0>><</if>>
+	<<set _NewPop = $brothelSlaves+$dormitoryPopulation+_X>>
+	<<link "Remove all slaves" "Brothel">>
+		<<if $Madam != 0>>
+			<<assignJob $Madam "rest">>
+		<</if>>
+		<<for $brothelSlaves > 0>>
+			<<assignJob $slaves[$slaveIndices[$BrothiIDs[0]]] "whore">>
+		<</for>>
+	<</link>>
+	<<if _NewPop > $dormitory>>
+		@@.red;Dormitory capacity will be exceeded.@@
+	<</if>>
+<</if>>
+
 <<set _Tmult0 = Math.trunc($brothel*1000*$upgradeMultiplierArcology)>>
-<br>It can support $brothel whores. Currently $brothelSlaves whore<<if $brothelSlaves == 1>>s<</if>> at $brothelNameCaps.
+<br>It can support $brothel whores. Currently there <<if $brothelSlaves == 1>>is<<else>>are<</if>> $brothelSlaves whore<<if $brothelSlaves != 1>>s<</if>> at $brothelNameCaps.
 [[Expand the brothel|Brothel][$cash -= _Tmult0, $brothel += 5, $PC.engineering += .1]] //Costs <<print cashFormat(_Tmult0)>> and will increase upkeep costs//
+
+<<if $Madam != 0>>
+	<br>
+	<<if $MadamIgnoresFlaws != 1>>
+		$Madam.slaveName will attempt to fix flaws in whores serving under her. [[Ignore flaws|Brothel][$MadamIgnoresFlaws = 1]]
+	<<else>>
+		$Madam.slaveName has been instructed to ignore flaws in the whores serving under her. [[Fix flaws|Brothel][$MadamIgnoresFlaws = 0]]
+	<</if>>
+<</if>>
 
 <br>
 <<if $brothelUpgradeDrugs == 1>>
@@ -167,7 +190,7 @@ $brothelNameCaps
 <<else>>
 	not being advertised.
 <</if>>
-<<link "Manage brothel advertisements">><<set $nextLink = passage(), $nextButton = "Back">><<goto "Brothel Advertisement">><</link>>
+<<link "Manage brothel advertisements" "Brothel Advertisement">><<set $nextLink = passage(), $nextButton = "Back">><</link>>
 
 <!-- Statistics output -->
 <<BrothelStatistics 1>>
@@ -187,7 +210,7 @@ $brothelNameCaps
 	<<link "''Send a slave to $brothelName''">>
 		<<replace #ComingGoing>>
 			<<resetAssignmentFilter>>
-			<<set $Flag to 0>>
+			<<set $Flag = 0>>
 			<<include "Slave Summary">>
 		<</replace>>
 	<</link>>

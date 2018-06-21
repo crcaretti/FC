@@ -5,47 +5,8 @@
 <<set WombInit($activeSlave)>>
 <<set $activeSlave.vaginaLube = 1, $activeSlave.ovaries = 1, $activeSlave.canRecruit = 1>>
 
-<<if $activeSlaveOneTimeMaxAge > 998>>
-	<<if $pedo_mode == 1>>
-		<<set $activeSlaveOneTimeMaxAge = 18>>
-	<<else>>
-		<<set $activeSlaveOneTimeMaxAge = 42>>
-	<</if>>
-<<elseif $pedo_mode == 1 && $one_time_age_overrides_pedo_mode == 0 && $activeSlaveOneTimeMaxAge > 18>>
-	<<set $activeSlaveOneTimeMaxAge = 18>>
-<</if>>
-<<if $retirementAge < $activeSlaveOneTimeMaxAge>>
-	<<set $activeSlaveOneTimeMaxAge = ($retirementAge-1)>>
-<</if>>
-<<if $activeSlaveOneTimeMinAge < $minimumSlaveAge>>
-	<<set $activeSlaveOneTimeMinAge = $minimumSlaveAge>>
-<<elseif $pedo_mode == 1 && $one_time_age_overrides_pedo_mode == 0>>
-	<<set $activeSlaveOneTimeMinAge = $minimumSlaveAge>>
-<</if>>
-<<if $activeSlaveOneTimeMaxAge < $activeSlaveOneTimeMinAge>>
-	<<set $activeSlaveOneTimeMaxAge = $activeSlaveOneTimeMinAge>>
-<</if>>
-<<if ($activeSlaveOneTimeMaxAge >= 30) && ($arcologies[0].FSMaturityPreferentialist != "unset")>>
-	<<set $activeSlaveOneTimeMaxAge = ($activeSlaveOneTimeMaxAge + 10)>>
-<</if>>
-<<set $activeSlave.actualAge = random($activeSlaveOneTimeMinAge,$activeSlaveOneTimeMaxAge)>>
-<<set $activeSlaveOneTimeMinAge = random($activeSlaveOneTimeMinAge,$activeSlaveOneTimeMaxAge)>>
-<<if ($arcologies[0].FSYouthPreferentialist != "unset") && ($arcologies[0].FSYouthPreferentialist >= random(1,100))>>
-	<<set $activeSlave.actualAge = Math.min($activeSlave.actualAge, $activeSlaveOneTimeMinAge)>>
-<<elseif ($arcologies[0].FSMaturityPreferentialist != "unset") && ($arcologies[0].FSMaturityPreferentialist >= random(1,100))>>
-	<<set $activeSlave.actualAge = Math.max($activeSlave.actualAge, $activeSlaveOneTimeMaxAge)>>
-<</if>>
-<<if $activeSlave.actualAge >= $retirementAge>>
-	<<set $activeSlave.actualAge = ($retirementAge-2)>>
-<</if>>
-<<set $activeSlaveOneTimeMinAge = 0>>
-<<set $activeSlaveOneTimeMaxAge = 999>>
-<<set $one_time_age_overrides_pedo_mode = 0>>
-<<set $activeSlave.visualAge = $activeSlave.actualAge>>
-<<set $activeSlave.physicalAge = $activeSlave.actualAge>>
-<<set $activeSlave.ovaryAge = $activeSlave.actualAge>>
-<<set $activeSlave.age = $activeSlave.actualAge>> /*compatibility*/
-<<set $activeSlave.pubertyAgeXX = $fertilityAge>>
+<<GenerateAge $activeSlave>>
+
 <<if $activeSlave.ovaries == 1>>
 	<<if $activeSlave.physicalAge >= $activeSlave.pubertyAgeXX>>
 		<<set $activeSlave.pubertyXX = 1>>
@@ -55,16 +16,7 @@
 <<else>>
 	<<set $activeSlave.pubertyXX = 0>>
 <</if>>
-<<set $activeSlave.pubertyAgeXY = $potencyAge>>
-<<if $activeSlave.balls > 0>>
-	<<if $activeSlave.physicalAge >= $activeSlave.pubertyAgeXY>>
-		<<set $activeSlave.pubertyXY = 1>>
-	<<else>>
-		<<set $activeSlave.pubertyXY = 0>>
-	<</if>>
-<<else>>
-	<<set $activeSlave.pubertyXY = 0>>
-<</if>>
+<<set $activeSlave.pubertyXY = 0>>
 
 <<set $activeSlave.ID = $IDNumber++>>
 <<set $activeSlave.weekAcquired = $week>>
@@ -123,8 +75,8 @@
 <<set $activeSlave.fetish = either("none", "none", "none", "none", "none", "none", "none", "none", "none", "none", "none", "none", "none", "submissive", "submissive", "cumslut", "humiliation", "humiliation", "buttslut", "boobs", "pregnancy", "dom", "sadist", "masochist")>>
 
 <<set $activeSlave.behavioralFlaw = either("none", "none", "none", "arrogant", "bitchy", "odd", "hates men", "hates women", "hates women", "anorexic", "gluttonous", "devout", "liberated")>>
-<<if ($activeSlave.behavioralFlaw is "devout")>>
-	<<set $activeSlave.sexualFlaw = either("none", "repressed",  "shamefast", "apathetic", "crude", "judgemental")>>
+<<if ($activeSlave.behavioralFlaw == "devout")>>
+	<<set $activeSlave.sexualFlaw = either("none", "repressed", "shamefast", "apathetic", "crude", "judgemental")>>
 <<else>>
 	<<set $activeSlave.sexualFlaw = either("none", "none", "none", "none", "hates oral", "hates anal", "hates penetration", "repressed", "idealistic", "shamefast", "apathetic", "crude", "judgemental")>>
 <</if>>
@@ -142,36 +94,68 @@
 
 /% Begin height replacement section. %/
 /% Since we use nationality for height effects we need to initialize it now instead of later on like in vanilla Free Cities. %/
-<<if $fixedNationality == 0>>
-	<<set $activeSlave.nationality = hashChoice($nationalities)>>
-<<else>>
-	<<set $activeSlave.nationality = $fixedNationality>>
-<</if>>
-<<NationalityToRace $activeSlave>>
-/* Corporate slavegen with race selection */
-<<if passage() == "Corporate Market" && ($captureUpgradeRace != "unselected") && ($captureUpgradeRace != "none")>> 
-	<<if $captureUpgradeRace == "mixed race">>
-		<<set $activeSlave.race = "mixed race">>
+<<if $fixedRace == 0>>
+	<<if $fixedNationality == 0>>
+		<<set $activeSlave.nationality = hashChoice($nationalities)>>
 	<<else>>
-		<<set _capUpgradeCheck = setup[$captureUpgradeRace.toLowerCase().replace(/[ -]/g, '')+'Nationalities']>>
-		<<set _capUpgradeNationalities = []>>
-		<<for _u = 0; _u < _capUpgradeCheck.length; _u++>>
-			<<set _capNation = _capUpgradeCheck[_u]>>
-			<<if _capNation in $nationalities>>
-				<<set _capUpgradeNationalities.push(_capNation)>>
-			<</if>>
-		<</for>>
-		<<if _capUpgradeNationalities.length > 0>>
-			<<set $activeSlave.nationality = _capUpgradeNationalities.random(), $activeSlave.race = $captureUpgradeRace>>
+		<<set $activeSlave.nationality = $fixedNationality>>
+		<<set $fixedNationality = 0>>
+	<</if>>
+	<<NationalityToRace $activeSlave>>
+	/* Corporate slavegen with race selection */
+	<<if passage() == "Corporate Market" && ($captureUpgradeRace != "unselected") && ($captureUpgradeRace != "none")>> 
+		<<if $captureUpgradeRace == "mixed race">>
+			<<set $activeSlave.race = "mixed race">>
 		<<else>>
-			<<set $activeSlave.nationality = _capUpgradeCheck.random(), $activeSlave.race = $captureUpgradeRace>>
+			<<set _capUpgradeCheck = setup[$captureUpgradeRace.toLowerCase().replace(/[ -]/g, '')+'Nationalities']>>
+			<<set _capUpgradeNationalities = []>>
+			<<for _u = 0; _u < _capUpgradeCheck.length; _u++>>
+				<<set _capNation = _capUpgradeCheck[_u]>>
+				<<if _capNation in $nationalities>>
+					<<set _capUpgradeNationalities.push(_capNation)>>
+				<</if>>
+			<</for>>
+			<<if _capUpgradeNationalities.length > 0>>
+				<<set $activeSlave.nationality = _capUpgradeNationalities.random(), $activeSlave.race = $captureUpgradeRace>>
+			<<else>>
+				<<set $activeSlave.nationality = _capUpgradeCheck.random(), $activeSlave.race = $captureUpgradeRace>>
+			<</if>>
+		<</if>>
+		<<if $activeSlave.race != $captureUpgradeRace>>
+			<<set $activeSlave.race = $captureUpgradeRace>>
 		<</if>>
 	<</if>>
-	<<if $activeSlave.race != $captureUpgradeRace>>
-		<<set $activeSlave.race = $captureUpgradeRace>>
-	<</if>>
+	/*end Corporate slavegen with race selection */
+<<else>>
+	<<switch $fixedRace>>
+	<<case "white">>
+		<<set $activeSlave.nationality = setup.whiteNationalities.random()>>
+	<<case "asian">>
+		<<set $activeSlave.nationality = setup.asianNationalities.random()>>
+	<<case "latina">>
+		<<set $activeSlave.nationality = setup.latinaNationalities.random()>>
+	<<case "black">>
+		<<set $activeSlave.nationality = setup.blackNationalities.random()>>
+	<<case "pacific islander">>
+		<<set $activeSlave.nationality = setup.pacificislanderNationalities.random()>>
+	<<case "southern european">>
+		<<set $activeSlave.nationality = setup.southerneuropeanNationalities.random()>>
+	<<case "amerindian">>
+		<<set $activeSlave.nationality = setup.amerindianNationalities.random()>>
+	<<case "semitic">>
+		<<set $activeSlave.nationality = setup.semiticNationalities.random()>>
+	<<case "middle eastern">>
+		<<set $activeSlave.nationality = setup.middleeasternNationalities.random()>>
+	<<case "indo-aryan">>
+		<<set $activeSlave.nationality = setup.indoaryanNationalities.random()>>
+	<<case "malay">>
+		<<set $activeSlave.nationality = setup.malayNationalities.random()>>
+	<<default>>
+		<<set $activeSlave.nationality = hashChoice($nationalities)>>
+	<</switch>>
+	<<set $activeSlave.race = $fixedRace>>
+	<<set $fixedRace = 0>>
 <</if>>
-/*end Corporate slavegen with race selection */
 <<NationalityToName $activeSlave>>
 <<NationalityToAccent $activeSlave>>
 
@@ -214,7 +198,7 @@
 <<set $seed = 4+$activeSlave.intelligence+$activeSlave.intelligenceImplant>>
 <<if "American" == $activeSlave.nationality>>
 	<<set $seed += 2>>
-<<elseif ["Australian", "Austrian", "Belgian", "British", "Canadian", "Czech", "Danish", "Dutch", "Estonian", "Finnish", "French", "German", "Hungarian", "Icelandic", "Irish", "Israeli", "Italian", "Japanese", "Korean", "Lithuanian", "a New Zealander", "Norwegian", "Polish", "Portuguese", "Romanian", "Slovak", "Spanish", "Swedish", "Swiss"].includes($activeSlave.nationality)>>
+<<elseif ["Andorran", "Antiguan", "Argentinian", "Aruban", "Australian", "Austrian", "Bahamian", "Bahraini", "Barbadian", "Belarusian", "Belgian", "Bermudian", "Brazilian", "British", "Bruneian", "Bulgarian", "Canadian", "Catalan", "Chilean", "a Cook Islander", "Croatian", "Czech", "Cypriot", "Danish", "Dutch", "Emirati", "Estonian", "Finnish", "French", "German", "Greek", "Greenlandic", "Guamanian", "Hungarian", "Icelandic", "Irish", "Israeli", "Italian", "Japanese", "Kazakh", "Korean", "Kuwaiti", "Latvian", "a Liechtensteiner", "Lithuanian", "Luxembourgian", "Malaysian", "Maltese", "Mauritian", "Monégasque", "Montenegrin", "New Caledonian", "a New Zealander", "Niuean", "Norwegian", "Omani", "Palauan", "Panamanian", "Polish", "Portuguese", "Puerto Rican", "Qatari", "Romanian", "Russian", "Sammarinese", "Saudi", "Seychellois", "Singaporean", "Slovak", "Slovene", "Spanish", "Swedish", "Swiss", "Taiwanese", "Trinidadian", "Uruguayan", "Vatican"].includes($activeSlave.nationality)>>
 <<else>>
 	<<set $seed -= 2>>
 <</if>>
@@ -227,7 +211,7 @@
 	<<set $activeSlave.butt = either(1, 2, 2, 3, 3, 4, 4)>>
 	<<set $activeSlave.boobs = BoobGenerator.rollBreast(150)>>
 	<<set $activeSlave.lips = random(5,30)>>
-	<<set $activeSlave.skin = either("black", "brown", "light brown")>>
+	<<set $activeSlave.skin = either("black", "dark brown", "brown")>>
 	<<set $activeSlave.hColor = either("black", "black", "black", "brown")>>
 	<<set $activeSlave.hStyle = either("neat", "crinkled")>>
 <<case "white">>
@@ -235,23 +219,23 @@
 	<<set $activeSlave.boobs = BoobGenerator.rollBreast(50)>>
 	<<set $activeSlave.lips = random(5,25)>>
 	<<if $activeSlave.nationality == "German">>
-		<<set $activeSlave.skin = either("pale", "tanned", "fair")>>
+		<<set $activeSlave.skin = either("pale", "light", "fair")>>
 		<<set $activeSlave.eyeColor = either("blue", "blue", "blue", "brown", "green")>>
 		<<set $activeSlave.hColor = either("black", "blonde", "blonde", "blonde", "red", "brown")>>
 	<<elseif $activeSlave.nationality == "Icelandic">>
-		<<set $activeSlave.skin = either("pale", "pale", "tanned", "fair")>>
+		<<set $activeSlave.skin = either("pale", "pale", "light", "fair")>>
 		<<set $activeSlave.eyeColor = either("blue", "blue", "blue", "brown", "green")>>
 		<<set $activeSlave.hColor = either("black", "blonde", "blonde", "blonde", "red", "brown")>>
 	<<elseif $activeSlave.nationality == "Irish">>
-		<<set $activeSlave.skin = either("pale", "pale", "tanned", "fair")>>
+		<<set $activeSlave.skin = either("pale", "pale", "light", "fair")>>
 		<<set $activeSlave.eyeColor = either("blue", "brown", "green", "green", "green")>>
 		<<set $activeSlave.hColor = either("black", "blonde", "red", "red", "red", "brown")>>
 	<<elseif $activeSlave.nationality == "Scottish">>
-		<<set $activeSlave.skin = either("pale", "fair", "tanned", "fair")>>
+		<<set $activeSlave.skin = either("pale", "fair", "light", "fair")>>
 		<<set $activeSlave.eyeColor = either("blue", "brown", "brown", "green", "green", "green")>>
 		<<set $activeSlave.hColor = either("black", "black", "blonde", "red", "red", "red", "brown")>>
 	<<else>>
-		<<set $activeSlave.skin = either("pale", "tanned", "fair")>>
+		<<set $activeSlave.skin = either("pale", "light", "fair")>>
 		<<set $activeSlave.eyeColor = either("blue", "brown", "green")>>
 		<<set $activeSlave.hColor = either("black", "blonde", "red", "brown")>>
 	<</if>>
@@ -260,7 +244,7 @@
 	<<set $activeSlave.butt = either(1, 2, 2, 3, 3, 4)>>
 	<<set $activeSlave.boobs = BoobGenerator.rollBreast(0)>>
 	<<set $activeSlave.lips = random(5,25)>>
-	<<set $activeSlave.skin = either("olive", "brown", "light brown")>>
+	<<set $activeSlave.skin = either("light olive", "brown", "dark brown", "tanned", "dark olive")>>
 	<<set $activeSlave.hColor = either("black", "black", "brown", "brown")>>
 	<<set $activeSlave.hStyle = "neat">>
 <<case "indo-aryan" "malay" "pacific islander" "amerindian">>
@@ -274,14 +258,14 @@
 	<<set $activeSlave.butt = either(1, 2, 2, 3, 3)>>
 	<<set $activeSlave.boobs = BoobGenerator.rollBreast(-100)>>
 	<<set $activeSlave.lips = random(5,25)>>
-	<<set $activeSlave.skin = either("pale", "dark", "light")>>
+	<<set $activeSlave.skin = either("light olive", "dark olive", "light")>>
 	<<set $activeSlave.hColor = either("black")>>
 	<<set $activeSlave.hStyle = "neat">>
 <<case "middle eastern" "semitic" "southern european">>
 	<<set $activeSlave.butt = either(1, 2, 2, 3, 3)>>
 	<<set $activeSlave.boobs = BoobGenerator.rollBreast(0)>>
 	<<set $activeSlave.lips = random(5,25)>>
-	<<set $activeSlave.skin = either("pale", "dark", "light")>>
+	<<set $activeSlave.skin = either("fair", "light olive", "tanned", "light")>>
 	<<set $activeSlave.hColor = either("black")>>
 	<<set $activeSlave.hStyle = "neat">>
 <<default>>
@@ -463,9 +447,9 @@
 
 /%pedoshit%/
 <<if $activeSlave.physicalAge <= 11>>
-  <<set $activeSlave.hips = either(-2, -2, -1, -1, 0)>>
+	<<set $activeSlave.hips = either(-2, -2, -1, -1, 0)>>
 <<elseif $activeSlave.physicalAge <= 13>>
-  <<set $activeSlave.hips = either(-2, -1, -1, 0, 1)>>
+	<<set $activeSlave.hips = either(-2, -1, -1, 0, 1)>>
 <</if>>
 <<if $activeSlave.physicalAge <= 13>>
 	<<set $activeSlave.vagina = either(0, 0, 0, 0, 0, 0, 0, 1)>>
@@ -505,11 +489,27 @@
 	<<set $activeSlave.voice = either(2, 2, 2, 2, 2, 3, 3, 3, 3)>>
 <</if>>
 
+<<if $activeSlave.physicalAge <= 3>>
+	<<set $activeSlave.pregAdaptation = 10>>
+<<elseif $activeSlave.physicalAge <= 12>>
+	<<set $activeSlave.pregAdaptation = 20>>
+<<elseif $activeSlave.physicalAge <= 17>>
+	<<set $activeSlave.pregAdaptation = 30>>
+<</if>>
+
+<<if $activeSlave.fuckdoll > 0>>
+	<<set $activeSlave.pronoun = "it", $activeSlave.possessivePronoun = "its", $activeSlave.possessive = "its", $activeSlave.object = "it", $activeSlave.objectReflexive = "itself", $activeSlave.noun = "toy">>
+<<elseif $activeSlave.dick > 0 && $activeSlave.vagina == -1 && $diversePronouns == 1>>
+	<<set $activeSlave.pronoun = "he", $activeSlave.possessivePronoun = "his", $activeSlave.possessive = "his", $activeSlave.object = "him", $activeSlave.objectReflexive = "himself", $activeSlave.noun = "boy">>
+<<else>>
+	<<set $activeSlave.pronoun = "she", $activeSlave.possessivePronoun = "hers", $activeSlave.possessive = "her", $activeSlave.object = "her", $activeSlave.objectReflexive = "herself", $activeSlave.noun = "girl">>
+<</if>>
+
 <<if passage() == "Slave Markets" && $slaveMarket == "corporate">>
 	<<if ($captureUpgradeRace != "unselected") && ($captureUpgradeRace != "none")>>
 	<<if $activeSlave.race != $captureUpgradeRace>>
-        <<set $slaveMarket = "corporate">>
-        <<goto "Slave Markets">>
+		<<set $slaveMarket = "corporate">>
+		<<goto "Slave Markets">>
 	<</if>>
 	<</if>>
 <</if>>

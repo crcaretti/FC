@@ -1,0 +1,52 @@
+:: Debug Widgets [widget nobr]
+
+/*
+This widget will find which properties were changed in a specific passage (State.bottom.title to be precise), and display their original values and current values.
+It's somewhat awkward if a stored variable changes types to/from an object or array.
+The included "Go Back" link is intended to replace the usual NextButton.
+*/
+<<widget "displayDifferences">>
+<<set _oldVariables = clone(State.bottom.variables)>>
+<<set _newVariables = clone(State.variables)>>
+<<set _newDiff = diffFlatten(difference(_oldVariables,_newVariables))>> /* Returns a flattened object containing the names of the changed variables, and the new values of those variables. */
+<<set _oldDiff = diffFlatten(difference(_newVariables,_oldVariables))>> /* Returns a flattened object containing the names of the changed variables, and the old values of those variables. */
+<<set _diffArrayFromNew = generateDiffArray(_newDiff)>> /* This function requires the existence of the specific variables _newDiff AND _oldDiff to work. */
+<<set _diffArrayFromOld = generateDiffArray(_oldDiff)>>
+<<link "Go Back">>
+	<<script>>
+		Engine.backward(); /* Moves the save state one state backwards. */
+		State.history.splice(-1,1); /* Removes the latest save state. Necessary to allow the option of displaying the changed variables again immediately without screwing everything up. */
+		Config.history.maxStates = 1; /* Reset the max number of states so as not to explode save file sizes. */
+	<</script>>
+<</link>>
+<br>
+Differences:
+<<if _diffArrayFromNew.length > 0>>
+	<<for _i = 0; _i < _diffArrayFromNew.length; _i++>>	/* Print variable names, and changed values. Will output the new values correctly, may not output old values correctly */
+		<<if _diffArrayFromNew[_i].variable != "nextButton" && _diffArrayFromNew[_i].variable != "nextLink" && _diffArrayFromNew[_i].variable != "args">>
+			<br>&nbsp;&nbsp;&nbsp;&nbsp;Variable: <<print _diffArrayFromNew[_i].variable>>, Original Value: <<print _diffArrayFromNew[_i].oldVal>>, New Value: <<print _diffArrayFromNew[_i].newVal>>
+		<</if>>
+	<</for>><br>
+	<span id="extraInfo">
+	<<link "Show more">>
+		<<replace "#extraInfo">>
+		Alternate display:
+		<<for _i = 0; _i < _diffArrayFromOld.length; _i++>> /* Print variable names, and changed values. Will output the old values correctly, may not output new values correctly */ 
+			<<if _diffArrayFromOld[_i].variable != "nextButton" && _diffArrayFromOld[_i].variable != "nextLink" && _diffArrayFromOld[_i].variable != "args">>
+				<br>&nbsp;&nbsp;&nbsp;&nbsp;Variable: <<print _diffArrayFromOld[_i].variable>>, Original Value: <<print _diffArrayFromOld[_i].oldVal>>, New Value: <<print _diffArrayFromOld[_i].newVal>>
+			<</if>>
+		<</for>>
+		<</replace>>
+	<</link>>// This should only be necessary if a variable changes type to/from an object or array. In that case this will display the correct original value, but incorrect current value.//
+	</span><br>
+<<else>>
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;Nothing changed!<br>
+<</if>>
+<<link "Go Back">>
+	<<script>>
+		Engine.backward(); /* Moves the save state one state backwards. */
+		State.history.splice(-1,1); /* Removes the latest save state. Necessary to allow the option of displaying the changed variables again immediately without screwing everything up. */
+		Config.history.maxStates = 1; /* Reset the max number of states so as not to explode save file sizes. */
+	<</script>>
+<</link>>
+<</widget>>

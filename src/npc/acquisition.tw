@@ -2,7 +2,7 @@
 
 <<unset $slaveWithoutBonuses, $startingGirlCopied, $startingGirlRelation>>
 
-<<set $fixedNationality = 0>>
+<<set $fixedNationality = 0, $encyclopedia = " ">>
 
 <<if $saveImported == 1>><<set _valueOwed = 5000>><<else>><<set _valueOwed = 50000>><</if>>
 <<if $freshPC == 1 || $saveImported == 0>>
@@ -61,13 +61,13 @@
 <</if>> /*closes ng*/
 <<if $familyTesting == 1>>
 	<<set _pcMomFound = 0, _pcDadFound = 0>>
+	<<if def $slaveIndices[$PC.mother]>>
+		<<set _pcMomFound = 1>>
+	<</if>>
+	<<if def $slaveIndices[$PC.father]>>
+		<<set _pcDadFound = 1>>
+	<</if>>
 	<<for _i = 0; _i < $slaves.length; _i++>>
-		<<if $PC.mother > 0 && $PC.mother == $slaves[_i].ID>>
-			<<set _pcMomFound = 1>>
-		<</if>>
-		<<if $PC.father > 0 && $PC.father == $slaves[_i].ID>>
-			<<set _pcDadFound = 1>>
-		<</if>>
 		<<if $slaves[_i].mother == $PC.ID || $slaves[_i].father == $PC.ID>>
 			<<set $PC.daughters += 1>>
 		<</if>>
@@ -97,14 +97,12 @@
 	<</if>>
 	<<for _i = 0; _i < $slaves.length; _i++>>
 		<<set _slaveMomFound = 0, _slaveDadFound = 0>>
-		<<for _j = 0; _j < $slaves.length; _j++>>
-			<<if $slaves[_i].mother > 0 && $slaves[_i].mother == $slaves[_j].ID>>
-				<<set _slaveMomFound = 1>>
-			<</if>>
-			<<if $slaves[_i].father > 0 && $slaves[_i].father == $slaves[_j].ID>>
-				<<set _slaveDadFound = 1>>
-			<</if>>
-		<</for>>
+		<<if def $slaveIndices[$slaves[_i].mother]>>
+			<<set _slaveMomFound = 1>>
+		<</if>>
+		<<if def $slaveIndices[$slaves[_i].father]>>
+			<<set _slaveDadFound = 1>>
+		<</if>>
 		<<if _slaveMomFound == 0 && $slaves[_i].mother > 0>>
 			<<set _lostMom = $slaves[_i].mother>>
 			<<set $slaves[_i].mother = $missingParentID>>
@@ -133,13 +131,8 @@ You've done it.
 You arrive at your new arcology, $arcologies[0].name, and head straight to the penthouse to enter the access codes that will tell the $arcologies[0].name systems to recognize you as their owner. The penthouse office is ready to receive the codes, and they authenticate. A voice activates in your earpiece.
 <br><br>
 //Congratulations. I am a personal assistant program, and it is my pleasure to assist you,
-<<switch $PC.nationality>>
-<<case "Chinese" "Japanese" "Korean" "Cambodian" "Vietnamese" "Hungarian" "Mongolian">>
-	<<if $PC.surname>>$PC.surname <</if>>$PC.name,
-<<default>>
-	$PC.name<<if $PC.surname>> $PC.surname<</if>>,
-<</switch>>
-the new owner of  $arcologies[0].name. I will offer useful information whenever possible in italics. Your new arcology has some unusual equipment. The previous owner kept a small stable of sex slaves. The penthouse therefore has a body modification studio for tattooing, bleaching and piercing, and an auto salon for more prosaic things like hair care. It also has a remote surgery, a small surgical theater that can be operated remotely by a qualified surgeon if you can pay the fee. Finally, it has a slave nutrition system connected to the arcology's hydroponics bays. This system produces a tasty protein-rich drink that provides the physically active female body all its necessary nutrients while leaving the lower digestive tract extremely clean. It even causes a mild increase in sex drive.
+<<PlayerName>>
+the new owner of $arcologies[0].name. I will offer useful information whenever possible in italics. Your new arcology has some unusual equipment. The previous owner kept a small stable of sex slaves. The penthouse therefore has a body modification studio for tattooing, bleaching and piercing, and an auto salon for more prosaic things like hair care. It also has a remote surgery, a small surgical theater that can be operated remotely by a qualified surgeon if you can pay the fee. Finally, it has a slave nutrition system connected to the arcology's hydroponics bays. This system produces a tasty protein-rich drink that provides the physically active female body all its necessary nutrients while leaving the lower digestive tract extremely clean. It even causes a mild increase in sex drive.
 <br><br>
 The previous owner seems to have left in something of a hurry.
 <<if $cheatMode == 1>>
@@ -225,7 +218,7 @@ The previous owner seems to have left in something of a hurry.
 		<<set $activeSlave.clothes = "uncomfortable straps", $activeSlave.collar = "uncomfortable leather", $activeSlave.shoes = "flats">>
 		<<set $activeSlave.assignment = "please you">>
 	<<case "Subjugationist">>
-		<<set $fixedRace = $activeArcology.FSSubjugationistRace>><<include "Generate New Slave">><<set $fixedRace = 0>>
+		<<set $fixedRace = $activeArcology.FSSubjugationistRace>><<include "Generate New Slave">>
 		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-25,-45), $activeSlave.health = random(0,15)>>
 		<<set $activeSlave.face = random(15,100)>>
 		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = random(15,35)>>
@@ -421,7 +414,7 @@ The previous owner seems to have left in something of a hurry.
 		<<set $activeSlave.clothes = "a toga", $activeSlave.collar = "pretty jewelry", $activeSlave.shoes = "flats">>
 		<<set $activeSlave.assignment = "guard you", $Bodyguard = $activeSlave>>
 	<<case "AztecRevivalist">>
-		<<set $fixedRace = "latina">><<include "Generate New Slave">><<set $fixedRace = 0>>
+		<<set $fixedRace = "latina">><<include "Generate New Slave">>
 		<<set $activeSlave.nationality = "Mexican">>
 		<<NationalityToName $activeSlave>>
 		<<set $activeSlave.accent = 0>>
@@ -445,7 +438,7 @@ The previous owner seems to have left in something of a hurry.
 		<<set $activeSlave.clothes = "slutty jewelry", $activeSlave.collar = "ancient Egyptian", $activeSlave.shoes = "flats">>
 		<<set $activeSlave.assignment = "please you">>
 	<<case "EdoRevivalist">>
-		<<set $fixedRace = "asian">><<include "Generate New Slave">><<set $fixedRace = 0>>
+		<<set $fixedRace = "asian">><<include "Generate New Slave">>
 		<<set $activeSlave.nationality = "Japanese">>
 		<<NationalityToName $activeSlave>>
 		<<set $activeSlave.accent = 0>>
@@ -466,7 +459,7 @@ The previous owner seems to have left in something of a hurry.
 		<<set $activeSlaveOneTimeMinAge = 36>>
 		<<set $activeSlaveOneTimeMaxAge = 38>>
 		<<set $one_time_age_overrides_pedo_mode = 1>>
-		<<set $fixedRace = "asian">><<include "Generate New Slave">><<set $fixedRace = 0>>
+		<<set $fixedRace = "asian">><<include "Generate New Slave">>
 		<<set $activeSlave.nationality = "Chinese">>
 		<<NationalityToName $activeSlave>>
 		<<NationalityToAccent $activeSlave>>
@@ -616,20 +609,12 @@ The previous owner seems to have left in something of a hurry.
 <<set _slavesContributing = 0>>
 <<for $i = 0; $i < $slaves.length; $i++>>
 	<<if $slaves[$i].relation != 0>>
-	<<set $seed = 0>>
-	<<for $j = 0; $j < $slaves.length; $j++>>
-		<<if $slaves[$i].relationTarget == $slaves[$j].ID>>
-		<<if $slaves[$j].relationTarget == $slaves[$i].ID>>
-		<<set $seed = 1>>
-		<<break>>
+		<<set $seed = $slaveIndices[$slaves[$i].relationTarget]>>
+		<<if (def $seed && $slaves[$seed].relationTarget != $slaves[$i].ID) || (ndef $seed)>>
+			<<set $slaves[$i].relation = 0>>
+			<<set $slaves[$i].relationTarget = 0>>
+			<<goto "Acquisition">>
 		<</if>>
-		<</if>>
-	<</for>>
-	<<if $seed == 0>>
-		<<set $slaves[$i].relation = 0>>
-		<<set $slaves[$i].relationTarget = 0>>
-		<<goto "Acquisition">>
-	<</if>>
 	<</if>>
 	<<set $slaves[$i].oldDevotion = $slaves[$i].devotion>>
 	<<set $slaves[$i].oldTrust = $slaves[$i].trust>>

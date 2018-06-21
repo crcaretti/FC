@@ -2,7 +2,7 @@
 
 // this is a port of the FResult widget
 // it has been broken up into several functions, because it grew too long
-// it has been wrapped in a closure so as not to polute the global namespace
+// it has been wrapped in a closure so as not to pollute the global namespace
 // and so that nested functions are only evaluated once
 
 window.FResult = (function() {
@@ -28,6 +28,9 @@ window.FResult = (function() {
 		if (slave.lactation > 0)
 			V.FResult += 1;
 
+		if (slave.nipples === "fuckable")
+			calcFuckableTits(slave);
+			
 		if (V.seeAge === 1)
 			calcAge(slave);
 		if (slave.fetish === "mindbroken")
@@ -43,7 +46,7 @@ window.FResult = (function() {
 		if (V.arcologies[0].FSHedonisticDecadence > 20)
 			calcHedonismWeight(slave);
 		if (V.FResult < 2) {
-			if (supremeRaceP(slave))
+			if (supremeRaceP(slave) && V.arcologies[0].FSSupremacist > 20)
 				V.FResult = 0;
 			else
 				V.FResult = 2;
@@ -54,7 +57,7 @@ window.FResult = (function() {
 		V.FResult = (3 - slave.anus)+(slave.muscles/30);
 		if (slave.muscles < -95)
 			V.FResult -= 5;
-		else if (slave.muscle < -30)
+		else if (slave.muscles < -30)
 			V.FResult -= 2;
 
 		V.seed = V.oralUseWeight + V.vaginalUseWeight + V.analUseWeight;
@@ -77,6 +80,12 @@ window.FResult = (function() {
 		}
 	}
 
+	function calcFuckableTits(slave) {
+		V.FResult += 2;
+		if (slave.fetish === "boobs")
+			V.FResult += Math.trunc(slave.fetishStrength/20);
+	}
+
 	function calcWorksWithRelatives(slave) {
 		V.slaves.forEach(islave => {
 			if (isParentP(slave, islave) && sameAssignmentP(slave, islave)) {
@@ -91,10 +100,8 @@ window.FResult = (function() {
 	}
 
 	function calcWorksWithRelativesVanilla(slave) {
-		const fre = V.slaves.findIndex(s => {
-			return haveRelationP(slave, s) && sameAssignmentP(slave, s);
-		});
-		if (fre !== -1) {
+		const fre = getSlave(slave.relationTarget)
+		if (fre !== undefined && sameAssignmentP(slave, fre)) {
 			V.FResult += 2;
 			if (incest_bonus) V.FResult += 2;
 		}

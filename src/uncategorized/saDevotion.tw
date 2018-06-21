@@ -18,7 +18,7 @@
 		Since you are @@.mediumaquamarine;indulging@@ $slaves[$i].slaveName's desires, she @@.hotpink;likes you more.@@
 		<<set $slaves[$i].devotion += 5>>
 		<<set $slaves[$i].trust += 5>>
-	<<elseif $rivalryDuration > 20 and $slaves[$i].devotion < 5>>
+	<<elseif $rivalryDuration > 20 && $slaves[$i].devotion < 5>>
 		<<if Array.isArray($personalAttention) && $personalAttention.findIndex(function(s) { return s.ID == $slaves[$i].ID; }) != -1>>
 			You took everything from $slaves[$i].slaveName and @@.mediumorchid;she hates you for it.@@ Since you won't give her what she wants, she @@.gold;refuses to trust you.@@ Since you are putting such a personal touch into her care, she can't find it in her to rebel as strongly.
 			<<set $slaves[$i].devotion -= 5>>
@@ -28,7 +28,7 @@
 			<<set $slaves[$i].devotion -= 25>>
 			<<set $slaves[$i].trust -= 25>>
 		<</if>>
-	<<elseif $rivalryDuration > 10 and $slaves[$i].devotion < 5>>
+	<<elseif $rivalryDuration > 10 && $slaves[$i].devotion < 5>>
 		<<if Array.isArray($personalAttention) && $personalAttention.findIndex(function(s) { return s.ID == $slaves[$i].ID; }) != -1>>
 			She is @@.gold;horrified by you.@@ Your rival taught her a great deal about slave life in your arcology and indulged her deepest fantasies. $slaves[$i].slaveName considers being your pet @@.mediumorchid;a fate worse than death.@@ Since you are putting such a personal touch into her care, maybe you aren't the monster she thought you were. She can't find it in her to hate and fear you as much.
 			<<set $slaves[$i].devotion -= 3>>
@@ -41,35 +41,10 @@
 	<</if>>
 <</if>>
 
-<<if $PC.preg >= 20>>
+<<if $PC.preg >= 20 || ($PC.preg >= 16 && $PC.career == "escort")>>
 	<<if $slaves[$i].devotion > 60>>
 		<<if $PC.pregMood == 2>>
 			She is devoted to you and does her best to satisfy your demanding, hormone driven libido, no matter what you want from her. Her efforts to give herself you to @@.hotpink;further her submission@@ to you.
-			<<set $slaves[$i].devotion += 2>>
-		<<elseif $PC.pregMood == 1>>
-			She is devoted to you and tries her best to accommodate your needs and desires. Your hormonal mothering @@.mediumaquamarine;leaves her slightly more trusting@@ of you.
-			<<set $slaves[$i].trust += 2>>
-		<<else>>
-			She is devoted to you and tries her best to accommodate your needs and desires.
-		<</if>>
-	<<else>>
-		<<if $PC.pregMood == 2>>
-			She is @@.gold;horrified@@ of your aggressive sexual advances, forcing her @@.hotpink;bend to your will@@ or face punishment at the hands of a hormonal pregnant woman.
-			<<set $slaves[$i].devotion += 4>>
-			<<set $slaves[$i].trust -= 4>>
-		<<elseif $PC.pregMood == 1>>
-			She happily @@.mediumorchid;takes advantage@@ of your hormone induced kindness, though your care @@.mediumaquamarine;builds her trust in you.@@
-			<<set $slaves[$i].devotion -= 4>>
-			<<set $slaves[$i].trust += 4>>
-		<<else>>
-			She takes note of your gravid form and @@.mediumorchid;begins testing just how much she can get away with@@ while she can.
-			<<set $slaves[$i].devotion -= 3>>
-		<</if>>
-	<</if>>
-<<elseif $PC.preg >= 16 && $PC.career == "escort">>
-	<<if $slaves[$i].devotion > 60>>
-		<<if $PC.pregMood == 2>>
-			She is devoted to you and does her best to satisfy your demanding, hormonal driven libido, no matter what you want from her. Her efforts to give herself you to @@.hotpink;further her submission@@ to you.
 			<<set $slaves[$i].devotion += 2>>
 		<<elseif $PC.pregMood == 1>>
 			She is devoted to you and tries her best to accommodate your needs and desires. Your hormonal mothering @@.mediumaquamarine;leaves her slightly more trusting@@ of you.
@@ -199,6 +174,25 @@
 	<<if $nicaeaFocus == "slaves">>
 		The creed of $nicaeaName @@.hotpink;focuses on slaves@@ and is repeated constantly all around her.
 		<<set $slaves[$i].devotion += $nicaeaPower>>
+	<</if>>
+<</if>>
+
+/* Body lost effects */
+
+<<if $slaves[$i].bodySwap > 0 && $slaves[$i].origBodyOwnerID > 0>>
+	<<if ndef $slaveIndices[$slaves[$i].origBodyOwnerID]>>
+		<<set $slaves[$i].origBodyOwnerID = 0>>
+		<<if $slaves[$i].fetish != "mindbroken" && $slaves[$i].fuckdoll == 0>>
+			<<if $slaves[$i].devotion > 20>>
+				$slaves[$i].slaveName is somewhat saddened to see her body leave forever.
+			<<elseif  $slaves[$i].devotion >= -50>>
+				$slaves[$i].slaveName is @@.mediumorchid;disturbed@@ to find her body is gone for good, damaging her @@.gold;ability to trust you.@@
+				<<set $slaves[$i].devotion -= 30, $slaves[$i].trust -= 30>>
+			<<else>>
+				$slaves[$i].slaveName is @@.mediumorchid;deeply upset@@ that she'll never see her body again. With so little left, she finds it easy to take vengeance by @@.orangered;completely rejecting your ownership of her.@@
+				<<set $slaves[$i].devotion -= 50, $slaves[$i].trust = 100>>
+			<</if>>
+		<</if>>
 	<</if>>
 <</if>>
 
@@ -474,7 +468,7 @@
 	<</if>>
 <</if>>
 <<if $KillsMilestoneRetirement == 1>>
-	<<if $slaves[$i].pitkills >= $retirementKills*0.6>>
+	<<if $slaves[$i].pitKills >= $retirementKills*0.6>>
 	<<if $slaves[$i].devotion >= -20>>
 		She's @@.hotpink;more obedient@@ and @@.mediumaquamarine;more tolerant,@@
 		<<set $slaves[$i].devotion += 1>>
@@ -676,13 +670,13 @@
 /* CAPS ON DEVOTION GAIN */
 
 <<if $slaves[$i].tankBaby == 1>>
-	The incubation facility conditioned her mind for total subservience to her owner; she can not resist her progress.
+	The incubation facility conditioned her mind for total subservience to her owner; she cannot resist her progress.
 <<elseif $slaves[$i].tankBaby == 2>>
-	The incubation facility conditioned her mind for total reverence of her owner; she can not resist her progress.
+	The incubation facility conditioned her mind for total reverence of her owner; she cannot resist her progress.
 <<elseif $slaves[$i].devotion >= -20>>
 	<<if $slaves[$i].devotion >= ($slaves[$i].oldDevotion+5)>>
 		<<if $slaves[$i].tankBaby == 1>>
-			The incubation facility conditioned her mind for total subservience to her owner; she can not resist her progress.
+			The incubation facility conditioned her mind for total subservience to her owner; she cannot resist her progress.
 		<<elseif $arcologies[0].FSChattelReligionist >= random(1,100)>>
 			The natural resilience of her mind is overcome by the omnipresent combination of faith and servitude in $arcologies[0].name, and she does not resist her progress down the path towards total subservience.
 		<<elseif Array.isArray($personalAttention) && $personalAttention.findIndex(function(s) { return s.ID == $slaves[$i].ID; }) != -1>>
@@ -695,7 +689,7 @@
 <<else>>
 	<<if $slaves[$i].devotion >= ($slaves[$i].oldDevotion+5)>>
 	<<if $slaves[$i].tankBaby == 1>>
-		The incubation facility conditioned her mind for total subservience to her owner; she can not resist her progress.
+		The incubation facility conditioned her mind for total subservience to her owner; she cannot resist her progress.
 	<<elseif $slaves[$i].behavioralFlaw == "arrogant">>
 		Though she made progress this week, @@.mediumorchid;it is limited by her arrogance.@@
 		<<set $slaves[$i].devotion = ($slaves[$i].oldDevotion+5)>>
@@ -717,7 +711,7 @@
 <<if $slaves[$i].trust > -20>>
 	<<if $slaves[$i].trust >= ($slaves[$i].oldTrust+5)>>
 		<<if $slaves[$i].tankBaby == 1>>
-			Any natural doubts she has are overcome by her conditioning in the incubation facilty; she can not resist trusting her owner.
+			Any natural doubts she has are overcome by her conditioning in the incubation facility; she cannot resist trusting her owner.
 		<<elseif $arcologies[0].FSChattelReligionist >= random(1,100)>>
 			Any natural doubts she harbors are overcome by her belief in Chattel Religionism, and she does not resist her progress down the path towards total trust in you.
 		<<elseif Array.isArray($personalAttention) && $personalAttention.findIndex(function(s) { return s.ID == $slaves[$i].ID; }) != -1>>
@@ -730,7 +724,7 @@
 <<else>>
 	<<if $slaves[$i].trust >= ($slaves[$i].oldTrust+5)>>
 	<<if $slaves[$i].tankBaby == 1>>
-		Any natural doubts she has are overcome by her conditioning in the incubation facility; she can not resist trusting her owner.
+		Any natural doubts she has are overcome by her conditioning in the incubation facility; she cannot resist trusting her owner.
 	<<elseif ($slaves[$i].behavioralFlaw == "odd") && ($slaves[$i].collar != "shock punishment")>>
 		Though she made progress this week, @@.gold;it is limited by her preoccupation with her own oddities.@@
 		<<set $slaves[$i].trust = ($slaves[$i].oldTrust+5)>>
@@ -763,6 +757,9 @@
 	<<if ($slaves[$i].trust > 100)>>
 		<<if $slaves[$i].devotion < 100 && $slaves[$i].devotion >= 20>>
 			<<set $slaves[$i].devotion += Math.trunc($slaves[$i].trust-100)>>
+		<<elseif $slaves[$i].devotion <= -50>>
+			Her blatant disregard for your rule @@.red;damages your reputation.@@
+			<<set $repGain -= 30*($slaves[$i].trust-100)>>
 		<<elseif $slaves[$i].energy <= 50>>
 			<<set $energyPlus += Math.trunc($slaves[$i].trust-100)>>
 		<<else>>
