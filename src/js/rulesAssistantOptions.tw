@@ -182,7 +182,7 @@ window.rulesAssistantOptions = (function() {
 				value.classList.add("rajs-value"); // 
 				// call the variable binding when the input field is no longer being edited, and when the enter key is pressed
 				value.onfocusout = () => { this.inputEdited(); };
-				value.onblur = () => {this.inputEdited(); }
+				value.onblur = () => {this.inputEdited(); };
 				value.onkeypress = (e) => { if (returnP(e)) this.inputEdited(); };
 			} else {
 				value = document.createElement("strong");
@@ -527,6 +527,9 @@ window.rulesAssistantOptions = (function() {
 				["Pregnancy Multiples", "pregType"],
 				["Belly Implant", "bellyImplant"],
 				["Belly Size", "belly"],
+				["Education", "intelligenceImplant"],
+				["Intelligence", "intelligence"],
+				["Fetish", "fetish"],
 			];
 			this.fnlist = new List("Activation function", items);
 			this.fnlist.setValue(current_rule.condition.function === "between" ? current_rule.condition.data.attribute : current_rule.condition.function);
@@ -541,10 +544,40 @@ window.rulesAssistantOptions = (function() {
 				case "custom":
 					this.show_custom_editor(CustomEditor, current_rule.condition.data);
 					break;
-				default:
+				case "between":
 					this.show_custom_editor(RangeEditor, current_rule.condition.function, current_rule.condition.data);
 					break;
+				case "belongs":
+					this.show_custom_editor(ItemEditor, current_rule.condition.function, current_rule.condition.data);
+					break;
 			}
+		}
+
+		betweenP(attribute) {
+			return [
+				"devotion",
+				"trust",
+				"health",
+				"energy",
+				"weight",
+				"actualAge",
+				"physicalAge",
+				"visualAge",
+				"muscles",
+				"lactation",
+				"preg",
+				"pregType",
+				"bellyImplant",
+				"belly",
+				"intelligenceImplant",
+				"intelligence",
+			].includes(attribute);
+		}
+
+		belongsP(attribute) {
+			return [
+				"fetish",
+			].includes(attribute);
 		}
 
 		show_custom_editor(what, ...args) {
@@ -570,27 +603,22 @@ window.rulesAssistantOptions = (function() {
 				this.fneditor.element.remove();
 				this.fneditor = null;
 			}
-			switch(value) {
-				case true:
-					current_rule.condition.function = true;
-					current_rule.condition.data = {};
-					this.hide_custom_editor();
-					break;
-				case false:
-					current_rule.condition.function = false;
-					current_rule.condition.data = {};
-					this.hide_custom_editor();
-					break;
-				case "custom":
-					current_rule.condition.function = "custom";
-					current_rule.condition.data = "";
-					this.show_custom_editor(CustomEditor, current_rule.condition.data);
-					break;
-				default:
-					current_rule.condition.function = "between";
-					current_rule.condition.data = { attribute: value, value: [null, null] };
-					this.show_custom_editor(RangeEditor, current_rule.condition.function, current_rule.condition.data);
-					break;
+			if (value === true || value === false) {
+				current_rule.condition.function = value;
+				current_rule.condition.data = {};
+				this.hide_custom_editor();
+			} else if (value === "custom") {
+				current_rule.condition.function = "custom";
+				current_rule.condition.data = "";
+				this.show_custom_editor(CustomEditor, current_rule.condition.data);
+			} else if (this.betweenP(value)) {
+				current_rule.condition.function = "between";
+				current_rule.condition.data = { attribute: value, value: [null, null] };
+				this.show_custom_editor(RangeEditor, current_rule.condition.function, current_rule.condition.data);
+			} else if (this.belongsP(value)) {
+				current_rule.condition.function = "belongs";
+				current_rule.condition.data = { attribute: value, value: [] };
+				this.show_custom_editor(ItemEditor, current_rule.condition.function, current_rule.condition.data);
 			}
 		}
 	}
@@ -678,9 +706,48 @@ window.rulesAssistantOptions = (function() {
 				"pregType": "Fetus count, known only after the 10th week of pregnancy",
 				"bellyImplant": "Volume in CCs. None: -1",
 				"belly": "Volume in CCs, any source",
-			}[attribute] || " ")
+				"intelligenceImplant": "Education level. 0: uneducated, 1: educated, (0, 1): incomplete education.",
+				"intelligence": "From moronic to brilliant: [-3, 3]",
+			}[attribute] || " ");
 		}
 	}
+
+	class ItemEditor extends Element {
+		render(fn, data) {
+			const elem = document.createElement("div");
+
+			const input = document.createElement("input");
+			input.setAttribute("type", "text");
+			input.value = JSON.stringify(data.value);
+			input.onkeypress = e => { if (returnP(e)) this.setValue(input); };
+			input.onfocusout = e => this.setValue(input);
+			this.input = input;
+			elem.appendChild(input);
+
+			const infobar = document.createElement("div");
+			infobar.innerHTML = this.info(data.attribute);
+			elem.appendChild(infobar);
+
+			return elem;
+		}
+
+		info(attribute) {
+			return "Insert a valid JSON array. Known values: " + {
+				"fetish": "buttslut, cumslut, masochist, sadist, dom, submissive, boobs, pregnancy, none (AKA vanilla)",
+			}[attribute];
+		}
+		
+		setValue(input) {
+			try {
+				const arr = JSON.parse(input.value);
+				current_rule.condition.data.value = arr;
+				input.value = JSON.stringify(arr);
+			} catch (e) {
+				alert(e);
+			}
+		}
+	}
+
 
 	class AssignmentInclusion extends ButtonList {
 		constructor() {
