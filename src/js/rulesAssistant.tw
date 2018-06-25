@@ -60,7 +60,7 @@ window.CheckAutoRulesActivate = function CheckAutoRulesActivate(slave) {
 		if (applies) {
 			if (!ruleApplied(slave, rule)) {
 				slave.currentRules.push(rule.ID);
-				r += `<br><span class="tan">Rule ${rule.ID} (${rule.name}) now applies to ${slave.slaveName}, who is assigned to ${slave.assignment}</span>\n`;
+				r += `<br><span class="tan">Rule "${rule.name}" now applies to ${slave.slaveName}, who is assigned to ${slave.assignment}.</span>\n`;
 			}
 		} else if (ruleApplied(slave, rule))
 			r += RARemoveRule(slave, rule);
@@ -306,6 +306,7 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 			surgery_holes: "no default setting",
 			surgery_hair: "no default setting",
 			surgery_bodyhair: "no default setting",
+			surgery_vasectomy: "no default setting",
 			underArmHColor: "no default setting",
 			underArmHStyle: "no default setting",
 			drug: "no default setting",
@@ -317,3 +318,14 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 	};
 	return rule;
 };
+
+
+// Saves the slave, silently fires the RA, saves the slave's after-RA state, and then reverts the slave.
+// Call and then check potential change against $slaveAfterRA to see if the RA would revert it.
+window.RulesDeconfliction = function RulesDeconfliction(slave) {
+	const before = clone(slave);
+	CheckAutoRulesActivate(slave);
+	DefaultRules(slave);
+	V.slaveAfterRA = clone(slave);
+	slave = before;
+}

@@ -369,7 +369,10 @@ window.rulesAssistantOptions = (function() {
 		}
 
 		render() {
+			let element = document.getElementById("importfield");
+			if (element !== null) { return element; }
 			const container = document.createElement("div");
+			container.id = "importfield";
 			const textarea = document.createElement("textarea");
 			textarea.placeholder = "Paste your rule here";
 			container.appendChild(textarea);
@@ -386,8 +389,10 @@ window.rulesAssistantOptions = (function() {
 			const text = this.textarea.value;
 			try {
 				const rule = JSON.parse(text);
-				if (!rule.ID) rule.ID = generateNewID();
-				V.defaultRules.push(rule);
+				if (rule instanceof Array)
+					rule.forEach(r => V.defaultRules.push(r))
+				else
+					V.defaultRules.push(rule);
 				reload(this.root);
 			} catch (e) {
 				alert("Couldn't import that rule:\n" + e.message);
@@ -456,7 +461,7 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new OptionsItem("Rename", () => this.appendChild(new RenameField(root))));
 			this.appendChild(new OptionsItem("Export this rule", () => this.appendChild(new ExportField(current_rule))));
 			this.appendChild(new OptionsItem("Export all rules", () => this.appendChild(new ExportField(...V.defaultRules))));
-			this.appendChild(new OptionsItem("Import a rule", () => this.appendChild(new NewRuleField(root))));
+			this.appendChild(new OptionsItem("Import rule(s)", () => this.appendChild(new NewRuleField(root))));
 		}
 	}
 
@@ -487,10 +492,10 @@ window.rulesAssistantOptions = (function() {
 		render(...args) {
 			let element = document.getElementById("exportfield");
 			if (element === null) {
-				element = document.getElementById("exportfield") || document.createElement("textarea");
+				element = document.createElement("textarea");
 				element.id = "exportfield";
 			}
-			element.value = args.map(i => JSON.stringify(i, null, 2)).join("\n\n");
+			element.value = JSON.stringify(args, null, 2);
 			return element;
 		}
 	}
@@ -530,6 +535,8 @@ window.rulesAssistantOptions = (function() {
 				["Education", "intelligenceImplant"],
 				["Intelligence", "intelligence"],
 				["Fetish", "fetish"],
+				["Accent", "accent"],
+				["Waist", "waist"],
 			];
 			this.fnlist = new List("Activation function", items);
 			this.fnlist.setValue(current_rule.condition.function === "between" ? current_rule.condition.data.attribute : current_rule.condition.function);
@@ -571,6 +578,8 @@ window.rulesAssistantOptions = (function() {
 				"belly",
 				"intelligenceImplant",
 				"intelligence",
+				"accent",
+				"waist",
 			].includes(attribute);
 		}
 
@@ -708,6 +717,8 @@ window.rulesAssistantOptions = (function() {
 				"belly": "Volume in CCs, any source",
 				"intelligenceImplant": "Education level. 0: uneducated, 1: educated, (0, 1): incomplete education.",
 				"intelligence": "From moronic to brilliant: [-3, 3]",
+				"accent": "No accent: 0, Nice accent: 1, Bad accent: 2, Can't speak language: 3 and above",
+				"waist": "Masculine waist: (95, ∞), Ugly waist: (40, 95], Unattractive waist: (10, 40], Average waist: [-10, 10], Feminine waist: [-40, -10), Wasp waist: [-95, 40), Absurdly narrow: (-∞, -95)",
 			}[attribute] || " ");
 		}
 	}
@@ -998,8 +1009,10 @@ window.rulesAssistantOptions = (function() {
 			super("Autosurgery Settings", true);
 			this.appendChild(new VisionSurgeryList());
 			this.appendChild(new LactationSurgeryList());
-			if (V.seeDicks || V.makeDicks)
+			if (V.seeDicks || V.makeDicks) {
 				this.appendChild(new SemenSurgeryList());
+				this.appendChild(new VasectomyList());
+			}
 			this.appendChild(new CosmeticSurgeryList());
 			this.appendChild(new LipSurgeryList());
 			this.appendChild(new ButtSurgeryList());
@@ -2892,6 +2905,19 @@ window.rulesAssistantOptions = (function() {
 			super("Prostate production enhancing drug implants", items);
 			this.setValue(current_rule.set.surgery_prostate);
 			this.onchange = (value) => current_rule.set.surgery_prostate = value;
+		}
+	}
+
+	class VasectomyList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["apply vasectomy", true],
+				["undo vasectomy", false],
+			];
+			super("Apply or undo vasectomy for slaves with testicles", items);
+			this.setValue(current_rule.set.surgery_vasectomy);
+			this.onchange = (value) => current_rule.set.surgery_vasectomy = value;
 		}
 	}
 
