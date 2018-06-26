@@ -2335,7 +2335,7 @@ window.CheckAutoRulesActivate = function CheckAutoRulesActivate(slave) {
 		if (applies) {
 			if (!ruleApplied(slave, rule)) {
 				slave.currentRules.push(rule.ID);
-				r += `<br><span class="tan">Rule ${rule.ID} (${rule.name}) now applies to ${slave.slaveName}, who is assigned to ${slave.assignment}</span>\n`;
+				r += `<br><span class="tan">Rule "${rule.name}" now applies to ${slave.slaveName}, who is assigned to ${slave.assignment}.</span>\n`;
 			}
 		} else if (ruleApplied(slave, rule))
 			r += RARemoveRule(slave, rule);
@@ -2497,6 +2497,7 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 			clothes: "no default setting",
 			collar: "no default setting",
 			shoes: "no default setting",
+			legAccessory: "no default setting",
 			virginAccessory: "no default setting",
 			aVirginAccessory: "no default setting",
 			vaginalAccessory: "no default setting",
@@ -2581,6 +2582,7 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 			surgery_holes: "no default setting",
 			surgery_hair: "no default setting",
 			surgery_bodyhair: "no default setting",
+			surgery_vasectomy: "no default setting",
 			underArmHColor: "no default setting",
 			underArmHStyle: "no default setting",
 			drug: "no default setting",
@@ -2592,6 +2594,17 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 	};
 	return rule;
 };
+
+
+// Saves the slave, silently fires the RA, saves the slave's after-RA state, and then reverts the slave.
+// Call and then check potential change against $slaveAfterRA to see if the RA would revert it.
+window.RulesDeconfliction = function RulesDeconfliction(slave) {
+	const before = clone(slave);
+	CheckAutoRulesActivate(slave);
+	DefaultRules(slave);
+	V.slaveAfterRA = clone(slave);
+	slave = before;
+}
 
 /*:: textinput [script]*/
 
@@ -9558,6 +9571,7 @@ window.DefaultRules = (function() {
 			ProcessAnalAccessories(slave, rule);
 			ProcessShoes(slave, rule);
 			ProcessBellyAccessories(slave, rule);
+			ProcessLegAccessory(slave, rule);
 		}
 		ProcessBellyImplant(slave, rule);
 		if (isFertile(slave))
@@ -9938,7 +9952,7 @@ window.DefaultRules = (function() {
 					} else {
 						if (slave.eyewear != "none") {
 							slave.eyewear = "none";
-							r += `<br>Since ${slave.slaveName}'s eyewear has been removed.`;
+							r += `<br>${slave.slaveName}'s eyewear has been removed.`;
 						}
 					}
 					break;
@@ -10169,7 +10183,7 @@ window.DefaultRules = (function() {
 						if (slave.dickAccessory == "none")
 							r += `<br>${slave.slaveName} has been instructed not to wear a dick accessory.`;
 						else
-							r += `<br>${slave.slaveName} has been given a slave.dickAccessory accessory for her cock.`;
+							r += `<br>${slave.slaveName} has been given a ${slave.dickAccessory} accessory for her cock.`;
 					}
 				}
 			}
@@ -10203,6 +10217,13 @@ window.DefaultRules = (function() {
 						r += `<br>${slave.slaveName} has been given ${slave.bellyAccessory} to wear.`;
 				}
 			}
+		}
+	}
+
+	function ProcessLegAccessory(slave, rule) {
+		if (rule.legAccessory !== undefined && rule.legAccessory !== "no default setting" && slave.amp !== 1 && slave.legAccessory !== rule.legAccessory) {
+			slave.legAccessory = rule.legAccessory;
+			r += `<br>${slave.slaveName}'s leg accessory was set to ${rule.legAccessory}.`;
 		}
 	}
 
@@ -10534,9 +10555,9 @@ window.DefaultRules = (function() {
 						slave.drugs = "intensive " + slave.drugs;
 						r += `${slave.drugs}, since she's healthy enough to take them, and `;
 					} else {
-						r += `${slave.drugs}, since`;
+						r += `${slave.drugs}, since `;
 					}
-					r += `that part of her body is ${Math.trunc(_priorities[0].weight*100)}>>% `;
+					r += `that part of her body is ${Math.trunc(_priorities[0].weight*100)}% `;
 					if (_priorities[0].weight < 1) r+= "below ";
 					else r+= "above ";
 					r += "the targeted size.";
@@ -10742,6 +10763,7 @@ window.DefaultRules = (function() {
 			} else if ((slave.boobs >= 1600) && (slave.muscles > 5) && (slave.diet == "muscle building") && ((rule.muscles == "no default setting") || (rule.muscles === 0))) {
 			*/
 			if (rule.diet === "healthy" && slave.diet !== "healthy") {
+				slave.diet = "healthy";
 				r += `<br>${slave.slaveName} has been assigned to a healthy diet.`;
 			} else if ((slave.boobs >= 1600) && (slave.muscles > 5) && (slave.diet == "muscle building") && ((rule.muscles == "no default setting") || (rule.muscles === 0))) {
 				slave.diet = "healthy";
@@ -10753,7 +10775,7 @@ window.DefaultRules = (function() {
 				}
 			} else {
 				if (!(isNaN(rule.diet))) {
-					if ((slave.weight > rule.diet)) {
+					if ((slave.weight - rule.diet) > 5) {
 						if ((slave.diet !== "restricted")) {
 							slave.diet = "restricted";
 							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`;
@@ -10762,7 +10784,7 @@ window.DefaultRules = (function() {
 							slave.drugs = "appetite suppressors";
 							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`;
 						}
-					} else if ((slave.weight < rule.diet)) {
+					} else if ((slave.weight - rule.diet) < -5) {
 						if ((slave.diet !== "fattening")) {
 							slave.diet = "fattening";
 							r += `<br>${slave.slaveName} is too skinny so her diet has been set to fattening.`;
@@ -11013,13 +11035,13 @@ window.DefaultRules = (function() {
 		if (slave.pregKnown == 1 && rule.pregSpeed != "no default setting" && slave.breedingMark != 1 && slave.indentureRestrictions < 1 && slave.broodmother === 0) {
 			if (rule.pregSpeed == "slow" && slave.preg < 35) {
 				slave.pregControl = "slow gestation";
-				r += `<br>slave.slaveName is pregnant, so she has been put on the gestation slowing agents.`;
+				r += `<br>${slave.slaveName} is pregnant, so she has been put on the gestation slowing agents.`;
 			} else if (rule.pregSpeed == "fast" && slave.preg < 35 && slave.health > -50) {
 				slave.pregControl = "speed up";
-				r += `<br>slave.slaveName is pregnant, so she has been put on rapid gestation  agents. CAUTION! Can be dangerous. Clinic supervision is recommended.`;
+				r += `<br>${slave.slaveName} is pregnant, so she has been put on rapid gestation  agents. CAUTION! Can be dangerous. Clinic supervision is recommended.`;
 			} else if (rule.pregSpeed == "suppress" && slave.preg > 34 && slave.health > -50) {
 				slave.pregControl = "labor supressors";
-				r += `<br>slave.slaveName is ready to birth, so she has been put on labor suppressing agents.`;
+				r += `<br>${slave.slaveName} is ready to birth, so she has been put on labor suppressing agents.`;
 			} else if (rule.pregSpeed == "stimulate" && slave.preg >= 37 && slave.health > -50) {
 				slave.labor = 1;
 				slave.induce = 1;
@@ -11027,10 +11049,10 @@ window.DefaultRules = (function() {
 				r += `<br>slave.slaveName is ready to birth, so her labor has been stimulated.`;
 			} else if (rule.pregSpeed == "fast" && slave.pregControl == "speed up" && slave.health <= -50) {
 				slave.pregControl = "none";
-				r += `<br>slave.slaveName is on rapid gestation agents and dangerously unhealthy, so her agent regimen has been stopped.`;
+				r += `<br>${slave.slaveName} is on rapid gestation agents and dangerously unhealthy, so her agent regimen has been stopped.`;
 			} else if (rule.pregSpeed == "suppress" && slave.pregControl == "labor supressors" && slave.health <= -50) {
 				slave.pregControl = "none";
-				r += `<br>slave.slaveName is on labor suppression agents and unhealthy, so her agent regimen has been stopped.`;
+				r += `<br>${slave.slaveName} is on labor suppression agents and unhealthy, so her agent regimen has been stopped.`;
 			}
 		}
 	}
@@ -11257,7 +11279,7 @@ window.DefaultRules = (function() {
 						V.cash -= V.modCost*Math.trunc((rule.hLength-slave.hLength)/10);
 						r += `<br>${slave.slaveName} has been given extensions; her hair `;
 					}
-				r += `is now rule.hLength cm long.`;
+				r += `is now ${rule.hLength} cm long.`;
 				slave.hLength = rule.hLength;
 				}
 			}
@@ -12040,7 +12062,10 @@ window.rulesAssistantOptions = (function() {
 		}
 
 		render() {
+			let element = document.getElementById("importfield");
+			if (element !== null) { return element; }
 			const container = document.createElement("div");
+			container.id = "importfield";
 			const textarea = document.createElement("textarea");
 			textarea.placeholder = "Paste your rule here";
 			container.appendChild(textarea);
@@ -12057,8 +12082,10 @@ window.rulesAssistantOptions = (function() {
 			const text = this.textarea.value;
 			try {
 				const rule = JSON.parse(text);
-				if (!rule.ID) rule.ID = generateNewID();
-				V.defaultRules.push(rule);
+				if (rule instanceof Array)
+					rule.forEach(r => V.defaultRules.push(r))
+				else
+					V.defaultRules.push(rule);
 				reload(this.root);
 			} catch (e) {
 				alert("Couldn't import that rule:\n" + e.message);
@@ -12127,7 +12154,7 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new OptionsItem("Rename", () => this.appendChild(new RenameField(root))));
 			this.appendChild(new OptionsItem("Export this rule", () => this.appendChild(new ExportField(current_rule))));
 			this.appendChild(new OptionsItem("Export all rules", () => this.appendChild(new ExportField(...V.defaultRules))));
-			this.appendChild(new OptionsItem("Import a rule", () => this.appendChild(new NewRuleField(root))));
+			this.appendChild(new OptionsItem("Import rule(s)", () => this.appendChild(new NewRuleField(root))));
 		}
 	}
 
@@ -12158,10 +12185,10 @@ window.rulesAssistantOptions = (function() {
 		render(...args) {
 			let element = document.getElementById("exportfield");
 			if (element === null) {
-				element = document.getElementById("exportfield") || document.createElement("textarea");
+				element = document.createElement("textarea");
 				element.id = "exportfield";
 			}
-			element.value = args.map(i => JSON.stringify(i, null, 2)).join("\n\n");
+			element.value = JSON.stringify(args, null, 2);
 			return element;
 		}
 	}
@@ -12201,6 +12228,9 @@ window.rulesAssistantOptions = (function() {
 				["Education", "intelligenceImplant"],
 				["Intelligence", "intelligence"],
 				["Fetish", "fetish"],
+				["Accent", "accent"],
+				["Waist", "waist"],
+				["Amputation", "amp"],
 			];
 			this.fnlist = new List("Activation function", items);
 			this.fnlist.setValue(current_rule.condition.function === "between" ? current_rule.condition.data.attribute : current_rule.condition.function);
@@ -12242,12 +12272,15 @@ window.rulesAssistantOptions = (function() {
 				"belly",
 				"intelligenceImplant",
 				"intelligence",
+				"accent",
+				"waist",
 			].includes(attribute);
 		}
 
 		belongsP(attribute) {
 			return [
 				"fetish",
+				"amp",
 			].includes(attribute);
 		}
 
@@ -12296,7 +12329,7 @@ window.rulesAssistantOptions = (function() {
 
 	class CustomEditor extends Element {
 		constructor(data) {
-			if (data.length === 0) data = "(function(slave) { return slave.slaveName === 'Fancy Name'; })";
+			if (data.length === 0) data = "(slave) => slave.slaveName === 'Fancy Name'";
 			super(data);
 		}
 
@@ -12379,6 +12412,8 @@ window.rulesAssistantOptions = (function() {
 				"belly": "Volume in CCs, any source",
 				"intelligenceImplant": "Education level. 0: uneducated, 1: educated, (0, 1): incomplete education.",
 				"intelligence": "From moronic to brilliant: [-3, 3]",
+				"accent": "No accent: 0, Nice accent: 1, Bad accent: 2, Can't speak language: 3 and above",
+				"waist": "Masculine waist: (95, ∞), Ugly waist: (40, 95], Unattractive waist: (10, 40], Average waist: [-10, 10], Feminine waist: [-40, -10), Wasp waist: [-95, 40), Absurdly narrow: (-∞, -95)",
 			}[attribute] || " ");
 		}
 	}
@@ -12405,6 +12440,7 @@ window.rulesAssistantOptions = (function() {
 		info(attribute) {
 			return "Insert a valid JSON array. Known values: " + {
 				"fetish": "buttslut, cumslut, masochist, sadist, dom, submissive, boobs, pregnancy, none (AKA vanilla)",
+				"amp": "Amputated: 1, Not amputated: 0",
 			}[attribute];
 		}
 		
@@ -12556,6 +12592,7 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new CollarList());
 			this.appendChild(new ShoeList());
 			this.appendChild(new CorsetList());
+			this.appendChild(new LeggingsList());
 			this.appendChild(new VagAccVirginsList());
 			this.appendChild(new VagAccAVirginsList());
 			this.appendChild(new VagAccOtherList());
@@ -12669,8 +12706,10 @@ window.rulesAssistantOptions = (function() {
 			super("Autosurgery Settings", true);
 			this.appendChild(new VisionSurgeryList());
 			this.appendChild(new LactationSurgeryList());
-			if (V.seeDicks || V.makeDicks)
+			if (V.seeDicks || V.makeDicks) {
 				this.appendChild(new SemenSurgeryList());
+				this.appendChild(new VasectomyList());
+			}
 			this.appendChild(new CosmeticSurgeryList());
 			this.appendChild(new LipSurgeryList());
 			this.appendChild(new ButtSurgeryList());
@@ -12833,6 +12872,20 @@ window.rulesAssistantOptions = (function() {
 			super("Corsetage", bellies);
 			this.setValue(current_rule.set.bellyAccessory);
 			this.onchange = (value) => current_rule.set.bellyAccessory = value;
+		}
+	}
+	
+	class LeggingsList extends List {
+		constructor() {
+			const items = [
+				"no default settings",
+				"none",
+				"short stockings",
+				"long stockings",
+			];
+			super("Leg accessory", items);
+			this.setValue(current_rule.set.legAccessory);
+			this.onchange = (value) => current_rule.set.legAccessory = value;
 		}
 	}
 
@@ -14566,6 +14619,19 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 
+	class VasectomyList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["apply vasectomy", true],
+				["undo vasectomy", false],
+			];
+			super("Apply or undo vasectomy for slaves with testicles", items);
+			this.setValue(current_rule.set.surgery_vasectomy);
+			this.onchange = (value) => current_rule.set.surgery_vasectomy = value;
+		}
+	}
+
 	class CosmeticSurgeryList extends List {
 		constructor() {
 			const items = [
@@ -15217,6 +15283,24 @@ window.rulesAutosurgery = (function() {
 				slave.health -= 10;
 			slave.preg = 0;
 			slave.bellyImplant = -1;
+			V.cash -= V.surgeryCost;
+		} else if (slave.balls > 0 && slave.vasectomy === 0 && thisSurgery.vasectomy === true) {
+			surgeries.push("vasectomy");
+			V.surgeryType = "vasectomy";
+			if (V.PC.medicine >= 100)
+				slave.health -= 5;
+			else
+				slave.health -= 10;
+			slave.vasectomy = 1
+			V.cash -= V.surgeryCost;
+		} else if (slave.balls > 0 && slave.vasectomy === 1 && thisSurgery.vasectomy === false) {
+			surgery.push("undo vasectomy");
+			V.surgeryType = "vasectomy undo";
+			if (V.PC.medicine >= 100)
+				slave.health -=5;
+			else
+				slave.health -= 10;
+			slave.vasectomy = 0;
 			V.cash -= V.surgeryCost;
 		}
 	}
