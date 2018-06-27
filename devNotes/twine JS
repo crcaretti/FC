@@ -2277,7 +2277,7 @@ Number.prototype.toFixedHTML = function() {
 
 window.hasSurgeryRule = function(slave, rules) {
 	return rules.some(
-		rule => ruleApplied(slave, rule.ID) && rule.autoSurgery > 0);
+		rule => ruleApplied(slave, rule) && rule.set.autoSurgery > 0);
 };
 
 window.hasRuleFor = function(slave, rules, what) {
@@ -9384,6 +9384,17 @@ window.HSM = function() {
 		return .75;
 	}
 
+/*:: Slave Summary Widgets JS [script]*/
+
+window.clearSummaryCache = function clearSummaryCache(slave) {
+	if (!slave)
+		setup.summaryCache = {};
+	else if (slave instanceof Object && slave.ID !== Infinity && slave.ID !== -Infinity)
+		setup.summaryCache[slave.ID] = undefined;
+	else
+		setup.summaryCache[slave] = undefined;
+};
+	
 /*:: colorModeJS [script]*/
 
 window.setColors = function(colorMap){
@@ -9830,9 +9841,6 @@ window.DefaultRules = (function() {
 						break;
 					case "work in the dairy":
 						r += `<br>${slave.slaveName} has been automatically assigned to be milked in ${V.dairyName}.`;
-						break;
-					case "work as a servant":
-						r += `<br>${slave.slaveName} has been automatically assigned to work in ${V.servantsQuartersName}.`;
 						break;
 					case "work as a servant":
 						r += `<br>${slave.slaveName} has been automatically assigned to work in ${V.servantsQuartersName}.`;
@@ -10479,7 +10487,7 @@ window.DefaultRules = (function() {
 		// Asset Growth 
 		const growth_drugs = new Set(["breast injections", "intensive breast injections", "breast redistributors", "butt injections", "intensive butt injections", "butt redistributors", "lip injections", "lip atrophiers", "penis enhancement", "intensive penis enhancement", "penis atrophiers", "testicle enhancement", "intensive testicle enhancement", "testicle atrophiers", "hyper breast injections", "hyper butt injections", "hyper penis enhancement", "hyper testicle enhancement"]);
 		if ((slave.drugs == "super fertility drugs" || slave.drugs == "fertility drugs") && isFertile(slave)) {
-			r += `<br>slave.slaveName is on slave.drugs and will not be considered for drug enhancement until that regime is complete.`;
+			r += `<br>${slave.slaveName} is on ${slave.drugs} and will not be considered for drug enhancement until that regime is complete.`;
 			return;
 		} else if ((rule.growth_boobs == "no default setting" && rule.growth_butt == "no default setting" && rule.growth_lips == "no default setting" && rule.growth_dick == "no default setting" && rule.growth_dick == "no default setting" && rule.growth_balls == "no default setting")) {
 			return;
@@ -10707,7 +10715,7 @@ window.DefaultRules = (function() {
 						slave.drugs = rule.drug;
 						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
 					} else {
-						slave.drugs = "no drugs" ;
+						slave.drugs = "no drugs";
 						r += `<br>${slave.slaveName} cannot benefit from her assigned drug and has been defaulted to ${slave.drugs}.`;
 					}
 					break;
@@ -10727,7 +10735,7 @@ window.DefaultRules = (function() {
 						slave.drugs = rule.drug ;
 						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
 					} else {
-						slave.drugs = "no drugs" ;
+						slave.drugs = "no drugs";
 						r += `<br>${slave.slaveName} cannot benefit from her assigned drug and has been defaulted to ${slave.drugs}.`;
 					}
 					break;
@@ -10737,13 +10745,13 @@ window.DefaultRules = (function() {
 						slave.drugs = rule.drug ;
 						r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
 					} else {
-						slave.drugs = "no drugs" ;
+						slave.drugs = "no drugs";
 						r += `<br>${slave.slaveName} cannot benefit from her assigned drug and has been defaulted to ${slave.drugs}.`;
 					}
 					break;
 
 				default:
-					slave.drugs = rule.drug ;
+					slave.drugs = rule.drug;
 					r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
 					break;
 				}
@@ -10780,18 +10788,11 @@ window.DefaultRules = (function() {
 							slave.diet = "restricted";
 							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`;
 						}
-						if ((V.arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
-							slave.drugs = "appetite suppressors";
-							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`;
-						}
+						
 					} else if ((slave.weight - rule.diet) < -5) {
 						if ((slave.diet !== "fattening")) {
 							slave.diet = "fattening";
 							r += `<br>${slave.slaveName} is too skinny so her diet has been set to fattening.`;
-						}
-						if ((slave.drugs == "appetite suppressors")) {
-							slave.drugs = "no drugs";
-							r += `<br>${slave.slaveName} is too skinny so she will no longer be given weight loss pills.`;
 						}
 					} else if ((rule.muscles !== undefined) && (rule.muscles !== "no default setting") && (slave.amp != 1)) {
 						if ((slave.muscles >= rule.muscles+8)) {
@@ -10814,10 +10815,6 @@ window.DefaultRules = (function() {
 						if ((slave.diet !== "healthy")) {
 							slave.diet = "healthy";
 							r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`;
-						}
-						if ((slave.drugs == "appetite suppressors")) {
-							slave.drugs = "no drugs";
-							r += `<br>${slave.slaveName} is at the target weight, so she will no longer be given weight loss pills.`;
 						}
 					}
 				} else if ((rule.diet == "attractive")) {
@@ -10826,18 +10823,10 @@ window.DefaultRules = (function() {
 							slave.diet = "restricted";
 							r += `<br>${slave.slaveName} is too fat so her diet has been set to restricted.`;
 						}
-						if ((V.arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none"))) {
-							slave.drugs = "appetite suppressors";
-							r += `<br>${slave.slaveName} is too fat so she will be given weight loss pills.`;
-						}
 					} else if (((slave.weight < -95) || ((slave.weight < -30) && (slave.hips > -2)))) {
 						if ((slave.diet !== "fattening")) {
 							slave.diet = "fattening";
 							r += `<br>${slave.slaveName} is too skinny so her diet has been set to fattening.`;
-						}
-						if ((slave.drugs == "appetite suppressors")) {
-							slave.drugs = "no drugs";
-							r += `<br>${slave.slaveName} is too skinny so she will no longer be given weight loss pills.`;
 						}
 					} else if ((rule.muscles !== undefined) && (rule.muscles !== "no default setting") && (slave.amp != 1)) {
 						if ((slave.muscles >= rule.muscles+8)) {
@@ -10855,19 +10844,11 @@ window.DefaultRules = (function() {
 								slave.diet = "healthy";
 								r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`;
 							}
-							if ((slave.drugs == "appetite suppressors")) {
-								slave.drugs = "no drugs";
-								r += `<br>${slave.slaveName} is at the target weight, so she will no longer be given weight loss pills.`;
-							}
 						}
 					} else {
 						if ((slave.diet !== "healthy")) {
 							slave.diet = "healthy";
 							r += `<br>${slave.slaveName} is at the target weight, so her diet has been normalized.`;
-						}
-						if ((slave.drugs == "appetite suppressors")) {
-							slave.drugs = "no drugs";
-							r += `<br>${slave.slaveName} is at the target weight, so she will no longer be given weight loss pills.`;
 						}
 					}
 				} else if ((rule.diet == "XX")) {
@@ -10945,6 +10926,14 @@ window.DefaultRules = (function() {
 					r += `<br>${slave.slaveName} has achieved the target musculature, so her exercise regime has been normalized.`;
 				}
 			}
+		}
+
+		if (slave.drugs === "appetite suppressors" && slave.diet !== "slimming") {
+			slave.drugs = "no drugs";
+			r += `<br>${slave.slaveName} is no longer losing weight, so she's no longer being given appetite suppressors.`;
+		} else if (slave.diet === "slimming" && V.arcologies[0].FSSlimnessEnthusiastResearch == 1 && (slave.drugs == "no drugs" || slave.drugs == "none")) {
+			slave.drugs = "appetite suppressors";
+			r += `<br>${slave.slaveName} is losing weight so she will be given weight loss pills.`;
 		}
 	}
 
@@ -11874,7 +11863,6 @@ window.rulesAssistantOptions = (function() {
 				value.setAttribute("type", "text");
 				value.classList.add("rajs-value"); // 
 				// call the variable binding when the input field is no longer being edited, and when the enter key is pressed
-				value.onfocusout = () => { this.inputEdited(); };
 				value.onblur = () => {this.inputEdited(); };
 				value.onkeypress = (e) => { if (returnP(e)) this.inputEdited(); };
 			} else {
@@ -12161,6 +12149,7 @@ window.rulesAssistantOptions = (function() {
 	class ApplicationLog extends Element {
 		render() {
 			const elem = document.createElement("div");
+			clearSummaryCache();
 			elem.innerHTML = V.slaves.map(slave => DefaultRules(slave)).join("");
 			return elem;
 		}
@@ -12169,7 +12158,7 @@ window.rulesAssistantOptions = (function() {
 	class RenameField extends Element {
 		constructor(root) {
 			super();
-			this.element.onfocusout = () => changeName(this.element.value, root);
+			this.element.onblur = () => changeName(this.element.value, root);
 			this.element.onkeypress = (e) => { if (returnP(e)) changeName(this.element.value, root); };
 		}
 
@@ -12353,7 +12342,7 @@ window.rulesAssistantOptions = (function() {
 			min.setAttribute("type", "text");
 			min.value = "" + data.value[0];
 			min.onkeypress = e => { if (returnP(e)) this.setmin(min.value); };
-			min.onfocusout = e => this.setmin(min.value);
+			min.onblur = e => this.setmin(min.value);
 			this.min = min;
 			elem.appendChild(min);
 
@@ -12367,7 +12356,7 @@ window.rulesAssistantOptions = (function() {
 			max.setAttribute("type", "text");
 			max.value = "" + data.value[1];
 			max.onkeypress = e => { if (returnP(e)) this.setmax(max.value); };
-			max.onfocusout = e => this.setmax(max.value);
+			max.onblur = e => this.setmax(max.value);
 			this.max = max;
 			elem.appendChild(max);
 
@@ -12426,7 +12415,7 @@ window.rulesAssistantOptions = (function() {
 			input.setAttribute("type", "text");
 			input.value = JSON.stringify(data.value);
 			input.onkeypress = e => { if (returnP(e)) this.setValue(input); };
-			input.onfocusout = e => this.setValue(input);
+			input.onblur = e => this.setValue(input);
 			this.input = input;
 			elem.appendChild(input);
 
@@ -12465,14 +12454,14 @@ window.rulesAssistantOptions = (function() {
 			if (V.club > 0) items.push("Club");
 			if (V.arcade > 0) items.push("Arcade");
 			if (V.dairy > 0) items.push("Dairy");
-			if (V.servantQuarters > 0) items.push("Servant Quarters");
+			if (V.servantsQuarters > 0) items.push("Servant Quarters");
 			if (V.masterSuite > 0) items.push("Master Suite");
 			if (V.schoolroom > 0) items.push("Schoolroom");
 			if (V.spa > 0) items.push("Spa");
 			if (V.clinic > 0) items.push("Clinic");
 			if (V.cellblock > 0) items.push("Cellblock");
 			items.forEach(
-				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), current_rule.condition.assignment.includes(i))));
+				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), current_rule.condition.assignment.includes(this.getAttribute(i)))));
 		}
 
 		onchange() {
@@ -12874,14 +12863,14 @@ window.rulesAssistantOptions = (function() {
 			this.onchange = (value) => current_rule.set.bellyAccessory = value;
 		}
 	}
-	
+
 	class LeggingsList extends List {
 		constructor() {
 			const items = [
-				"no default settings",
-				"none",
-				"short stockings",
-				"long stockings",
+				["no default settings"],
+				["none"],
+				["short stockings"],
+				["long stockings"],
 			];
 			super("Leg accessory", items);
 			this.setValue(current_rule.set.legAccessory);
@@ -14790,8 +14779,6 @@ window.rulesAutosurgery = (function() {
 	}
 	
 	function autoSurgerySelector(slave, ruleset) {
-		const apply = ruleset.filter(rule => rule.set.autoSurgery == 1 && slave.currentRules.contains(rule.ID));
-
 		const surgery = {
 			surgery_eyes: "no default setting",
 			surgery_lactation: "no default setting",
@@ -14808,9 +14795,10 @@ window.rulesAutosurgery = (function() {
 			surgery_holes: "no default setting",
 			surgery_bodyhair: "no default setting",
 			surgery_hair: "no default setting",
-			surgery_bellyImplant: "no default setting"
+			surgery_bellyImplant: "no default setting",
+			surgery_vasectomy: "no default setting",
 		};
-		apply.forEach(rule => {
+		ruleset.forEach(rule => {
 			Object.keys(surgery).forEach(key => {
 				if (rule[key] !== "no default setting")
 					surgery[key] = rule[key];
@@ -14887,7 +14875,11 @@ window.rulesAutosurgery = (function() {
 			};
 			break;
 		default:
-			thisSurgery = autoSurgerySelector(slave, V.defaultRules);
+			thisSurgery = autoSurgerySelector(
+				slave,
+				V.defaultRules
+					.filter(x => ruleApplied(slave, x) && x.set.autoSurgery === 1)
+					.map(x => x.set));
 			if ((thisSurgery.surgery_hips !== "no default setting") && (thisSurgery.surgery_butt !== "no default setting")) {
 				if (slave.hips < -1) {
 					if (thisSurgery.surgery_butt > 2)
@@ -14911,49 +14903,49 @@ window.rulesAutosurgery = (function() {
 	}
 
 	function CommitSurgery(slave, thisSurgery, surgeries) {
-		if ((slave.eyes == -1) && (thisSurgery.eyes == 1)) {
+		if ((slave.eyes == -1) && (thisSurgery.surgery_eyes == 1)) {
 			surgeries.push("surgery to correct her vision");
 			slave.eyes = 1;
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.eyes == 1) && (thisSurgery.eyes == -1)) {
+		} else if ((slave.eyes == 1) && (thisSurgery.surgery_eyes == -1)) {
 			surgeries.push("surgery to blur her vision");
 			slave.eyes = -1;
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.lactation == 2) && (thisSurgery.lactation == 0)) {
+		} else if ((slave.lactation == 2) && (thisSurgery.surgery_lactation == 0)) {
 			surgeries.push("surgery to remove her lactation implants");
 			slave.lactation = 0;
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if (slave.lactation != 2 && (thisSurgery.lactation == 1)) {
+		} else if (slave.lactation != 2 && (thisSurgery.surgery_lactation == 1)) {
 			surgeries.push("lactation inducing implanted drugs");
 			slave.lactation = 2;
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.prostate == 2) && (thisSurgery.prostate == 0)) {
+		} else if ((slave.prostate == 2) && (thisSurgery.surgery_prostate == 0)) {
 			surgeries.push("surgery to remove her prostate implant");
 			slave.prostate = 0;
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if (slave.prostate == 1 && (thisSurgery.prostate == 1)) {
+		} else if (slave.prostate == 1 && (thisSurgery.surgery_prostate == 1)) {
 			surgeries.push("a precum production enhancing drug implant");
 			slave.prostate = 2;
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.anus > 3) && (thisSurgery.cosmetic > 0)) {
+		} else if ((slave.anus > 3) && (thisSurgery.surgery_cosmetic > 0)) {
 			surgeries.push("a restored anus");
 			slave.anus = 3;
 			if (slave.analSkill > 10)
@@ -14962,7 +14954,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.vagina > 3) && (thisSurgery.cosmetic > 0)) {
+		} else if ((slave.vagina > 3) && (thisSurgery.surgery_cosmetic > 0)) {
 			surgeries.push("a restored pussy");
 			slave.vagina = 3;
 			if (slave.vaginalSkill > 10)
@@ -14971,7 +14963,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.faceImplant <= 15) && (slave.face <= 95) && (thisSurgery.cosmetic > 0)) {
+		} else if ((slave.faceImplant <= 15) && (slave.face <= 95) && (thisSurgery.surgery_cosmetic > 0)) {
 			surgeries.push("a nicer face");
 			if (slave.faceShape == "masculine") {slave.faceShape = "androgynous"};
 			slave.faceImplant += 25-5*Math.trunc(V.PC.medicine/50)-5*V.surgeryUpgrade;
@@ -14980,7 +14972,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.faceImplant <= 15) && (slave.ageImplant != 1) && (slave.visualAge >= 25) && (thisSurgery.cosmetic > 0)) {
+		} else if ((slave.faceImplant <= 15) && (slave.ageImplant != 1) && (slave.visualAge >= 25) && (thisSurgery.surgery_cosmetic > 0)) {
 			surgeries.push("an age lift");
 			slave.ageImplant = 1;
 			slave.faceImplant += 25-5*Math.trunc(V.PC.medicine/50)-5*V.surgeryUpgrade;
@@ -14993,26 +14985,26 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if (((slave.underArmHStyle != "bald" && slave.underArmHStyle != "hairless") || (slave.pubicHStyle != "bald" && slave.pubicHStyle != "hairless")) && (thisSurgery.bodyhair == 2)) {
+		} else if (((slave.underArmHStyle != "bald" && slave.underArmHStyle != "hairless") || (slave.pubicHStyle != "bald" && slave.pubicHStyle != "hairless")) && (thisSurgery.surgery_bodyhair == 2)) {
 			surgeries.push("body hair removal");
 			if (slave.underArmHStyle != "hairless") {slave.underArmHStyle = "bald"};
 			if (slave.pubicHStyle != "hairless") {slave.pubicHStyle = "bald"};
 			V.cash -= V.surgeryCost;
 			
-		} else if ((slave.bald == 0 || slave.hStyle != "bald") && (thisSurgery.hair == 2)) {
+		} else if ((slave.bald == 0 || slave.hStyle != "bald") && (thisSurgery.surgery_hair == 2)) {
 			surgeries.push("hair removal");
 			slave.hStyle = "bald";
 			slave.bald = 1;
 			V.cash -= V.surgeryCost;
 			
-		} else if ((slave.weight >= 10) && (thisSurgery.cosmetic > 0)) {
+		} else if ((slave.weight >= 10) && (thisSurgery.surgery_cosmetic > 0)) {
 			surgeries.push("liposuction");
 			slave.weight -= 50;
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.voice == 1) && (slave.voiceImplant == 0) && (thisSurgery.cosmetic > 0)) {
+		} else if ((slave.voice == 1) && (slave.voiceImplant == 0) && (thisSurgery.surgery_cosmetic > 0)) {
 			surgeries.push("a feminine voice");
 			slave.voice += 1;
 			slave.voiceImplant += 1;
@@ -15020,21 +15012,21 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.waist >= -10) && (thisSurgery.cosmetic > 0)) {
+		} else if ((slave.waist >= -10) && (thisSurgery.surgery_cosmetic > 0)) {
 			surgeries.push("a narrower waist");
 			slave.waist -= 20;
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if (((slave.boobShape == "saggy") || (slave.boobShape == "downward-facing")) && (thisSurgery.cosmetic > 0) && (slave.breastMesh != 1)) {
+		} else if (((slave.boobShape == "saggy") || (slave.boobShape == "downward-facing")) && (thisSurgery.surgery_cosmetic > 0) && (slave.breastMesh != 1)) {
 			surgeries.push("a breast lift");
 			slave.boobShape = "normal";
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if (((slave.boobShape == "normal") || (slave.boobShape == "wide-set")) && (thisSurgery.cosmetic > 0) && (slave.breastMesh != 1)) {
+		} else if (((slave.boobShape == "normal") || (slave.boobShape == "wide-set")) && (thisSurgery.surgery_cosmetic > 0) && (slave.breastMesh != 1)) {
 			if (slave.boobs > 800)
 				slave.boobShape = "torpedo-shaped";
 			else
@@ -15044,7 +15036,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((thisSurgery.lips == 0) && (slave.lipsImplant > 0)) {
+		} else if ((thisSurgery.surgery_lips == 0) && (slave.lipsImplant > 0)) {
 			surgeries.push("surgery to remove her lip implants");
 			slave.lips -= slave.lipsImplant;
 			slave.lipsImplant = 0;
@@ -15054,8 +15046,8 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.lips <= 95) && (slave.lips < thisSurgery.lips)) {
-			if (thisSurgery.lips !== "no default setting") {
+		} else if ((slave.lips <= 95) && (slave.lips < thisSurgery.surgery_lips)) {
+			if (thisSurgery.surgery_lips !== "no default setting") {
 				surgeries.push("bigger lips");
 				slave.lipsImplant += 10;
 				slave.lips += 10;
@@ -15066,7 +15058,7 @@ window.rulesAutosurgery = (function() {
 				else slave.health -= 10;
 			}
 			
-		} else if ((slave.faceImplant <= 45) && (slave.face <= 95) && (thisSurgery.cosmetic == 2)) {
+		} else if ((slave.faceImplant <= 45) && (slave.face <= 95) && (thisSurgery.surgery_cosmetic == 2)) {
 			surgeries.push("a nicer face");
 			if (slave.faceShape == "masculine") slave.faceShape = "androgynous";
 			slave.faceImplant += 25-5*Math.trunc(V.PC.medicine/50)-5*V.surgeryUpgrade;
@@ -15075,7 +15067,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.hips < 1) && (slave.hips < thisSurgery.hips) && (V.surgeryUpgrade == 1)) {
+		} else if ((slave.hips < 1) && (slave.hips < thisSurgery.surgery_hips) && (V.surgeryUpgrade == 1)) {
 			surgeries.push("wider hips");
 			slave.hips++;
 			slave.hipsImplant++;
@@ -15083,7 +15075,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.faceImplant <= 45) && (slave.ageImplant != 1) && (slave.visualAge >= 25) && (thisSurgery.cosmetic == 2)) {
+		} else if ((slave.faceImplant <= 45) && (slave.ageImplant != 1) && (slave.visualAge >= 25) && (thisSurgery.surgery_cosmetic == 2)) {
 			surgeries.push("an age lift");
 			slave.ageImplant = 1;
 			if (slave.visualAge > 80) {
@@ -15102,14 +15094,14 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.waist >= -95) && (thisSurgery.cosmetic == 2) && (V.seeExtreme == 1)) {
+		} else if ((slave.waist >= -95) && (thisSurgery.surgery_cosmetic == 2) && (V.seeExtreme == 1)) {
 			surgeries.push("a narrower waist");
 			slave.waist = Math.clamp(slave.waist-20,-100,100);
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.voice < 3) && (slave.voiceImplant == 0) && (thisSurgery.cosmetic == 2)) {
+		} else if ((slave.voice < 3) && (slave.voiceImplant == 0) && (thisSurgery.surgery_cosmetic == 2)) {
 			surgeries.push("a bimbo's voice");
 			slave.voice += 1;
 			slave.voiceImplant += 1;
@@ -15117,7 +15109,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((thisSurgery.butt == 0) && (slave.buttImplant > 0)) {
+		} else if ((thisSurgery.surgery_butt == 0) && (slave.buttImplant > 0)) {
 			surgeries.push("surgery to remove her butt implants");
 			slave.butt -= slave.buttImplant;
 			slave.buttImplant = 0;
@@ -15126,7 +15118,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((thisSurgery.boobs == 0) && (slave.boobsImplant > 0)) {
+		} else if ((thisSurgery.surgery_boobs == 0) && (slave.boobsImplant > 0)) {
 			surgeries.push("surgery to remove her boob implants");
 			slave.boobs -= slave.boobsImplant;
 			slave.boobsImplant = 0;
@@ -15134,8 +15126,8 @@ window.rulesAutosurgery = (function() {
 			V.cash -= V.surgeryCost;
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
-		} else if ((slave.butt <= 3) && (slave.butt < thisSurgery.butt)) {
-			if (thisSurgery.butt !== "no default setting") {
+		} else if ((slave.butt <= 3) && (slave.butt < thisSurgery.surgery_butt)) {
+			if (thisSurgery.surgery_butt !== "no default setting") {
 				surgeries.push("a bigger butt");
 				slave.buttImplant = 1;
 				slave.butt += 1;
@@ -15143,8 +15135,8 @@ window.rulesAutosurgery = (function() {
 				if (V.PC.medicine >= 100) slave.health -= 5;
 				else slave.health -= 10;
 			}
-		} else if ((slave.boobs <= 600) && (slave.lactation < 2) && (slave.boobs+400 <= thisSurgery.boobs)) {
-			if (thisSurgery.boobs !== "no default setting") {
+		} else if ((slave.boobs <= 600) && (slave.lactation < 2) && (slave.boobs+400 <= thisSurgery.surgery_boobs)) {
+			if (thisSurgery.surgery_boobs !== "no default setting") {
 				surgeries.push("bigger boobs");
 				slave.boobsImplant += 400;
 				slave.boobs += 400;
@@ -15152,8 +15144,8 @@ window.rulesAutosurgery = (function() {
 				if (V.PC.medicine >= 100) slave.health -= 5;
 				else slave.health -= 10;
 			}
-		} else if ((slave.boobs <= 600) && (slave.lactation < 2) && (slave.boobs+200 <= thisSurgery.boobs)) {
-			if (thisSurgery.boobs !== "no default setting") {
+		} else if ((slave.boobs <= 600) && (slave.lactation < 2) && (slave.boobs+200 <= thisSurgery.surgery_boobs)) {
+			if (thisSurgery.surgery_boobs !== "no default setting") {
 				surgeries.push("modestly bigger boobs");
 				slave.boobsImplant += 200;
 				slave.boobs += 200;
@@ -15162,8 +15154,8 @@ window.rulesAutosurgery = (function() {
 				else slave.health -= 10;
 			}
 			
-		} else if ((slave.butt <= 5) && (slave.butt < thisSurgery.butt)) {
-			if (thisSurgery.butt !== "no default setting") {
+		} else if ((slave.butt <= 5) && (slave.butt < thisSurgery.surgery_butt)) {
+			if (thisSurgery.surgery_butt !== "no default setting") {
 				surgeries.push("a bigger butt");
 				slave.buttImplant = 1;
 				slave.butt += 1;
@@ -15172,8 +15164,8 @@ window.rulesAutosurgery = (function() {
 				else slave.health -= 10;
 			}
 			
-		} else if ((slave.boobs <= 2000) && (slave.lactation < 2) && (slave.boobs+400 < thisSurgery.boobs)) {
-			if (thisSurgery.boobs !== "no default setting") {
+		} else if ((slave.boobs <= 2000) && (slave.lactation < 2) && (slave.boobs+400 < thisSurgery.surgery_boobs)) {
+			if (thisSurgery.surgery_boobs !== "no default setting") {
 				surgeries.push("bigger boobs");
 				slave.boobsImplant += 400;
 				slave.boobs += 400;
@@ -15182,7 +15174,7 @@ window.rulesAutosurgery = (function() {
 				else slave.health -= 10;
 			}
 			
-		} else if ((slave.anus > 0) && (V.surgeryUpgrade == 1) && (thisSurgery.holes == 2)) {
+		} else if ((slave.anus > 0) && (V.surgeryUpgrade == 1) && (thisSurgery.surgery_holes == 2)) {
 			surgeries.push("a virgin anus");
 			slave.anus = 0;
 			if (slave.analSkill > 10) {
@@ -15192,7 +15184,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.vagina > 0) && (V.surgeryUpgrade == 1) && (thisSurgery.holes == 2)) {
+		} else if ((slave.vagina > 0) && (V.surgeryUpgrade == 1) && (thisSurgery.surgery_holes == 2)) {
 			surgeries.push("a virgin pussy");
 			slave.vagina = 0;
 			if (slave.vaginalSkill > 10)
@@ -15201,7 +15193,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.hips < 2) && (slave.hips < thisSurgery.hips) && (V.surgeryUpgrade == 1)) {
+		} else if ((slave.hips < 2) && (slave.hips < thisSurgery.surgery_hips) && (V.surgeryUpgrade == 1)) {
 			surgeries.push("wider hips");
 			slave.hips++;
 			slave.hipsImplant++;
@@ -15209,7 +15201,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.anus > 1) && (thisSurgery.holes == 1)) {
+		} else if ((slave.anus > 1) && (thisSurgery.surgery_holes == 1)) {
 			surgeries.push("a tighter anus");
 			slave.anus = 1;
 			if (slave.analSkill > 10) {
@@ -15219,7 +15211,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.vagina > 1) && (thisSurgery.holes == 1)) {
+		} else if ((slave.vagina > 1) && (thisSurgery.surgery_holes == 1)) {
 			surgeries.push("a tighter pussy");
 			slave.vagina = 1;
 			if (slave.vaginalSkill > 10) {
@@ -15229,8 +15221,8 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if ((slave.butt <= 8) && (slave.butt < thisSurgery.butt)) {
-			if (thisSurgery.butt !== "no default setting") {
+		} else if ((slave.butt <= 8) && (slave.butt < thisSurgery.surgery_butt)) {
+			if (thisSurgery.surgery_butt !== "no default setting") {
 				surgeries.push("a bigger butt");
 				slave.buttImplant = 1;
 				slave.butt += 1;
@@ -15239,8 +15231,8 @@ window.rulesAutosurgery = (function() {
 				else slave.health -= 10;
 			}
 			
-		} else if ((slave.boobs <= 9000) && (slave.lactation < 2) && (slave.boobs < thisSurgery.boobs)) {
-			if (thisSurgery.boobs !== "no default setting") {
+		} else if ((slave.boobs <= 9000) && (slave.lactation < 2) && (slave.boobs < thisSurgery.surgery_boobs)) {
+			if (thisSurgery.surgery_boobs !== "no default setting") {
 				surgeries.push("bigger boobs");
 				slave.boobsImplant += 200;
 				slave.boobs += 200;
@@ -15249,7 +15241,7 @@ window.rulesAutosurgery = (function() {
 				else slave.health -= 10;
 			}
 			
-		} else if ((slave.hips < 3) && (slave.hips < thisSurgery.hips) && (V.surgeryUpgrade == 1)) {
+		} else if ((slave.hips < 3) && (slave.hips < thisSurgery.surgery_hips) && (V.surgeryUpgrade == 1)) {
 			surgeries.push("wider hips");
 			slave.hips++;
 			slave.hipsImplant++;
@@ -15257,7 +15249,7 @@ window.rulesAutosurgery = (function() {
 			if (V.PC.medicine >= 100) slave.health -= 5;
 			else slave.health -= 10;
 			
-		} else if (slave.bellyImplant < 0 && V.bellyImplants > 0 && thisSurgery.bellyImplant == "install" && slave.womb.length == 0 && slave.broodmother == 0) {
+		} else if (slave.bellyImplant < 0 && V.bellyImplants > 0 && thisSurgery.surgery_bellyImplant == "install" && slave.womb.length == 0 && slave.broodmother == 0) {
 			slave.bellyImplant = 100;
 			slave.preg = -2;
 			V.cash -= V.surgeryCost;
@@ -15274,7 +15266,7 @@ window.rulesAutosurgery = (function() {
 			}
 			bellyIn(slave);
 			
-		} else if (slave.bellyImplant >= 0 && thisSurgery.bellyImplant == "remove") {
+		} else if (slave.bellyImplant >= 0 && thisSurgery.surgery_bellyImplant == "remove") {
 			surgeries.push("belly implant removal");
 			V.surgeryType = "bellyOut";
 			if (V.PC.medicine >= 100)
@@ -15284,7 +15276,7 @@ window.rulesAutosurgery = (function() {
 			slave.preg = 0;
 			slave.bellyImplant = -1;
 			V.cash -= V.surgeryCost;
-		} else if (slave.balls > 0 && slave.vasectomy === 0 && thisSurgery.vasectomy === true) {
+		} else if (slave.balls > 0 && slave.vasectomy === 0 && thisSurgery.surgery_vasectomy === true) {
 			surgeries.push("vasectomy");
 			V.surgeryType = "vasectomy";
 			if (V.PC.medicine >= 100)
@@ -15293,7 +15285,7 @@ window.rulesAutosurgery = (function() {
 				slave.health -= 10;
 			slave.vasectomy = 1
 			V.cash -= V.surgeryCost;
-		} else if (slave.balls > 0 && slave.vasectomy === 1 && thisSurgery.vasectomy === false) {
+		} else if (slave.balls > 0 && slave.vasectomy === 1 && thisSurgery.surgery_vasectomy === false) {
 			surgery.push("undo vasectomy");
 			V.surgeryType = "vasectomy undo";
 			if (V.PC.medicine >= 100)
