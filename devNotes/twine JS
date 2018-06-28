@@ -1427,6 +1427,76 @@ window.setPregType = function(actor) {
 	}
 }
 
+/*
+ Penetrative ability, ability to become pregnant, and canBreed() must be checked outside of this. Designed to assume .eggType == "human".
+ target is the slave to get pregnant. Also accepts the PC.
+ chance is the % chance to conceive.
+ hole control's the hole involved (0 - vagina, 1 - ass, 2 - both). .mpreg did this.
+ fatherID is the ID of her sire or 0 if undefined.
+ displayOverride is an override if defined - fatherID must be defined in this case.
+*/
+window.knockMeUp = function(target, chance, hole, fatherID, displayOverride) {
+	const V = State.variables;
+	let r = "";
+	if (V.seePreg !== 0) {
+		if (jsRandom(0,99) < (chance + (V.reproductionFormula*((target.pregSource <= 0) ? ((target.ID == -1) ? 0 : 10) : 20)))) {
+			if (target.mpreg === hole) {
+			
+				target.preg = 1;
+				target.pregSource = (!fatherID ? 0 : fatherID);
+				
+				if (target.ID !== -1) {
+					target.pregWeek = 1;
+				}
+				
+				target.pregType = setPregType(target);
+				WombImpregnate(target, target.pregType, target.pregSource, 1);
+				
+				if (V.menstruation === 1) {}
+				else if (!displayOverride) {
+					target.pregKnown = 1;
+					if (target.ID === -1) {
+						/* r += "@@.lime;You have gotten pregnant.@@"; */
+					} else if (target.fuckdoll === 0) {
+						r += "@@.lime;She has become pregnant.@@";
+					} else {
+						r += "@@.lime;It has become pregnant.@@";
+					}
+				} else {
+					target.pregKnown = 1;
+				}
+				
+			} else if (hole === 2) {
+			
+				target.preg = 1;
+				target.pregSource = (!fatherID ? 0 : fatherID);
+				
+				if (target.ID !== -1) {
+					target.pregWeek = 1;
+				}
+				
+				target.pregType = setPregType(target);
+				WombImpregnate(target, target.pregType, target.pregSource, 1);
+				
+				if (V.menstruation === 1) {}
+				else if (!displayOverride) {
+					target.pregKnown = 1;
+					if (target.ID === -1) {
+						/* r += "@@.lime;You have gotten pregnant.@@"; */
+					} else if (target.fuckdoll === 0) {
+						r += "@@.lime;She has become pregnant.@@";
+					} else {
+						r += "@@.lime;It has become pregnant.@@";
+					}
+				} else {
+					target.pregKnown = 1;
+				}
+			}
+		}
+	}
+	return r;
+}
+
 window.getIncubatorReserved = function(slaves) {
 	var count = 0;
 	slaves.forEach(function(s){
