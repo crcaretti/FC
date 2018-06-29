@@ -389,7 +389,7 @@ window.rulesAssistantOptions = (function() {
 			try {
 				const rule = JSON.parse(text);
 				if (rule instanceof Array)
-					rule.forEach(r => V.defaultRules.push(r))
+					rule.forEach(r => V.defaultRules.push(r));
 				else
 					V.defaultRules.push(rule);
 				reload(this.root);
@@ -641,9 +641,14 @@ window.rulesAssistantOptions = (function() {
 		}
 
 		render(data) {
-			const elem = document.createElement("textarea");
-			elem.innerHTML = data;
-			elem.onblur = () => current_rule.condition.data = elem.value;
+			const elem = document.createElement("div");
+			const textarea = document.createElement("textarea");
+			textarea.innerHTML = data;
+			textarea.onblur = () => current_rule.condition.data = elem.value;
+			elem.appendChild(textarea);
+			const explanation = document.createElement("div");
+			explanation.innerHTML = "Insert a valid <a target='_blank' class='link-external' href='https://www.w3schools.com/js/js_comparisons.asp'>JavaScript comparison and/or logical operation</a>.";
+			elem.appendChild(explanation);
 			return elem;
 		}
 	}
@@ -1518,15 +1523,9 @@ window.rulesAssistantOptions = (function() {
 		constructor() {
 			const drugs =  [
 				["No default setting", "no default setting"],
-				["Contraceptives", -1],
-				["Fertile", 0],
-				["Very fertile", 1],
-				["Extremely fertile", 2],
+				["Contraceptives", true],
+				["Fertile", false],
 			];
-			if (V.seeHyperPreg === 1 && V.superFertilityDrugs === 1) {
-				drugs.push(["Hyper fertile", 3]);
-				drugs.push(["Maximize fertility", 4]);
-			}
 			super("Contraceptives for fertile slaves", drugs);
 			this.setValue(current_rule.set.preg);
 			this.onchange = (value) => current_rule.set.preg = value;
@@ -1599,22 +1598,31 @@ window.rulesAssistantOptions = (function() {
 
 	class OtherDrugsList extends List {
 		constructor() {
-			const drugs = [];
-			setup.drugs.forEach(drug => {
-				if (drug.fs === undefined && drug.rs === undefined)
-					drugs.push([drug.name, drug.value]);
-				else if (drug.rs === "growth" && V.growthStim === 1)
-					drugs.push([drug.name + " (Research)", drug.value]);
-				else if (drug.rs === "pubHorm" && V.precociousPuberty === 1 && V.pubertyHormones === 1)
-					drugs.push([drug.name + " (Research)", drug.value]);
-				else if (drug.rs === "nosag" && V.purchasedSagBGone === 1)
-					drugs.push([drug.name + " (Product)", drug.value]);
-				else if (drug.fs === "slimness" && V.arcologies[0].FSSlimnessEnthusiastResearch === 1)
-					drugs.push([drug.name + " (FS)", drug.value]);
-				else if (drug.fs === "youth" && V.arcologies[0].FSYouthPreferentialistResearch === 1)
-					drugs.push([drug.name + " (FS)", drug.value]);
-			});
-			super("Other drugs (Will be overriden by hormones and other drugs where applicable)", drugs);
+			const drugs = [
+				["No default setting", "no default setting"],
+				["None", "none"],
+				["Fertility drugs", "fertility drugs"],
+				["Psychosuppressants", "psychosuppressants"],
+				["Steroids", "steroids"],
+				["Natural hormone enhancers", "hormone enhancers"],
+				["Hormone blockers", "hormone blockers"],
+			];
+
+			if (V.growthStim === 1)
+				drugs.push(["Growth Stimulants (Research)", "growth stimulants"]);
+			if (V.precociousPuberty === 1 && V.pubertyHormones) {
+				drugs.push(["Female hormone injections (Research)", "female hormone injections"]);
+				drugs.push(["Male hormone injections (Research)", "male hormone injections"]);
+			}
+			if (V.purchasedSagBGone === 1)
+				drugs.push(["Sag-B-gone (Product)", "sag-B-gone"]);
+			if (V.arcologies[0].FSSlimnessEnthusiast === 1)
+				drugs.push(["Weight loss pills (FS)", "appetite suppressors"]);
+			if (V.arcologies[0].FSYouthPreferentialist === 1)
+				drugs.push(["Anti-aging cream (FS)", "anti-aging cream"]);
+			if (V.seeHyperPreg === 1 && V.superFertilityDrugs === 1)
+				drugs.push(["Super fertility drugs", "super fertility drugs"]);
+			super("Other drugs", drugs);
 			this.setValue(current_rule.set.drug);
 			this.onchange = (value) => current_rule.set.drug = value;
 		}
