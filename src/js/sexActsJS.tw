@@ -95,9 +95,8 @@ window.VaginalVCheck = function VaginalVCheck(times) {
 			slave.trust -= 10;
 			slave.devotion -= 15;
 		}
-		slave.anus = 1;
-	}
-	if (canDoAnal(slave)) {
+		slave.vagina = 1;
+
 		if (V.PC.dick === 1 && canGetPregnant(slave) && slave.eggType == "human") {
 			r += knockMeUp(slave, 10, 0, -1, 1);
 		}
@@ -263,6 +262,105 @@ window.BothVCheck = function BothVCheck(analTimes, bothTimes) {
 		}
 		if (V.PC.dick === 1 && canGetPregnant(slave) && slave.eggType == "human") {
 			r += knockMeUp(slave, 10, 1, -1, 1);
+		}
+	}
+	return r;
+}
+
+/*
+ times is how many times to increment either the Vaginal or the Anal counts, if there is no Vagina available.
+ If left undefined it will assume it to be 1.
+*/
+window.SimpleVCheck = function SimpleVCheck(times) {
+	let r = ``;
+	if (canDoVaginal(State.variables.activeSlave)) {
+		r += VaginalVCheck(times);
+	}
+	else if (canDoAnal(State.variables.activeSlave)) {
+		r += AnalVCheck(times);
+	}
+	return r;
+}
+
+/*
+ Before using this function, set $partner to the index of the partner in the $slaves array
+ analTimes is how many times to increment the Anal counts, if there is no Vagina available.
+ bothTimes is how many times to increment both holes counts (usually it is half of Anal).
+ In both cases if left undefined it will assume it to be 1.
+ This also checks for a valid Vagina/Accessory, though most code I've seen does this already, you
+ never know when someone might use the routine and forget to do such.
+*/
+window.PartnerVCheck = function PartnerVCheck(analTimes, bothTimes) {
+	const V = State.variables;
+	const partner = V.slaves[V.partner];
+	let r = ``;
+	
+	if (V.partner < 0 || V.partner >= V.slaves.length) {
+		r += `@@.red;PartnerVCheck called with invalid partner '$partner' from passage ${passage()}.@@`;
+	}	
+	else if (canDoVaginal(partner)) {
+		if (partner.vagina === 0) {
+			if (canDoAnal(partner) && partner.anus === 0) {
+				r += `Since it's ${partner.slaveName}'s first time, you take your time and gently ease yourself into her pussy before gradually working your way into her butthole, alternating between her holes. @@.lime;This breaks in ${partner.slaveName}'s virgin holes.@@ `;
+				partner.vagina = 1;
+				partner.anus = 1;
+			}
+			else {
+				r += `Since it's ${partner.slaveName}'s first time, you take your time and gently ease yourself into her pussy before gradually increasing the intensity of your thrusts. @@.lime;This breaks in partner.slaveName's virgin pussy.@@ `;
+				partner.vagina = 1;
+			}
+		}
+		else if (canDoAnal(partner) && partner.anus == 0) {
+			r += `Since it's ${partner.slaveName}'s first time, you take your time and gently ease yourself into her butthole before gradually increasing the intensity of your thrusts into her ass. @@.lime;This breaks in ${partner.slaveName}'s virgin ass.@@ `;
+			partner.anus = 1;
+		}
+		
+		if (canDoAnal(partner)) {
+			if (!bothTimes) {
+				V.vaginalTotal += 1;
+				V.analTotal += 1;
+				partner.vaginalCount += 1;
+				partner.analCount += 1;
+			}
+			else {
+				V.vaginalTotal += bothTimes;
+				V.analTotal += bothTimes;
+				partner.vaginalCount += bothTimes;
+				partner.analCount += bothTimes;
+			}
+			if (V.PC.dick === 1 && canGetPregnant(partner) && partner.eggType == "human") {
+				r += knockMeUp(partner, 10, 2, -1);
+			}
+		}
+		else {
+			if (!bothTimes) {
+				V.vaginalTotal += 1;
+				partner.vaginalCount += 1;
+			}
+			else {
+				V.vaginalTotal += bothTimes;
+				partner.vaginalCount += bothTimes;
+			}
+			if (V.PC.dick === 1 && canGetPregnant(partner) && partner.eggType == "human") {
+				r += knockMeUp(partner, 10, 0, -1);
+			}
+		}
+	}
+	else if (canDoAnal(partner)) {
+		if (partner.anus === 0) {
+			r += `Since it's ${partner.slaveName}'s first time, you take your time and gently ease yourself into her butthole before gradually increasing the intensity of your thrusts into her ass. @@.lime;This breaks in ${partner.slaveName}'s virgin ass.@@ `;
+			partner.anus = 1;
+		}
+		if (!analTimes) {
+			V.analTotal += analTimes;
+			partner.analCount += analTimes;
+		}
+		else {
+			V.analTotal += 1;
+			partner.analCount += 1;
+		}
+		if (V.PC.dick === 1 && canGetPregnant(partner) && partner.eggType == "human") {
+			r += knockMeUp(partner, 10, 1, -1);
 		}
 	}
 	return r;
