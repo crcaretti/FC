@@ -50,36 +50,6 @@ window.ruleApplied = function(slave, rule) {
 	return slave.currentRules.includes(rule.ID);
 };
 
-// checks if any rules apply on the slave, and applies them
-window.CheckAutoRulesActivate = function CheckAutoRulesActivate(slave) {
-	const V = State.variables;
-	let r = "";
-
-	V.defaultRules.forEach(rule => {
-		let applies = ruleAppliesP(rule.condition, slave);
-		if (applies) {
-			if (!ruleApplied(slave, rule)) {
-				slave.currentRules.push(rule.ID);
-				r += `<br><span class="tan">Rule "${rule.name}" now applies to ${slave.slaveName}, who is assigned to ${slave.assignment}.</span>\n`;
-			}
-		} else if (ruleApplied(slave, rule))
-			r += RARemoveRule(slave, rule);
-	});
-	return r;
-};
-
-// remove the RA rule from the slave
-window.RARemoveRule = function RARemoveRule(slave, rule) {
-	let r = "";
-	const index = slave.currentRules.findIndex(rule => rule.ID === rule);
-	if (index === -1) return r;
-	const slave_rule = slave.currentRules[index];
-	slave.currentRules.splice(index, 1);
-	r += `<br><span class="tan">Rule ${rule.ID} (${rule.name}) no longer applies to ${slave.slaveName}, who is assignmed to ${slave.assignment}</span>`;
-	r += RAFacilityRemove(slave, slave_rule.set);
-	return r;
-};
-
 // remove slave from the facility described by the rule
 window.RAFacilityRemove = function RAFacilityRemove(slave, rule) {
 	const V = State.variables;
@@ -327,7 +297,6 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 // Call and then check potential change against $slaveAfterRA to see if the RA would revert it.
 window.RulesDeconfliction = function RulesDeconfliction(slave) {
 	const before = clone(slave);
-	CheckAutoRulesActivate(slave);
 	DefaultRules(slave);
 	V.slaveAfterRA = clone(slave);
 	slave = before;
