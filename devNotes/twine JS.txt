@@ -2343,7 +2343,7 @@ Number.prototype.toFixedHTML = function() {
 	return commaNum(Number.prototype.toFixed.apply(this, arguments)).replace(/\.0+$/, '<span style="opacity: 0.3">$&</span>');
 }
 
-/*:: rulesAssistant [script]*/
+//:: rulesAssistant [script]
 
 window.hasSurgeryRule = function(slave, rules) {
 	return rules.some(
@@ -2393,36 +2393,6 @@ window.mergeRules = function mergeRules(rules) {
 // return if a rule is applied on a slave
 window.ruleApplied = function(slave, rule) {
 	return slave.currentRules.includes(rule.ID);
-};
-
-// checks if any rules apply on the slave, and applies them
-window.CheckAutoRulesActivate = function CheckAutoRulesActivate(slave) {
-	const V = State.variables;
-	let r = "";
-
-	V.defaultRules.forEach(rule => {
-		let applies = ruleAppliesP(rule.condition, slave);
-		if (applies) {
-			if (!ruleApplied(slave, rule)) {
-				slave.currentRules.push(rule.ID);
-				r += `<br><span class="tan">Rule "${rule.name}" now applies to ${slave.slaveName}, who is assigned to ${slave.assignment}.</span>\n`;
-			}
-		} else if (ruleApplied(slave, rule))
-			r += RARemoveRule(slave, rule);
-	});
-	return r;
-};
-
-// remove the RA rule from the slave
-window.RARemoveRule = function RARemoveRule(slave, rule) {
-	let r = "";
-	const index = slave.currentRules.findIndex(rule => rule.ID === rule);
-	if (index === -1) return r;
-	const slave_rule = slave.currentRules[index];
-	slave.currentRules.splice(index, 1);
-	r += `<br><span class="tan">Rule ${rule.ID} (${rule.name}) no longer applies to ${slave.slaveName}, who is assignmed to ${slave.assignment}</span>`;
-	r += RAFacilityRemove(slave, slave_rule.set);
-	return r;
 };
 
 // remove slave from the facility described by the rule
@@ -2655,6 +2625,7 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 			surgery_hair: "no default setting",
 			surgery_bodyhair: "no default setting",
 			surgery_vasectomy: "no default setting",
+			surgery_bellyImplant: "no default setting",
 			underArmHColor: "no default setting",
 			underArmHStyle: "no default setting",
 			drug: "no default setting",
@@ -2672,7 +2643,6 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 // Call and then check potential change against $slaveAfterRA to see if the RA would revert it.
 window.RulesDeconfliction = function RulesDeconfliction(slave) {
 	const before = clone(slave);
-	CheckAutoRulesActivate(slave);
 	DefaultRules(slave);
 	V.slaveAfterRA = clone(slave);
 	slave = before;
@@ -9936,7 +9906,7 @@ window.sortIncubatorPossiblesByPreviousSort = function () {
 	}
 };
 
-/*:: DefaultRules [script]*/
+//:: DefaultRules [script]
 // this code applies RA rules onto slaves
 
 window.DefaultRules = (function() {
@@ -9945,10 +9915,11 @@ window.DefaultRules = (function() {
 	let r;
 
 	function DefaultRules(slave) {
+		if (slave.useRulesAssistant === 0) return r; //exempted
+		
 		V = State.variables;
 		r = "";
 		let rule = MergeRules(slave);
-
 		if (Object.keys(rule).length === 0) return r; // no rules apply
 
 		AssignJobToSlave(slave, rule);
@@ -9995,10 +9966,9 @@ window.DefaultRules = (function() {
 
 	function MergeRules(slave) {
 		// merge all rules applying on a slave into one big rule
-		const rules = V.defaultRules
-			.filter(rule => ruleAppliesP(rule.condition, slave))
-			.map(rule => ProcessAssignments(slave, Object.assign({}, rule.set)));
-		return mergeRules(rules);
+		const rules = V.defaultRules.filter(x => ruleAppliesP(x.condition, slave))
+		slave.currentRules = rules.map(x => x.ID)
+		return mergeRules(rules.map(x => ProcessAssignments(slave, Object.assign({}, x.set))));
 	}
 
 	function ProcessAssignments(slave, rule) {
@@ -12017,7 +11987,7 @@ window.DefaultRules = (function() {
 	return DefaultRules;
 })();
 
-/*:: Rules Assistant Options [script]*/
+//:: Rules Assistant Options [script]
 // rewrite of the rules assistant options page in javascript
 // uses an object-oriented widget pattern
 // wrapped in a closure so as not to polute the global namespace
@@ -13048,6 +13018,8 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new TighteningSurgeryList());
 			this.appendChild(new BodyHairSurgeryList());
 			this.appendChild(new HairSurgeryList());
+			if (V.bellyImplants > 0)
+				this.appendChild(new BellyImplantList());
 		}
 	}
 
@@ -13159,20 +13131,12 @@ window.rulesAssistantOptions = (function() {
 			const nice = new ListSubSection(this, "Nice", ncollars);
 			this.appendChild(nice);
 
-			const hcollars = [
-				["Tight steel", "tight steel"],
-				["Uncomfortable leather", "uncomfortable leather"],
-				["Pregnancy biometrics", "preg biometrics"],
-				["Shock punishment", "shock punishment"],
-				["Dildo gag", "dildo gag"],
-				["Ball gag", "ball gag"],
-				["Bit gag", "bit gag"],
-				["Neck corset", "neck corset"],
-			];
-			if (V.seeAge !== 0)
-				hcollars.push(["Cruel retirement counter", "cruel retirement counter"]);
-			if (V.toysBoughtGags === 1)
-				hcollars.push(["Massive dildo gag", "massive dildo gag"]);
+			const hcollars = [];
+			setup.harshCollars.forEach(item => {
+				if (item.fs === "seeage" && V.seeAge === 0) return;
+				else if (item.rs === "buyGag" && V.toysBoughtGags !== 1) return;
+				else hcollars.push([item.name, item.value]);
+			});
 			const harsh = new ListSubSection(this, "Harsh", hcollars);
 			this.appendChild(harsh);
 
@@ -13668,7 +13632,7 @@ window.rulesAssistantOptions = (function() {
 			if (V.dietCleanse === 1)
 				diets.push(["Cleansing", "cleansing"]);
 			if (V.dietFertility === 1)
-				diets.push(["Feritlity", "fertility"]);
+				diets.push(["Fertility", "fertility"]);
 			if (V.cumProDiet === 1)
 				diets.push(["Cum production", "cum production"]);
 
@@ -15100,11 +15064,24 @@ window.rulesAssistantOptions = (function() {
 			this.onchange = (value) => current_rule.set.setAssignment = value;
 		}
 	}
+
+	class BellyImplantList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["install", "install"],
+				["remove", "remove"],
+			];
+			super("Belly implant", items);
+			this.setValue(current_rule.set.surgery_bellyImplant);
+			this.onchange = (value) => current_rule.set.surgery_bellyImplant = value;
+		}
+	}
 	
 	return rulesAssistantOptions;
 })();
 
-/*:: rules autosurgery js [script]*/
+//:: rules autosurgery js [script]
 
 window.rulesAutosurgery = (function() {
 	"use strict";
@@ -15117,6 +15094,7 @@ window.rulesAutosurgery = (function() {
 		r = "";
 		const surgeries = [];
 		const thisSurgery = ProcessHGTastes(slave);
+		console.log(thisSurgery);
 		if (slave.health > 20)
 			CommitSurgery(slave, thisSurgery, surgeries);
 		if (surgeries.length > 0)
@@ -15582,7 +15560,7 @@ window.rulesAutosurgery = (function() {
 			slave.bellyImplant = 100;
 			slave.preg = -2;
 			V.cash -= V.surgeryCost;
-			if (V.activeSlave.ovaries == 1 || V.activeSlave.mpreg == 1) {
+			if (slave.ovaries == 1 || slave.mpreg == 1) {
 				surgeries.push("belly implant");
 				V.surgeryType = "bellyIn";
 				if (V.PC.medicine >= 100) slave.health -= 5;
@@ -15649,6 +15627,7 @@ window.rulesAutosurgery = (function() {
 		}
 	}
 })();
+
 
 /*:: sexActJS [script]*/
 
