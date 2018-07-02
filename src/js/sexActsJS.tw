@@ -1,0 +1,367 @@
+:: sexActJS [script]
+
+/*
+ times is how many times to increment the anal counts.
+ if left undefined it will assume it to be 1.
+*/
+window.AnalVCheck = function AnalVCheck(times) {
+	const V = State.variables;
+	const slave = V.activeSlave;
+	let r = ``;
+	if (canDoAnal(slave) && slave.anus === 0) {
+		r += `@@.lime;This breaks in ${slave.slaveName}'s virgin ass.@@ `;
+		if (slave.devotion > 50 || slave.career == "a slave since birth") {
+			r += `Since it's her first time, you gently ease yourself into her butthole and gradually increase the intensity of your thrusts. Before long she's moaning loudly as you continue working away at her butthole. `;
+			if (slave.tankBaby == 2) {
+				r += `She thinks of losing her anal virginity to her ${WrittenMaster(slave)} a @@.hotpink;necessity.@@ She expects her asshole to be seeing a lot more attention now.`;
+			}
+			else {
+				r += `She thinks of losing her anal virginity to you as a @@.hotpink;connection@@ with her beloved ${WrittenMaster(slave)}. `;
+				if ((slave.fetishKnown && slave.fetish == "buttslut") || (slave.energy > 95) || (slave.attrXX >= 85 && V.PC.dick === 0)) {
+					r += `She can't wait to be fucked in the ass by you again.`;
+				}
+				else {
+					r += `She looks forward to having her asshole fucked by you again.`;
+				}
+			}
+			slave.devotion += 4;
+		}
+		else if (slave.devotion > 20) {
+			r += `Since it's her first time, you gently ease yourself into her butthole and gradually increase the intensity of your thrusts. Her moans become louder and louder as you continue working away at her butthole. She accepts the pain and humiliation of anal sex as part of her sexual servitude, though she hopes that her next time will be less painful.`;
+		}
+		else if (slave.devotion >= -20) {
+			r += `You force yourself into her butthole. She sobs and cries with disgust while you continue thrusting into her ass. She @@.gold;fears@@ her next anal sex, remembering the pain of losing her anal virginity. She dreads having her ass violated by you again.`;
+			slave.trust -= 5;
+		}
+		else {
+			r += `You force yourself into her butthole. She sobs and cries with disgust while you continue thrusting into her ass. She @@.mediumorchid;hates@@ and @@.gold;fears@@ you for violating her virgin butt. She dreads having her ass fucked by you again.`;
+			slave.trust -= 5;
+			slave.devotion -= 5;
+		}
+		slave.anus = 1;
+	}
+	if (canDoAnal(slave)) {
+		if (V.PC.dick === 1 && canGetPregnant(slave) && slave.eggType == "human") {
+			r += knockMeUp(slave, 10, 1, -1, 1);
+		}
+		if (!times) {
+			V.analTotal += 1;
+			slave.analCount += 1;
+		}
+		else {
+			V.analTotal += times;
+			slave.analCount += times;
+		}
+	}
+	return r;
+}
+
+/*
+ times is how many times to increment the vaginal counts.
+ if left undefined it will assume it to be 1.
+*/
+window.VaginalVCheck = function VaginalVCheck(times) {
+	const V = State.variables;
+	const slave = V.activeSlave;
+	let r = ``;
+	if (canDoVaginal(slave) && slave.vagina === 0) {
+		r += `@@.lime;This breaks in ${slave.slaveName}'s virgin pussy.@@ `;
+		if (slave.devotion > 50 || slave.career == "a slave since birth") {
+			r += `You ease yourself into her pussy, since it's her first time, then gradually speed up your thrusts while she slowly learns to move her hips along with you. She moans loudly. `;
+			if (slave.tankBaby == 2) {
+				r += `She thinks of losing her virginity to her ${WrittenMaster(slave)} a @@.hotpink;necessity to be happy.@@ She expects her pussy to be seeing a lot more attention in the future.`;
+			}
+			else {
+				r += `@@.hotpink;She enjoys losing her cherry to you.@@ `;
+				if ((slave.fetishKnown && slave.fetish == "pregnancy") || (slave.energy > 95) || (slave.attrXY >= 85 && V.PC.dick === 1)) {
+					r += `She can't wait to have her pussy fucked by you again.`;
+				}
+				else {
+					r += `She looks forward to having her pussy fucked by you again.`;
+				}
+			}
+			slave.devotion += 4;
+		}
+		else if (slave.devotion > 20) {
+			r += `You ease yourself into her pussy, since it's her first time, then gradually speed up your thrusts while she slowly learns to move her hips along with you. She accepts losing her virginity to her owner and she looks forward to having her pussy fucked by you again.`;
+		}
+		else if (slave.devotion >= -20) {
+			r += `You force yourself into her pussy. She sobs and cries with disgust while you continue thrusting into her fuck hole. She @@.mediumorchid;hates@@ losing her virginity this way and @@.gold;fears@@ the next time you'll conquer her. She dreads getting violated by you again.`;
+			slave.trust -= 5;
+			slave.devotion -= 5;
+		}
+		else {
+			r += `You force yourself into her pussy. She sobs and cries with disgust while you continue working her fuck hole. She tries to struggle, but you only pound harder. She @@.mediumorchid;hates@@ and @@.gold;fears@@ you for robbing her of her virginity. She dreads getting fucked by you again.`;
+			slave.trust -= 10;
+			slave.devotion -= 15;
+		}
+		slave.vagina = 1;
+
+		if (V.PC.dick === 1 && canGetPregnant(slave) && slave.eggType == "human") {
+			r += knockMeUp(slave, 10, 0, -1, 1);
+		}
+		if (!times) {
+			V.vaginalTotal += 1;
+			slave.vaginalCount += 1;
+		}
+		else {
+			V.vaginalTotal += times;
+			slave.vaginalCount += times;
+		}
+	}
+	return r;
+}
+
+/*
+ analTimes is how many times to increment the anal counts, if there is no vagina available.
+ bothTimes is how many times to increment both holes counts (usually it is half of analTimes).
+ In both cases if left undefined it will assume it to be 1.
+*/
+window.BothVCheck = function BothVCheck(analTimes, bothTimes) {
+	const V = State.variables;
+	const slave = V.activeSlave;
+	let r = ``;
+	if (canDoVaginal(slave)) {
+		if (slave.vagina === 0) {
+			if (canDoAnal(slave) && slave.anus == 0) {
+				r += `@@.lime;This breaks in ${slave.slaveName}'s virgin holes.@@ `;
+				if (slave.devotion > 50 || slave.career == "a slave since birth") {
+					r += `As it's her first time, you ease yourself into her pussy before gradually working your way into her ass and alternate between the two holes while she moans. `;
+					if (slave.tankBaby == 2) {
+						r += `She believes you taking her virgin holes @@.hotpink;will keep her from suffering.@@ She expects you to require her holes as tribute again soon.`;
+					}
+					else {
+						r += `@@.hotpink;She's so devoted she enjoys being fucked in both holes for the first time.@@ She looks forward to having her holes fucked by you again.`;
+					}
+					slave.devotion += 4;
+				}
+				else if (slave.devotion <= 20) {
+					r += `You force yourself into her pussy before working your way into her ass. She sobs and cries with disgust while you alternate between the two holes. She @@.mediumorchid;hates@@ losing her virginity and anal virginity in one @@.gold;brutal@@ incident. She dreads having her holes violated by you again.`;
+					slave.trust -= 5;
+					slave.devotion -= 5;
+				}
+				else {
+					r += `As it's her first time, you ease yourself into her pussy before gradually working your way into her ass and alternate between the two holes while she moans. She accepts being fucked in both holes for the first time. She looks forward to having her holes fucked by you again.`;
+				}
+				slave.anus = 1;
+			}
+			else {
+				r += `@@.lime;This breaks in ${slave.slaveName}'s virgin pussy.@@ `;
+				if (slave.devotion > 50 || slave.career == "a slave since birth") {
+					r += `As it's her first time, you ease yourself into her pussy and gradually speed up your thrusts while she slowly learns to move her hips along with you. She moans loudly. `;
+					if (slave.tankBaby == 2) {
+						r += `She thinks of losing her virginity to her ${WrittenMaster(slave)} a @@.hotpink;necessity to be happy.@@ She expects her pussy to be seeing a lot more attention in the future.`;
+					}
+					else {
+						r += `@@.hotpink;She enjoys losing her cherry to you.@@ She looks forward to having her pussy fucked by you again.`;
+					}
+					slave.devotion += 4;
+				}
+				else if (slave.devotion <= 20) {
+					r += `You force yourself into her pussy. She sobs and cries with disgust while you continue working her fuck hole. She @@.mediumorchid;hates@@ and @@.gold;fears@@ you for taking her virginity. She dreads having her pussy violated by you again.`;
+					slave.trust -= 5;
+					slave.devotion -= 5;
+				}
+				else {
+					r += `As it's her first time, you ease yourself into her pussy before gradually increasing the intensity of your thrusts while she softly moans. She accepts losing her virginity to her owner and she looks forward to having her pussy fucked by you again.`;
+				}
+			}
+			slave.vagina = 1;
+		}
+		else if (canDoAnal(slave) && slave.anus == 0) {
+			r += `@@.lime;This breaks in ${slave.slaveName}'s virgin ass.@@ `;
+			if (slave.devotion > 50 || slave.career == "a slave since birth") {
+				r += `As it's her first time, you ease yourself into her butthole and gradually speed up your thrusts while she slowly learns to move her hips along with you. She moans loudly. `;
+				if (slave.tankBaby == 2) {
+					r += `She thinks of losing her anal virginity to her ${WrittenMaster(slave)} a @@.hotpink;necessity.@@ She expects her asshole to be seeing a lot more attention now.`;
+				}
+				else {
+					r += `She thinks of losing her anal virginity to you as a @@.hotpink;connection@@ with her beloved ${WrittenMaster(slave)}. She looks forward to having her asshole fucked by you again.`
+				}
+				slave.devotion += 4;
+			}
+			else if (slave.devotion > 20){
+				r += `As it's her first time, you ease yourself into her butthole and gradually increase the intensity of your thrusts. She accepts the pain and humiliation of anal sex as part of her sexual servitude, though she hopes that her next time will be less painful.`;
+			}
+			else if (slave.devotion >= -20) {
+				r += `You force yourself into her butthole. She sobs and cries with disgust while you continue thrusting into her ass. She @@.gold;fears@@ her next anal sex, remembering the pain of losing her anal virginity. She dreads having her ass violated by you again.`;
+				slave.trust -= 5;
+			}
+			else {
+				r += `You force yourself into her butthole. She sobs and cries with disgust while you continue thrusting into her ass. She @@.mediumorchid;hates@@ and @@.gold;fears@@ you for violating her virgin butt. She dreads having her ass fucked by you again.`;
+				slave.trust -= 5;
+				slave.devotion -= 5;
+			}
+			slave.anus = 1;
+		}
+		if (canDoAnal(slave)) {
+			if (!bothTimes) {
+				V.vaginalTotal += 1;
+				V.analTotal += 1;
+				slave.vaginalCount += 1;
+				slave.analCount += 1;
+			}
+			else {
+				V.vaginalTotal += bothTimes;
+				V.analTotal += bothTimes;
+				slave.vaginalCount += bothTimes;
+				slave.analCount += bothTimes;
+			}
+			if (V.PC.dick === 1 && canGetPregnant(slave) && slave.eggType == "human") {
+				r += knockMeUp(slave, 10, 2, -1, 1);
+			}
+		}
+		else {
+			if (!bothTimes) {
+				V.vaginalTotal += 1;
+				slave.vaginalCount += 1;
+			}
+			else {
+				V.vaginalTotal += bothTimes;
+				slave.vaginalCount += bothTimes;
+			}
+			if (V.PC.dick == 1 && canGetPregnant(slave) && slave.eggType == "human") {
+				r += knockMeUp(slave, 10, 0, -1, 1);
+			}
+		}
+	}
+	else if (canDoAnal(slave)) {
+		if (slave.anus == 0) {
+			r += `@@.lime;This breaks in ${slave.slaveName}'s virgin ass.@@ `;
+			if (slave.devotion > 50 || slave.career == "a slave since birth") {
+				r += `As it's her first time, you ease yourself into her butthole and gradually speed up your thrusts while she slowly learns to move her hips along with you. She moans loudly. `;
+				if (slave.tankBaby == 2) {
+					r += `She thinks of losing her anal virginity to her ${WrittenMaster(slave)} a @@.hotpink;necessity.@@ She expects her asshole to be seeing a lot more attention now.`;
+				}
+				else {
+					r += `She thinks of losing her anal virginity to you as a @@.hotpink;connection@@ with her beloved ${WrittenMaster(slave)}. She looks forward to having her asshole fucked by you again.`;
+				}
+				slave.devotion += 4;
+			}
+			else if (slave.devotion > 20) {
+				r += `As it's her first time, you ease yourself into her butthole and gradually increase the intensity of your thrusts. She accepts the pain and humiliation of anal sex as part of her sexual servitude, though she hopes that her next time will be less painful.`;
+			}
+			else if (slave.devotion >= -20) {
+				r += `You force yourself into her butthole. She sobs and cries with disgust while you continue thrusting into her ass. She @@.gold;fears@@ her next anal sex, remembering the pain of losing her anal virginity. She dreads having her ass violated by you again.`;
+				slave.trust -= 5;
+			}
+			else {
+				r += `You force yourself into her butthole. She sobs and cries with disgust while you continue thrusting into her ass. She @@.mediumorchid;hates@@ and @@.gold;fears@@ you for violating her virgin butt. She dreads having her ass fucked by you again.`
+				slave.trust -= 5;
+				slave.devotion -= 5;
+			}
+			slave.anus = 1;
+		}
+		if (!analTimes) {
+			V.analTotal += 1;
+			slave.analCount += 1;
+		}
+		else {
+			V.analTotal += analTimes;
+			slave.analCount += analTimes;
+		}
+		if (V.PC.dick === 1 && canGetPregnant(slave) && slave.eggType == "human") {
+			r += knockMeUp(slave, 10, 1, -1, 1);
+		}
+	}
+	return r;
+}
+
+/*
+ times is how many times to increment either the Vaginal or the Anal counts, if there is no Vagina available.
+ If left undefined it will assume it to be 1.
+*/
+window.SimpleVCheck = function SimpleVCheck(times) {
+	let r = ``;
+	if (canDoVaginal(State.variables.activeSlave)) {
+		r += VaginalVCheck(times);
+	}
+	else if (canDoAnal(State.variables.activeSlave)) {
+		r += AnalVCheck(times);
+	}
+	return r;
+}
+
+/*
+ Before using this function, set $partner to the index of the partner in the $slaves array
+ analTimes is how many times to increment the Anal counts, if there is no Vagina available.
+ bothTimes is how many times to increment both holes counts (usually it is half of Anal).
+ In both cases if left undefined it will assume it to be 1.
+ This also checks for a valid Vagina/Accessory, though most code I've seen does this already, you
+ never know when someone might use the routine and forget to do such.
+*/
+window.PartnerVCheck = function PartnerVCheck(analTimes, bothTimes) {
+	const V = State.variables;
+	const partner = V.slaves[V.partner];
+	let r = ``;
+	
+	if (V.partner < 0 || V.partner >= V.slaves.length) {
+		r += `@@.red;PartnerVCheck called with invalid partner '$partner' from passage ${passage()}.@@`;
+	}	
+	else if (canDoVaginal(partner)) {
+		if (partner.vagina === 0) {
+			if (canDoAnal(partner) && partner.anus === 0) {
+				r += `Since it's ${partner.slaveName}'s first time, you take your time and gently ease yourself into her pussy before gradually working your way into her butthole, alternating between her holes. @@.lime;This breaks in ${partner.slaveName}'s virgin holes.@@ `;
+				partner.vagina = 1;
+				partner.anus = 1;
+			}
+			else {
+				r += `Since it's ${partner.slaveName}'s first time, you take your time and gently ease yourself into her pussy before gradually increasing the intensity of your thrusts. @@.lime;This breaks in partner.slaveName's virgin pussy.@@ `;
+				partner.vagina = 1;
+			}
+		}
+		else if (canDoAnal(partner) && partner.anus == 0) {
+			r += `Since it's ${partner.slaveName}'s first time, you take your time and gently ease yourself into her butthole before gradually increasing the intensity of your thrusts into her ass. @@.lime;This breaks in ${partner.slaveName}'s virgin ass.@@ `;
+			partner.anus = 1;
+		}
+		
+		if (canDoAnal(partner)) {
+			if (!bothTimes) {
+				V.vaginalTotal += 1;
+				V.analTotal += 1;
+				partner.vaginalCount += 1;
+				partner.analCount += 1;
+			}
+			else {
+				V.vaginalTotal += bothTimes;
+				V.analTotal += bothTimes;
+				partner.vaginalCount += bothTimes;
+				partner.analCount += bothTimes;
+			}
+			if (V.PC.dick === 1 && canGetPregnant(partner) && partner.eggType == "human") {
+				r += knockMeUp(partner, 10, 2, -1);
+			}
+		}
+		else {
+			if (!bothTimes) {
+				V.vaginalTotal += 1;
+				partner.vaginalCount += 1;
+			}
+			else {
+				V.vaginalTotal += bothTimes;
+				partner.vaginalCount += bothTimes;
+			}
+			if (V.PC.dick === 1 && canGetPregnant(partner) && partner.eggType == "human") {
+				r += knockMeUp(partner, 10, 0, -1);
+			}
+		}
+	}
+	else if (canDoAnal(partner)) {
+		if (partner.anus === 0) {
+			r += `Since it's ${partner.slaveName}'s first time, you take your time and gently ease yourself into her butthole before gradually increasing the intensity of your thrusts into her ass. @@.lime;This breaks in ${partner.slaveName}'s virgin ass.@@ `;
+			partner.anus = 1;
+		}
+		if (!analTimes) {
+			V.analTotal += analTimes;
+			partner.analCount += analTimes;
+		}
+		else {
+			V.analTotal += 1;
+			partner.analCount += 1;
+		}
+		if (V.PC.dick === 1 && canGetPregnant(partner) && partner.eggType == "human") {
+			r += knockMeUp(partner, 10, 1, -1);
+		}
+	}
+	return r;
+}

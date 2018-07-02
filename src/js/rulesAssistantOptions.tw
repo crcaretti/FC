@@ -1,0 +1,3093 @@
+:: Rules Assistant Options [script]
+// rewrite of the rules assistant options page in javascript
+// uses an object-oriented widget pattern
+// wrapped in a closure so as not to polute the global namespace
+// the widgets are generic enough to be reusable; if similar user interfaces are ported to JS, we could move the classes to the global scope
+
+window.rulesAssistantOptions = (function() {
+	"use strict";
+	let V, current_rule;
+
+	function rulesAssistantOptions(element) {
+		V = State.variables;
+		V.nextButton = "Back to Main";
+		V.nextLink = "Main";
+		V.returnTo = "Main";
+		V.showEncyclopedia = 1;
+		V.encyclopedia = "Personal Assistant";
+		if (V.currentRule !== null) {
+			const idx = V.defaultRules.findIndex(rule => rule.ID === V.currentRule);
+			if (idx === -1)
+				current_rule = V.defaultRules[0];
+			else
+				current_rule = V.defaultRules[idx];
+		}
+		const root = new Root(element);
+	}
+
+	function returnP(e) { return e.keyCode === 13; }
+
+	function newRule(root) {
+		const rule = emptyDefaultRule();
+		V.defaultRules.push(rule);
+		V.currentRule = rule.ID;
+		reload(root);
+	}
+
+	function removeRule(root) {
+		const idx = V.defaultRules.findIndex(rule => rule.ID === current_rule.ID);
+		V.defaultRules.splice(idx, 1);
+		if (V.defaultRules.length > 0) {
+			const new_idx = idx < V.defaultRules.length ? idx : V.defaultRules.length - 1;
+			V.currentRule = V.defaultRules[new_idx].ID;
+		} else V.currentRule = null;
+		reload(root);
+	}
+
+	function lowerPriority(root) {
+		if (V.defaultRules.length === 1) return; // nothing to swap with
+		const idx = V.defaultRules.findIndex(rule => rule.ID === current_rule.ID);
+		if (idx === 0) return; // no lower rule
+		arraySwap(V.defaultRules, idx, idx-1);
+		reload(root);
+	}
+
+	function higherPriority(root) {
+		if (V.defaultRules.length === 1) return; // nothing to swap with
+		const idx = V.defaultRules.findIndex(rule => rule.ID === current_rule.ID);
+		if (idx === V.defaultRules.length - 1) return; // no higher rule
+		arraySwap(V.defaultRules, idx, idx+1);
+		reload(root);
+	}
+
+	function changeName(name, root) {
+		if (name === current_rule.name) return;
+		current_rule.name = name;
+		reload(root);
+	}
+
+	// reload the passage
+	function reload(root) {
+		const elem = root.element;
+		elem.innerHTML = "";
+		rulesAssistantOptions(elem);
+	}
+
+	const parse = {
+		integer(string) {
+			let n = parseInt(string, 10);
+			return isNaN(n)? 0: n;
+		},
+		boobs(string) {
+			return Math.clamp(parse.integer(string), 0, 48000);
+		},
+		butt(string) {
+			return Math.clamp(parse.integer(string), 0, 20);
+		},
+		lips(string) {
+			return Math.clamp(parse.integer(string), 0, 100);
+		},
+		dick(string) {
+			return Math.clamp(parse.integer(string), 0, 30);
+		},
+		balls(string) {
+			return Math.clamp(parse.integer(string), 0, 125);
+		},
+	};
+
+	// the Element class wraps around a DOM element and adds extra functionality
+	// this is safer than extending DOM objects directly
+	// it also turns DOM manipulation into an implementation detail
+	class Element {
+		constructor(...args) {
+			this.parent = null;
+			this.element = this.render(...args);
+			this.children = [];
+		}
+
+		appendChild(child) {
+			child.parent = this;
+			this.children.push(child);
+			this.element.appendChild(child.element);
+		}
+
+		// return the first argument to simplify creation of basic container items
+		render(...args) {
+			return args[0];
+		}
+
+		remove() {
+			const idx = this.parent.children.findIndex(child => child === this);
+			this.parent.children.slice(idx, 1);
+			this.element.remove();
+		}
+	}
+	
+	class Section extends Element {
+		constructor(header, hidden=false) {
+			super(header);
+			this.hidey = this.element.querySelector("div");
+			if (hidden) this.toggle_hidey();
+		}
+		
+		render(header) {
+			const section = document.createElement("section");
+			section.classList.add("rajs-section");
+			const h1 = document.createElement("h1");
+			h1.onclick = () => { this.toggle_hidey(); };
+			h1.innerHTML = header;
+			const hidey = document.createElement("div");
+			section.appendChild(h1);
+			section.appendChild(hidey);
+			return section;
+		}
+
+		appendChild(child) {
+			child.parent = this;
+			this.children.push(child);
+			this.hidey.appendChild(child.element);
+		}
+
+		toggle_hidey() {
+			switch(this.hidey.style.display) {
+				case "none":
+					this.hidey.style.display = "initial";
+					break;
+				default:
+					this.hidey.style.display = "none";
+					break;
+			}
+		}
+	}
+
+	// list of clickable elements
+	// has a short explanation (the prefix) and a value display
+	// value display can optionally be an editable text input field
+	// it can be "bound" to a variable by setting its "onchange" method
+	class List extends Element {
+		constructor(prefix, data=[], textinput=false) {
+			super(prefix + ": ", textinput);
+			this.selectedItem = null;
+			data.forEach(item => this.appendChild(new ListItem(...item)));
+		}
+
+		render(prefix, textinput) {
+			const elem = document.createElement("div");
+			const label = document.createElement("span");
+			label.innerHTML = prefix;
+			let value;
+			if (textinput) {
+				value = document.createElement("input");
+				value.setAttribute("type", "text");
+				value.classList.add("rajs-value"); // 
+				// call the variable binding when the input field is no longer being edited, and when the enter key is pressed
+				value.onblur = () => {this.inputEdited(); };
+				value.onkeypress = (e) => { if (returnP(e)) this.inputEdited(); };
+			} else {
+				value = document.createElement("strong");
+			}
+			this.value = value;
+			elem.appendChild(label);
+			elem.appendChild(value);
+			elem.classList.add("rajs-list");
+			return elem;
+		}
+
+		inputEdited() {
+			if (this.selectedItem) this.selectedItem.deselect();
+			this.propagateChange();
+		}
+
+		selectItem(item) {
+			if (this.selectedItem) this.selectedItem.deselect();
+			this.selectedItem = item;
+			this.setValue(item.data);
+			this.propagateChange();
+		}
+
+		setValue(what) {
+			if (this.value.tagName === "INPUT")
+				this.value.value = ""+what;
+			else
+				this.value.innerHTML = ""+what;
+		}
+
+		getData(what) {
+			return (this.value.tagName === "INPUT" ? this.parse(this.value.value): this.selectedItem.data);
+		}
+
+		// customisable input field parser / sanity checker
+		parse(what) { return what; }
+
+		propagateChange() {
+			if (this.onchange instanceof Function)
+				this.onchange(this.getData());
+		}
+	}
+
+	// a clickable item of a list
+	class ListItem extends Element {
+		constructor(displayvalue, data) {
+			super(displayvalue);
+			this.data = data !== undefined ? data: displayvalue;
+			this.selected = false;
+		}
+
+		render(displayvalue) {
+			const elem = document.createElement("span");
+			elem.classList.add("rajs-listitem");
+			elem.innerHTML = displayvalue;
+			elem.onclick = () => { return this.select(); };
+			return elem;
+		}
+
+		select() {
+			if (this.selected) return false;
+			this.parent.selectItem(this);
+			this.element.classList.add("selected");
+			this.selected = true;
+			return true;
+		}
+
+		deselect() {
+			this.element.classList.remove("selected");
+			this.selected = false;
+		}
+	}
+
+	// a way to organise lists with too many elements in subsections
+	// children are bound to the master list
+	class ListSubSection extends Element {
+		constructor(parent, label, pairs) {
+			super(label);
+			this.parent = parent;
+			pairs.forEach(item => this.appendChild(new ListItem(...item)));
+		}
+		
+		render(label) {
+			const elem = document.createElement("div");
+			const lelem = document.createElement("em");
+			lelem.innerText = label + ": ";
+			elem.appendChild(lelem);
+			return elem;
+		}
+
+		appendChild(child) {
+			super.appendChild(child);
+			child.parent = this.parent;
+			this.parent.children.push(child);
+		}
+	}
+
+	// similar to list, but is just a collection of buttons
+	class Options extends Element {
+		constructor(elements=[]) {
+			super();
+			elements.forEach(element => { this.appendChild(element); });
+		}
+
+		render() {
+			const elem = document.createElement("div");
+			elem.classList.add("rajs-list");
+			return elem;
+		}
+	}
+
+	// options equivalent of ListItem
+	class OptionsItem extends Element {
+		constructor(label, onclick) {
+			super(label);
+			this.label = label;
+			this.onclick = onclick;
+		}
+		render(label, onclick) {
+			const elem = document.createElement("span");
+			elem.classList.add("rajs-listitem");
+			elem.innerHTML = label;
+			elem.onclick = () => { return this.onclick(this); };
+			return elem;
+		}
+	}
+
+	class ButtonList extends Element {
+		render(label) {
+			const elem = document.createElement("div");
+			const labelel = document.createElement("span");
+			labelel.innerHTML = label += ": ";
+			elem.appendChild(labelel);
+			return elem;
+		}
+
+		getSelection() {
+			return (this.children
+				.filter(child => child.selected)
+				.map(child => child.setvalue)
+			);
+		}
+
+		onchange() { return; }
+	}
+
+	class ButtonItem extends Element {
+		constructor(label, setvalue, selected=false) {
+			super(label, selected);
+			this.selected = selected;
+			this.setvalue = setvalue ? setvalue : label;
+		}
+
+		render(label, selected) {
+			const container = document.createElement("div");
+			container.classList.add("rajs-listitem");
+
+			const labelel = document.createElement("span");
+			labelel.innerHTML = label;
+
+			const button = document.createElement("input");
+			button.setAttribute("type", "checkbox");
+			button.checked = selected;
+			button.onchange = () => this.onchange(button.checked);
+			labelel.onclick = () => button.click();
+
+			container.appendChild(labelel);
+			container.appendChild(button);
+
+			return container;
+		}
+
+		onchange(value) {
+			this.selected = value;
+			this.parent.onchange(this);
+		}
+	}
+
+	// rule import field
+	class NewRuleField extends Element {
+		constructor(root) {
+			super();
+			this.root = root;
+		}
+
+		render() {
+			let element = document.getElementById("importfield");
+			if (element !== null) { return element; }
+			const container = document.createElement("div");
+			container.id = "importfield";
+			const textarea = document.createElement("textarea");
+			textarea.placeholder = "Paste your rule here";
+			container.appendChild(textarea);
+			this.textarea = textarea;
+			const button = document.createElement("button");
+			button.name = "Load";
+			button.innerHTML = "Load";
+			button.onclick = () => { this.loadNewRule(); };
+			container.appendChild(button);
+			return container;
+		}
+
+		loadNewRule() {
+			const text = this.textarea.value;
+			try {
+				const rule = JSON.parse(text);
+				if (rule instanceof Array)
+					rule.forEach(r => V.defaultRules.push(r));
+				else
+					V.defaultRules.push(rule);
+				reload(this.root);
+			} catch (e) {
+				alert("Couldn't import that rule:\n" + e.message);
+			}
+		}
+	}
+
+	// the base element, parent of all elements
+	class Root extends Element {
+		constructor(element) {
+			super(element);
+			if(V.defaultRules.length === 0) {
+				const paragraph = document.createElement("p");
+				paragraph.innerHTML = "<strong>No rules</strong>";
+				this.appendChild(new Element(paragraph));
+				this.appendChild(new NoRules(this));
+				return;
+			}
+			this.appendChild(new RuleSelector(this));
+			this.appendChild(new RuleOptions(this));
+			this.appendChild(new ConditionEditor(this));
+			this.appendChild(new EffectEditor(this));
+		}
+
+		render(element) {
+			const greeting = document.createElement("p");
+			greeting.innerHTML = `<em>${properTitle()}, I will review your slaves and make changes that will have a beneficial effect. Apologies, ${properTitle()}, but this function is... not fully complete. It may have some serious limitations. Please use the 'no default setting' option to identify areas I should not address.</em>`;
+			element.appendChild(greeting);
+			return element;
+		}
+	}
+
+	// optoins displayed when there are no rules
+	class NoRules extends Options {
+		constructor(root) {
+			super();
+			this.root = root;
+			const newrule = new OptionsItem("Add a new rule", () => { newRule(this.root); });
+			this.appendChild(newrule);
+			const importrule = new OptionsItem("Import a rule", () => { this.root.appendChild(new NewRuleField(this.root)); });
+			this.appendChild(importrule);
+		}
+	}
+
+	// buttons for selecting the current rule
+	class RuleSelector extends List {
+		constructor(root) {
+			super("Current rule", V.defaultRules.map(i => [i.name, i]));
+			this.setValue(current_rule.name);
+			this.onchange = function (rule) {
+				V.currentRule = rule.ID;
+				reload(root);
+			};
+		}
+	}
+
+	// buttons for doing transformations on rules
+	class RuleOptions extends Options {
+		constructor(root) {
+			super();
+			this.appendChild(new OptionsItem("New Rule", () => newRule(root)));
+			this.appendChild(new OptionsItem("Remove Rule", () => removeRule(root)));
+			this.appendChild(new OptionsItem("Apply rules", () => this.appendChild(new ApplicationLog())));
+			this.appendChild(new OptionsItem("Lower Priority", () => lowerPriority(root)));
+			this.appendChild(new OptionsItem("Higher Priority", () => higherPriority(root)));
+			this.appendChild(new OptionsItem("Rename", () => this.appendChild(new RenameField(root))));
+			this.appendChild(new OptionsItem("Export this rule", () => this.appendChild(new ExportField(current_rule))));
+			this.appendChild(new OptionsItem("Export all rules", () => this.appendChild(new ExportField(...V.defaultRules))));
+			this.appendChild(new OptionsItem("Import rule(s)", () => this.appendChild(new NewRuleField(root))));
+		}
+	}
+
+	class ApplicationLog extends Element {
+		render() {
+			const elem = document.createElement("div");
+			clearSummaryCache();
+			elem.innerHTML = V.slaves.map(slave => DefaultRules(slave)).join("");
+			return elem;
+		}
+	}
+
+	class RenameField extends Element {
+		constructor(root) {
+			super();
+			this.element.onblur = () => changeName(this.element.value, root);
+			this.element.onkeypress = (e) => { if (returnP(e)) changeName(this.element.value, root); };
+		}
+
+		render() {
+			const elem = document.createElement("input");
+			elem.setAttribute("type", "text");
+			elem.setAttribute("value", current_rule.name);
+			return elem;
+		}
+	}
+
+	class ExportField extends Element {
+		render(...args) {
+			let element = document.getElementById("exportfield");
+			if (element === null) {
+				element = document.createElement("textarea");
+				element.id = "exportfield";
+			}
+			element.value = JSON.stringify(args, null, 2);
+			return element;
+		}
+	}
+
+	// parent section for condition editing
+	class ConditionEditor extends Section {
+		constructor() {
+			super("Activation Condition");
+			this.appendChild(new ConditionFunction());
+			this.appendChild(new AssignmentInclusion());
+			this.appendChild(new SpecialExclusion());
+			this.appendChild(new SpecificInclusionExclusion());
+		}
+	}
+
+	class ConditionFunction extends Element {
+		constructor() {
+			super();
+			const items = [
+				["Never", false],
+				["Always", true],
+				["Custom", "custom"],
+				["Devotion", "devotion"],
+				["Trust", "trust"],
+				["Health", "health"],
+				["Sex drive", "energy"],
+				["Weight", "weight"],
+				["Age", "actualAge"],
+				["Body Age", "physicalAge"],
+				["Visible Age", "visualAge"],
+				["Muscles", "muscles"],
+				["Lactation", "lactation"],
+				["Pregnancy", "preg"],
+				["Pregnancy Multiples", "pregType"],
+				["Belly Implant", "bellyImplant"],
+				["Belly Size", "belly"],
+				["Education", "intelligenceImplant"],
+				["Intelligence", "intelligence"],
+				["Fetish", "fetish"],
+				["Accent", "accent"],
+				["Waist", "waist"],
+				["Amputation", "amp"],
+			];
+			this.fnlist = new List("Activation function", items);
+			this.fnlist.setValue(current_rule.condition.function === "between" ? current_rule.condition.data.attribute : current_rule.condition.function);
+			this.fnlist.onchange = (value) => this.fnchanged(value);
+			this.appendChild(this.fnlist);
+			this.fneditor = null;
+
+			switch(current_rule.condition.function) {
+				case false:
+				case true:
+					break;
+				case "custom":
+					this.show_custom_editor(CustomEditor, current_rule.condition.data);
+					break;
+				case "between":
+					this.show_custom_editor(RangeEditor, current_rule.condition.function, current_rule.condition.data);
+					break;
+				case "belongs":
+					this.show_custom_editor(ItemEditor, current_rule.condition.function, current_rule.condition.data);
+					break;
+			}
+		}
+
+		betweenP(attribute) {
+			return [
+				"devotion",
+				"trust",
+				"health",
+				"energy",
+				"weight",
+				"actualAge",
+				"physicalAge",
+				"visualAge",
+				"muscles",
+				"lactation",
+				"preg",
+				"pregType",
+				"bellyImplant",
+				"belly",
+				"intelligenceImplant",
+				"intelligence",
+				"accent",
+				"waist",
+			].includes(attribute);
+		}
+
+		belongsP(attribute) {
+			return [
+				"fetish",
+				"amp",
+			].includes(attribute);
+		}
+
+		show_custom_editor(what, ...args) {
+			if (this.custom_editor !== null) this.hide_custom_editor();
+			this.custom_editor = new what(...args);
+			this.appendChild(this.custom_editor);
+		}
+
+		hide_custom_editor() {
+			if (this.custom_editor) {
+				this.custom_editor.remove();
+				this.custom_editor = null;
+			}
+		}
+
+		render() {
+			const elem = document.createElement("div");
+			return elem;
+		}
+
+		fnchanged(value) {
+			if (this.fneditor !== null) {
+				this.fneditor.element.remove();
+				this.fneditor = null;
+			}
+			if (value === true || value === false) {
+				current_rule.condition.function = value;
+				current_rule.condition.data = {};
+				this.hide_custom_editor();
+			} else if (value === "custom") {
+				current_rule.condition.function = "custom";
+				current_rule.condition.data = "";
+				this.show_custom_editor(CustomEditor, current_rule.condition.data);
+			} else if (this.betweenP(value)) {
+				current_rule.condition.function = "between";
+				current_rule.condition.data = { attribute: value, value: [null, null] };
+				this.show_custom_editor(RangeEditor, current_rule.condition.function, current_rule.condition.data);
+			} else if (this.belongsP(value)) {
+				current_rule.condition.function = "belongs";
+				current_rule.condition.data = { attribute: value, value: [] };
+				this.show_custom_editor(ItemEditor, current_rule.condition.function, current_rule.condition.data);
+			}
+		}
+	}
+
+	class CustomEditor extends Element {
+		constructor(data) {
+			if (data.length === 0) data = "(slave) => slave.slaveName === 'Fancy Name'";
+			super(data);
+		}
+
+		render(data) {
+			const elem = document.createElement("div");
+			const textarea = document.createElement("textarea");
+			textarea.innerHTML = data;
+			textarea.onblur = () => current_rule.condition.data = textarea.value;
+			elem.appendChild(textarea);
+			const explanation = document.createElement("div");
+			explanation.innerHTML = "Insert a valid <a target='_blank' class='link-external' href='https://www.w3schools.com/js/js_comparisons.asp'>JavaScript comparison and/or logical operation</a>.";
+			elem.appendChild(explanation);
+			return elem;
+		}
+	}
+
+	class RangeEditor extends Element {
+		render(fn, data) {
+			const elem = document.createElement("div");
+
+			const minlabel = document.createElement("label");
+			minlabel.innerHTML = "Lower bound: ";
+			elem.appendChild(minlabel);
+
+			const min = document.createElement("input");
+			min.setAttribute("type", "text");
+			min.value = "" + data.value[0];
+			min.onkeypress = e => { if (returnP(e)) this.setmin(min.value); };
+			min.onblur = e => this.setmin(min.value);
+			this.min = min;
+			elem.appendChild(min);
+
+			elem.appendChild(document.createElement("br"));
+
+			const maxlabel = document.createElement("label");
+			maxlabel.innerHTML = "Upper bound: ";
+			elem.appendChild(maxlabel);
+
+			const max = document.createElement("input");
+			max.setAttribute("type", "text");
+			max.value = "" + data.value[1];
+			max.onkeypress = e => { if (returnP(e)) this.setmax(max.value); };
+			max.onblur = e => this.setmax(max.value);
+			this.max = max;
+			elem.appendChild(max);
+
+			const infobar = document.createElement("div");
+			infobar.innerHTML = this.info(data.attribute);
+			elem.appendChild(infobar);
+
+			return elem;
+		}
+
+		parse(value) {
+			value = value.trim();
+			if (value === "null") value = null;
+			else {
+				value = parseInt(value);
+				if (isNaN(value)) value = null;
+			}
+			return value;
+		}
+
+		setmin(value) {
+			current_rule.condition.data.value[0] = this.parse(value);
+			this.min.value = ""+current_rule.condition.data.value[0];
+		}
+
+		setmax(value) {
+			current_rule.condition.data.value[1] = this.parse(value);
+			this.max.value = ""+current_rule.condition.data.value[1];
+		}
+
+		info(attribute) {
+			return ({
+				"devotion": "Very Hateful: (-∞, -95), Hateful: [-95, -50), Resistant: [-50, -20), Ambivalent: [-20, 20], Accepting: (20, 50], Devoted: (50, 95], Worshipful: (95, ∞)",
+				"trust": "Extremely terrified: (-∞, -95), Terrified: [-95, -50), Frightened: [-50, -20), Fearful: [-20, 20], Careful: (20, 50], Trusting: (50, 95], Total trust: (95, ∞)",
+				"health": "Death: (-∞, -100), Near Death: [-100, -90), Extremely Unhealthy: [-90, -50), Unhealthy: [-50, -20), Healthy: [-20, 20], Very Healthy: (20, 50], Extremely Healthy: (50, 90], Unnaturally Healthy: (90, ∞)",
+				"energy": "Frigid: (-∞, 20], Poor: (20, 40], Average: (40, 60], Powerful: (60, 80], Sex Addict: (80, 100), Nympho: 100",
+				"weight": "Emaciated: (-∞, -95), Skinny: [-95, -30), Thin: [-30, -10), Average: [-10, 10], Plush: (10, 30], Fat: (30, 95], Overweight: (95, ∞)",
+				"lactation": "None: 0, 1: Natural, 2: Lactation implant",
+				"preg": "Barren: -2, On contraceptives: -1, Not pregnant: 0, Pregnancy weeks: [1, ∞)",
+				"pregType": "Fetus count, known only after the 10th week of pregnancy",
+				"bellyImplant": "Volume in CCs. None: -1",
+				"belly": "Volume in CCs, any source",
+				"intelligenceImplant": "Education level. 0: uneducated, 1: educated, (0, 1): incomplete education.",
+				"intelligence": "From moronic to brilliant: [-3, 3]",
+				"accent": "No accent: 0, Nice accent: 1, Bad accent: 2, Can't speak language: 3 and above",
+				"waist": "Masculine waist: (95, ∞), Ugly waist: (40, 95], Unattractive waist: (10, 40], Average waist: [-10, 10], Feminine waist: [-40, -10), Wasp waist: [-95, 40), Absurdly narrow: (-∞, -95)",
+			}[attribute] || " ");
+		}
+	}
+
+	class ItemEditor extends Element {
+		render(fn, data) {
+			const elem = document.createElement("div");
+
+			const input = document.createElement("input");
+			input.setAttribute("type", "text");
+			input.value = JSON.stringify(data.value);
+			input.onkeypress = e => { if (returnP(e)) this.setValue(input); };
+			input.onblur = e => this.setValue(input);
+			this.input = input;
+			elem.appendChild(input);
+
+			const infobar = document.createElement("div");
+			infobar.innerHTML = this.info(data.attribute);
+			elem.appendChild(infobar);
+
+			return elem;
+		}
+
+		info(attribute) {
+			return "Insert a valid JSON array. Known values: " + {
+				"fetish": "buttslut, cumslut, masochist, sadist, dom, submissive, boobs, pregnancy, none (AKA vanilla)",
+				"amp": "Amputated: 1, Not amputated: 0",
+			}[attribute];
+		}
+		
+		setValue(input) {
+			try {
+				const arr = JSON.parse(input.value);
+				current_rule.condition.data.value = arr;
+				input.value = JSON.stringify(arr);
+			} catch (e) {
+				alert(e);
+			}
+		}
+	}
+
+
+	class AssignmentInclusion extends ButtonList {
+		constructor() {
+			super("Apply to assignments and facilities");
+			const items = ["Rest", "Fucktoy", "Subordinate Slave", "House Servant", "Confined", "Whore", "Public Servant", "Classes", "Milked", "Gloryhole"];
+			if (V.HGSuite > 0) items.push("Head Girl Suite");
+			if (V.brothel > 0) items.push("Brothel");
+			if (V.club > 0) items.push("Club");
+			if (V.arcade > 0) items.push("Arcade");
+			if (V.dairy > 0) items.push("Dairy");
+			if (V.servantsQuarters > 0) items.push("Servant Quarters");
+			if (V.masterSuite > 0) items.push("Master Suite");
+			if (V.schoolroom > 0) items.push("Schoolroom");
+			if (V.spa > 0) items.push("Spa");
+			if (V.clinic > 0) items.push("Clinic");
+			if (V.cellblock > 0) items.push("Cellblock");
+			items.forEach(
+				i => this.appendChild(new ButtonItem(i, this.getAttribute(i), current_rule.condition.assignment.includes(this.getAttribute(i)))));
+		}
+
+		onchange() {
+			current_rule.condition.assignment = this.getSelection();
+		}
+
+		getAttribute(what) {
+			return {
+				"Rest": "rest",
+				"Fucktoy": "please you",
+				"Subordinate Slave": "be a subordinate slave",
+				"House Servant": "be a servant",
+				"Confined": "stay confined",
+				"Whore": "whore",
+				"Public Servant": "serve the public",
+				"Classes": "take classes",
+				"Milked": "get milked",
+				"Gloryhole": "work a glory hole",
+				"Head Girl Suite": "live with your Head Girl",
+				"Brothel": "work in the brothel",
+				"Club": "serve in the club",
+				"Arcade": "be confined in the arcade",
+				"Dairy": "work in the dairy",
+				"Servant Quarters": "work as a servant",
+				"Master Suite": "serve in the master suite",
+				"Schoolroom": "learn in the schoolroom",
+				"Spa": "rest in the spa",
+				"Clinic": "get treatment in the clinic",
+				"Cellblock": "be confined in the cellblock",
+			}[what];
+		}
+	}
+
+	class SpecialExclusion extends List {
+		constructor() {
+			const items = [
+				["Yes", true],
+				["No", false]
+			];
+			super("Exclude special slaves", items);
+			this.setValue(current_rule.condition.excludeSpecialSlaves);
+			this.onchange = (value) => current_rule.condition.excludeSpecialSlaves = value;
+		}
+	}
+
+	class SpecificInclusionExclusion extends Options {
+		constructor() {
+			super();
+			this.appendChild(new OptionsItem("Limit to specific slaves", () => this.show_slave_selection()));
+			this.appendChild(new OptionsItem("Exclude specific slaves", () => this.show_slave_exclusion()));
+			this.subwidget = null;
+		}
+
+		show_slave_selection() {
+			if (this.subwidget) this.subwidget.remove();
+			this.subwidget = new SlaveSelection();
+			this.appendChild(this.subwidget);
+		}
+
+		show_slave_exclusion() {
+			if (this.subwidget) this.subwidget.remove();
+			this.subwidget = new SlaveExclusion();
+			this.appendChild(this.subwidget);
+		}
+	}
+
+	class SlaveSelection extends ButtonList {
+		constructor() {
+			super("Include specific slaves");
+			V.slaves.forEach(slave => this.appendChild(new ButtonItem(
+				[slave.slaveName, slave.slaveSurname].join(" "),
+				slave.ID,
+				current_rule.condition.selectedSlaves.includes(slave.ID))));
+		}
+
+		onchange() {
+			current_rule.condition.selectedSlaves = this.getSelection();
+		}
+	}
+
+	class SlaveExclusion extends ButtonList {
+		constructor() {
+			super("Exclude specific slaves");
+			V.slaves.forEach(slave => this.appendChild(new ButtonItem(
+				[slave.slaveName, slave.slaveSurname].join(" "),
+				slave.ID,
+				current_rule.condition.excludedSlaves.includes(slave.ID))));
+		}
+
+		onchange() {
+			current_rule.condition.excludedSlaves = this.getSelection();
+		}
+	}
+
+	// parent section for effect editing
+	class EffectEditor extends Element {
+		constructor() {
+			super();
+			this.appendChild(new AppearanceSection());
+			this.appendChild(new CosmeticSection());
+			this.appendChild(new BodyModSection());
+			this.appendChild(new AutosurgerySection());
+			this.appendChild(new RegimenSection());
+			this.appendChild(new BehaviourSection());
+		}
+
+		render() {
+			const element = document.createElement("div");
+			return element;
+		}
+	}
+
+	class AppearanceSection extends Section {
+		constructor() {
+			super("Appearance Settings");
+			this.appendChild(new ClothesList());
+			this.appendChild(new CollarList());
+			this.appendChild(new ShoeList());
+			this.appendChild(new CorsetList());
+			this.appendChild(new LeggingsList());
+			this.appendChild(new VagAccVirginsList());
+			this.appendChild(new VagAccAVirginsList());
+			this.appendChild(new VagAccOtherList());
+			if (V.seeDicks !== 0 || V.makeDicks !== 0) {
+				this.appendChild(new DickAccVirginsList());
+				this.appendChild(new DickAccOtherList());
+			}
+			this.appendChild(new ButtplugsVirginsList());
+			this.appendChild(new ButtplugsOtherList());
+			this.appendChild(new ImplantVolumeList());
+			this.appendChild(new AutosurgerySwitch());
+
+		}
+	}
+
+	class RegimenSection extends Section {
+		constructor() {
+			super("Physical Regimen Settings");
+			this.appendChild(new GrowthList());
+			this.appendChild(new CurrativesList());
+			this.appendChild(new AphrodisiacList());
+			this.appendChild(new ContraceptiveList());
+			if (V.pregSpeedControl)
+				this.appendChild(new PregDrugsList());
+			this.appendChild(new FemaleHormonesList());
+			this.appendChild(new ShemaleHormonesList());
+			this.appendChild(new GeldingHormonesList());
+			this.appendChild(new OtherDrugsList());
+			this.appendChild(new DietList());
+			this.appendChild(new DietGrowthList());
+			this.appendChild(new DietBaseList());
+			this.appendChild(new MuscleList());
+			this.appendChild(new BraceList());
+		}
+	}
+
+	class BehaviourSection extends Section {
+		constructor() {
+			super("Behavior Settings");
+			this.appendChild(new AutomaticAssignmentList());
+			this.appendChild(new LivingStandardList());
+			this.appendChild(new PunishmentList());
+			this.appendChild(new RewardList());
+			this.appendChild(new ReleaseList());
+			this.appendChild(new SmartFetishList());
+			this.appendChild(new SmartXYAttractionList());
+			this.appendChild(new SmartXXAttractionList());
+			this.appendChild(new SmartEnergyList());
+			this.appendChild(new SpeechList());
+			this.appendChild(new RelationshipList());
+			if (V.studio === 1)
+				this.appendChild(new PornList());
+		}
+	}
+
+	class CosmeticSection extends Section {
+		constructor() {
+			super("Cosmetic Settings", true);
+			this.appendChild(new EyewearList());
+			this.appendChild(new LensesList());
+			this.appendChild(new MakeupList());
+			this.appendChild(new NailsList());
+			this.appendChild(new HairLengthList());
+			this.appendChild(new HairColourList());
+			this.appendChild(new HairStyleList());
+			this.appendChild(new PubicHairColourList());
+			this.appendChild(new PubicHairStyleList());
+			this.appendChild(new ArmpitHairColourList());
+			this.appendChild(new ArmpitHairStyleList());
+		}
+	}
+
+	class BodyModSection extends Section {
+		constructor() {
+			super("Body Mod Settings", true);
+			this.appendChild(new EarPiercingList());
+			this.appendChild(new NosePiercingList());
+			this.appendChild(new EyebrowPiercingList());
+			this.appendChild(new NavelPiercingList());
+			this.appendChild(new NipplePiercingList());
+			this.appendChild(new AreolaPiercingList());
+			this.appendChild(new LipPiercingList());
+			this.appendChild(new TonguePiercingList());
+			this.appendChild(new ClitPiercingList());
+			this.appendChild(new LabiaPiercingList());
+			this.appendChild(new ShaftPiercingList());
+			this.appendChild(new PerineumPiercingList());
+			this.appendChild(new CorsetPiercingList());
+
+			this.appendChild(new AutoBrandingList());
+			this.appendChild(new BrandingLocationList());
+			this.appendChild(new BrandDesignList());
+
+			this.appendChild(new FaceTattooList());
+			this.appendChild(new ShoulderTattooList());
+			this.appendChild(new ChestTattooList());
+			this.appendChild(new ArmTattooList());
+			this.appendChild(new UpperBackTattooList());
+			this.appendChild(new LowerBackTattooList());
+			this.appendChild(new AbdomenTattooList());
+			if (V.seeDicks || V.makeDicks)
+				this.appendChild(new DickTattooList());
+			this.appendChild(new ButtockTattooList());
+			this.appendChild(new AnalTattooList());
+			this.appendChild(new LegTattooList());
+		}
+	}
+
+	class AutosurgerySection extends Section {
+		constructor() {
+			super("Autosurgery Settings", true);
+			this.appendChild(new VisionSurgeryList());
+			this.appendChild(new LactationSurgeryList());
+			if (V.seeDicks || V.makeDicks) {
+				this.appendChild(new SemenSurgeryList());
+				this.appendChild(new VasectomyList());
+			}
+			this.appendChild(new CosmeticSurgeryList());
+			this.appendChild(new LipSurgeryList());
+			this.appendChild(new ButtSurgeryList());
+			this.appendChild(new BreastSurgeryList());
+			this.appendChild(new TighteningSurgeryList());
+			this.appendChild(new BodyHairSurgeryList());
+			this.appendChild(new HairSurgeryList());
+			if (V.bellyImplants > 0)
+				this.appendChild(new BellyImplantList());
+		}
+	}
+
+	class ClothesList extends List {
+		constructor() {
+			const items = [
+				["Select her own outfit", "choosing her own clothes"]
+			];
+			super("Clothes", items);
+
+			const nclothes = [
+				["No default clothes setting", "no default setting"],
+				["Apron", "an apron"],
+				["Bangles", "slutty jewelry"],
+				["Bodysuit", "a comfortable bodysuit"],
+				["Cheerleader outfit", "a cheerleader outfit"],
+				["Clubslut netting", "clubslut netting"],
+				["Cybersuit", "a cybersuit"],
+				["Cutoffs and a t-shirt", "cutoffs and a t-shirt"],
+				["Fallen nun", "a fallen nuns habit"],
+				["Halter top", "a halter top dress"],
+				["Hijab and abaya", "a hijab and abaya"],
+				["Latex catsuit", "a latex catsuit"],
+				["Leotard", "a leotard"],
+				["Maid (nice)", "a nice maid outfit"],
+				["Maid (slutty)", "a slutty maid outfit"],
+				["Military uniform", "a military uniform"],
+				["Schutzstaffel uniform", "a schutzstaffel uniform"],
+				["Schutzstaffel uniform (slutty)", "a slutty schutzstaffel uniform"],
+				["Red Army uniform", "a red army uniform"],
+				["Mini dress", "a mini dress"],
+				["Monokini", "a monokini"],
+				["Nice lingerie", "attractive lingerie"],
+				["Nurse (nice)", "a nice nurse outfit"],
+				["Schoolgirl", "a schoolgirl outfit"],
+				["Silken ballgown", "a ball gown"],
+				["Skimpy battledress", "battledress"],
+				["Slave gown", "a slave gown"],
+				["Slutty outfit", "a slutty outfit"],
+				["String bikini", "a stirng bikini"],
+				["Scalemail bikini", "a scalemail bikini"],
+				["Succubus costume", "a succubus outfit"],
+				["Suit (nice)", "nice business sattire"],
+				["Suit (slutty", "slutty business attire"],
+				["Spats and tank top", "spats and a tank top"]
+			];
+			const fsnclothes = [
+				["Body oil (FS)", "body oil"],
+				["Bunny outfit (FS)", "a bunny outfit"],
+				["Chattel habit (FS)", "a chattel habit"],
+				["Conservative clothing (FS)", "conservative clothing"],
+				["Harem gauze (FS)", "harem gauze"],
+				["Huipil (FS)", "a huipil"],
+				["Kimono (FS)", "a kimono"],
+				["Maternity dress (FS)", "a maternity dress"],
+				["Maternity lingerie (FS)", "attractive lingerie for a pregnant woman"],
+				["Slutty qipao (FS)", "a slutty qipao"],
+				["Stretch pants and a crop-top (FS)", "stretch pants and a crop-top"],
+				["Toga (FS)", "a toga"],
+				["Western clothing (FS)", "Western clothing"],
+			];
+			fsnclothes.forEach(pair => { if (isItemAccessible(pair[1])) nclothes.push(pair); });
+			const nice = new ListSubSection(this, "Nice", nclothes);
+			this.appendChild(nice);
+
+			const hclothes = [
+				["Nude", "no clothing"],
+				["Penitent nun", "a penitent nuns habit"],
+				["Restrictive latex", "restrictive latex"],
+				["Shibari ropes", "shibari ropes"],
+				["Uncomfortable straps", "uncomfortable straps"]
+			];
+			const fshclothes = [
+				["Chains (FS)", "chains"],
+			];
+			fshclothes.forEach(pair => { if (isItemAccessible(pair[1])) hclothes.push(pair); });
+
+			const harsh = new ListSubSection(this, "Harsh", hclothes);
+			this.appendChild(harsh);
+
+			this.setValue(current_rule.set.clothes);
+			this.onchange = (value) => current_rule.set.clothes = value;
+		}
+	}
+
+	class CollarList extends List {
+		constructor() {
+			const items = [
+				["No default collar setting", "no default setting"],
+				["No collar", "none"],
+			];
+			super("Collar", items);
+
+			const ncollars = [
+				["Stylish leather", "stylish leather"],
+				["Satin choker", "satin choker"],
+				["Silken Ribbon", "silk ribbon"],
+				["Heavy Gold", "heavy gold"],
+				["Pretty jewelry", "pretty jewelry"],
+				["Cowbell", "leather with cowbell"]
+			];
+			if (V.seeAge !== 0)
+				ncollars.push(["Nice retirement counter", "nice retirement counter"]);
+			const fsncollars = [
+				["Bowtie collar", "bowtie"],
+				["ancient Egyptian", "ancient Egyptian"],
+			];
+			fsncollars.forEach(pair => { if (isItemAccessible(pair[1])) ncollars.push(pair); });
+			const nice = new ListSubSection(this, "Nice", ncollars);
+			this.appendChild(nice);
+
+			const hcollars = [];
+			setup.harshCollars.forEach(item => {
+				if (item.fs === "seeage" && V.seeAge === 0) return;
+				else if (item.rs === "buyGag" && V.toysBoughtGags !== 1) return;
+				else hcollars.push([item.name, item.value]);
+			});
+			const harsh = new ListSubSection(this, "Harsh", hcollars);
+			this.appendChild(harsh);
+
+			this.setValue(current_rule.set.collar);
+			this.onchange = (value) => current_rule.set.collar = value;
+		}
+	}
+
+	class ShoeList extends List {
+		constructor() {
+			super("Shoes", setup.shoes.map(i => [i.name, i.value]));
+			this.setValue(current_rule.set.shoes);
+			this.onchange = (value) => current_rule.set.shoes = value;
+		}
+	}
+
+	class CorsetList extends List {
+		constructor() {
+			const bellies = [];
+			setup.bellyAccessories.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					bellies.push([acc.name, acc.value]);
+				else if (acc.fs === "repopulation" && V.arcologies[0].FSRepopulationFocus !== "unset")
+					bellies.push([acc.name + " (FS)", acc.value]);
+				else if (acc.rs === "boughtBelly" && V.clothesBoughtBelly === 1)
+					bellies.push([acc.name + " (Purchased)", acc.value]);
+			});
+			super("Corsetage", bellies);
+			this.setValue(current_rule.set.bellyAccessory);
+			this.onchange = (value) => current_rule.set.bellyAccessory = value;
+		}
+	}
+
+	class LeggingsList extends List {
+		constructor() {
+			const items = [
+				["no default settings"],
+				["none"],
+				["short stockings"],
+				["long stockings"],
+			];
+			super("Leg accessory", items);
+			this.setValue(current_rule.set.legAccessory);
+			this.onchange = (value) => current_rule.set.legAccessory = value;
+		}
+	}
+
+	class VagAccVirginsList extends List {
+		constructor() {
+			const accs = [];
+			setup.vaginalAccessories.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					accs.push([acc.name, acc.value]);
+				else if (acc.rs === "buyBigDildos" && V.toysBoughtDildos === 1)
+					accs.push([acc.name + " (Purchased)", acc.value]);
+			});
+			super("Vaginal accessories for virgins", accs);
+			this.setValue(current_rule.set.virginAccessory);
+			this.onchange = (value) => current_rule.set.virginAccessory = value;
+		}
+	}
+
+	class VagAccAVirginsList extends List {
+		constructor() {
+			const accs = [];
+			setup.vaginalAccessories.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					accs.push([acc.name, acc.value]);
+				else if (acc.rs === "buyBigDildos" && V.toysBoughtDildos === 1)
+					accs.push([acc.name + " (Purchased)", acc.value]);
+			});
+			super("Vaginal accessories for anal virgins", accs);
+			this.setValue(current_rule.set.aVirginAccessory);
+			this.onchange = (value) => current_rule.set.aVirginAccessory = value;
+		}
+	}
+
+	class VagAccOtherList extends List {
+		constructor() {
+			const accs = [];
+			setup.vaginalAccessories.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					accs.push([acc.name, acc.value]);
+				else if (acc.rs === "buyBigDildos" && V.toysBoughtDildos === 1)
+					accs.push([acc.name + " (Purchased)", acc.value]);
+			});
+			super("Vaginal accessories for other slaves", accs);
+			this.setValue(current_rule.set.vaginalAccessory);
+			this.onchange = (value) => current_rule.set.vaginalAccessory = value;
+		}
+	}
+
+	class DickAccVirginsList extends List {
+		constructor() {
+			super("Dick accessories for anal virgins", setup.dickAccessories.map(i => [i.name, i.value]));
+			this.setValue(current_rule.set.aVirginDickAccessory);
+			this.onchange = (value) => current_rule.set.aVirginDickAccessory = value;
+		}
+	}
+
+	class DickAccOtherList extends List {
+		constructor() {
+			super("Dick accessories for other slaves", setup.dickAccessories.map(i => [i.name, i.value]));
+			this.setValue(current_rule.set.dickAccessory);
+			this.onchange = (value) => current_rule.set.dickAccessory = value;
+		}
+	}
+
+	class ButtplugsVirginsList extends List {
+		constructor() {
+			const accs = [];
+			setup.buttplugs.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					accs.push([acc.name, acc.value]);
+				else if (acc.rs === "buyBigPlugs" && V.toysBoughtButtPlugs === 1)
+					accs.push([acc.name + " (Purchased)", acc.value]);
+			});
+			super("Buttplugs for anal virgins", accs);
+			this.setValue(current_rule.set.aVirginButtplug);
+			this.onchange = (value) => current_rule.set.aVirginButtplug = value;
+		}
+	}
+
+	class ButtplugsOtherList extends List {
+		constructor() {
+			const accs = [];
+			setup.buttplugs.forEach(acc => {
+				if (acc.fs === undefined && acc.rs === undefined)
+					accs.push([acc.name, acc.value]);
+				else if (acc.rs === "buyBigPlugs" && V.toysBoughtButtPlugs === 1)
+					accs.push([acc.name + " (Purchased)", acc.value]);
+			});
+			super("Buttplugs for other slaves", accs);
+			this.setValue(current_rule.set.buttplug);
+			this.onchange = (value) => current_rule.set.buttplug = value;
+		}
+	}
+
+	class ImplantVolumeList extends List {
+		constructor() {
+			const pairs = [
+				["No changes", -1],
+				["Empty implant", 0],
+				["Early pregnancy", 1500],
+				["Second trimester pregnancy", 5000],
+				["Full-term pregnancy", 15000],
+				["Full-term with twins", 30000],
+				["Full-term with triplets", 45000],
+				["Full-term with quadruplets", 60000],
+				["Full-term with quintuplets", 75000],
+				["Full-term with sextuplets", 90000],
+				["Full-term with septuplets", 105000],
+				["Full-term with octuplets", 120000]
+			];
+			super("Belly implant target volume (if present)", pairs);
+			this.setValue(current_rule.set.bellyImplantVol);
+			this.onchange = (value) => current_rule.set.bellyImplantVol = value;
+		}
+	}
+
+	class AutosurgerySwitch extends List {
+		constructor() {
+			const pairs = [
+				["Activate", 1],
+				["Off", 0],
+			];
+			super("Assistant-applied implants (Autosurgery global switch)", pairs);
+			this.setValue(current_rule.set.autoSurgery);
+			this.onchange = (value) => current_rule.set.autoSurgery = value;
+		}
+	}
+
+	class GrowthList extends Options {
+		constructor() {
+			super();
+			this.sublists = [];
+			const pairs = [
+				["No default setting", () => this.nds()],
+				["Girlish figure", () => this.girlish()],
+				["Stacked figure", () => this.stacked()],
+				["Huge but functional", () => this.huge()],
+				["Unlimited", () => this.unlimited()],
+				["None", () => this.none()]
+			];
+			pairs.forEach(pair => this.appendChild(new OptionsItem(...pair)));
+
+			this.breasts = new BreastGrowthList();
+			this.butts = new ButtGrowthList();
+			this.lips = new LipGrowthList();
+			this.sublists.push(this.breasts, this.butts, this.lips);
+
+			if (V.seeDicks > 0 || V.makeDicks > 0) {
+				this.dicks = new DickGrowthList();
+				this.balls = new BallGrowthList();
+				this.sublists.push(this.dicks, this.balls);
+			}
+
+			this.sublists.forEach(i => this.appendChild(i));
+		}
+
+		render() {
+			const elem = document.createElement("div");
+			const span = document.createElement("span");
+			span.innerHTML = "Growth hormone regimes for healthy slaves: ";
+			elem.appendChild(span);
+			return elem;
+		}
+
+		nds() {
+			[this.breasts, this.butts, this.lips, this.dicks, this.balls].forEach(i => {
+				i.setValue("no default change");
+				i.propagateChange();
+			});
+		}
+
+		girlish() {
+			this.breasts.setValue(350);
+			this.butts.setValue(2);
+			this.lips.setValue(25);
+			if (this.dicks) this.dicks.setValue(0);
+			if (this.balls) this.balls.setValue(0);
+			this.sublists.forEach(i => i.propagateChange());
+		}
+
+		stacked() {
+			this.breasts.setValue(1000);
+			this.butts.setValue(4);
+			this.lips.setValue(25);
+			if (this.dicks) this.dicks.setValue(4);
+			if (this.balls) this.balls.setValue(4);
+			this.sublists.forEach(i => i.propagateChange());
+		}
+
+		huge() {
+			this.breasts.setValue(9000);
+			this.butts.setValue(10);
+			this.lips.setValue(45);
+			if (this.dicks) this.dicks.setValue(6);
+			if (this.balls) this.balls.setValue(6);
+			this.sublists.forEach(i => i.propagateChange());
+		}
+
+		unlimited() {
+			this.breasts.setValue(48000);
+			this.butts.setValue(20);
+			this.lips.setValue(100);
+			if (this.dicks) this.dicks.setValue(30);
+			if (this.balls) this.balls.setValue(125);
+			this.sublists.forEach(i => i.propagateChange());
+		}
+
+		none() {
+			this.sublists.forEach(i => {
+				i.setValue(0);
+				i.propagateChange();
+			});
+		}
+	}
+
+	class BreastGrowthList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["B Cup", 350],
+				["D Cup", 1000],
+				["Monstrous", 9000],
+				["Unlimited", 48000],
+				["None", 0]
+			];
+			super("Breasts", pairs, true);
+			this.setValue(current_rule.set.growth_boobs);
+			this.onchange = (value) => current_rule.set.growth_boobs = value;
+		}
+	}
+
+	class ButtGrowthList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Cute", 2],
+				["Big", 4],
+				["Huge", 6],
+				["Unlimited", 20],
+				["None", 0]
+			];
+			super("Butts", pairs, true);
+			this.setValue(current_rule.set.growth_butt);
+			this.onchange = (value) => current_rule.set.growth_butt = value;
+		}
+	}
+
+	class LipGrowthList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Plump", 25],
+				["Beestung", 45],
+				["Facepussy", 100],
+				["None", 0]
+			];
+			super("Lips", pairs, true);
+			this.setValue(current_rule.set.growth_lips);
+			this.onchange = (value) => current_rule.set.growth_lips = value;
+		}
+	}
+
+	class DickGrowthList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Above average", 4],
+				["Pornstar", 6],
+				["Unlimited", 30],
+				["None", 0]
+			];
+			super("Dicks, if present", pairs, true);
+			this.setValue(current_rule.set.growth_dick);
+			this.onchange = (value) => current_rule.set.growth_dick = value;
+		}
+	}
+
+	class BallGrowthList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Sizeable", 4],
+				["Cumslave", 6],
+				["Unlimited", 125],
+				["None", 0]
+			];
+			super("Balls, if present", pairs, true);
+			this.setValue(current_rule.set.growth_balls);
+			this.onchange = (value) => current_rule.set.growth_balls = value;
+		}
+	}
+
+	class CurrativesList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Preventatives", 1],
+				["Curatives", 2],
+			];
+			super("Health drugs", pairs);
+			this.setValue(current_rule.set.curatives);
+			this.onchange = (value) => current_rule.set.curatives = value;
+		}
+	}
+
+	class AphrodisiacList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Standard", 1],
+				["Extreme", 2],
+				["Anaphrodisiacs", -1]
+			];
+			super("Aphrodisiacs", pairs);
+			this.setValue(current_rule.set.aphrodisiacs);
+			this.onchange = (value) => current_rule.set.aphrodisiacs = value;
+		}
+	}
+
+	class ContraceptiveList extends List {
+		constructor() {
+			const drugs =  [
+				["No default setting", "no default setting"],
+				["Contraceptives", true],
+				["Fertile", false],
+			];
+			super("Contraceptives for fertile slaves", drugs);
+			this.setValue(current_rule.set.preg);
+			this.onchange = (value) => current_rule.set.preg = value;
+		}
+	}
+
+	class PregDrugsList extends List {
+		constructor() {
+			const pairs = [
+				["No changes", "no default setting"],
+				["None", "none"],
+				["Fast gestation", "fast"],
+				["Slow gestation", "slow"],
+				["Birth supressors", "suppress"],
+				["Birth stimulators", "stimulate"]
+			];
+			super("Pregnancy control agents for pregnant slaves", pairs);
+			this.setValue(current_rule.set.pregSpeed);
+			this.onchange = (value) => current_rule.set.pregSpeed = value;
+		}
+	}
+
+	class FemaleHormonesList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Intensive Female", 2],
+				["Female", 1],
+				["None", 0],
+				["Male", -1],
+				["Intensive Male", -2]
+			];
+			super("Hormones for female slaves", pairs);
+			this.setValue(current_rule.set.XX);
+			this.onchange = (value) => current_rule.set.XX = value;
+		}
+	}
+
+	class GeldingHormonesList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Intensive Female", 2],
+				["Female", 1],
+				["None", 0],
+				["Male", -1],
+				["Intensive Male", -2]
+			];
+			super("Hormones for geldings", pairs);
+			this.setValue(current_rule.set.gelding);
+			this.onchange = (value) => current_rule.set.gelding = value;
+		}
+	}
+
+	class ShemaleHormonesList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Intensive Female", 2],
+				["Female", 1],
+				["None", 0],
+				["Male", -1],
+				["Intensive Male", "intensive male", -2]
+			];
+			super("Hormones for shemales", pairs);
+			this.setValue(current_rule.set.XY);
+			this.onchange = (value) => current_rule.set.XY = value;
+		}
+	}
+
+	class OtherDrugsList extends List {
+		constructor() {
+			const drugs = [
+				["No default setting", "no default setting"],
+				["None", "none"],
+				["Fertility drugs", "fertility drugs"],
+				["Psychosuppressants", "psychosuppressants"],
+				["Steroids", "steroids"],
+				["Natural hormone enhancers", "hormone enhancers"],
+				["Hormone blockers", "hormone blockers"],
+			];
+
+			if (V.growthStim === 1)
+				drugs.push(["Growth Stimulants (Research)", "growth stimulants"]);
+			if (V.precociousPuberty === 1 && V.pubertyHormones) {
+				drugs.push(["Female hormone injections (Research)", "female hormone injections"]);
+				drugs.push(["Male hormone injections (Research)", "male hormone injections"]);
+			}
+			if (V.purchasedSagBGone === 1)
+				drugs.push(["Sag-B-gone (Product)", "sag-B-gone"]);
+			if (V.arcologies[0].FSSlimnessEnthusiastResearch === 1)
+				drugs.push(["Weight loss pills (FS)", "appetite suppressors"]);
+			if (V.arcologies[0].FSYouthPreferentialistResearch === 1)
+				drugs.push(["Anti-aging cream (FS)", "anti-aging cream"]);
+			if (V.seeHyperPreg === 1 && V.superFertilityDrugs === 1)
+				drugs.push(["Super fertility drugs", "super fertility drugs"]);
+			super("Other drugs", drugs);
+			this.setValue(current_rule.set.drug);
+			this.onchange = (value) => current_rule.set.drug = value;
+		}
+	}
+
+	class DietList extends List {
+		constructor() {
+			const diets = [
+				["no default setting", "no default setting"],
+				["Healthy diet", "healthy"],
+				["Fix fat and skinny slaves", "attractive"],
+				["Curvy", 30],
+				["Average",  0],
+				["Thin", -30]
+			];
+			if (V.feeder === 1) {
+				diets.push(
+					["Feminine", "XX"],
+					["Masculine", "XY"]
+				);
+				if (V.dietXXY === 1)
+					diets.push(["Futanari", "XXY"]);
+			}
+			if (V.dietCleanse === 1)
+				diets.push(["Cleansing", "cleansing"]);
+			if (V.dietFertility === 1)
+				diets.push(["Fertility", "fertility"]);
+			if (V.cumProDiet === 1)
+				diets.push(["Cum production", "cum production"]);
+
+			super("Slave diets", diets, true);
+			this.setValue(current_rule.set.diet);
+			this.onchange = (value) => current_rule.set.diet = value;
+		}
+	}
+
+	class DietGrowthList extends List {
+		constructor() {
+			const pairs = [
+				["On", 1],
+				["Off", 0]
+			];
+			super("Diet support for growth drugs", pairs);
+			this.setValue(current_rule.set.dietGrowthSupport);
+			this.onchange = (value) => current_rule.set.dietGrowthSupport = value;
+		}
+	}
+
+	class DietBaseList extends List {
+		constructor() {
+			// TODO: better data structure?
+			const pairs = [
+				["No default setting", {cum: "no default setting", milk: "no default setting"}],
+				["Normal Diet", {cum: 0, milk: 0}],
+				["Cum Added", {cum: 1, milk: 0}],
+				["Milk Added", {cum: 0, milk: 1}],
+				["Cum &amp; Milk Added", {cum: 1, milk: 1}],
+				["Cum-Based", {cum: 2, milk: 0}],
+				["Milk-Based", {cum: 0, milk: 2}],
+			];
+			super("Diet base", pairs);
+			this.setValue(this.value2string(current_rule.set.dietCum, current_rule.set.dietMilk));
+			this.onchange = (value) => {
+				current_rule.set.dietCum = value.cum;
+				current_rule.set.dietMilk = value.milk;
+			};
+		}
+
+		value2string(cum, milk) {
+			return `cum: ${cum}, milk: ${milk}`;
+		}
+
+		setValue(what) {
+			what = this.value2string(what.cum, what.milk);
+			super.setValue(what);
+		}
+
+	}
+
+	class MuscleList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Toned", 20],
+				["Ripped", 50],
+				["Massive", 100],
+				["Weak", -20]
+			];
+			super("Muscles", pairs, true);
+			this.setValue(current_rule.set.muscles);
+			this.onchange = (value) => current_rule.set.muscles = value;
+		}
+	}
+
+	class BraceList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", "none"],
+				["Straighten", "straighten"],
+				["Universal", "universal"]
+			];
+			super("Braces", pairs);
+			this.setValue(current_rule.set.teeth);
+			this.onchange = (value) => current_rule.set.teeth = value;
+		}
+	}
+
+	class LivingStandardList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Luxurious", "luxurious"],
+				["Normal", "normal"],
+				["Spare", "spare"]
+			];
+			super("Living standard", pairs);
+			this.setValue(current_rule.set.livingRules);
+			this.onchange = (value) => current_rule.set.livingRules = value;
+		}
+	}
+
+	class PunishmentList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Confinement", "confinement"],
+				["Whipping", "whipping"],
+				["Chastity", "chastity"],
+				["Situational", "situational"]
+			];
+			super("Typical punishment", pairs);
+			this.setValue(current_rule.set.standardPunishment);
+			this.onchange = (value) => current_rule.set.standardPunishment = value;
+		}
+	}
+
+	class RewardList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Relaxation", "relaxation"],
+				["Drugs", "drugs"],
+				["Orgasm", "orgasm"],
+				["Situational", "situational"]
+			];
+			super("Typical reward", pairs);
+			this.setValue(current_rule.set.standardReward);
+			this.onchange = (value) => current_rule.set.standardReward = value;
+		}
+	}
+
+	class ReleaseList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Permissive", "permissive"],
+				["Sapphic", "sapphic"],
+				["Masturbation", "masturbation"],
+				["Restrictive", "restrictive"]
+			];
+			super("Release rules", pairs);
+			this.setValue(current_rule.set.releaseRules);
+			this.onchange = (value) => current_rule.set.releaseRules = value;
+		}
+	}
+
+	class SmartFetishList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Vanilla", "vanilla"],
+				["Oral", "oral"],
+				["Anal", "anal"],
+				["Boobs", "boobs"],
+				["Sub", "submissive"],
+				["Dom", "dom"],
+				["Humiliation", "humiliation"],
+				["Preg", "pregnancy"],
+				["Pain", "masochist"],
+				["Sadism", "sadist"]
+			];
+			super("Smart piercing fetish target", pairs);
+			this.setValue(current_rule.set.clitSetting);
+			this.onchange = (value) => current_rule.set.clitSetting = value;
+		}
+	}
+
+	class SmartXYAttractionList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Passionate", 100],
+				["Attracted", 75],
+				["Indifferent", 45],
+				["None", 0]
+			];
+			super("Smart piercing XY attraction target", pairs);
+			this.setValue(current_rule.set.clitSettingXY);
+			this.onchange = (value) => current_rule.set.clitSettingXY = value;
+		}
+	}
+
+	class SmartXXAttractionList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Passionate", 100],
+				["Attracted", 75],
+				["Indifferent", 45],
+				["None", 0]
+			];
+			super("Smart piercing XX attraction target", pairs);
+			this.setValue(current_rule.set.clitSettingXX);
+			this.onchange = (value) => current_rule.set.clitSettingXX = value;
+		}
+	}
+
+	class SmartEnergyList extends List {
+		constructor() {
+			const pairs = [
+				["Nympho", 100],
+				["Sex Addict", 85],
+				["Powerful", 65],
+				["Healthy", 45],
+				["Weak", 25],
+				["Frigid", 0]
+			];
+			super("Smart piercing sex drive target", pairs);
+			this.setValue(current_rule.set.clitSettingEnergy);
+			this.onchange = (value) => current_rule.set.clitSettingEnergy = value;
+		}
+	}
+
+	class SpeechList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Permissive", "permissive"],
+				["Suppress accents", "accent elimination"],
+				["Restrictive", "restrictive"]
+			];
+			super("Speech rules", pairs);
+			this.setValue(current_rule.set.speechRules);
+			this.onchange = (value) => current_rule.set.speechRules = value;
+		}
+	}
+
+	class RelationshipList extends List {
+		constructor() {
+			const pairs =[
+				["No default setting", "no default setting"],
+				["Permissive", "permissive"],
+				["Just friends", "just friends"],
+				["Restrictive", "restrictive"]
+			];
+			super("Relationship rules", pairs);
+			this.setValue(current_rule.set.relationshipRules);
+			this.onchange = (value) => current_rule.set.relationshipRules = value;
+		}
+	}
+
+	class PornList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["No broadcasting", -1],
+				["No subsidy", 0],
+				["1000", 1000],
+				["2000", 2000],
+				["3000", 3000],
+				["4000", 4000],
+				["5000", 5000]
+			];
+			super("Weekly porn publicity subsidy", pairs);
+			this.setValue(current_rule.set.pornFameSpending);
+			this.onchange = (value) => current_rule.set.pornFameSpending = value;
+		}
+	}
+
+	class EyewearList extends List {
+		constructor() {
+			const pairs = [
+				["no default setting"],
+				["correct with glasses"],
+				["correct with contacts"],
+				["universal glasses"],
+				["blur with glasses"],
+				["blur with contacts"]
+			];
+			super("Eyewear", pairs);
+			this.setValue(current_rule.set.eyewear);
+			this.onchange = (value) => current_rule.set.eyewear = value;
+		}
+	}
+
+	class LensesList extends Element {
+		constructor() {
+			super(current_rule.set.eyeColor);
+			this.appendChild(new OptionsItem("No default Setting", () => this.setValue("no default setting")));
+			this.colourlist = new LensesColourList();
+			this.shapelist = new LensesShapeList();
+			this.appendChild(this.colourlist);
+			this.appendChild(this.shapelist);
+		}
+
+		render(color) {
+			const elem = document.createElement("div");
+			elem.innerHTML = "Eye coloring: ";
+			this.label = document.createElement("strong");
+			this.label.innerText = color;
+			elem.appendChild(this.label);
+			return elem;
+		}
+
+		combine() {
+			const lst = [];
+			if (this.colourlist.value !== "no default setting")
+				lst.push(this.colourlist.value);
+			if (this.shapelist.value !== "no default setting")
+				lst.push(this.shapelist.value);
+			if (lst.length === 0) return "no default value";
+			else return lst.join(" ");
+		}
+
+		setValue(val) {
+			if (val === undefined) val = this.combine();
+			this.label.innerText = val;
+			current_rule.set.eyeColor = val;
+		}
+	}
+
+	class LensesColourList extends Options {
+		constructor() {
+			const items = [];
+			[
+				"no default setting",
+				"blue",
+				"black",
+				"brown",
+				"green",
+				"turquoise",
+				"sky-blue",
+				"hazel",
+				"pale-grey",
+				"white",
+				"pink",
+				"amber",
+				"red"
+			].forEach(i => items.push(new OptionsItem(i, item => {
+				this.value = item.label;
+				this.parent.setValue();
+			})));
+			super(items);
+		}
+	}
+
+	class LensesShapeList extends Options {
+		constructor() {
+			const items = [];
+			[
+				"no default setting",
+				"catlike",
+				"serpent-like",
+				"devilish",
+				"demonic",
+				"hypnotic",
+				"heart-shaped",
+				"wide-eyed",
+				"almond-shaped",
+				"bright",
+				"teary",
+				"vacant"
+			].forEach(i => items.push(new OptionsItem(i, item => {
+				this.value = item.label;
+				this.parent.setValue();
+			})));
+			super(items);
+		}
+	}
+
+	class MakeupList extends List {
+		constructor() {
+			super("Makeup");
+			[
+				["no default setting"],
+				["makeup-free", 0],
+				["nice", 1],
+				["gorgeous", 2],
+				["color-coordinate with hair", 3],
+				["slutty", 4]
+			].forEach(pair => this.appendChild(new ListItem(...pair)));
+			this.setValue(current_rule.set.makeup);
+			this.onchange = (value) => current_rule.set.makeup = value;
+		}
+	}
+
+	class NailsList extends List {
+		constructor() {
+			super("Nails");
+			[
+				["no default setting"],
+				["clipped", 0],
+				["extended", 1],
+				["color-coordinate with hair", 2],
+				["sharp and claw-like", 3],
+				["bright and glittery", 4],
+				["hooker nails", 5]
+			].forEach(pair => this.appendChild(new ListItem(...pair)));
+			this.setValue(current_rule.set.nails);
+			this.onchange = (value) => current_rule.set.nails = value;
+		}
+	}
+
+	class HairLengthList extends List {
+		constructor() {
+			const pairs = [
+				["no default setting"],
+				["very short", 5],
+				["short", 10],
+				["shoulder length", 30],
+				["long", 60],
+				["very long", 100],
+				["floor length", 150]
+			];
+			super("Hair length", pairs);
+			this.setValue(current_rule.set.hLength);
+			this.onchange = (value) => current_rule.set.hLength = value;
+		}
+	}
+	class HairColourList extends List {
+		constructor() {
+			const pairs = [
+				["no default setting"],
+				["blonde"],
+				["golden"],
+				["platinum blonde"],
+				["strawbery-blonde"],
+				["copper"],
+				["ginger"],
+				["red"],
+				["green"],
+				["blue"],
+				["pink"],
+				["dark brown"],
+				["brown"],
+				["auburn"],
+				["burgundy"],
+				["chocolate"],
+				["chestnut"],
+				["hazel"],
+				["black"],
+				["grey"],
+				["silver"],
+				["white"],
+				["blue-violet"],
+				["blazing red"],
+				["neon green"],
+				["neon blue"],
+				["neon pink"]
+			];
+			super("Hair color", pairs);
+			this.setValue(current_rule.set.hColor);
+			this.onchange = (value) => current_rule.set.hColor = value;
+		}
+	}
+
+	class HairStyleList extends List {
+		constructor() {
+			const pairs = [
+				["no default setting"],
+				["neat"],
+				["shaved"],
+				["trimmed"],
+				["buzzcut"],
+				["up"],
+				["ponytail"],
+				["bun"],
+				["messy bun"],
+				["curled"],
+				["permed"],
+				["luxurious"],
+				["dreadlocks"],
+				["cornrows"],
+				["braided"],
+				["tails"],
+				["afro"],
+				["strip"]
+			];
+			super("Hair style", pairs);
+			this.setValue(current_rule.set.hStyle);
+			this.onchange = (value) => current_rule.set.hStyle = value;
+		}
+	}
+
+	class PubicHairColourList extends List {
+		constructor() {
+			const pairs = [
+				["no default setting"],
+				["blonde"],
+				["golden"],
+				["platinum blonde"],
+				["strawerry-blonde"],
+				["copper"],
+				["ginger"],
+				["red"],
+				["green"],
+				["blue"],
+				["pink"],
+				["dark brown"],
+				["brown"],
+				["auburn"],
+				["burgundy"],
+				["chocolate"],
+				["chestnut"],
+				["hazel"],
+				["black"],
+				["grey"],
+				["silver"],
+				["white"],
+				["blue-violet"],
+				["blazing red"],
+				["neon green"],
+				["neon blue"],
+				["neon pink"]
+			];
+			super("Pubic hair color, when present", pairs);
+			this.setValue(current_rule.set.pubicHColor);
+			this.onchange = (value) => current_rule.set.pubicHColor = value;
+		}
+	}
+
+	class PubicHairStyleList extends List {
+		constructor() {
+			const pairs = [
+				["no default setting"],
+				["waxed"],
+				["in a strip"],
+				["neat"],
+				["bushy"],
+				["bushy in the front and neat in the rear"],
+				["very bushy"]
+			];
+			super("Pubic hairstyle", pairs);
+			this.setValue(current_rule.set.pubicHStyle);
+			this.onchange = (value) => current_rule.set.pubicHStyle = value;
+		}
+	}
+
+	class ArmpitHairColourList extends List {
+		constructor() {
+			const pairs = [
+				["no default setting"],
+				["blonde"],
+				["golden"],
+				["platinum blonde"],
+				["strawberry-blonde"],
+				["copper"],
+				["ginger"],
+				["red"],
+				["green"],
+				["blue"],
+				["pink"],
+				["dark brown"],
+				["brown"],
+				["auburn"],
+				["burgundry"],
+				["chocolate"],
+				["chestnut"],
+				["hazel"],
+				["black"],
+				["grey"],
+				["silver"],
+				["white"],
+				["blue-violet"],
+			];
+			super("Underarm hair color, when present", pairs);
+			this.setValue(current_rule.set.underArmHColor);
+			this.onchange = (value) => current_rule.set.underArmHColor = value;
+		}
+	}
+
+	class ArmpitHairStyleList extends List {
+		constructor() {
+			const pairs = [
+				["no default setting"],
+				["waxed"],
+				["shaved"],
+				["neat"],
+				["bushy"]
+			];
+			super("Underarm hair style", pairs);
+			this.setValue(current_rule.set.underArmHStyle);
+			this.onchange = (value) => current_rule.set.underArmHStyle = value;
+		}
+	}
+
+	class EarPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Ear piercings", pairs);
+			this.setValue(current_rule.set.earPiercing);
+			this.onchange = (value) => current_rule.set.earPiercing = value;
+		}
+	}
+
+	class NosePiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Nasal piercings", pairs);
+			this.setValue(current_rule.set.nosePiercing);
+			this.onchange = (value) => current_rule.set.earPiercing = value;
+		}
+	}
+
+	class EyebrowPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Eyebrow piercings", pairs);
+			this.setValue(current_rule.set.eyebrowPiercing);
+			this.onchange = (value) => current_rule.set.eyebrowPiercing = value;
+		}
+	}
+
+	class NavelPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Navel piercings", pairs);
+			this.setValue(current_rule.set.navelPiercing);
+			this.onchange = (value) => current_rule.set.navelPiercing = value;
+		}
+	}
+
+	class NipplePiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Nipple piercings", pairs);
+			this.setValue(current_rule.set.nipplesPiercing);
+			this.onchange = (value) => current_rule.set.nipplesPiercing = value;
+		}
+	}
+
+	class AreolaPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Studded", 1]
+			];
+			super("Areola studs", pairs);
+			this.setValue(current_rule.set.areolaePiercing);
+			this.onchange = (value) => current_rule.set.areolaePiercing = value;
+		}
+	}
+
+	class LipPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Lip piercings", pairs);
+			this.setValue(current_rule.set.lipsPiercing);
+			this.onchange = (value) => current_rule.set.lipsPiercing = value;
+		}
+	}
+
+	class TonguePiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Tongue piercing", pairs);
+			this.setValue(current_rule.set.tonguePiercing);
+			this.onchange = (value) => current_rule.set.tonguePiercing = value;
+		}
+	}
+
+	class ClitPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2],
+				["Smart (expensive)", 3]
+			];
+			super("Clit piercing", pairs);
+			this.setValue(current_rule.set.clitPiercing);
+			this.onchange = (value) => current_rule.set.clitPiercing = value;
+		}
+	}
+
+	class LabiaPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Pussylips piercings", pairs);
+			this.setValue(current_rule.set.vaginaPiercing);
+			this.onchange = (value) => current_rule.set.vaginaPiercing = value;
+		}
+	}
+
+	class ShaftPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Shaft piercings", pairs);
+			this.setValue(current_rule.set.dickPiercing);
+			this.onchange = (value) => current_rule.set.dickPiercing = value;
+		}
+	}
+
+	class PerineumPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Light", 1],
+				["Heavy", 2]
+			];
+			super("Perianal piercings", pairs);
+			this.setValue(current_rule.set.anusPiercing);
+			this.onchange = (value) => current_rule.set.anusPiercing = value;
+		}
+	}
+
+	class CorsetPiercingList extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["None", 0],
+				["Apply", 1]
+			];
+			super("Corset piercings", pairs);
+			this.setValue(current_rule.set.corsetPiercing);
+			this.onchange = (value) => current_rule.set.corsetPiercing = value;
+		}
+	}
+
+	class AutoBrandingList extends List {
+		constructor() {
+			const pairs = [
+				["Activate", 1],
+				["Off", 0],
+			];
+			super("Automatic branding", pairs);
+			this.setValue(current_rule.set.autoBrand);
+			this.onchange = (value) => current_rule.set.autoBrand = value;
+		}
+	}
+
+	class BrandingLocationList extends List {
+		constructor() {
+			super("Your preferred location for brands is", []);
+
+			const ears = new ListSubSection(this, "Ears", [
+				["Left", "left ear"],
+				["Right", "right ear"],
+				["Both", "ears"]
+			]);
+			this.appendChild(ears);
+
+			const cheeks = new ListSubSection(this, "Cheeks", [
+				["Left", "left cheek"],
+				["Right", "right cheek"],
+				["Both", "cheeks"]
+			]);
+			this.appendChild(cheeks);
+
+			const shoulders = new ListSubSection(this, "Shoulders", [
+				["Left", "left shoulder"],
+				["Right", "right shoulder"],
+				["Both", "shoulders"]
+			]);
+			this.appendChild(shoulders);
+
+			const breasts = new ListSubSection(this, "Breasts", [
+				["Left", "right breast"],
+				["Right", "left breast"],
+				["Both", "breasts"]
+			]);
+			this.appendChild(breasts);
+
+			const upper_arms = new ListSubSection(this, "Arms, upper", [
+				["Left", "left upper arm"],
+				["Right", "right upper arm"],
+				["Both", "upper arms"]
+			]);
+			this.appendChild(upper_arms);
+
+			const lower_arms = new ListSubSection(this, "Arms, lower", [
+				["Left", "left lower arm"],
+				["Right", "right lower arm"],
+				["Both", "lower arms"]
+			]);
+			this.appendChild(lower_arms);
+
+			const wrist = new ListSubSection(this, "Wrist", [
+				["Left", "left wrist"],
+				["Right", "right wrist"],
+				["Both", "wrists"]
+			]);
+			this.appendChild(wrist);
+
+			const hand = new ListSubSection(this, "Hand", [
+				["Left", "left hand"],
+				["Right", "right hand"],
+				["Both", "hands"]
+			]);
+			this.appendChild(hand);
+
+			const buttocks = new ListSubSection(this, "Buttocks", [
+				["Left", "left buttock"],
+				["Right", "right buttock"],
+				["Both", "buttocks"]
+			]);
+			this.appendChild(buttocks);
+
+			const thigh = new ListSubSection(this, "Thigh", [
+				["Left", "left thigh"],
+				["Right", "right thigh"],
+				["Both", "thighs"]
+			]);
+			this.appendChild(thigh);
+
+			const calf = new ListSubSection(this, "Calf", [
+				["Left", "left calf"],
+				["Right", "right calf"],
+				["Both", "calves"]
+			]);
+			this.appendChild(calf);
+
+			const ankle = new ListSubSection(this, "Ankle", [
+				["Left", "left ankle"],
+				["Right", "right ankle"],
+				["Both", "ankles"]
+			]);
+			this.appendChild(ankle);
+
+			const feet = new ListSubSection(this, "Feet", [
+				["Left", "left foot"],
+				["Right", "right foot"],
+				["Both", "feet"]
+			]);
+			this.appendChild(feet);
+
+			const other = new ListSubSection(this, "Other", [
+				["Neck", "neck"],
+				["Chest", "chest"],
+				["Belly", "belly"],
+				["Pubic mound", "pubic mound"],
+				["Back", "back"],
+				["Lower Back", "lower back"]
+			]);
+			this.appendChild(other);
+
+			this.setValue(V.brandTarget);
+			this.onchange = (value) => V.brandTarget = value;
+		}
+	}
+
+	class BrandDesignList extends List {
+		constructor() {
+			const items = [
+				["Your  slaving emblem", "your personal symbol"],
+				["Your initials", "your initials"],
+				["SLUT"],
+				["WHORE"],
+				["SLAVE"],
+				["COW"],
+				["MEAT"],
+				["CUMDUMP"],
+				["LOVER"],
+				["Pussy symbol", "a pussy symbol"],
+				["Anus symbol", "an anus symbol"],
+				["Penis symbol", "a penis symbol"],
+				["Lady", "a lady silhouette"],
+				["Princess", "a princess silhouette"],
+				["Queen", "a queen silhouette"],
+				["Angel", "an angel silhouette"],
+				["Devil", "a devil silhouette"]
+			];
+			
+			if (V.arcologies[0].FSSupremacist !== "unset" || V.arcologies[0].FSSubjugationist !== "unset")
+				items.push(["(FS) Racial Slur", "a racial slur"]);
+			
+			if (V.arcologies[0].FSSupremacist !== "unset" && V.arcologies[0].FSSupremacistRace === "white")
+				items.push(["(FS) Swastika", "a swastika"]);
+			
+			if (V.arcologies[0].FSSubjugationist !== "unset" && V.arcologies[0].FSSubjugationistRace === "semitic")
+				items.push(["(FS) Star of David", "a Star of David"]);
+
+			if (V.arcologies[0].FSGenderRadicalist !== "unset" || V.arcologies.FSGenderFundamentalist !== "unset")
+				items.push(["(FS) Gender Symbol", "a gender symbol"]);
+
+			if (V.arcologies[0].FSPaternalist !== "unset")
+				items.push(["(FS) Personal Symbol", "her own personal symbol"]);
+
+			if (V.arcologies[0].FSDegradationist !== "unset")
+				items.push(["(FS) Chain Symbol", "a chain symbol"]);
+
+			if (V.arcologies[0].FSBodyPurist !== "unset")
+				items.push(["(FS) Vitruvian Man", "a Vitruvian man"]);
+
+			if (V.arcologies[0].FSTransformationFetishist !== "unset")
+				items.push(["(FS) Most Desired Implants", "a shortlist of desired implants"]);
+
+			if (V.arcologies[0].FSYouthPreferentialist !== "unset")
+				items.push(["(FS) Virginity Status", "her virginity status"]);
+
+			if (V.arcologies[0].FSMaturityPreferentialist !== "unset")
+				items.push(["(FS) Sexual Skill Info", "her sexual skills"]);
+
+			if (V.arcologies[0].FSSlimnessEnthusiast !== "unset")
+				items.push(["(FS) Breast Ceiling", "her absolute maximum breast size"]);
+
+			if (V.arcologies[0].FSAssetExpansionist !== "unset")
+				items.push(["(FS) Breast Floor", "her absolute minimum breast size"]);
+
+			if (V.arcologies[0].FSPastoralist !== "unset")
+				items.push(["(FS) Product Quality", "her body product quality"]);
+
+			if (V.arcologies[0].FSPhysicalIdelist !== "unset")
+				items.push(["(FS) Deadlift Info", "her deadlift record"]);
+
+			if (V.arcologies[0].FSHedonisticDecadence !== "unset")
+				items.push(["(FS) Weight Record", "her highest weigh-in"]);
+
+			if (V.arcologies[0].FSHedonisticDecadence && V.PC.refreshmentType == 2)
+				items.push(["(FS) Favorite Food", `a big helping of ${V.PC.refreshment}`]);
+
+			if (V.arcologies[0].FSRepopulationFocus !== "unset")
+				items.push(["(FS) Birth Count", "the number of children she has birthed"]);
+
+			if (V.arcologies[0].FSChattelReligionist !== "unset")
+				items.push(["(FS) Religious Symbol", "a religious symbol"]);
+
+			if (V.arcologies[0].FSRomanRevivalist !== "unset")
+				items.push(["(FS) Republican Crest", "a small crest of your Republic"]);
+
+			if (V.arcologies[0].FSAztecRevivalist !== "unset")
+				items.push(["(FS) Seven Serpents", "a small symbol of the Aztec gods"]);
+
+			if (V.arcologies[0].FSEgyptianRevivalist !== "unset")
+				items.push(["(FS) Dynastic Sigil", "a small sigil of your Dynasty"]);
+
+			if (V.arcologies[0].FSEdoRevivalist !== "unset")
+				items.push(["(FS) Mon", "a small image of the Shogunate's mon"]);
+
+			if (V.arcologies[0].FSArabianRevivalist !== "unset")
+				items.push(["(FS) Caliphate Symbol", "a small symbol of the Caliphate"]);
+
+			if (V.arcologies[0].FSChineseRevivalist !== "unset")
+				items.push(["(FS) Imperial Seal", "a small image of your Imperial Seal"]);
+			
+			super("Your brand design is", items, true);
+		}
+	}
+
+	class FaceTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["permanent makeup"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"]
+			];
+			super("Facial tattoos", items);
+			this.setValue(current_rule.set.lipsTat);
+			this.onchange = (value) => current_rule.set.lipsTat = value;
+		}
+	}
+	
+	class ShoulderTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["scenes"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"]
+			];
+			super("Shoulder tattoos", items);
+			this.setValue(current_rule.set.shouldersTat);
+			this.onchange = (value) => current_rule.set.shouldersTat = value;
+		}
+	}
+
+	class ChestTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["scenes"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"]
+			];
+			super("Chest tattoos", items);
+			this.setValue(current_rule.set.boobsTat);
+			this.onchange = (value) => current_rule.set.boobsTat = value;
+		}
+	}
+
+	class ArmTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["scenes"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"]
+			];
+			super("Arm tattoos", items);
+			this.setValue(current_rule.set.armsTat);
+			this.onchange = (value) => current_rule.set.armsTat = value;
+		}
+	}
+
+	class UpperBackTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["scenes"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"],
+			];
+			super("Upper back tattoos", items);
+			this.setValue(current_rule.set.backTat);
+			this.onchange = (value) => current_rule.set.backTat = value;
+		}
+	}
+
+	class LowerBackTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["scenes"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"]
+			];
+			super("Lower back tattoos", items);
+			this.setValue(current_rule.set.stampTat);
+			this.onchange = (value) => current_rule.set.stampTat = value;
+		}
+	}
+
+	class AbdomenTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["scenes"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"],
+			];
+			super("Abdomen tattoos", items);
+			this.setValue(current_rule.set.vaginaTat);
+			this.onchange = (value) => current_rule.set.vaginaTat = value;
+		}
+	}
+
+	class DickTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"],
+			];
+			super("Dick tattoos", items);
+			this.setValue(current_rule.set.dickTat);
+			this.onchange = (value) => current_rule.set.dickTat = value;
+		}
+	}
+
+	class ButtockTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["scenes"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"],
+			];
+			super("Buttock tattoos:", items);
+			this.setValue(current_rule.set.buttTat);
+			this.onchange = (value) => current_rule.set.buttTat = value;
+		}
+	}
+
+	class AnalTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["bleached"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"],
+			];
+			super("Anal tattoo or bleaching", items);
+			this.setValue(current_rule.set.anusTat);
+			this.onchange = (value) => current_rule.set.anusTat = value;
+		}
+	}
+
+	class LegTattooList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["none", 0],
+				["tribal patterns"],
+				["flowers"],
+				["counting"],
+				["advertisements"],
+				["rude words"],
+				["degradation"],
+				["bovine patterns"],
+				["Asian art"],
+				["scenes"],
+				["sacrament"],
+				["sacrilege"],
+				["possessive"],
+				["paternalist"],
+			];
+			super("Leg tattoos", items);
+			this.setValue(current_rule.set.legsTat);
+			this.onchange = (value) => current_rule.set.legsTat = value;
+		}
+	}
+
+	class VisionSurgeryList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["fixed", 1],
+				["blurred", -1],
+			];
+			super("Vision correction", items);
+			this.setValue(current_rule.set.surgery_eyes);
+			this.onchange = (value) => current_rule.set.surgery_eyes = value;
+		}
+	}
+
+	class LactationSurgeryList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["implanted", 1],
+				["removed", 0],
+			];
+			super("Lactation drug implants", items);
+			this.setValue(current_rule.set.surgery_lactation);
+			this.onchange = (value) => current_rule.set.surgery_lactation = value;
+		}
+	}
+
+	class SemenSurgeryList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["implanted", 1],
+				["removed", 0],
+			];
+			super("Prostate production enhancing drug implants", items);
+			this.setValue(current_rule.set.surgery_prostate);
+			this.onchange = (value) => current_rule.set.surgery_prostate = value;
+		}
+	}
+
+	class VasectomyList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["apply vasectomy", true],
+				["undo vasectomy", false],
+			];
+			super("Apply or undo vasectomy for slaves with testicles", items);
+			this.setValue(current_rule.set.surgery_vasectomy);
+			this.onchange = (value) => current_rule.set.surgery_vasectomy = value;
+		}
+	}
+
+	class CosmeticSurgeryList extends List {
+		constructor() {
+			const items = [
+				["none", 0],
+				["subtle", 1],
+				["invasive", 2],
+			];
+			super("Cosmetic Surgery", items);
+			this.setValue(current_rule.set.surgery_cosmetic);
+			this.onchange = (value) => current_rule.set.surgery_cosmetic = value;
+		}
+	}
+
+	class LipSurgeryList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["removed", 0],
+				["plush", 20],
+				["big", 40],
+				["huge", 70],
+				["facepussy", 95],
+			];
+			super("Lip implants", items);
+			this.setValue(current_rule.set.surgery_lips);
+			this.onchange = (value) => current_rule.set.surgery_lips = value;
+		}
+	}
+
+	class ButtSurgeryList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["removed", 0],
+				["slim", 2],
+				["stacked", 4],
+				["huge", 6],
+				["maximised", 9],
+			];
+			super("Buttock implants", items);
+			this.setValue(current_rule.set.surgery_butt);
+			this.onchange = (value) => current_rule.set.surgery_butt = value;
+		}
+	}
+
+	class BreastSurgeryList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["removed", 0],
+				["slim", 400],
+				["stacked", 1000],
+				["huge", 2000],
+				["barely functional", 9000],
+				["maximised", 48000]
+			];
+			super("Breast implants", items);
+			this.setValue(current_rule.set.surgery_boobs);
+			this.onchange = (value) => current_rule.set.surgery_boobs = value;
+		}
+	}
+
+	class TighteningSurgeryList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["tightening", 1],
+				["virginity restoration", 2],
+			];
+			super("Orifice Tightening", items);
+			this.setValue(current_rule.set.surgery_holes);
+			this.onchange = (value) => current_rule.set.surgery_holes = value;
+		}
+	}
+
+	class BodyHairSurgeryList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["keep", 1],
+				["removal", 2],
+			];
+			super("Body Hair", items);
+			this.setValue(current_rule.set.surgery_bodyhair);
+			this.onchange = (value) => current_rule.set.surgery_bodyhair = value;
+		}
+	}
+
+	class HairSurgeryList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["keep", 1],
+				["removal", 2],
+			];
+			super("Hair", items);
+			this.setValue(current_rule.set.surgery_hair);
+			this.onchange = (value) => current_rule.set.surgery_hair = value;
+		}
+	}
+
+	class AutomaticAssignmentList extends List {
+		constructor() {
+			const items = [
+				["No default setting", "no default setting"],
+				["Rest", "rest"],
+				["Fucktoy", "please you"],
+				["Subordinate Slave", "be a subordinate slave"],
+				["House Servant", "be a servant"],
+				["Confined", "stay confined"],
+				["Whore", "whore"],
+				["Public Servant", "serve the public"],
+				["Classes", "take classes"],
+				["Milked", "get milked"],
+				["Gloryhole", "work a glory hole"]
+			];
+			
+			if (V.HGSuite > 0) items.push(["Head Girl Suite", "live with your Head Girl"]);
+			if (V.brothel > 0) items.push(["Brothel", "work in the brothel"]);
+			if (V.club > 0) items.push(["Club", "serve in the club"]);
+			if (V.arcade > 0) items.push(["Arcade", "be confined in the arcade"]);
+			if (V.dairy > 0) items.push(["Dairy", "work in the dairy"]);
+			if (V.servantsQuarters > 0) items.push(["Servant Quarters", "work as a servant"]);
+			if (V.masterSuite > 0) items.push(["Master Suite", "serve in the master suite"]);
+			if (V.schoolroom > 0) items.push(["Schoolroom", "learn in the schoolroom"]);
+			if (V.spa > 0) items.push(["Spa", "rest in the spa"]);
+			if (V.clinic > 0) items.push(["Clinic", "get treatment in the clinic"]);
+			if (V.cellblock > 0) items.push(["Cellblock", "be confined in the cellblock"]);
+			
+			super("Automatically set assignment", items);
+			this.setValue(current_rule.set.setAssignment);
+			this.onchange = (value) => current_rule.set.setAssignment = value;
+		}
+	}
+
+	class BellyImplantList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+				["install", "install"],
+				["remove", "remove"],
+			];
+			super("Belly implant", items);
+			this.setValue(current_rule.set.surgery_bellyImplant);
+			this.onchange = (value) => current_rule.set.surgery_bellyImplant = value;
+		}
+	}
+	
+	return rulesAssistantOptions;
+})();

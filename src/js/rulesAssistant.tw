@@ -1,0 +1,304 @@
+:: rulesAssistant [script]
+
+window.hasSurgeryRule = function(slave, rules) {
+	return rules.some(
+		rule => ruleApplied(slave, rule) && rule.set.autoSurgery > 0);
+};
+
+window.hasRuleFor = function(slave, rules, what) {
+	return rules.some(
+		rule => ruleApplied(slave, rule) && rule[what] !== "no default setting");
+};
+
+window.hasHColorRule = function(slave, rules) {
+	return hasRuleFor(slave, rules, "hColor");
+};
+
+window.hasHStyleRule = function(slave, rules) {
+	return hasRuleFor(slave, rules, "hStyle");
+};
+
+window.hasEyeColorRule = function(slave, rules) {
+	return hasRuleFor(slave, rules, "eyeColor");
+};
+
+window.lastPregRule = function(slave, rules) {
+	return rules.some(rule =>
+		ruleApplied(slave, rule) && rule.set.preg === -1);
+};
+
+window.mergeRules = function mergeRules(rules) {
+	const combinedRule = {};
+	rules.forEach(rule => {
+		// A rule overrides any preceding ones if,
+		//   * there are no preceding ones,
+		//   * or it sets autoBrand,
+		//   * or it does not set autoBrand and is not "no default setting"
+		Object.keys(rule).forEach(key => {
+			const applies = (combinedRule[key] === undefined ||
+				(key === "autoBrand" && rule[key]) ||
+				(key !== "autoBrand" && rule[key] !== "no default setting"));
+			if (!applies) return;
+			combinedRule[key] = rule[key];
+		});
+	});
+	return combinedRule;
+};
+
+// return if a rule is applied on a slave
+window.ruleApplied = function(slave, rule) {
+	return slave.currentRules.includes(rule.ID);
+};
+
+// remove slave from the facility described by the rule
+window.RAFacilityRemove = function RAFacilityRemove(slave, rule) {
+	const V = State.variables;
+	let r = "";
+	if (!rule.facilityRemove) return r;
+	switch(rule.setAssignment) {
+	case "be confined in the arcade":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>${slave.slaveName} has been removed from ${V.arcadeName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "work in the brothel":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>${slave.slaveName} has been removed from ${V.brothelName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "serve in the club":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>${slave.slaveName} has been removed from ${clubName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "work in the dairy":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>${slave.slaveName} has been removed from ${V.dairyName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "rest in the spa":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>${slave.slaveName} has been removed from ${V.spaName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "get treatment in the clinic":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>{slave.slaveName} has been removed from ${V.clinicName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "serve in the master suite":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>{slave.slaveName} has been removed from ${V.masterSuiteName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "live with your Head Girl":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>${slave.slaveName} has been removed from ${HGSuiteName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "work as a servant":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>${slave.slaveName} has been removed from ${V.servantsQuartersName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "learn in the schoolroom":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>${slave.slaveName} has been removed from ${V.schoolroomName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+
+	case "be confined in the cellblock":
+		if (slave.assignment === rule.setAssignment) {
+			r += `<br>${slave.slaveName} has been removed from ${V.cellblockName} and has been assigned to ${rule.removalAssignment}.`;
+			assignJob(slave, rule.removalAssignment);
+		}
+		break;
+	}
+};
+
+// return whether the rule applies to the slave
+window.ruleAppliesP = function ruleAppliesP(cond, slave) {
+	let flag;
+
+	// attribute / function check
+	switch (cond.function) {
+	case true: // always applies
+		flag = true;
+		break;
+	case false: // never applies
+		flag = false;
+		break;
+	case "between": // between two values of a slave's attribute
+		flag = between(
+			slave[cond.data.attribute],
+			cond.data.value[0],
+			cond.data.value[1]);
+		break;
+	case "belongs": // the attribute belongs in the list of values
+		flag = cond.data.value.includes(slave[cond.data.attribute])
+		break;
+	case "custom": // user provided JS function
+		flag = eval(cond.data)(slave);
+		break;
+	}
+	// assignment / facility / special slaves / specific slaves check
+	let assignment = slave.assignment;
+	if (assignment === "be your Concubine") assignment = "serve in the master suite";
+	flag = flag &&
+		!(cond.excludeSpecialSlaves && isLeaderP(slave)) &&
+		(cond.assignment.length === 0 || cond.assignment.includes(assignment)) &&
+		(cond.selectedSlaves.length === 0 || cond.selectedSlaves.includes(slave.ID)) &&
+		!(cond.excludedSlaves.includes(slave.ID));
+	return flag;
+};
+
+window.emptyDefaultRule = function emptyDefaultRule() {
+	const id = generateNewID();
+	const rule = {
+		ID: id,
+		name: `Rule ${id}`,
+		condition: {
+			function: false,
+			data: {},
+			excludeSpecialSlaves: false,
+			assignment: [],
+			selectedSlaves: [],
+			excludedSlaves: [],
+		},
+		set: {
+			releaseRules: "no default setting",
+			clitSetting: "no default setting",
+			clitSettingXY: "no default setting",
+			clitSettingXX: "no default setting",
+			clitSettingEnergy: "no default setting",
+			speechRules: "no default setting",
+			clothes: "no default setting",
+			collar: "no default setting",
+			shoes: "no default setting",
+			legAccessory: "no default setting",
+			virginAccessory: "no default setting",
+			aVirginAccessory: "no default setting",
+			vaginalAccessory: "no default setting",
+			aVirginDickAccessory: "no default setting",
+			dickAccessory: "no default setting",
+			bellyAccessory: "no default setting",
+			aVirginButtplug: "no default setting",
+			buttplug: "no default setting",
+			eyeColor: "no default setting",
+			makeup: "no default setting",
+			nails: "no default setting",
+			hColor: "no default setting",
+			hLength: "no default setting",
+			hStyle: "no default setting",
+			pubicHColor: "no default setting",
+			pubicHStyle: "no default setting",
+			nipplesPiercing: "no default setting",
+			areolaePiercing: "no default setting",
+			clitPiercing: "no default setting",
+			vaginaLube: "no default setting",
+			vaginaPiercing: "no default setting",
+			dickPiercing: "no default setting",
+			anusPiercing: "no default setting",
+			lipsPiercing: "no default setting",
+			tonguePiercing: "no default setting",
+			earPiercing: "no default setting",
+			nosePiercing: "no default setting",
+			eyebrowPiercing: "no default setting",
+			navelPiercing: "no default setting",
+			corsetPiercing: "no default setting",
+			boobsTat: "no default setting",
+			buttTat: "no default setting",
+			vaginaTat: "no default setting",
+			dickTat: "no default setting",
+			lipsTat: "no default setting",
+			anusTat: "no default setting",
+			shouldersTat: "no default setting",
+			armsTat: "no default setting",
+			legsTat: "no default setting",
+			backTat: "no default setting",
+			stampTat: "no default setting",
+			curatives: "no default setting",
+			livingRules: "no default setting",
+			relationshipRules: "no default setting",
+			standardPunishment: "no default setting",
+			standardReward: "no default setting",
+			diet: "no default setting",
+			dietCum: "no default setting",
+			dietMilk: "no default setting",
+			muscles: "no default setting",
+			XY: "no default setting",
+			XX: "no default setting",
+			gelding: "no default setting",
+			preg: "no default setting",
+			growth_boobs: "no default setting",
+			growth_butt: "no default setting",
+			growth_lips: "no default setting",
+			growth_dick: "no default setting",
+			growth_balls: "no default setting",
+			aphrodisiacs: "no default setting",
+			autoSurgery: 0,
+			autoBrand: 0,
+			pornFameSpending: "no default setting",
+			dietGrowthSupport: 0,
+			eyewear: "no default setting",
+			setAssignment: "no default setting",
+			facilityRemove: false,
+			removalAssignment: "rest",
+			surgery_eyes: "no default setting",
+			surgery_lactation: "no default setting",
+			surgery_prostate: "no default setting",
+			surgery_cosmetic: "no default setting",
+			surgery_accent: "no default setting",
+			surgery_shoulders: "no default setting",
+			surgery_shouldersImplant: "no default setting",
+			surgery_boobs: "no default setting",
+			surgery_hips: "no default setting",
+			surgery_hipsImplant: "no default setting",
+			surgery_butt: "no default setting",
+			surgery_faceShape: "no default setting",
+			surgery_lips: "no default setting",
+			surgery_holes: "no default setting",
+			surgery_hair: "no default setting",
+			surgery_bodyhair: "no default setting",
+			surgery_vasectomy: "no default setting",
+			surgery_bellyImplant: "no default setting",
+			underArmHColor: "no default setting",
+			underArmHStyle: "no default setting",
+			drug: "no default setting",
+			eyes: "no default setting",
+			pregSpeed: "no default setting",
+			bellyImplantVol: -1,
+			teeth: "no default setting",
+		}
+	};
+	return rule;
+};
+
+
+// Saves the slave, silently fires the RA, saves the slave's after-RA state, and then reverts the slave.
+// Call and then check potential change against $slaveAfterRA to see if the RA would revert it.
+window.RulesDeconfliction = function RulesDeconfliction(slave) {
+	const before = clone(slave);
+	DefaultRules(slave);
+	V.slaveAfterRA = clone(slave);
+	slave = before;
+}

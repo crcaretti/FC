@@ -1,0 +1,391 @@
+:: description widgets [widget nobr]
+
+<<widget "MainLinks">>
+
+<center>
+<<if $PCWounded == 1>>
+	The injuries received in the recent battle prevent you from undertaking tiring efforts.
+<<else>>
+<<switch $personalAttention>>
+<<case "business">>You plan to focus on business this week.
+<<case "whoring">>You plan to focus on earning extra money this week.
+<<case "upkeep">>You plan to focus on cleaning the penthouse this week.
+<<case "smuggling">>You plan to make some easy (but dirty) money this week.
+<<case "HG">>You plan to support your Head Girl this week, so $pronoun can give more slaves $possessive attention.
+<<case "sex">>You plan to have as much sex with your slaves as possible this week.
+<<case "trading">>This week you will learn trading.
+<<case "warfare">>This week you will learn modern combat tactics.
+<<case "slaving">>This week you will learn slaving.
+<<case "engineering">>This week you will learn engineering.
+<<case "medicine">>This week you will learn medicine.
+<<case "hacking">>This week you will learn hacking.
+<<case "proclamation">>This week you plan to issue a proclamation about $proclamationType.
+<<case "technical accidents">>This week you plan to sell your technical skills to the highest bidder.
+<<default>>
+	<<if _PA.length > 0>>
+		You plan to train
+		<<for _dwi = 0; _dwi < _PA.length; _dwi++>>
+			<<if _dwi > 0 && _dwi == _PA.length - 1>>and<</if>>
+			''__@@.pink;<<SlaveFullName _PA[_dwi]>>@@__'' to $personalAttention[_dwi].trainingRegimen<<if _dwi > 0 && _dwi < _PA.length - 2>>,<</if>>
+		<</for>>
+		this week.
+	<</if>>
+<</switch>>
+<</if>>	/* closes wound check */
+
+
+<<if $PCWounded != 1>><span id="managePA"><strong><<link "Change plans">><<goto "Personal Attention Select">><</link>></strong></span> @@.cyan;[A]@@<</if>>
+
+<<if $useSlaveSummaryOverviewTab != 1>> /* Hide this block if it will be shown on the overview tab */
+	<br>
+	<<if def _HG>>
+		''__@@.pink;<<SlaveFullName $HeadGirl>>@@__'' is serving as your head girl<<if $arcologies[0].FSEgyptianRevivalistLaw == 1>> and Consort<</if>>.
+		<span id="manageHG"><strong><<link "Manage Head Girl">><<goto "HG Select">><</link>></strong></span> @@.cyan;[H]@@
+	<<elseif (ndef _HG) && ($slaves.length > 1)>>
+		You have not selected a Head Girl<<if $arcologies[0].FSEgyptianRevivalistLaw == 1>> and Consort<</if>>. <span id="manageHG"><strong><<link "Select one">><<goto "HG Select">><</link>></strong></span> @@.cyan;[H]@@
+	<<elseif (ndef _HG)>>
+		//You do not have enough slaves to keep a Head Girl//
+	<</if>>
+	<br>
+	<<if def _RC>>
+		''__@@.pink;<<SlaveFullName $Recruiter>>@@__'' is working to recruit girls.
+		<span id="manageRecruiter"><strong><<link "Manage Recruiter">><<goto "Recruiter Select">><</link>></strong></span> @@.cyan;[U]@@
+	<<else>>
+		You have not selected a Recruiter.
+		<span id="manageRecruiter"><strong><<link "Select one">><<goto "Recruiter Select">><</link>></strong></span> @@.cyan;[U]@@
+	<</if>>
+	<<if ($dojo != 0)>>
+		<br>
+		<<if def _BG>>
+			''__@@.pink;<<SlaveFullName $Bodyguard>>@@__'' is serving as your bodyguard. <span id="manageBG"><strong><<link "Manage Bodyguard">><<goto "BG Select">><</link>></strong></span> @@.cyan;[B]@@
+		<<else>>
+			You have not selected a Bodyguard. <span id="manageBG"><strong><<link "Select one">><<goto "BG Select">><</link>></strong></span> @@.cyan;[B]@@
+		<</if>>
+	<</if>>
+<</if>>
+
+/* cycle through slaves, for each slave cycle through completed organs and track how many are of the interrogated slave (and if organs have a slaves to be implanted on) */
+<<if $completedOrgans.length > 0>>
+	<<set _validOrgans = 0>>
+	<<for _dwi = 0; _dwi < $slaves.length; _dwi++>>
+		<<capture _dwi>>
+		<<set $dumped = 0>>
+		<<set _slaveOrgans = 0>>
+		<<for _dwj = 0; _dwj < $completedOrgans.length; _dwj++>>
+			<<if ($completedOrgans[_dwj] != 0) && ($completedOrgans[_dwj].ID == $slaves[_dwi].ID)>>
+				<<set _slaveOrgans++>>
+				<<set _validOrgans++>>
+			<</if>>
+		<</for>>
+		/* if the interrogated slave has one or more organs ready: */
+		<<if _slaveOrgans > 0>>
+			<br>@@.yellow;The fabricator has completed <<if _slaveOrgans > 1>><<print _slaveOrgans>> organs<<else>>an organ<</if>> for@@
+			<<link "<<print $slaves[_dwi].slaveName>>">>
+				<<set $activeSlave = $slaves[_dwi]>>
+				<<goto "Slave Interact">>
+			<</link>>
+			, @@.yellow; which <<if _slaveOrgans > 1>>are<<else>>is<</if>> ready to be implanted.@@
+		<</if>>
+		<</capture>>
+	<</for>>
+	/* if the check returns true it means there are organs without slaves associated to. I think this was the purpose of the _validHost check in the original code */
+	<<if _validOrgans < $completedOrgans.length>>
+		<<for _dwj = 0; _dwj < $completedOrgans.length; _dwj++>>
+			<<set _isValid = 0>>
+			<<for _dwi = 0; _dwi < $slaves.length; _dwi++>>
+				<<if ($completedOrgans[_dwj] != 0) && ($completedOrgans[_dwj].ID == $slaves[_dwi].ID)>>
+					<<set _isValid = 1>>
+				<</if>>
+			<</for>>
+			/* if there is no associated slave delete the organ, should there be a notification for the player, here? */
+			<<if _isValid == 0>>
+				<<set $completedOrgans.deleteAt(_dwj)>>
+			<</if>>
+		<</for>>
+	<</if>>
+<</if>>
+
+<<if $limbsCompleted > 0>>
+<<for _dwj = 0; _dwj < $limbs.length; _dwj++>>
+	<<set _validHost = 0>>
+	<<set $dumped = 0>>
+	<<for _dwi = 0; _dwi < $slaves.length; _dwi++>>
+		<<set _Slave = $slaves[_dwi]>>
+		<<if ($limbs[_dwj] != 0) && ($limbs[_dwj].ID == _Slave.ID)>>
+			<<set _validHost = 1>>
+			<<if ($limbs[_dwj].weeksToCompletion <= 0)>>
+				<br>@@.yellow;The facility has completed a set of limbs for@@ <span id="name"><<print "[[_Slave.slaveName|Slave Interact][$activeSlave = $slaves[" + _dwi + "]]]">></span>, @@.yellow; which is ready to be attached.@@
+			<</if>>
+		<</if>>
+	<</for>>
+	<<if _validHost == 0>>
+		<<set $dump = $limbs.deleteAt(_dwj), _dwj-->>
+	<</if>>
+<</for>>
+<</if>>
+
+<<if ($completedOrgans.length > 0) && ($limbsCompleted > 0)>>
+	<br>[[Implant and Attach|Multiple Organ Implant]] @@.yellow;all organs and limbs that are ready.@@
+<<elseif ($completedOrgans.length > 0)>>
+	<br>[[Implant|Multiple Organ Implant]] @@.yellow;all organs that are ready for implantation.@@
+<<elseif ($limbsCompleted > 0)>>
+	<br>[[Attach|Multiple Organ Implant]] @@.yellow;all sets of limbs that are ready to be attached.@@
+<</if>>
+<br>
+<<if ($slaveCostFactor > 1.05)>>
+	@@.yellow;There is a bull market for slaves; the price of slaves is very high.@@
+<<elseif ($slaveCostFactor > 1)>>
+	@@.yellow;The slave market is bullish; the price of slaves is high.@@
+<<elseif ($slaveCostFactor < 0.95)>>
+	@@.yellow;There is a bear market for slaves; the price of slaves is very low.@@
+<<elseif ($slaveCostFactor < 1)>>
+	@@.yellow;The slave market is bearish; the price of slaves is low.@@
+<<else>>
+	The slave market is stable; the price of slaves is average.
+<</if>>
+<span id="buySlaves"><strong><<link "Buy Slaves">><<goto "Buy Slaves">><</link>></strong></span> @@.cyan;[S]@@
+	<<if $TSS.schoolSale != 0>>
+		<br>@@.yellow;For your first purchase, @@<strong>[[The Slavegirl School][$slavesSeen += 1]]</strong>@@.yellow; will sell at half price this week.@@
+	<</if>>
+	<<if $GRI.schoolSale != 0>>
+		<br>@@.yellow;For your first purchase, @@<strong>[[Growth Research Institute][$slavesSeen += 1]]</strong>@@.yellow; will sell at half price this week.@@
+	<</if>>
+	<<if $SCP.schoolSale != 0>>
+		<br>@@.yellow;For your first purchase, @@<strong>[[St. Claver Preparatory][$slavesSeen += 1]]</strong>@@.yellow; will sell at half price this week.@@
+	<</if>>
+	<<if $TCR.schoolSale != 0>>
+		<br>@@.yellow;For your first purchase, @@<strong>[[The Cattle Ranch][$slavesSeen += 1]]</strong>@@.yellow; will sell at half price this week.@@
+	<</if>>
+	<<if $HA.schoolSale != 0>>
+		<br>@@.yellow;For your first purchase, @@<strong>[[The Hippolyta Academy][$slavesSeen += 1]]</strong>@@.yellow; will sell at half price this week.@@
+	<</if>>
+	<<if ($seeDicks != 0)>>
+		<<if $LDE.schoolSale != 0>>
+			<br>@@.yellow;For your first purchase, @@<strong>[[L'école des Enculées][$slavesSeen += 1]]</strong>@@.yellow; will sell at half price this week.@@
+		<</if>>
+		<<if $TGA.schoolSale != 0>>
+			<br>@@.yellow;For your first purchase, @@<strong>[[The Gymnasium-Academy][$slavesSeen += 1]]</strong>@@.yellow; will sell at half price this week.@@
+		<</if>>
+		<<if $TFS.schoolSale != 0>>
+			<br>@@.yellow;For your first purchase, @@<strong>[[The Futanari Sisters][$slavesSeen += 1]]</strong>@@.yellow; will sell at half price this week.@@
+		<</if>>
+	<</if>>
+</center>
+
+<</widget>>
+
+
+
+<<widget "FlowerDesc">>
+
+<<if $activeSlave.dick > 0 && $activeSlave.balls == 0>>
+	a white orchid, its black stamen stiffly erect.
+<<elseif $activeSlave.dick > 0>>
+	a morning glory, light around its edges with a puckered pink center.
+<<elseif $activeSlave.addict > 5>>
+	a large poppy, its pod glistening with black opiate juice.
+<<elseif $activeSlave.vagina == 0>>
+	a white lily, pure and unspoiled.
+<<elseif $activeSlave.pregType > 3 && $activeSlave.pregKnown == 1>>
+	a pink lotus, beautiful and fertile.
+<<elseif $activeSlave.energy > 95>>
+	a flamboyant tiger lily.
+<<elseif $activeSlave.actualAge > 40>>
+	an elegant, mature orchid.
+<<elseif $activeSlave.actualAge < 20>>
+	an innocent little peony.
+<<elseif $activeSlave.boobs > 2000>>
+	a huge round sunflower.
+<<else>>
+	a nice red rose.
+<</if>>
+
+<</widget>>
+
+
+<<widget "ImageDesc">>
+
+<<if $activeSlave.dick > 0 && $activeSlave.balls == 0>>
+	sodomy.
+<<elseif $activeSlave.dick > 0>>
+	stiff pricks.
+<<elseif $activeSlave.oralSkill >= 100>>
+	oral sex.
+<<elseif $activeSlave.boobs > 1000>>
+	boobs.
+<<elseif $activeSlave.vagina == -1>>
+	sodomy.
+<<else>>
+	pussies.
+<</if>>
+
+<</widget>>
+
+
+<<widget "InscripDesc">>
+
+"I <3
+<<if ($activeSlave.fetishKnown == 1)>>
+	<<switch $activeSlave.fetish>>
+		<<case "buttslut">>
+			Buttsex!"
+		<<case "cumslut">>
+			Cum!"
+		<<case "masochist" "sadist">>
+			Rape!"
+		<<case "dom">>
+			Topping!"
+		<<case "submissive">>
+			Subbing!"
+		<<case "boobs">>
+			Tits!"
+		<<case "pregnancy">>
+			Sperm!"
+		<<default>>
+			<<if ($activeSlave.energy > 95)>>
+				Cock!"
+			<<elseif ($PC.title == 0)>>
+				Mistress!"
+			<<else>>
+				Master!"
+			<</if>>
+		<</switch>>
+<<elseif ($PC.title == 0)>>
+	Mistress!"
+<<else>>
+	Master!"
+<</if>>
+
+<</widget>>
+
+
+<<widget "SlavePronouns">>
+
+<<if $args[0].fuckdoll > 0>>
+	<<set $pronoun = "it", $pronounCap = "It", $possessive = "its", $possessiveCap = "Its", $object = "it">>
+<<elseif $args[0].dick < 0 && $args[0].vagina == -1>> /*impossible condition to keep it from running but saving it for future use*/
+	<<set $pronoun = "he", $pronounCap = "He", $possessive = "his", $possessiveCap = "His", $object = "him">>
+<<else>>
+	<<set $pronoun = "she", $pronounCap = "She", $possessive = "her", $possessiveCap = "Her", $object = "her">>
+<</if>>
+
+<</widget>>
+
+
+<<widget "brandDescription">>
+
+<<if ($activeSlave.brand != 0)>>
+	<<set $bellyAccessory = $activeSlave.bellyAccessory>>
+	<<if setup.fakeBellies.includes($bellyAccessory) && ($activeSlave.brandLocation == "belly")>>
+		$possessiveCap fake belly has $activeSlave.brand branded on it.
+	<<else>>
+		$pronounCap has $activeSlave.brand branded into the flesh of $possessive $activeSlave.brandLocation.
+	<</if>>
+<</if>>
+
+<</widget>>
+
+
+<<widget "originDescription">>
+<<switch $args[0].origin>>
+
+	<<case "To solidify an investment in hermaphrodite self-fertility, you took part in a test successful test trial. Nine months later your daughter was born.">>
+		<<print "To solidify an investment in hermaphrodite self-fertility, you took part in a test successful test trial. Nine months later your daughter was born.">>
+	<<case "Sometimes it pays off to use your body in business deals, and other times you end up burdened with child. She is the result of the latter.">>
+		<<print "Sometimes it pays off to use your body in business deals, and other times you end up burdened with child. $He is the result of the latter.">>
+	<<case "To seal a business deal, a client asked you to knock her up. She is the end result of that fling.">>
+		<<print "To seal a business deal, a client asked you to knock $him up. $He is the end result of that fling.">>
+	<<case "You acquired her in the last stages of your career as a successful venture capitalist.">>
+		<<print "You acquired $him in the last stages of your career as a successful venture capitalist.">>
+	<<case "Drugs and alcohol can be a potent mix; the night that followed it can sometimes be hard to remember. Needless to say, once your belly began swelling with her, you had to temporarily switch to a desk job for your mercenary group.">>
+		<<print "Drugs and alcohol can be a potent mix; the night that followed it can sometimes be hard to remember. Needless to say, once your belly began swelling with $him, you had to temporarily switch to a desk job for your mercenary group.">>
+	<<case "Drugs and alcohol can be a potent mix; the night that followed it can sometimes be hard to remember. Needless to say, once your belly began swelling with her, you had to temporarily switch to a desk job for your mercenary group.">>
+		<<print "Drugs and alcohol can be a potent mix; the night that followed it can sometimes be hard to remember. Needless to say, once your belly began swelling with $him, you had to temporarily switch to a desk job for your mercenary group.">>
+	<<case "A trip to a brothel after a mission resulted in an unexpected surprise years later.">>
+		<<print "A trip to a brothel after a mission resulted in an unexpected surprise years later.">>
+	<<case "You acquired her in the last stages of your career as a noted private military contractor.">>
+		<<print "You acquired $him in the last stages of your career as a noted private military contractor.">>
+	<<case "You never thought you would be capable of impregnating yourself, but years of pleasuring yourself with yourself after missions managed to create her.">>
+		<<print "You never thought you would be capable of impregnating yourself, but years of pleasuring yourself with yourself after missions managed to create $him.">>
+	<<case "A fresh capture once overpowered you and had his way with you. You kept her as a painful reminder to never lower your guard again.">>
+		<<print "A fresh capture once overpowered you and had his way with you. You kept $him as a painful reminder to never lower your guard again.">>
+	<<case "Your slaving troop kept several girls as fucktoys, you sired her in your favorite.">>
+		<<print "Your slaving troop kept several girls as fucktoys, you sired $him in your favorite.">>
+	<<case "You enslaved her personally during the last stages of your slaving career.">>
+		<<print "You enslaved $him personally during the last stages of your slaving career.">>
+	<<case "You sired her in yourself after an arcology owner, impressed by your work, rewarded you with a night you'll never forget.">>
+		<<print "You sired $him in yourself after an arcology owner, impressed by your work, rewarded you with a night you'll never forget.">>
+	<<case "You conceived her after a male arcology owner, impressed by your work, rewarded you with a night you'll never forget.">>
+		<<print "You conceived $him after a male arcology owner, impressed by your work, rewarded you with a night you'll never forget.">>
+	<<case "You sired her after a female arcology owner, impressed by your work, rewarded you with a night you'll never forget.">>
+		<<print "You sired $him after a female arcology owner, impressed by your work, rewarded you with a night you'll never forget.">>
+	<<case "You received her as a gift from an arcology owner impressed by your work.">>
+		<<print "You received $him as a gift from an arcology owner impressed by your work.">>
+	<<case "A client paid you a large sum of credits to prove you could literally fuck yourself. She is the result of that lucrative night.">>
+		<<print "A client paid you a large sum of credits to prove you could literally fuck yourself. $He is the result of that lucrative night.">>
+	<<case "She was the result of unprotected sex with a client. He paid you quite well to enjoy your body as you grew heavy with his child.">>
+		<<print "$He was the result of unprotected sex with a client. He paid you quite well to enjoy your body as you grew heavy with his child.">>
+	<<case "She was the result of unprotected sex with a client. Her mother tracked you down years after her birth to force her upon you.">>
+		<<print "$He was the result of unprotected sex with a client. $His mother tracked you down years after $his birth to force $him upon you.">>
+	<<case "She was a fellow escort you were popular with.">>
+		<<print "$He was a fellow escort you were popular with.">>
+	<<case "She was the result of a night of hard drugs and unprotected sex after a big score. It took quite a bit of alcohol to come to terms with drunkenly knocking yourself up.">>
+		<<print "$He was the result of a night of hard drugs and unprotected sex after a big score. It took quite a bit of alcohol to come to terms with drunkenly knocking yourself up.">>
+	<<case "She was the result of a night of hard drugs and unprotected sex after a big score.">>
+		<<print "$He was the result of a night of hard drugs and unprotected sex after a big score.">>
+	<<case "She was born from one of your sex toys you knocked up.">>
+		<<print "$He was born from one of your sex toys you knocked up.">>
+	<<case "You captured her during your transition to the arcology">>
+		<<print "You captured $him during your transition to the arcology">>
+	<<case "Your late master took pleasure in using his servants in creative ways. He inseminated you with your own sperm, and nine months later, your daughter was born.">>
+		<<print "Your late master took pleasure in using his servants in creative ways. He inseminated you with your own sperm, and nine months later, your daughter was born.">>
+	<<case "She was another of your late master's servants. She spent nine months in your womb, courtesy of your master.">>
+		<<print "$He was another of your late master's servants. $He spent nine months in your womb, courtesy of your master.">>
+	<<case "She was another of your late master's servants. Your master permitted you to knock up her mother.">>
+		<<print "$He was another of your late master's servants. Your master permitted you to knock up $his mother.">>
+	<<case "She was another of your late master's servants. She helped you give birth to his child.">>
+		<<print "$He was another of your late master's servants. $He helped you give birth to his child.">>
+	<<case "She was another of your late master's servants.">>
+		<<print "$He was another of your late master's servants.">>
+	<<case "She was conceived after a successful experiment in hermaphrodite self-reproduction.">>
+		<<print "$He was conceived after a successful experiment in hermaphrodite self-reproduction.">>
+	<<case "She was conceived after a botched birth control experiment early in your career.">>
+		<<print "$He was conceived after a botched birth control experiment early in your career.">>
+	<<case "She is the product of an affair with a cute nurse who assisted you in more ways than one.">>
+		<<print "$He is the product of an affair with a cute nurse who assisted you in more ways than one.">>
+	<<case "You kept her after her owner failed to pay your bill for performing surgery on her.">>
+		<<print "You kept $him after $his owner failed to pay your bill for performing surgery on $him.">>
+	<<case "She was conceived after a night of partying and a drunken bet. She nearly killed your career.">>
+		<<print "$He was conceived after a night of partying and a drunken bet. $He nearly killed your career.">>
+	<<case "She was conceived after a night of partying and a torn condom. She nearly killed your career.">>
+		<<print "$He was conceived after a night of partying and a torn condom. $He nearly killed your career.">>
+	<<case "She was conceived after a night of partying and a torn condom.">>
+		<<print "$He was conceived after a night of partying and a torn condom.">>
+	<<case "She was one of your groupies during your celebrity career.">>
+		<<print "$He was one of your groupies during your celebrity career.">>
+	<<case "You bet your body on a sure hand, only to lose. It turns out you could fuck yourself, and not only that, get yourself pregnant.">>
+		<<print "You bet your body on a sure hand, only to lose. It turns out you could fuck yourself, and not only that, get yourself pregnant.">>
+	<<case "You bet your body on a sure hand, only to lose. Nine months later, your daughter was born.">>
+		<<print "You bet your body on a sure hand, only to lose. Nine months later, your daughter was born.">>
+	<<case "You won a sexual fling with her mother after winning at cards, a gamble that ultimately burdened you.">>
+		<<print "You won a sexual fling with $his mother after winning at cards, a gamble that ultimately burdened you.">>
+	<<case "You won her at cards, a memento from your life as one of the idle rich before you became an arcology owner.">>
+		<<print "You won $him at cards, a memento from your life as one of the idle rich before you became an arcology owner.">>
+	<<case "She was the result of a night of hard celebration after a big score under the glow of monitors and the calming hum of 750 RPM fans. It took quite a bit of alcohol to come to terms with drunkenly knocking yourself up.">>
+		<<print "$He was the result of a night of hard celebration after a big score under the glow of monitors and the calming hum of 750 RPM fans. It took quite a bit of alcohol to come to terms with drunkenly knocking yourself up.">>
+	<<case "She was the result of an intruder brute forcing your firewall, overloading your pleasure sensors, and allowing a corrupted packet to slip by. With a quick wipe of your RAM and cache with some powerful liquor, you have no idea who planted her in your womb.">>
+		<<print "$He was the result of an intruder brute forcing your firewall, overloading your pleasure sensors, and allowing a corrupted packet to slip by. With a quick wipe of your RAM and cache with some powerful liquor, you have no idea who planted her in your womb.">>
+	<<case "She was born out of a trade for secure data access. Nine months later, your daughter was born.">>
+		<<print "$He was born out of a trade for secure data access. Nine months later, your daughter was born.">>
+	<<case "She was a case officer you captured after going dark.">>
+		<<print "$He was a case officer you captured after going dark.">>
+	<<case "You won her at cards, a memento from your life as one of the idle rich before you became an arcology owner.">>
+		<<print "You won $him at cards, a memento from your life as one of the idle rich before you became an arcology owner.">>
+	<<case "You brought her into the arcology mindbroken, little more than a walking collection of fuckable holes.">>
+		<<print "You brought $him into the arcology mindbroken, little more than a walking collection of fuckable holes.">>
+	<<case "You brought her into the arcology mindbroken, little more than a human onahole.">>
+		<<print "You brought $him into the arcology mindbroken, little more than a human onahole.">>
+	<<default>>
+		<<print $args[0].origin>>
+<</switch>>
+<</widget>>

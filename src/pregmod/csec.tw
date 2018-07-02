@@ -1,0 +1,370 @@
+:: csec [nobr]
+
+<<set $nextButton = "Back", $nextLink = "Slave Interact">>
+
+<<run clearSummaryCache($activeSlave)>>
+
+<<set _getFather = getSlave($activeSlave.pregSource)>>
+<<if def _getFather>>
+	<<set $daddy = _getFather.slaveName>>
+<</if>>
+
+/*---------------- calculations -----------------*/
+
+/* Now it's will be possible to use passage for broodmothers and partial birthers too.*/
+
+<<set $activeSlave.pregControl = "none">>
+<<set _beforeSize = WombGetVolume($activeSlave)>>
+<<set $activeSlave.curBabies = WombBirth($activeSlave, 34)>> /* 34 week is minimal gestation time for live birth. Here we take only ready to survive. With others we will deal later in code. */
+<<set $activeSlave.curStillBirth = 0 >>
+
+<<set _curBabies = $activeSlave.curBabies.length>> /*just to improve speed and usability here.*/
+
+<<set $activeSlave.births += _curBabies>>
+<<set $activeSlave.birthsTotal += _curBabies>>
+<<set $birthsTotal += _curBabies>>
+
+<<if $activeSlave.pregSource > 0>>
+	<<set _babyDaddy = $slaveIndices[$activeSlave.pregSource]>>
+	<<if def _babyDaddy>>
+		<<set $slaves[_babyDaddy].slavesFathered += _curBabies>>
+	<</if>>
+<<elseif $activeSlave.pregSource == -1>>
+	<<set $PC.slavesFathered += _curBabies>>
+<</if>>
+
+<<if $activeSlave.broodmother < 1>>  /* broodmothers can't lose fetuses, or it's abortion procedure, not c'sec.*/
+	<<if $safePartialBirthTech == 1 >>
+		/* nothing right now. For partial birthers, who can do it. For future use.*/
+	<<else>>
+		<<set $activeSlave.curStillBirth = $activeSlave.womb.length>>
+		<<set WombFlush($activeSlave)>>
+		/* normally fetuses before 34 week will not survive */
+	<</if>>
+<</if>>
+<<set _afterSize = WombGetVolume($activeSlave)>> /* not really needed right now, but better to add alredy for future usage. To not forget later.*/
+<<set $diffSize = _beforeSize / (1 + _afterSize)>> /* 1 used to avoid divide by zero error.*/ 
+
+<<set _incubated = 0>>
+<<set _oldDevotion = $activeSlave.devotion>>
+
+<<set _cToIncub = 0, _origReserve = $activeSlave.reservedChildren>> 
+<<if _origReserve > 0 && _curBabies > 0>> /*Do we need incubator checks?*/
+	<<if _curBabies >= _origReserve >>
+		/*adding normal*/
+		<<set _cToIncub = _origReserve >>
+	<<elseif _curBabies <  _origReserve && $activeSlave.womb.length > 0>>
+		/*broodmother or partial birth, we will wait for next time to get remaining children*/
+		<<set $activeSlave.reservedChildren -= _curBabies, _cToIncub = _curBabies>>
+	<<else>>
+		/*Stillbirth or something other go wrong. Correcting children count.*/
+		<<set $activeSlave.reservedChildren = 0, _cToIncub = _curBabies>>
+	<</if>>
+<</if>>
+
+/* ------------------------------------------------ */
+
+Performing a cesarean section is trivial for the remote surgery to carry out. $activeSlave.slaveName is sedated, her child<<if _curBabies > 1>>ren<</if>> extracted, and taken to a bed to recover. By the time she comes to,
+<<if _curBabies > 0>>
+	<<if $activeSlave.pregSource == -1>>
+		your
+	<<elseif $activeSlave.pregSource == -2>>
+		your arcology's
+	<<elseif $activeSlave.pregSource == -3>>
+		the Societal Elites'
+	<<elseif $activeSlave.pregSource == 0>>
+		some man's
+	<<elseif $activeSlave.ID == $activeSlave.pregSource>>
+		her own
+	<<else>>
+		$daddy's
+	<</if>>
+	<<if _curBabies <= 1>>
+		baby has
+	<<elseif _curBabies >= 40>>
+		massive brood of $activeSlave.pregType babies have
+	<<elseif _curBabies >= 20>>
+		brood of $activeSlave.pregType babies have
+	<<elseif _curBabies >= 10>>
+		impressive group of $activeSlave.pregType babies have
+	<<elseif _curBabies == 9>>
+		nonuplets have
+	<<elseif _curBabies == 8>>
+		octuplets have
+	<<elseif _curBabies == 7>>
+		septuplets have
+	<<elseif _curBabies == 6>>
+		sextuplets have
+	<<elseif _curBabies == 5>>
+		quintuplets have
+	<<elseif _curBabies == 4>>
+		quadruplets have
+	<<elseif _curBabies == 3>>
+		triplets have
+	<<else>>
+		twins have
+	<</if>>
+	already been
+
+	<<if _cToIncub == _curBabies && _cToIncub > 0 >>
+		taken to $incubatorName.
+		<<set _incubated = 2>>
+	<<elseif _cToIncub < _curBabies && _cToIncub > 0>>
+		split between $incubatorName and
+		<<set _incubated = 1>>
+	<</if>>
+	<<set $mom = $activeSlave>>
+	<<set _identicalChildGen = 0, _shiftDegree = 0>>
+	<<for _cb = 0; _cb < _cToIncub; _cb++>> /* if there is no reserved children, code in loop will not trigger */
+			<<if _identicalChildGen == 0>>
+				<<if _cb == $mom.curBabies.length-1 && $mom.curBabies.length > 1 && $mom.curBabies[_cb].identical == 1>> /* catch for improperly placed identical twin flag to still generate*/
+					<<set _twin = clone($activeSlave)>>
+					<<set _twin.ID = $IDNumber++>>
+					<<set $activeSlave = 0>>
+					<<set $activeSlave = _twin>>
+				<<else>>
+					<<include "Generate Child">>
+				<</if>>
+			<<else>>
+				<<set _twin = clone($activeSlave)>>
+				<<set _twin.ID = $IDNumber++>>
+				<<set $activeSlave = 0>>
+				<<set $activeSlave = _twin>>
+			<</if>>
+			<<include "Incubator Workaround">>
+			<<if $mom.curBabies[_cb].identical === 1>>
+				<<set _identicalChildGen = 1>>
+			<<else>>
+				<<set _identicalChildGen = 0>>
+			<</if>>
+			<<set _shiftDegree++>>
+			<<set $reservedChildren-- >>
+	<</for>>
+	<<if _shiftDegree > 0>>
+		<<for _csec = 0; _csec < _shiftDegree; _csec++>>
+			<<set $mom.curBabies.shift()>> /*for now child generation metod for incubator not changed. But here children for incubator removed from array of birthed babies. If we decide later - we can use them for incubator as real objects here. For now they just discarded silently */
+		<</for>>
+	<</if>>
+	<<set $activeSlave = $mom>>
+<<else>>
+	/*No live babies. Placeholder */
+<</if>>
+<<set _curBabies = $activeSlave.curBabies.length >>
+
+<<if _incubated != 2 && _curBabies > 0 >>
+	<span id="_disposition">
+	<<if _incubated == 1>>the rest<</if>>
+	<<if $arcologies[0].FSRestart != "unset" && $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
+		<<set _lostBabies = 1>>
+		handed off to the Societal Elite to be raised into upstanding members of the new society.
+	<<elseif $Cash4Babies == 1 && ($activeSlave.relationship != -3) && ($activeSlave.assignment != "serve in the master suite") && ($activeSlave.assignment != "be your Concubine")>>
+		<<set _lostBabies = 1, _babyCost = random(-12,12)>>
+		sold for a total of @@.yellowgreen;<<print cashFormat(_curBabies*(50+_babyCost))>>.@@
+		<<set $cash += _curBabies*(50+_babyCost)>>
+	<</if>>
+	<<if _lostBabies != 1>>
+		<br><br>
+		<<link '...sent to a slave orphanage.'>>
+			<<replace #_disposition>>
+				<<set $slaveOrphanageTotal += _curBabies>>
+				sent to one of $arcologies[0].name's slave orphanages. $activeSlave.slaveName
+				<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
+					has few thoughts about the matter.
+				<<elseif $activeSlave.devotion > 95>>
+					worships you so completely that she will not resent this.
+				<<elseif $activeSlave.devotion > 50>>
+					is devoted to you, but she will @@.mediumorchid;struggle to accept this.@@
+					<<set $activeSlave.devotion -= 2>>
+				<<elseif $activeSlave.devotion > 20>>
+					has accepted being a sex slave, but she will @@.mediumorchid;resent this intensely.@@
+					<<set $activeSlave.devotion -= 3>>
+				<<else>>
+					will of course @@.mediumorchid;hate you for this.@@
+					<<set $activeSlave.devotion -= 4>>
+				<</if>>
+			<</replace>>
+			<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
+		<</link>>
+		<<if $arcologies[0].FSRepopulationFocus > 40>>
+			<br><<link '...sent to a breeder school.'>>
+				<<replace #_disposition>>
+					sent to one of $arcologies[0].name's future minded schools, to be administered fertility and virility treatments as well as be brought up to take pride in reproduction. $activeSlave.slaveName
+					<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
+						has few thoughts about the matter.
+					<<elseif $activeSlave.devotion > 95>>
+						loves you already, but she'll @@.hotpink;love you even more@@ for this. She can't wait to see her child<<if _curBabies > 1>>ren<</if>> proudly furthering your cause.
+						<<set $activeSlave.devotion += 4>>
+					<<elseif $activeSlave.devotion > 50>>
+						heard about these and will be @@.hotpink;happy that her child<<if $activeSlave.pregType > 1>>ren<</if>> will have a purpose in your society other than slavery.@@ She will miss her child<<if $activeSlave.pregType > 1>>ren<</if>>, but she expected that.
+						<<set $activeSlave.devotion += 4>>
+					<<elseif $activeSlave.devotion > 20>>
+						will naturally miss her child<<if _curBabies > 1>>ren<</if>>, but will is broken enough to hope that her offspring will have a better life, or at least an enjoyable one.
+					<<else>>
+						will of course @@.mediumorchid;hate you for this.@@ The mere thought of her $fertilityAge year old daughter<<if _curBabies > 1>>s<</if>> swollen with life, and proud of it, fills her with @@.gold;disdain.@@
+						<<set $activeSlave.devotion -= 4, $activeSlave.trust -= 4>>
+					<</if>>
+					<<set $breederOrphanageTotal += _curBabies>>
+				<</replace>>
+				<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
+			<</link>>
+			//Will cost a onetime <<print cashFormat(50)>>//
+		<</if>>
+		<br><<link '...sent to a citizen school.'>>
+			<<replace #_disposition>>
+				sent to one of $arcologies[0].name's citizen schools, to be brought up coequal with the arcology's other young people. $activeSlave.slaveName
+				<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
+					has few thoughts about the matter.
+				<<elseif $activeSlave.devotion > 95>>
+					loves you already, but she'll @@.hotpink;love you even more@@ for this.
+				<<elseif $activeSlave.devotion > 50>>
+					knows about these and will be @@.hotpink;overjoyed.@@ She will miss her child<<if _curBabies > 1>>ren<</if>>, but she expected that.
+				<<elseif $activeSlave.devotion > 20>>
+					will naturally miss her child<<if _curBabies > 1>>ren<</if>>, but will @@.hotpink;take comfort@@ in the hope that her offspring will have a better life.
+				<<else>>
+					will naturally retain some resentment over being separated from her child<<if _curBabies > 1>>ren<</if>>, but this should be balanced by hope that her offspring will have a better life.
+				<</if>>
+				<<set $activeSlave.devotion += 4, $citizenOrphanageTotal += _curBabies>>
+			<</replace>>
+			<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
+		<</link>>
+		//Will cost <<print cashFormat(100)>> weekly//
+		<br><<link '...sent to be raised privately.'>>
+			<<replace #_disposition>>
+				The child<<if _curBabies > 1>>ren are<<else>> is<</if>> sent to be privately raised, to be brought up as a future high class citizen. $activeSlave.slaveName
+				<<if $activeSlave.fetish == "mindbroken" || $activeSlave.fuckdoll > 0>>
+					has few thoughts about the matter.
+				<<elseif $activeSlave.devotion > 95>>
+					will @@.hotpink;worship you utterly@@ for this.
+				<<elseif $activeSlave.devotion > 50>>
+					understands that this is the best possible outcome for the offspring of slave, and will be @@.hotpink;overjoyed.@@
+				<<elseif $activeSlave.devotion > 20>>
+					will miss her child<<if _curBabies > 1>>ren<</if>>, but will be @@.hotpink;very grateful,@@ since she'll understand this is the best possible outcome for a slave mother.
+				<<else>>
+					will resent being separated from her child<<if _curBabies > 1>>ren<</if>>, but @@.hotpink;should understand and be grateful@@ that this is the best possible outcome here.
+				<</if>>
+				The child<<if _curBabies > 1>>ren<</if>> will be raised privately, with expert care and tutoring, an expensive proposition.
+				<<set $activeSlave.devotion += 6, $privateOrphanageTotal += _curBabies>>
+			<</replace>>
+			<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
+		<</link>> 
+		//Will cost <<print cashFormat(500)>> weekly//
+	<<else>>
+		<<set $nextButton = "Back">><<UpdateNextButton>> /* unlock Continue button */
+	<</if>>
+	</span>
+<</if>>
+
+<<if _curBabies+_cToIncub < 1>>
+	/* Reaction for no live babies here. Placeholder.*/	
+<<elseif $activeSlave.fetish != "mindbroken" && $activeSlave.fuckdoll == 0>> 
+	<br><br>
+	<<if $activeSlave.pregSource == -1>>
+		<<if $activeSlave.devotion < 20 && $activeSlave.weekAcquired > 0>>
+			She @@.mediumorchid;despises@@ you for using her body to bear your children.
+			<<set $activeSlave.devotion -= 10>>
+		<<elseif $activeSlave.devotion > 50>>
+			She's @@.hotpink;so proud@@ to have successfully carried children for you.
+			<<set $activeSlave.devotion += 3>>
+		<</if>>
+	<</if>>
+	<<if $activeSlave.fetish == "pregnancy">>
+		She's a little disappointed she didn't get to give birth, but can't wait to get pregnant again.
+	<<elseif ($activeSlave.devotion > 50)>>
+		She is @@.hotpink;pleased by this stark development@@, since she is so attentive to your will. She also expects she'll be able to fuck better now.
+		<<set  $activeSlave.devotion += 4>>
+	<<elseif ($activeSlave.devotion > 20)>>
+		She is broken enough to accept your control of her pregnancies.
+	<<elseif ($activeSlave.devotion >= -20)>>
+		She would have preferred to give birth when she was ready and is @@.gold;sensibly fearful@@ of your total power over her body.
+		<<set $activeSlave.trust -= 5>>
+	<<else>>
+		She does not understand the realities of her life as a slave at a core level, so she's @@.mediumorchid;terrified and angry@@ that you decided to cut short her pregnancy. She is @@.gold;sensibly fearful@@ of your total power over her body.
+		<<set $activeSlave.trust -= 5, $activeSlave.devotion -= 5>>
+	<</if>>
+<</if>>
+
+<<if $arcologies[0].FSRestart != "unset" && _curBabies > 0>>
+	<br><br>
+	<<if $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
+		The Societal Elite @@.green;are pleased@@ at the new additions to their class.
+		<<set $failedElite -= 2*_curBabies>>
+	<<else>>
+		The Societal Elite @@.red;are disappointed@@ that you would allow subhuman filth to dirty society under your watch. Society @@.red;frowns@@ on the unwelcome addition of more subhumans into the world.
+		<<set $failedElite += 5*_curBabies>>
+		<<set $rep -= 10*_curBabies>>
+	<</if>>
+<</if>>
+
+<br><br>
+Since her <<if $activeSlave.mpreg == 1>>ass<<else>>vagina<</if>> was spared from childbirth, @@.lime;it retained its tightness.@@ 
+<<if ($PC.medicine >= 100)>>
+	Since you @@.springgreen;performed the surgery yourself,@@ and you do artist's work, her health is @@.green;less affected@@ by the surgery than it would have been if you'd paid some hack to do it remotely.
+	<<if $activeSlave.fetish != "mindbroken" && $activeSlave.fuckdoll == 0>>
+		She went into the surgery very aware that you were performing it manually.
+		<<if ($activeSlave.devotion < _oldDevotion)>>
+			<<if ($activeSlave.devotion > 50)>>
+				Though she is unhappy with the results, she consoles herself with the knowledge that you cared enough to do it personally.
+			<<elseif ($activeSlave.devotion >= -20)>>
+				She is @@.gold;even more afraid@@ of you afterward than she would otherwise be. You must seem a cruel and near-omnipotent power to her.
+				<<set $activeSlave.trust -= 5>>
+			<<else>>
+				She is @@.mediumorchid;even more hateful@@ of you afterward than she would otherwise be. It must seem to her that she's nothing more than a test subject to you.
+				<<set $activeSlave.devotion -= 5>>
+			<</if>>
+		<<else>>
+			<<if ($activeSlave.devotion > 50)>>
+				Since she's happy with the results, she's almost beside herself with @@.hotpink;gratitude,@@ and filled with @@.mediumaquamarine;admiration@@ of your skill.
+				<<set $activeSlave.devotion += 4, $activeSlave.trust += 4>>
+			<<elseif ($activeSlave.devotion >= -20)>>
+				She is quite struck by how you performed the surgery personally. She admires your refusal to be one of the idle rich, and @@.hotpink;likes you more.@@
+				<<set $activeSlave.devotion += 5>>
+			<<else>>
+				She knows that she should be grateful to you for performing the surgery personally, but the emotional turmoil of the occasion is too much for her, and the realization makes little lasting impact.
+			<</if>>
+		<</if>>
+	<</if>>
+<<else>>
+	As with all surgery @@.red;her health has been slightly affected.@@
+	<<set $activeSlave.health -= 5>>
+<</if>>
+
+<<if $activeSlave.womb.length == 0>> /* Only if pregnancy is really ended... */
+	<<if lastPregRule($activeSlave,$defaultRules)>><<set $activeSlave.preg = -1>><<else>><<set $activeSlave.preg = 0>><</if>>
+	<<set $activeSlave.pregType = 0>>	
+	<<set $activeSlave.pregSource = 0>>
+	<<set $activeSlave.pregKnown = 0>>
+	<<set $activeSlave.pregWeek = -4>>
+	<<if $activeSlave.broodmother == 0 && $bellyImplants == 1>>
+		<br><br>
+		<span id="bir">Since she is already in surgery and her body already stretched, it would be possible to preserve her pregnant appearance via fillable implant.
+		<<link "Do it.">>
+		</span>
+			<<replace "#bir">>
+				<<if $PC.medicine >= 100>><<set $activeSlave.health -= 5>><<else>><<set $activeSlave.health -= 10>><</if>>
+				Installation of belly implant is relative simple procedure. Using the fact that her body and internal organs have already adapted to pregnancy, it's possible to greatly expand initial size of implant. She will still look pregnant post surgery and recovery.
+				<br>
+				<<if ($activeSlave.devotion > 50)>>
+					She leaves the surgery with her belly still very gravid, and as such, knows you put something into her womb replacing her prior natural pregnancy. She is @@.hotpink;curious@@ about the details of the implant, and eagerly awaits to see the end result. 
+					<<set $activeSlave.devotion += 4>>
+				<<elseif ($activeSlave.devotion >= -20)>>
+					She leaves the surgery with her belly still very gravid, and as such, knows you put something into her womb replacing her prior natural pregnancy. She understands the realities of her life as a slave, but she is still surprised at what now resides in her womb. She is @@.gold;sensibly fearful@@ of your total power over her body.
+					<<set $activeSlave.trust -= 5>>
+				<<else>>
+					She leaves the surgery with her belly still very gravid, and as such, knows you put something into her womb replacing her prior natural pregnancy. She does not understand the realities of her life as a slave at a core level, so she's @@.mediumorchid;terrified and angry@@ at the potential that she's been turned in some sort of freak. Even after what has been implanted into her womb is explained to her, she is no less defiant; though she is relieved that procedure is reversible and there is no truly permanent damage. She is @@.gold;sensibly fearful@@ of your total power over her body.
+					<<set $activeSlave.trust -= 5>>
+					<<set $activeSlave.devotion -= 5>>
+				<</if>>
+				<<set $activeSlave.bellyImplant = Math.floor(_beforeSize)>>
+				<<if $activeSlave.bellyImplant > 800000 && $arcologies[0].FSTransformationFetishistResearch > 0>>
+					<<set $activeSlave.bellyImplant = 800000>>
+				<<elseif $activeSlave.bellyImplant > 130000 && $arcologies[0].FSTransformationFetishistResearch < 1>>
+					<<set $activeSlave.bellyImplant = 130000>>
+				<</if>>
+				<<set $activeSlave.preg = -2>>
+				<<run SetBellySize($activeSlave)>>
+			<</replace>>
+		<</link>>
+	<</if>>
+<</if>>
+<<set $activeSlave.cSec = 1>>
+<<run SetBellySize($activeSlave)>>
