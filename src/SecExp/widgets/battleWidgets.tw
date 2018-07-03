@@ -1,0 +1,140 @@
+:: battleWidgets [widget nobr]
+
+<<widget "calcSFStatistics">>
+	<<if $slaveRebellion != 1 || $citizenRebellion != 1>>
+		/* atk, def */
+		<<set _upgradesSum = $securityForceInfantryPower + $securityForceStimulantPower + $securityForceAircraftPower + $securityForceAircraftPower>>
+		<<if !isInt(_upgradesSum)>>
+			<<set _upgradesSum = random(10,15)>>
+		<</if>>
+		<<set $SFatk = Math.trunc(0.65 * _upgradesSum)>>
+		<<set $SFdef = Math.trunc(0.40 * _upgradesSum)>>
+		/* hp */
+		<<set $carriableSoldiers = 125 * ($securityForceAC130 + $securityForceVehiclePower)>>
+		<<if !isInt($carriableSoldiers)>>
+			<<set $carriableSoldiers = $securityForcePersonnel / 10>>
+		<</if>>
+		<<if $securityForcePersonnel > $carriableSoldiers>>
+			<<set $SFhp = $carriableSoldiers * $SFBaseHp>>
+		<<else>>
+			<<set $carriableSoldiers = $securityForcePersonnel>>
+			<<set $SFhp = $carriableSoldiers * $SFBaseHp>>
+		<</if>>
+	<<else>>
+		/* atk, def */
+		<<set _upgradesSum = $securityForceInfantryPower + $securityForceStimulantPower + $securityForceAircraftPower + $securityForceAircraftPower>>
+		<<if !isInt(_upgradesSum)>>
+			<<set _upgradesSum = random(10,15)>>
+		<</if>>
+		<<set $SFatk = Math.trunc(0.75 * _upgradesSum)>>
+		<<set $SFdef = Math.trunc(0.50 * _upgradesSum)>>
+		/* hp */
+		<<set $SFhp = $securityForcePersonnel * $SFBaseHp>>
+	<</if>>
+<</widget>>
+
+<<widget "removeUnits">>
+	/* args[0] is the array of IDs of units to be eliminated */
+	
+	<<set _newMilitia = []>>
+	<<set _newSlave = []>>
+	<<set _newMerc = []>>
+
+	<<for _i = 0; _i < $militiaUnits.length; _i++>>
+		<<if !($args[0].includes($militiaUnits[_i].ID))>>
+			<<set _newMilitia.push($militiaUnits[_i])>>
+		<</if>>
+	<</for>>
+	<<set $militiaUnits = _newMilitia>>
+
+	<<for _i = 0; _i < $slaveUnits.length; _i++>>
+		<<if !($args[0].includes($slaveUnits[_i].ID))>>
+			<<set _newSlave.push($slaveUnits[_i])>>
+		<</if>>
+	<</for>>
+	<<set $slaveUnits = _newSlave>>
+	
+	<<for _i = 0; _i < $mercUnits.length; _i++>>
+		<<if !($args[0].includes($mercUnits[_i].ID))>>
+			<<set _newMerc.push($mercUnits[_i])>>
+		<</if>>
+	<</for>>
+	<<set $mercUnits = _newMerc>>	
+<</widget>>
+
+<<widget "calcTroopCount">>
+	<<set _troops = 0>>
+	<<if $attackThisWeek == 1>>
+		<<if $deployingBots == 1>>
+			<<set _troops += $secBots.troops>>
+		<</if>>
+		<<for _i = 0; _i < $militiaUnits.length; _i++>>
+			<<if $militiaUnits[_i].isDeployed == 1>>
+				<<set _troops += $militiaUnits[_i].troops>>
+			<</if>>
+		<</for>>
+		<<for _i = 0; _i < $slaveUnits.length; _i++>>
+			<<if $slaveUnits[_i].isDeployed == 1>>
+				<<set _troops += $slaveUnits[_i].troops>>
+			<</if>>
+		<</for>>
+		<<for _i = 0; _i < $mercUnits.length; _i++>>
+			<<if $mercUnits[_i].isDeployed == 1>>
+				<<set _troops += $mercUnits[_i].troops>>
+			<</if>>
+		<</for>>
+		<<if $SFIntervention == 1>>
+			<<set _troops += $carriableSoldiers>>
+		<</if>>
+		<<set $troopCount = _troops>>
+		
+	<<elseif $slaveRebellion == 1 || $citizenRebellion == 1>>
+	
+		<<if $irregulars > 0>>
+			<<set _troops += $irregulars>>
+		<</if>>
+		<<if $secBots.active == 1>>
+			<<set _troops += $secBots.troops>>
+		<</if>>
+		<<for _i = 0; _i < $militiaUnits.length; _i++>>
+			<<if $militiaUnits[_i].active == 1 && $loyalID.includes($militiaUnits[_i].ID)>>
+				<<set _troops += $militiaUnits[_i].troops>>
+			<</if>>
+		<</for>>
+		<<for _i = 0; _i < $slaveUnits.length; _i++>>
+			<<if $slaveUnits[_i].active == 1 && $loyalID.includes($slaveUnits[_i].ID)>>
+				<<set _troops += $slaveUnits[_i].troops>>
+			<</if>>
+		<</for>>
+		<<for _i = 0; _i < $mercUnits.length; _i++>>
+			<<if $mercUnits[_i].active == 1 && $loyalID.includes($mercUnits[_i].ID)>>
+				<<set _troops += $mercUnits[_i].troops>>
+			<</if>>
+		<</for>>
+		<<if $securityForceCreate == 1>>
+			<<set _troops += $carriableSoldiers>>
+		<</if>>
+		<<set $troopCount = _troops>>
+	
+	<<else>>
+		<br>@@.red;Error: widget called outside battle@@	
+	<</if>>
+<</widget>>
+
+<<widget "calcBribe">>
+	<<if $week <= 30>>
+		<<set $bribeCost = 5000 + $baseBribePerAttacker * $attackTroops>>
+	<<elseif $week <= 30>>
+		<<set $bribeCost = 10000 + $baseBribePerAttacker * $attackTroops>>
+	<<elseif $week <= 30>>
+		<<set $bribeCost = 15000 + $baseBribePerAttacker * $attackTroops>>
+	<<elseif $week <= 30>>
+		<<set $bribeCost = 20000 + $baseBribePerAttacker * $attackTroops>>
+	<<elseif $week <= 30>>
+		<<set $bribeCost = 25000 + $baseBribePerAttacker * $attackTroops>>
+	<</if>>
+	<<if $majorBattle == 1>>
+		<<set $bribeCost *= 3>>
+	<</if>>
+	<<set $bribeCost = Math.trunc(Math.clamp($bribeCost,0,1000000))>>
+<</widget>>

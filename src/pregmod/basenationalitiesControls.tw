@@ -1,0 +1,165 @@
+:: Basenationalities Controls [nobr]
+
+<<if hashSum($nationalities) < 1>>
+	//You cannot be a slave owner without a slave trade. Please add nationalities to continue.//
+<<else>>
+	<<link "Confirm customization">>
+		<<unset $baseControlsFilter>>
+		<<if $customWA == 0>>
+			<<goto "Intro Summary">>
+		<<else>>
+			<<goto "Extreme Intro">>
+		<</if>>
+	<</link>>
+<</if>>
+<br>
+
+/* Generates cloned array of $nationalities, removing duplicates and then sorting */
+<<set $nationalitiescheck = Object.assign({}, $nationalities)>>
+
+/* Prints distribution of $nationalities, using $nationalitiescheck to render array */
+<<set _percentPerPoint = 100.0 / hashSum($nationalities)>>
+<<set _len = Object.keys($nationalitiescheck).length>>
+<<for _nation, _i range $nationalitiescheck>>
+	_nation @@.orange;<<= ($nationalities[_nation] * _percentPerPoint).toFixed(2)>>%@@
+	<<if _i < _len-1>> | <</if>>
+<</for>>
+<<unset _percentPerPoint>>
+<br><br>
+
+/* Fine control tweaking of populations */
+Adjust slave populations:
+<br style="clear:both" /><hr style="margin:0">
+
+/* Filter controls */
+Filter by Race: 
+<<for _i = 0; _i < setup.filterRaces.length; _i++>>	
+	<<set _race = setup.filterRaces[_i]>>
+	<<if $baseControlsFilter == _race.toLowerCase().replace(/[ -]/g, '')>>
+		<<print _race>>
+	<<else>>
+		<<print "
+			<<link _race>>
+				<<set $baseControlsFilter to setup.filterRaces[" + _i + "].toLowerCase().replace(/[ -]/g, '')>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+	<</if>>
+	<<if _i < setup.filterRaces.length-1>>
+	|
+	<</if>>
+<</for>>
+<br>
+Filter by Region:
+<<for _i = 0; _i < setup.filterRegions.length; _i++>>	
+	<<set _region = setup.filterRegions[_i]>>
+	<<if $baseControlsFilter == _region.toLowerCase().replace(/[ -]/g, '')>>
+		<<print _region>>
+	<<else>>
+		<<print "
+			<<link _region>>
+				<<set $baseControlsFilter to setup.filterRegions[" + _i + "].toLowerCase().replace(/[ -]/g, '')>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>
+		">>
+	<</if>>
+	<<if _i < setup.filterRegions.length-1>>
+	|
+	<</if>>
+<</for>>
+<br style="clear:both" /><hr style="margin:0">
+
+<div style="white-space: nowrap">
+/* Unfiltered pop controls */
+<<if $baseControlsFilter == "all">>
+	<<for _i = 0; _i < setup.baseNationalities.length; _i++>>
+		<div style="float: left;">
+		<<set _nation = setup.baseNationalities[_i]>>
+		<<print "
+		_nation
+			@@.plusButton;<<link '+'>>
+				<<set hashPush($nationalities, setup.baseNationalities["+_i+"])>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>@@
+		">>
+	<<if def $nationalitiescheck[_nation]>>
+		<<print "
+			@@.minusButton;<<link '–'>>
+				<<set $nationalities[setup.baseNationalities["+_i+"]] -= 1>>
+				<<if $nationalities[setup.baseNationalities["+_i+"]] <= 0>>
+					<<set delete $nationalities[setup.baseNationalities["+_i+"]]>>
+				<</if>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>@@
+		">>
+		<</if>>
+	<<if $nationalities[_nation] > 1 >>
+		<<print "
+			@@.zeroButton;<<link '0'>>
+				<<set delete $nationalities[setup.baseNationalities["+_i+"]]>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>@@
+		">>
+	<</if>>
+	<<if _i < setup.baseNationalities.length-1>>|&nbsp;<</if>>
+	</div>
+	<</for>>
+	<div style="clear: both;">By dominant race/ethnicity (hover over the name to see the nationalities affected):</div>
+	<<foreach _race of setup.filterRaces>>
+		<<set _racialNationalities = setup.baseNationalities.filter(function(n) {
+			var races = setup.raceSelector[n] || setup.raceSelector[''];
+			return races[_race.toLowerCase()] * 2 > hashSum(races); })>>
+		<<if _racialNationalities.length > 0>>
+			<<= "<div style='float: left; width: 13em; padding: 0 5px;' title='"
+				+ (_racialNationalities.length > 0 ? _racialNationalities.join(", ") : "(none)") 
+				+"'>_race @@.plusButton; <<link '+'>>
+				<<run setup.baseNationalities.filter(function(n) {
+						var races = setup.raceSelector[n] || setup.raceSelector[''];
+						return races['" + _race.toLowerCase() + "'] * 2 > hashSum(races); }).forEach(function(n) { hashPush($nationalities, n);})>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>@@ @@.zeroButton;<<link '0'>>
+				<<run setup.baseNationalities.filter(function(n) {
+						var races = setup.raceSelector[n] || setup.raceSelector[''];
+						return races['" + _race.toLowerCase() + "'] * 2 > hashSum(races); }).forEach(function(n) { delete $nationalities[n]; })>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>@@</div>">>
+		<</if>>
+	<</foreach>>
+<<else>>
+/* Filtered pop controls */
+	<<set _controlsNationality = setup[$baseControlsFilter+'Nationalities']>>
+	<<for _i = 0; _i < _controlsNationality.length; _i++>>
+		<div style="float: left;">
+		<<set _nation = _controlsNationality[_i]>>
+		<<print "
+		_nation 
+			@@.plusButton;<<link '+'>>
+				<<set hashPush($nationalities, _controlsNationality[" + _i + "])>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>@@
+		">>
+	<<if def $nationalitiescheck[_nation]>>
+		<<print "
+			@@.minusButton;<<link '–'>>
+				<<set $nationalities[_controlsNationality["+_i+"]] -= 1>>
+				<<if $nationalities[_controlsNationality["+_i+"]] <= 0>>
+					<<set delete $nationalities[_controlsNationality["+_i+"]]>>
+				<</if>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>@@
+		">>
+		<</if>>
+	<<if $nationalities[_nation] > 1 >>
+		<<print "
+			@@.zeroButton;<<link '0'>>
+				<<set delete $nationalities[_controlsNationality["+_i+"]]>>
+				<<replace '#PopControl'>><<include 'Basenationalities Controls'>><</replace>>
+			<</link>>@@
+		">>
+	<</if>>
+	<<if _i < _controlsNationality.length-1>>|&nbsp;<</if>>
+	</div>
+	<</for>>
+<</if>>
+<div style="clear: both; height: 0;"></div>
+</div>

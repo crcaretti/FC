@@ -1,0 +1,44 @@
+There are two main changes here.
+
+CHANGE 1: Speed up loading
+==========================
+
+The first is to speed up loading the file.
+
+Edit the sugarcube header and change:
+
+	{key:"_serialize",value:function(e)
+	...
+	 return Object.freeze
+
+Into this
+
+[{key:"_serialize",value:function(e)
+/* look here for changes */
+{return JSON.stringify(e)}},{key:"_deserialize",value:function(e){return JSON.parse((!e || e[0]=="{")?e:LZString.decompressFromUTF16(e))}}]),e}();
+/* changes end here */
+return Object.freeze
+
+
+CHANGE 2: Remember scroll position
+==================================
+
+Edit the sugarcube header and change:
+
+    var t=jQuery(this);t.is("[aria-pressed]")&&t.attr("aria-pressed","true"===t.attr("aria-pressed")?"false":"true"),e.apply(this,arguments);
+
+into this:
+
+    var t=jQuery(this);
+    const dataPassage = t.attr('data-passage');
+    const initialDataPassage = window && window.SugarCube && window.SugarCube.State && window.SugarCube.State.passage;
+    const savedYOffset = window.pageYOffset;
+    t.is("[aria-pressed]")&&t.attr("aria-pressed","true"===t.attr("aria-pressed")?"false":"true"),e.apply(this,arguments);
+    const doJump = function(){ window.scrollTo(0, savedYOffset); }
+    if ( dataPassage && (window.lastDataPassageLink === dataPassage || initialDataPassage === dataPassage))
+        doJump();
+    window.lastDataPassageLink = dataPassage;
+
+This uses two separate methods to detect if we are returning to the same page.  Just checking sugarcube should actually be sufficient, but
+no harm in this approach either.
+

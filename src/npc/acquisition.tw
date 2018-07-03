@@ -1,0 +1,686 @@
+:: Acquisition [nobr]
+
+<<unset $slaveWithoutBonuses, $startingGirlCopied, $startingGirlRelation>>
+
+<<set $fixedNationality = 0, $encyclopedia = " ">>
+
+<<if $saveImported == 1>><<set _valueOwed = 5000>><<else>><<set _valueOwed = 50000>><</if>>
+<<if $freshPC == 1 || $saveImported == 0>>
+	<<if $PC.vagina == 1>>
+		<<set $PC.births = 0>>
+		<<if $PC.career == "servant">>
+			<<if $PC.actualAge >= 50 >>
+				<<set $PC.births = 9>>
+				<<set $PC.birthMaster = 9>>
+			<<elseif $PC.actualAge >= 35>>
+				<<set $PC.births = 6>>
+				<<set $PC.birthMaster = 6>>
+			<<else>>
+				<<set $PC.births = 3>>
+				<<set $PC.birthMaster = 3>>
+			<</if>>
+			<<for $i = 0; $i < $slaves.length; $i++>>
+				<<if $slaves[$i].origin == "She was another of your late master's servants. She spent nine months in your womb, courtesy of your master." || $slaves[$i].origin == "Your late master took pleasure in using his servants in creative ways. He inseminated you with your own sperm, and nine months later, your daughter was born.">>
+				<<set $PC.births += 1>>
+				<<set $PC.birthMaster += 1>>
+				<</if>>
+			<</for>>
+		<<elseif $PC.career == "escort">>
+			<<for $i = 0; $i < $slaves.length; $i++>>
+				<<if $slaves[$i].origin == "She was the result of unprotected sex with a client. He paid you quite well to enjoy your body as you grew heavy with his child." || $slaves[$i].origin == "A client paid you a large sum of credits to prove you could literally fuck yourself. She is the result of that lucrative night.">>
+				<<set $PC.births += 1>>
+				<<set $PC.birthClient += 1>>
+				<</if>>
+			<</for>>
+		<<else>>
+			<<for $i = 0; $i < $slaves.length; $i++>>
+				<<if $slaves[$i].mother == -1>>
+				<<set $PC.births += 1>>
+				<<set $PC.birthOther += 1>>
+				<</if>>
+			<</for>>
+		<</if>>
+		<<if $PC.preg > 0>>
+			<<set $PC.pregWeek = $PC.preg>>
+			<<set $PC.pregType = 1>>
+			<<if $PC.career == "servant">>
+				<<set $PC.pregSource = -3>>
+				<<set $PC.pregType += random(0,0,1)>>
+			<<elseif $PC.career == "escort">>
+				<<set $PC.pregSource = -2>>
+			<</if>>
+			<<set $PC.pregKnown = 1>>
+			<<set $PC.belly = getPregBellySize($PC)>>
+			<<set WombImpregnate($PC, $PC.pregType, $PC.pregSource, $PC.preg)>>
+		<</if>>
+	<</if>>
+	<<set $PC.ovaryAge = $PC.physicalAge>>
+<<else>> /*testtest*/
+	<<set $PC.sisters = 0>>
+	<<set $PC.daughters = 0>>
+<</if>> /*closes ng*/
+<<if $familyTesting == 1>>
+	<<set _pcMomFound = 0, _pcDadFound = 0>>
+	<<if def $slaveIndices[$PC.mother]>>
+		<<set _pcMomFound = 1>>
+	<</if>>
+	<<if def $slaveIndices[$PC.father]>>
+		<<set _pcDadFound = 1>>
+	<</if>>
+	<<for _i = 0; _i < $slaves.length; _i++>>
+		<<if $slaves[_i].mother == $PC.ID || $slaves[_i].father == $PC.ID>>
+			<<set $PC.daughters += 1>>
+		<</if>>
+		<<if areSisters($slaves[_i], $PC) > 0>>
+			<<set $PC.sisters += 1>>
+		<</if>>
+	<</for>>
+	<<if _pcMomFound == 0 && $PC.mother > 0>>
+		<<set _lostMom = $PC.mother>>
+		<<set $PC.mother = $missingParentId>>
+		<<for _i = 0; _i < $slaves.length; _i++>>
+			<<if $slaves[_i].mother == _lostMom>>
+				<<set $slaves[_i].mother = $missingParentId>>
+			<</if>>
+		<</for>>
+		<<set $missingParentId-->>
+	<</if>>
+	<<if _pcDadFound == 0 && $PC.father > 0>>
+		<<set _lostDad = $PC.father>>
+		<<set $PC.father = $missingParentId>>
+		<<for _i = 0; _i < $slaves.length; _i++>>
+			<<if $slaves[_i].father == _lostDad>>
+				<<set $slaves[_i].father = $missingParentId>>
+			<</if>>
+		<</for>>
+		<<set $missingParentId-->>
+	<</if>>
+	<<for _i = 0; _i < $slaves.length; _i++>>
+		<<set _slaveMomFound = 0, _slaveDadFound = 0>>
+		<<if def $slaveIndices[$slaves[_i].mother]>>
+			<<set _slaveMomFound = 1>>
+		<</if>>
+		<<if def $slaveIndices[$slaves[_i].father]>>
+			<<set _slaveDadFound = 1>>
+		<</if>>
+		<<if _slaveMomFound == 0 && $slaves[_i].mother > 0>>
+			<<set _lostMom = $slaves[_i].mother>>
+			<<set $slaves[_i].mother = $missingParentID>>
+			<<for _j = 0; _j < $slaves.length; _j++>>
+				<<if $slaves[_j].mother == _lostMom>>
+					<<set $slaves[_j].mother = $missingParentID>>
+				<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<</if>>
+		<<if _slaveDadFound == 0 && $slaves[_i].father > 0>>
+			<<set _lostDad = $slaves[_i].father>>
+			<<set $slaves[_i].father = $missingParentID>>
+			<<for _j = 0; _j < $slaves.length; _j++>>
+				<<if $slaves[_j].father == _lostDad>>
+					<<set $slaves[_j].father = $missingParentID>>
+				<</if>>
+			<</for>>
+			<<set $missingParentID-->>
+		<</if>>
+	<</for>>
+<</if>>
+<<if $plot == 1 && $neighboringArcologies > 0>>
+	<<set _bestProsperity = 0, _bestProsperityIndex = 1>>
+	<<for _acq = 1; _acq < $arcologies.length; _acq++>>
+		<<if $arcologies[_acq].prosperity > _bestProsperity>>
+			<<set _bestProsperity = $arcologies[_acq].prosperity>>
+			<<set _bestProsperityIndex = _acq>>
+		<</if>>
+	<</for>>
+	<<set $rivalSet = 1>>
+	<<set $arcologies[_bestProsperityIndex].rival = 1>>
+<</if>>
+
+You've done it.
+<br><br>
+You arrive at your new arcology, $arcologies[0].name, and head straight to the penthouse to enter the access codes that will tell the $arcologies[0].name systems to recognize you as their owner. The penthouse office is ready to receive the codes, and they authenticate. A voice activates in your earpiece.
+<br><br>
+//Congratulations. I am a personal assistant program, and it is my pleasure to assist you,
+<<PlayerName>>
+the new owner of $arcologies[0].name. I will offer useful information whenever possible in italics. Your new arcology has some unusual equipment. The previous owner kept a small stable of sex slaves. The penthouse therefore has a body modification studio for tattooing, bleaching and piercing, and an auto salon for more prosaic things like hair care. It also has a remote surgery, a small surgical theater that can be operated remotely by a qualified surgeon if you can pay the fee. Finally, it has a slave nutrition system connected to the arcology's hydroponics bays. This system produces a tasty protein-rich drink that provides the physically active female body all its necessary nutrients while leaving the lower digestive tract extremely clean. It even causes a mild increase in sex drive.
+<br><br>
+The previous owner seems to have left in something of a hurry.
+<<if $cheatMode == 1>>
+	Since you've elected to take over an arcology with special advantages, you've acquired a very special group of slaves.
+<<elseif $saveImported == 1>>
+	Since it took some time for you to ensure that your existing stable of slaves were safely moved to $arcologies[0].name, the previous owner had the time to get most of their things away.
+<<elseif ($targetArcology.type != "New") && ($targetArcology.type != "Multiculturalist")>>
+	<<switch $targetArcology.type>>
+	<<case "Supremacist">>
+		They kept a personal stable of fearful $arcologies[0].FSSupremacistRace sex slaves, but their sexual training is incomplete. Several of them are still here.
+	<<case "Subjugationist">>
+		They made it a special goal to enslave and whore out as many $arcologies[0].FSSubjugationistRace people as possible. Several of them are still here.
+	<<case "GenderRadicalist">>
+		They were in the process of building a stable of pretty young shemale whores. Several of them are still here. They're are all very attracted to men, and skilled at pleasing them.
+	<<case "GenderFundamentalist">>
+		They kept a personal stable of slaves for breeding purposes. Several of them are still here. They've been kept pregnant, and work as servants when they aren't being bred.
+	<<case "Paternalist">>
+		Their slaves were all very well treated. Several of them are still here. They were allowed to work as maids, and weren't even forced to have sex.
+	<<case "Degradationist">>
+		Their personal slaves were all Fuckdolls, slaves who have been permanently encased in advanced latex suits and converted into living sex toys. Several of them are still here.
+	<<case "AssetExpansionist">>
+		They kept a collection of bejeweled boobs for company, but they focused on breast expansion to the exclusion the slaves' emotional training. Several of them are still here.
+	<<case "SlimnessEnthusiast">>
+		They kept a harem of slim, pretty girls, and treated them very well. Several of them are still here. They should be very trusting of a new owner.
+	<<case "TransformationFetishist">>
+		They were just putting the finishing touches on a planned brothel's worth of surgically enhanced whores. Several of them are still here. They are already used to prostitution.
+	<<case "BodyPurist">>
+		Their slaves were trained for sexual use, but their health, fitness, and natural appearance were the main priorities. Several of them are still here.
+	<<case "MaturityPreferentialist">>
+		They preferred to keep their MILFs as scantily clad servants. Several of them are still here. They aren't all happy to be sex objects, but they're used to it.
+	<<case "YouthPreferentialist">>
+		They treated their young slaves very well. Several of them are still here. Virgins have been carefully preserved, but have learned to use their mouths through experience.
+	<<case "Pastoralist">>
+		Their herd of cow girls was progressing nicely, though more progress had been made on milk production than on training. Several of them are still here.
+	<<case "PhysicalIdealist">>
+		Their slaves worked as prostitutes, but mostly to fund a program of muscle building for all of them, which was nearing completion. Several of them are still here.
+	<<case "ChattelReligionist">>
+		They were recruiting a stable of slave whores by targeting people with religious complexes that made them particularly vulnerable to recruitment. Several of them are still here.
+	<<case "RomanRevivalist">>
+		The only one of their slaves left is the bodyguard. She should be very willing to transfer her loyalty to you, as her new owner.
+	<<case "AztecRevivalist">>
+		They maintained a combination of disobedient slaves, deemed incorrigible and blood priestesses. Since they offer themselves as slaves willingly, one has remained loyal to the owner of the arcology.
+	<<case "EgyptianRevivalist">>
+		They kept a harem of beautiful slave girls, who have been well-treated and well-trained. They should be very willing to serve you in turn.
+	<<case "EdoRevivalist">>
+		They put considerable effort into creating modern slave geisha, elegant Japanese slaves who were assigned to serve the public. Several of them are still here.
+	<<case "ArabianRevivalist">>
+		They trained slaves personally, and never kept slaves for very long. The slaves they left are all partway through being trained.
+	<<case "ChineseRevivalist">>
+		The only one of their slaves left is the Head Girl. She should be willing to transfer her loyalty to you, as her proper superior.
+	<<case "Eugenics">>
+		The only one of their slaves left is an absolute beauty of a girl. She is too smart for her own good and will likely not trust you.
+	<<case "Repopulationist">>
+		They kept a personal stable of slaves for breeding purposes. Several of them are still here. They've been kept heavily pregnant, and are used to being used whilst so.
+	<<case "HedonisticDecadence">>
+		Their slaves were heavily pampered; free to lie about, fuck, and eat as much as they wanted. Several of them are still here, too lazy and spoiled to leave. They eagerly paw at you upon your arrival, begging for their bellies to be filled with food and for a good, hard fucking.
+	<<default>>
+		ERROR: bad arcology type
+	<</switch>>
+<<else>>
+	They could not get all of their personal effects away. Since they <<if $targetArcology.type == "Multiculturalist">>tried to sample different kinds of sexual slavery<<else>>did not have the time in control of the arcology to develop a specific stable of sex slaves<</if>>, their slaves were quite varied.
+<</if>>
+
+<<set $heroSlaves = $heroSlaves.shuffle()>>
+<<set _valueGiven = 0>>
+<<if $cheatMode == 1>>
+	<<include [[Cheatmode Database]]>>
+<<elseif $saveImported == 1>>
+<<elseif ($targetArcology.type != "New") && ($targetArcology.type != "Multiculturalist")>>
+	<<for $j = 0; $j < 5; $j++>>
+	<<if _valueOwed - _valueGiven <= 5000>><<break>><</if>>
+	<<switch $targetArcology.type>>
+	<<case "Supremacist">>
+		<<set $arcologies[0].FSSupremacistLawME = 1>><<include "Generate New Slave">><<set $arcologies[0].FSSupremacistLawME = 0>>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-25,-45), $activeSlave.health = random(0,15)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = random(15,35)>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.entertainSkill = random(15,35)>>
+		<<set $activeSlave.clothes = "uncomfortable straps", $activeSlave.collar = "uncomfortable leather", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "please you">>
+	<<case "Subjugationist">>
+		<<set $fixedRace = $activeArcology.FSSubjugationistRace>><<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-25,-45), $activeSlave.health = random(0,15)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = random(15,35)>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.whoreSkill = random(15,35)>>
+		<<set $activeSlave.clothes = "uncomfortable straps", $activeSlave.collar = "uncomfortable leather", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "whore">>
+	<<case "GenderRadicalist">>
+		<<set $activeSlaveOneTimeMaxAge = 25>>
+		<<include "Generate XY Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(15,-15), $activeSlave.health = 100>>
+		<<set $activeSlave.face = random(0,55)>>
+		<<set $activeSlave.boobs += 100*random(2,4)>>
+		<<set $activeSlave.butt += random(1,2)>>
+		<<set $activeSlave.attrXY = random(70,90), $activeSlave.attrXX = 0>>
+		<<set $activeSlave.oralSkill = random(35,65), $activeSlave.analSkill = random(35,65), $activeSlave.whoreSkill = random(35,65)>>
+		<<SoftenSexualFlaw $activeSlave>>
+		<<set $activeSlave.clothes = "uncomfortable straps", $activeSlave.collar = "stylish leather", $activeSlave.shoes = "heels">>
+		<<set $activeSlave.assignment = "whore">>
+	<<case "GenderFundamentalist">>
+		<<set $activeSlaveOneTimeMinAge = $fertilityAge>>
+		<<set $activeSlaveOneTimeMaxAge = 25>>
+		<<include "Generate XX Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-25,-45), $activeSlave.health = random(55,65)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.preg = random(1,40), $activeSlave.lactation = 1>>
+		<<run SetBellySize($activeSlave)>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.clothes = "a nice maid outfit", $activeSlave.collar = "tight steel", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "be a servant">>
+	<<case "Paternalist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(55,65), $activeSlave.health = random(55,65)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.intelligence = random(1,3), $activeSlave.intelligenceImplant = 1>>
+		<<set $activeSlave.entertainSkill = random(15,35)>>
+		<<set $activeSlave.clothes = "conservative clothing", $activeSlave.collar = "none", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "be a servant">>
+	<<case "Degradationist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = 25, $activeSlave.trust = -25, $activeSlave.health = random(0,15)>>
+		<<set $activeSlave.fuckdoll = 100>>
+		<<set $activeSlave.career = "a Fuckdoll">>
+		<<set $activeSlave.fetish = "mindbroken">>
+		<<set $activeSlave.boobs += 100*random(10,20)>>
+		<<set $activeSlave.butt += random(2,3)>>
+		<<set $activeSlave.lips = random(2,4)>>
+		<<set $activeSlave.weight = random(-15,15)>>
+		<<set $activeSlave.oralSkill = 0, $activeSlave.analSkill = 0, $activeSlave.vaginalSkill = 0, $activeSlave.entertainSkill = 0, $activeSlave.whoreSkill = 0>>
+		<<set $activeSlave.behavioralFlaw = "none", $activeSlave.sexualFlaw = "none">>
+		<<set $activeSlave.clothes = "a Fuckdoll suit">>
+		<<set $activeSlave.assignment = "please you">>
+	<<case "AssetExpansionist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-15,15), $activeSlave.health = random(25,45)>>
+		<<set $activeSlave.chem = 50>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.boobs += 100*random(10,20)>>
+		<<set $activeSlave.butt += random(2,3)>>
+		<<set $activeSlave.lips += random(0,1)>>
+		<<if $activeSlave.balls > 0>><<set $activeSlave.balls++>><</if>>
+		<<if $activeSlave.dick > 0>><<set $activeSlave.dick++>><</if>>
+		<<set $activeSlave.weight = random(15,90)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = 0, $activeSlave.anus = 0>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.entertainSkill = random(15,35)>>
+		<<set $activeSlave.clothes = "slutty jewelry", $activeSlave.collar = "pretty jewelry", $activeSlave.shoes = "heels">>
+		<<set $activeSlave.assignment = "please you">>
+	<<case "SlimnessEnthusiast">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(55,65), $activeSlave.health = random(55,65)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.boobs = 100*random(1,4)>>
+		<<set $activeSlave.butt = random(1,2)>>
+		<<set $activeSlave.weight = random(-25,-15)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = 0, $activeSlave.anus = 0>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.entertainSkill = random(15,35)>>
+		<<set $activeSlave.clothes = "a leotard", $activeSlave.collar = "pretty jewelry", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "please you">>
+	<<case "TransformationFetishist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-15,15), $activeSlave.health = random(-15,0)>>
+		<<set $activeSlave.faceImplant = random(40,70)>>
+		<<set $activeSlave.face = Math.trunc($activeSlave.face+$activeSlave.faceImplant/2,-100,100)>>
+		<<set $activeSlave.boobsImplant = 200*random(4,8)>>
+		<<set $activeSlave.boobs += $activeSlave.boobsImplant>>
+		<<set $activeSlave.buttImplant = random(2,4)>>
+		<<set $activeSlave.butt += $activeSlave.buttImplant>>
+		<<set $activeSlave.lipsImplant = random(1,2)>>
+		<<set $activeSlave.lips = Math.trunc($activeSlave.lipsImplant+2,-3,3)>>
+		<<set $activeSlave.weight = random(-25,-15)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = random(15,35)>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.clothes = "a string bikini", $activeSlave.collar = "shock punishment", $activeSlave.shoes = "extreme heels">>
+		<<set $activeSlave.assignment = "whore">>
+	<<case "BodyPurist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(55,65), $activeSlave.trust = random(25,45), $activeSlave.health = 100>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.weight = random(-5,5)>>
+		<<set $activeSlave.muscles = random(10,25)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = random(15,35)>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.clothes = "a nice maid outfit", $activeSlave.collar = "pretty jewelry", $activeSlave.shoes = "heels">>
+		<<set $activeSlave.assignment = "be a servant">>
+	<<case "MaturityPreferentialist">>
+		<<set $activeSlaveOneTimeMinAge = 36>>
+		<<set $activeSlaveOneTimeMaxAge = 39>>
+		<<set $one_time_age_overrides_pedo_mode = 1>>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(55,65), $activeSlave.trust = random(-15,15), $activeSlave.health = random(25,45)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.boobs += 100*random(1,4)>>
+		<<set $activeSlave.butt += random(1,2)>>
+		<<set $activeSlave.weight = random(-5,90)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = random(15,35)>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<SoftenBehavioralFlaw $activeSlave>>
+		<<set $activeSlave.clothes = "a slutty maid outfit", $activeSlave.collar = "pretty jewelry", $activeSlave.shoes = "heels">>
+		<<set $activeSlave.assignment = "be a servant">>
+	<<case "YouthPreferentialist">>
+		<<set $activeSlaveOneTimeMaxAge = 19>>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(55,65), $activeSlave.health = random(25,45)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.boobs = 100*random(1,4)>>
+		<<set $activeSlave.butt = random(1,3)>>
+		<<set $activeSlave.weight = random(-25,25)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = 0, $activeSlave.anus = 0>>
+		<<if $activeSlave.vagina > -1>><<set $activeSlave.vaginalSkill = 0, $activeSlave.vagina = 0>><</if>>
+		<<set $activeSlave.entertainSkill = random(15,35)>>
+		<<set $activeSlave.clothes = "a schoolgirl outfit", $activeSlave.collar = "pretty jewelry", $activeSlave.shoes = "heels">>
+		<<set $activeSlave.assignment = "be a servant">>
+	<<case "Pastoralist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-25,-45), $activeSlave.health = random(25,45)>>
+		<<set $activeSlave.boobs += 100*random(10,20)>>
+		<<if $activeSlave.balls > 0>><<set $activeSlave.balls++>><</if>>
+		<<set $activeSlave.lactation = 2>>
+		<<set $activeSlave.clothes = "Western clothing", $activeSlave.collar = "leather with cowbell", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "get milked">>
+	<<case "PhysicalIdealist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(25,45), $activeSlave.health = 100>>
+		<<set $activeSlave.muscles = random(50,100)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = random(15,35)>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.whoreSkill = random(15,35)>>
+		<<set $activeSlave.clothes = "body oil", $activeSlave.collar = "none", $activeSlave.shoes = "none">>
+		<<set $activeSlave.assignment = "whore">>
+	<<case "ChattelReligionist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(55,65), $activeSlave.trust = random(55,65), $activeSlave.health = random(0,15)>>
+		<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+		<<set $activeSlave.whoreSkill = random(10,20)>>
+		<<set $activeSlave.behavioralFlaw = "none", $activeSlave.behavioralQuirk = "sinful">>
+		<<set $activeSlave.clothes = "a chattel habit", $activeSlave.collar = "heavy gold", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "whore">>
+	<<case "RomanRevivalist">>
+		<<set $activeSlaveOneTimeMaxAge = 19>>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = 100, $activeSlave.trust = random(55,65), $activeSlave.health = 100>>
+		<<set $activeSlave.face = random(0,55)>>
+		<<set $activeSlave.muscles = random(25,50)>>
+		<<set $activeSlave.combatSkill = 1>>
+		<<set $activeSlave.behavioralFlaw = "none", $activeSlave.behavioralQuirk = "fitness">>
+		<<set $activeSlave.behavioralFlaw = "none">>
+		<<set $activeSlave.clothes = "a toga", $activeSlave.collar = "pretty jewelry", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "guard you", $Bodyguard = $activeSlave>>
+	<<case "AztecRevivalist">>
+		<<set $fixedRace = "latina">><<include "Generate New Slave">>
+		<<set $activeSlave.nationality = "Mexican">>
+		<<NationalityToName $activeSlave>>
+		<<set $activeSlave.accent = 0>>
+		<<set $activeSlave.devotion = 75, $activeSlave.trust = 75, $activeSlave.health = random(-20,20)>>
+		<<set $activeSlave.muscles = random(50,75)>>
+		<<set $activeSlave.combatSkill = 1>>
+		<<set $activeSlave.behavioralFlaw = "malicious", $activeSlave.behavioralQuirk = "none">>
+		<<set $activeSlave.clothes = "a huipil", $activeSlave.collar = "pretty jewelry", $activeSlave.shoes = "none">>
+		<<set $activeSlave.assignment = "be your Head Girl", $HeadGirl = $activeSlave>>
+	<<case "EgyptianRevivalist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(25,45), $activeSlave.health = random(25,45)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = random(15,35)>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.entertainSkill = random(15,35)>>
+		<<SoftenSexualFlaw $activeSlave>>
+		<<set $activeSlave.clothes = "slutty jewelry", $activeSlave.collar = "ancient Egyptian", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "please you">>
+	<<case "EdoRevivalist">>
+		<<set $fixedRace = "asian">><<include "Generate New Slave">>
+		<<set $activeSlave.nationality = "Japanese">>
+		<<NationalityToName $activeSlave>>
+		<<set $activeSlave.accent = 0>>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(25,45), $activeSlave.health = random(25,45)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.intelligence = random(1,3), $activeSlave.intelligenceImplant = 1>>
+		<<set $activeSlave.entertainSkill = 100>>
+		<<set $activeSlave.clothes = "a kimono", $activeSlave.collar = "satin choker", $activeSlave.shoes = "heels">>
+		<<set $activeSlave.assignment = "serve the public">>
+	<<case "ArabianRevivalist">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-15,15), $activeSlave.health = random(25,45)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.intelligence = random(0,2), $activeSlave.intelligenceImplant = 0>>
+		<<set $activeSlave.clothes = "harem gauze", $activeSlave.collar = "uncomfortable leather", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "take classes">>
+	<<case "ChineseRevivalist">>
+		<<set $activeSlaveOneTimeMinAge = 36>>
+		<<set $activeSlaveOneTimeMaxAge = 38>>
+		<<set $one_time_age_overrides_pedo_mode = 1>>
+		<<set $fixedRace = "asian">><<include "Generate New Slave">>
+		<<set $activeSlave.nationality = "Chinese">>
+		<<NationalityToName $activeSlave>>
+		<<NationalityToAccent $activeSlave>>
+		<<set $activeSlave.devotion = random(55,65), $activeSlave.trust = random(25,45), $activeSlave.health = random(25,45)>>
+		<<set $activeSlave.face = random(0,55)>>
+		<<set $activeSlave.accent = 0>>
+		<<set $activeSlave.intelligence = 3, $activeSlave.intelligenceImplant = 1>>
+		<<set $activeSlave.oralSkill = 100, $activeSlave.analSkill = 100>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = 100>>
+		<</if>>
+		<<set $activeSlave.entertainSkill = 100, $activeSlave.whoreSkill = 100>>
+		<<SoftenBehavioralFlaw $activeSlave>>
+		<<SoftenSexualFlaw $activeSlave>>
+		<<set $activeSlave.clothes = "a slutty qipao", $activeSlave.collar = "pretty jewelry", $activeSlave.shoes = "heels">>
+		<<set $activeSlave.assignment = "be your Head Girl", $HeadGirl = $activeSlave>>
+	<<case "Eugenics">>
+		<<include "Generate New Slave">>
+		<<set $activeSlave.devotion = -100, $activeSlave.trust = -100, $activeSlave.health = random(80,90)>>
+		<<set $activeSlave.intelligence = 3>>
+		<<set $activeSlave.intelligenceImplant = 1>>
+		<<set $activeSlave.face = 100>>
+		<<set $activeSlave.faceShape = "sensual">>
+		<<set $activeSlave.oralSkill = random(35,75), $activeSlave.analSkill = random(35,75)>>
+		<<if $activeSlave.vagina > -1>>
+			<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina++>><</if>>
+			<<set $activeSlave.vaginalSkill = random(35,75)>>
+		<</if>>
+		<<set $activeSlave.entertainSkill = random(15,35)>>
+		<<set $activeSlave.whoreSkill = 0>>
+		<<SoftenSexualFlaw $activeSlave>>
+		<<set $activeSlave.clothes = "a ball gown", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "rest">>
+	<<case "Repopulationist">>
+		<<set $activeSlaveOneTimeMinAge = $fertilityAge+3>>
+		<<set $activeSlaveOneTimeMaxAge = 25>>
+		<<set $one_time_age_overrides_pedo_mode = 1>>
+		<<include "Generate XX Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-25,-45), $activeSlave.health = random(55,65)>>
+		<<set $activeSlave.face = random(15,100)>>
+		<<set $activeSlave.preg = random(10,40), $activeSlave.pregType = random(3,8), $activeSlave.lactation = 1>>
+		<<run SetBellySize($activeSlave)>>
+		<<set $activeSlave.birthsTotal = 5>>
+		<<set $activeSlave.bellySag = 20, $activeSlave.bellySagPreg = 20>>
+		<<if $activeSlave.vagina > -1>>
+			<<set $activeSlave.vagina = 4>>
+			<<set $activeSlave.vaginalSkill = random(15,35)>>
+		<</if>>
+		<<set $activeSlave.clothes = "a nice maid outfit", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.assignment = "please you">>
+	<<case "HedonisticDecadence">>
+		<<set $activeSlaveOneTimeMaxAge = 25>>
+		<<include "Generate XX Slave">>
+		<<set $activeSlave.devotion = random(25,45), $activeSlave.trust = random(-25,-45), $activeSlave.health = random(-20,20)>>
+		<<set $activeSlave.face = random(15,40)>>
+		<<set $activeSlave.boobs += 100*random(3,6)>>
+		<<set $activeSlave.butt += random(2,5)>>
+		<<set $activeSlave.weight = random(100,200)>>
+		<<set $activeSlave.oralSkill = random(15,35), $activeSlave.analSkill = random(15,35), $activeSlave.anus = 2>>
+		<<if $activeSlave.vagina > -1>><<set $activeSlave.vaginalSkill = random(15,35), $activeSlave.vagina = 3>><</if>>
+		<<set $activeSlave.entertainSkill = 0>>
+		<<set $activeSlave.energy = random(60,80)>>
+		<<set $activeSlave.behavioralFlaw = "gluttonous">>
+		<<set $activeSlave.clothes = "attractive lingerie", $activeSlave.shoes = "flats">>
+		<<set $activeSlave.diet = "fattening">>
+		<<set $activeSlave.livingRules = "luxurious">>
+		<<set $activeSlave.assignment = "rest">>
+	<<default>>
+		ERROR: bad arcology type
+	<</switch>>
+	<<set $activeSlave.origin = "You acquired her along with the arcology.", $activeSlave.career = "a slave">>
+	<<slaveCost $activeSlave>>
+	<<if $targetArcology.type == "Eugenics">>
+		<<set _valueGiven += $slaveCost*4>>
+	<<else>>
+	<<set _valueGiven += $slaveCost>>
+	<</if>>
+	<<AddSlave $activeSlave>>
+	<</for>>
+<<else>>
+	<<for $j = 0; $j < $heroSlaves.length; $j++>>
+	<<if _valueOwed - _valueGiven <= 5000>>
+		<<break>>
+	<</if>>
+	<<set $activeSlave = getHeroSlave($heroSlaves[$j], $baseHeroSlave)>>
+	<<set $dump = $heroSlaves.pluck($j,$j)>>
+	<<slaveCost $activeSlave>>
+	<<if _valueGiven + $slaveCost < _valueOwed*2>>
+		<<NationalityToAccent $activeSlave>>
+		<<set $activeSlave.oldDevotion = $activeSlave.devotion>>
+		<<set $activeSlave.oldTrust = $activeSlave.trust>>
+		<<set _valueGiven += $slaveCost>>
+		<<AddSlave $activeSlave>>
+		<<if $activeSlave.fetish == "mindbroken">>
+			$activeSlave.slaveName is, sadly, not mentally competent, and is wandering through the penthouse at the moment.
+		<<elseif $activeSlave.amp == 1>>
+			$activeSlave.slaveName is a quadruple amputee and is quite helpless, so you can attend to her at your leisure.
+		<<elseif $activeSlave.devotion < -50>>
+			$activeSlave.slaveName is quite rebellious and was attempting to escape, so I have locked her in the slave quarters.
+		<<elseif $activeSlave.devotion < -20>>
+			$activeSlave.slaveName resists my orders and was considering escape, so I have locked her in the slave quarters.
+		<<elseif $activeSlave.devotion <= 20>>
+			$activeSlave.slaveName is reasonably obedient, and is waiting for you in the dormitory, I believe in the hope of making a good impression.
+		<<elseif $activeSlave.energy > 95>>
+			$activeSlave.slaveName is a remarkable sexual addict, and I believe she will be very happy to meet you.
+		<<elseif $activeSlave.fetish == "pregnancy">>
+			<<if $activeSlave.preg > 10>>
+				$activeSlave.slaveName is currently in the dormitory masturbating over her growing pregnancy, and <<if $PC.belly >= 5000>>will certainly be eager to meet you<<else>>I believe she will be happy to show it to you<</if>>.
+			<<else>>
+				$activeSlave.slaveName is currently in the dormitory examining herself to try to discern her fertility, and I believe she will be <<if $PC.belly >= 5000>>eager to get acquainted with you<<else>>happy to meet you<</if>>.
+			<</if>>
+		<<elseif $activeSlave.belly >= 5000>> /*had to be placed after pregnancy or it would intercept*/
+			$activeSlave.slaveName is currently in the dormitory massaging her greatly distended belly.
+		<<elseif $activeSlave.fetish == "buttslut">>
+			$activeSlave.slaveName is currently in the dormitory masturbating anally, and I believe she will be happy to meet you.
+		<<elseif $activeSlave.fetish == "cumslut">>
+			$activeSlave.slaveName is currently in the dormitory exhibiting oral fixation, and I believe she will be happy to meet you.
+		<<elseif $activeSlave.fetish == "boobs">>
+			$activeSlave.slaveName is currently in the dormitory playing with her nipples, and I believe she will be happy to meet you.
+		<<elseif $activeSlave.fetish == "humiliation">>
+			$activeSlave.slaveName is currently in the entryway flashing passersby, and I believe she will be happy to meet you.
+		<<elseif $activeSlave.fetish == "submissive">>
+			$activeSlave.slaveName is currently in the dormitory, experimenting with self-bondage using the sheets; I believe she will be happy to meet you.
+		<<elseif $activeSlave.fetish == "dom">>
+			$activeSlave.slaveName is currently in the exercise area keeping fit; she likes to take an active role sexually and is using this down time to work out.
+		<<elseif $activeSlave.fetish == "sadist">>
+			$activeSlave.slaveName is currently outside your office; she enjoys being superior to other slaves and I believe she means to ingratiate herself to you.
+		<<elseif $activeSlave.fetish == "masochist">>
+			$activeSlave.slaveName is a sexual masochist; she is currently in the bathroom, experimenting with auto-flagellation with a wet towel.
+		<<else>>
+			$activeSlave.slaveName is currently outside your office, and I believe she is attempting to maintain sexual arousal to make a good first impression on you.
+		<</if>>
+	<</if>>
+	<</for>>
+<</if>>
+<<if _valueOwed-_valueGiven > 0>>
+	There are some valuables present, worth <<print cashFormat(_valueOwed-_valueGiven)>>.
+	<<set $cash += _valueOwed-_valueGiven>>
+<</if>>
+//
+
+/* RELATIONSHIP MUTUALITY CHECK, OLDMENTAL */
+
+<<set $averageTrust = 0>>
+<<set $averageDevotion = 0>>
+<<set _slavesContributing = 0>>
+<<for $i = 0; $i < $slaves.length; $i++>>
+	<<if $slaves[$i].relation != 0>>
+		<<set $seed = $slaveIndices[$slaves[$i].relationTarget]>>
+		<<if (def $seed && $slaves[$seed].relationTarget != $slaves[$i].ID) || (ndef $seed)>>
+			<<set $slaves[$i].relation = 0>>
+			<<set $slaves[$i].relationTarget = 0>>
+			<<goto "Acquisition">>
+		<</if>>
+	<</if>>
+	<<set $slaves[$i].oldDevotion = $slaves[$i].devotion>>
+	<<set $slaves[$i].oldTrust = $slaves[$i].trust>>
+	/* AVERAGE VALUES UPDATE */
+	<<if $slaves[$i].assignmentVisible == 1>>
+		<<set $averageTrust += $slaves[$i].trust, $averageDevotion += $slaves[$i].devotion, _slavesContributing += 1>>
+	<<else>>
+		<<if $slaves[$i].assignment != "be confined in the cellblock">>
+		<<if $slaves[$i].assignment != "be confined in the arcade">>
+		<<if ($slaves[$i].assignment != "work in the dairy") || ($dairyRestraintsSetting < 2)>>
+			<<set $averageTrust += $slaves[$i].trust*0.5, $averageDevotion += $slaves[$i].devotion*0.5, _slavesContributing += 0.5>>
+		<</if>>
+		<</if>>
+		<</if>>
+	<</if>>
+<</for>>
+<<if $familyTesting == 1>>
+	<<set $slaves.forEach(function(s) { s.sisters = 0; s.daughters = 0; })>>
+	<<set $PC.daughters = 0, $PC.sisters = 0>>
+	<<for _fp = 0; _fp < $slaves.length; _fp++>>
+		<<if ($slaves[_fp].mother == -1 || $slaves[_fp].father == -1)>>
+			<<set $PC.daughters++>>
+		<</if>>
+		<<if areSisters($slaves[_fp], $PC) > 0>>
+			<<set $PC.sisters++>>
+		<</if>>
+		<<for _fpt = 0; _fpt < $slaves.length; _fpt++>>
+			<<if ($slaves[_fpt].mother == $slaves[_fp].ID) || ($slaves[_fpt].father == $slaves[_fp].ID)>>
+				<<set $slaves[_fp].daughters++>>
+			<</if>>
+			<<if areSisters($slaves[_fpt], $slaves[_fp]) > 0>>
+				<<set $slaves[_fp].sisters++>>
+			<</if>>
+		<</for>>
+	<</for>>
+<</if>>
+<<set $averageTrust = $averageTrust/_slavesContributing>>
+<<set $averageDevotion = $averageDevotion/_slavesContributing>>
+<<set $enduringTrust = $averageTrust>>
+<<set $enduringDevotion = $averageDevotion>>
+
+<br><br>
+
+<<link "Continue">>
+	<<set $ui = "main">>
+	<<if $terrain == "urban">>
+		<<set $minimumSlaveCost = 2000>>
+		<<set $slaveCostFactor = 0.85>>
+	<<elseif $terrain == "marine">>
+		<<set $minimumSlaveCost = 2500>>
+		<<set $slaveCostFactor = 1>>
+	<<else>>
+		<<set $minimumSlaveCost = 3000>>
+		<<set $slaveCostFactor = 1.15>>
+	<</if>>
+	<<script>>Save.autosave.save("Week Start Autosave")<</script>>
+	<<goto "Main">>
+<</link>>
