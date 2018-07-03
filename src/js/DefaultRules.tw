@@ -58,8 +58,8 @@ window.DefaultRules = (function() {
 
 	function MergeRules(slave) {
 		// merge all rules applying on a slave into one big rule
-		const rules = V.defaultRules.filter(x => ruleAppliesP(x.condition, slave))
-		slave.currentRules = rules.map(x => x.ID)
+		const rules = V.defaultRules.filter(x => ruleAppliesP(x.condition, slave));
+		slave.currentRules = rules.map(x => x.ID);
 		return mergeRules(rules.map(x => ProcessAssignments(slave, Object.assign({}, x.set))));
 	}
 
@@ -1098,62 +1098,158 @@ window.DefaultRules = (function() {
 
 	function ProcessOtherDrugs(slave, rule) {
 		// Other Drugs 
-		if (rule.drug !== "no default setting" && slave.drugs !== rule.drug) {
+		if (slave.indentureRestrictions < 2 && rule.drug !== "no default setting" && slave.drugs !== rule.drug) {
+			let flag = true;
 			switch (rule.drug) {
 			case "anti-aging cream":
-				if (slave.visualAge > 18) {
-					slave.drugs = rule.drug ;
-					r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
-				} else {
-					slave.drugs = "no drugs" ;
-					r += `<br>${slave.slaveName} cannot benefit from her assigned drug and has been defaulted to ${slave.drugs}.`;
-				}
+				if (slave.visualAge < 18)
+					flag = false;
 				break;
 
 			case "growth stimulants":
-				if (slave.height < 274 && slave.height < Math.clamp((Height.mean(slave) * 1.25),0,274)) {
-					slave.drugs = rule.drug;
-					r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
-				} else {
-					slave.drugs = "no drugs";
-					r += `<br>${slave.slaveName} cannot benefit from her assigned drug and has been defaulted to ${slave.drugs}.`;
-				}
+				if (!(slave.height < 274 && slave.height < Math.clamp((Height.mean(slave) * 1.25),0,274)))
+					flag = false;
 				break;
 
 			case "sag-B-gone":
-				if (slave.boobs > 250 && slave.boobShape != "saggy") {
-					slave.drugs = rule.drug;
-					r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
-				} else {
-					slave.drugs = "no drugs";
-					r += `<br>${slave.slaveName} cannot benefit from her assigned drug and has been defaulted to ${slave.drugs}.`;
-				}
+				if (!(slave.boobs > 250 && slave.boobShape != "saggy"))
+					flag = false;
 				break;
 
 			case "female hormone injections":
-				if (slave.breedingMark != 1 && (slave.ovaries == 1 || slave.mpreg == 1) && slave.pubertyXX === 0) {
-					slave.drugs = rule.drug ;
-					r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
-				} else {
-					slave.drugs = "no drugs";
-					r += `<br>${slave.slaveName} cannot benefit from her assigned drug and has been defaulted to ${slave.drugs}.`;
-				}
+				if (!(slave.breedingMark != 1 && (slave.ovaries == 1 || slave.mpreg == 1) && slave.pubertyXX === 0))
+					flag = false;
 				break;
 
 			case "male hormone injections":
-				if (slave.breedingMark != 1 && slave.balls > 0 && slave.pubertyXY === 0) {
-					slave.drugs = rule.drug ;
-					r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
-				} else {
-					slave.drugs = "no drugs";
-					r += `<br>${slave.slaveName} cannot benefit from her assigned drug and has been defaulted to ${slave.drugs}.`;
-				}
+				if (!(slave.breedingMark != 1 && slave.balls > 0 && slave.pubertyXY === 0))
+					flag = false;
 				break;
-
+				
+			case "psychosuppressants":
+				if (!(slave.intelligence > -2 && slave.indentureRestrictions < 1))
+					flag = false;
+				break;
+			
+			case "breast injections":
+				if (!(slave.boobs < 48000))
+					flag = false;
+				break;
+			
+			case "hyper breast injections":
+				if (!(slave.boobs < 25000))
+					flag = false;
+				break;
+			
+			case "breast redistributors":
+				if (!(slave.boobs - slave.boobsImplant > 100))
+					flag = false;
+				break;
+			
+			case "butt injections":
+				if (!(slave.butt < 9))
+					flag = false;
+				break;
+			
+			case "hyper butt injections":
+				if (!(slave.butt < 20))
+					flag = false;
+				break;
+			
+			case "hyper butt injections":
+				if (!(slave.butt < 20))
+					flag = false;
+				break;
+			
+			case "nipple atrophiers":
+				if (!(["huge", "puffy", "cute"].includes(slave.nipples)))
+					flag = false;
+				break;
+				
+			case "butt redistributors":
+				if (!(slave.buttImplant > 0))
+					flag = false;
+				break;
+			
+			case "lip injections":
+				if (!(slave.lips <= 95 || (slave.lips <= 85 && V.seeExtreme !== 1)))
+					flag = false;
+				break;
+			
+			case "lip atrophiers":
+				if (!(slave.lips - slave.lipsImplant > 0))
+					flag = false;
+				break;
+			
+			case "super fertility drugs":
+				if (!(slave.indentureRestrictions < 1 && slave.breedingMark !== 1))
+					flag = false;
+				break;
+			
+			case "penis enhancement":
+				if (!((slave.dick > 0 && slave.dick < 10) || slave.clit < 5))
+					flag = false;
+				break;
+			
+			case "hyper penis enhancement":
+				if (!((slave.dick > 0 && slave.dick < 31) || slave.clit < 5))
+					flag = false;
+				break;
+				
+			case "penis atrophiers":
+				if (!(slave.dick > 1))
+					flag = false;
+				break;
+			
+			case "testicle enhancement":
+				if (!(slave.balls > 0))
+					flag = false;
+				break;
+			
+			case "hyper testicle enhancement":
+				if (!(slave.balls > 0))
+					flag = false;
+				break;
+			
+			case "testicle atrophiers":
+				if (!(slave.balls > 1))
+					flag = false;
+				break;
+			
+			case "clitoris atrophiers":
+				if (!(slave.clit > 0))
+					flag = false;
+				break;
+			
+			case "labia atrophiers":
+				if (!(slave.labia > 0))
+					flag = false;
+				break;
+			
+			case "appetite suppressors":
+				if (!(slave.weight > -95))
+					flag = false;
+				break;
+				
+			case "female hormone injections":
+				if (!(slave.breedingMark !== 1 && (slave.ovaries === 1 || slave.mpreg === 1) && slave.pubertyXX === 0))
+					flag = false;
+				break;
+			
+			case "male hormone injections":
+				if (!(slave.balls > 0 && slave.pubertyXY === 0))
+					flag = false;
+				break;
+				
 			default:
+				break;
+			}
+			if (flag) {
 				slave.drugs = rule.drug;
 				r += `<br>${slave.slaveName} has been put on ${slave.drugs}.`;
-				break;
+			} else {
+				slave.drugs = "no drugs";
+				r += `<br>${slave.slaveName} cannot benefit from her assigned drug and has been defaulted to ${slave.drugs}`;
 			}
 		}
 	}
