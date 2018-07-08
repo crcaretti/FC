@@ -4751,8 +4751,10 @@ if(eventSlave.fetish != "mindbroken") {
 							if(State.variables.corpIncorporated != 0) {
 								State.variables.RESSevent.push("shift sleep");
 							}
-							if(eventSlave.releaseRules == "permissive" || eventSlave.releaseRules == "masturbation") {
-								State.variables.RESSevent.push("shift masturbation");
+							if(canWalk(eventSlave)) {
+								if(eventSlave.releaseRules == "permissive" || eventSlave.releaseRules == "masturbation") {
+									State.variables.RESSevent.push("shift masturbation");
+								}
 							}
 							if(eventSlave.entertainSkill >= 60) {
 								State.variables.RESSevent.push("shift doorframe");
@@ -6420,6 +6422,13 @@ window.isPure = function(slave) {
 	return ((slave.boobsImplant == 0) && (slave.buttImplant == 0) && (slave.waist >= -95) && (slave.lipsImplant == 0) && (slave.faceImplant < 30) && (slave.bellyImplant == -1) && (Math.abs(slave.shouldersImplant) < 2) && (Math.abs(slave.hipsImplant) < 2));
 };
 
+window.modScore = function modScore(slave) {
+	const V = State.variables;
+	V.piercingScore = PiercingScore(slave);
+	V.tatScore = TatScore(slave);
+	V.modScore = V.tatScore + V.piercingScore;
+}
+
 window.PiercingScore = function(slave) {
 	var piercingScore = 0;
 	
@@ -6616,6 +6625,12 @@ window.getPronouns = function getPronouns(slave) {
 		noun: slave.noun };
 };
 
+window.SlavePronouns = function SlavePronouns(slave) {
+	const V = State.variables;
+	var pronouns = getPronouns(slave);
+	V.pronoun = pronouns.pronoun, V.pronounCap = capFirstChar(pronouns.pronoun), V.possessive = pronouns.possessive, V.possessiveCap = capFirstChar(pronouns.possessive), V.object = pronouns.object;
+}
+
 window.WrittenMaster = function WrittenMaster(slave) {
 	const V = State.variables;
 	if (slave !== undefined)
@@ -6743,6 +6758,23 @@ window.Enunciate = function Enunciate(slave) {
 		V.xEnunciate = "x";
 	}
 };
+
+window.fetishChangeChance = function fetishChangeChance(slave) {
+	const V = State.variables;
+	var chance = 0, sex = 0;
+	
+	if (slave.clitSetting !== slave.fetish) {
+		if (slave.balls) {
+			sex = V.potencyAge - slave.actualAge;
+		}
+		else if (slave.ovaries || slave.mpreg) {
+			sex = V.fertilityAge - slave.actualAge;
+		}
+		chance = Math.trunc(Math.clamp((slave.devotion/4)-(slave.fetishStrength/4)-(Math.max(sex,0)*10), 0, 100));
+	}
+	
+	return chance;
+}
 
 /*:: Summary Widgets JS [script]*/
 
@@ -13675,7 +13707,7 @@ window.rulesAssistantOptions = (function() {
 				["Female", 1],
 				["None", 0],
 				["Male", -1],
-				["Intensive Male", "intensive male", -2]
+				["Intensive Male", -2]
 			];
 			super("Hormones for shemales", pairs);
 			this.setValue(current_rule.set.XY);
@@ -15219,7 +15251,6 @@ window.rulesAutosurgery = (function() {
 		r = "";
 		const surgeries = [];
 		const thisSurgery = ProcessHGTastes(slave);
-		console.log(thisSurgery);
 		if (slave.health > 20)
 			CommitSurgery(slave, thisSurgery, surgeries);
 		if (surgeries.length > 0)
