@@ -19,11 +19,16 @@ window.SlaveSummary = function SlaveSummary(slave) {
 	} else return SlaveSummaryUncached(slave);
 };
 
-window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
+window.SlaveSummaryUncached = (function(){
 	"use strict";
-	const V = State.variables;
-	let r = "";
-	if (V.abbreviateDevotion === 1) {
+	let V, r
+	
+	function SlaveSummaryUncached(slave) {
+		V = State.variables;
+		r = "";
+	}
+	
+	function short_devotion(slave) {
 		if (slave.fetish === "mindbroken") {
 			r += `<span class="red">MB</span>`;
 		} else if (slave.devotion < -95) {
@@ -70,7 +75,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 				r += `<span class="seagreen">VTrust ${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
 			}
 		}
-	} else if (V.abbreviateDevotion === 2) {
+	}
+	
+	function long_devotion(slave) {
 		if (slave.fetish === "mindbroken") {
 			r += `<span class="red">Mindbroken.</span>`;
 		} else if (slave.devotion < -95) {
@@ -118,106 +125,102 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			}
 		}
 	}
-
-	if (slave.fuckdoll === 0) {
-		if (V.abbreviateRules === 1) {
-			switch (slave.livingRules) {
-				case "luxurious":
-					r += `<strong>LS:Lux</strong>`;
-					break;
-				case "normal":
-					r += `<strong>LS:Nor</strong>`;
-					break;
-				default:
-					r += `<strong>LS:Spa</strong>`;
-					break;
-			}
-			if (canTalk(slave)) {
-				switch (slave.speechRules) {
-					case "permissive":
-						r += `<strong>SpR:P</strong>`;
-						break;
-					case "accent elimination":
-						r += `<strong>SpR:NoAcc</strong>`;
-						break;
-					case "language lessons":
-						r += `<strong>SpR:LL</strong>`;
-						break;
-					default:
-						r += `<strong>SpR:R</strong>`;
-						break;
-				}
-			}
-			switch (slave.relationshipRules) {
+	
+	function short_rules(slave) {
+		switch (slave.livingRules) {
+			case "luxurious":
+				r += `<strong>LS:Lux</strong>`;
+				break;
+			case "normal":
+				r += `<strong>LS:Nor</strong>`;
+				break;
+			default:
+				r += `<strong>LS:Spa</strong>`;
+				break;
+		}
+		if (canTalk(slave)) {
+			switch (slave.speechRules) {
 				case "permissive":
-					r += `<strong>ReR:P</strong>`;
+					r += `<strong>SpR:P</strong>`;
 					break;
-				case "just friends":
-					r += `<strong>ReR:Fr</strong>`;
+				case "accent elimination":
+					r += `<strong>SpR:NoAcc</strong>`;
 					break;
-				default:
-					r += `<strong>ReR:R</strong>`;
-					break;
-			}
-			switch (slave.standardPunishment) {
-				case "confinement":
-					r += `<strong>Pun:Conf</strong>`;
-					break;
-				case "whipping":
-					r += `<strong>Pun:Whip</strong>`;
-					break;
-				case "chastity":
-					r += `<strong>Pun:Chas</strong>`;
+				case "language lessons":
+					r += `<strong>SpR:LL</strong>`;
 					break;
 				default:
-					r += `<strong>Pun:Situ</strong>`;
+					r += `<strong>SpR:R</strong>`;
 					break;
 			}
-			switch (slave.standardReward) {
-				case "relaxation":
-					r += `<strong>Rew:Relx</strong>`;
-					break;
-				case "drugs":
-					r += `<strong>Rew:Drug</strong>`;
-					break;
-				case "orgasm":
-					r += `<strong>Rew:Orga</strong>`;
-					break;
-				default:
-					r += `<strong>Rew:Situ</strong>`;
-					break;
-			}
-			switch (slave.releaseRules) {
-				case "permissive":
-					r += `<strong>MaR:P</strong>`;
-					break;
-				case "sapphic":
-					r += `<strong>MaR:S</strong>`;
-					break;
-				case "masturbation":
-					r += `<strong>MaR:M</strong>`;
-					break;
-				default:
-					r += `<strong>MaR:R</strong>`;
-					break;
-			}
-		} else if (V.abbreviateRules === 2) {
-			r += `Living standard: ${slave.livingRules}.`;
-			if (canTalk(slave)) {
-				r += `Speech rules: ${slave.speechRules}.`;
-			}
-			r += `Relationship rules: ${slave.relationshipRules}.`;
-			r += `Typical punishment: ${slave.standardPunishment}.`;
-			r += `Typical reward: ${slave.standardReward}.`;
-			r += `Release rules: ${slave.releaseRules}.`;
+		}
+		switch (slave.relationshipRules) {
+			case "permissive":
+				r += `<strong>ReR:P</strong>`;
+				break;
+			case "just friends":
+				r += `<strong>ReR:Fr</strong>`;
+				break;
+			default:
+				r += `<strong>ReR:R</strong>`;
+				break;
+		}
+		switch (slave.standardPunishment) {
+			case "confinement":
+				r += `<strong>Pun:Conf</strong>`;
+				break;
+			case "whipping":
+				r += `<strong>Pun:Whip</strong>`;
+				break;
+			case "chastity":
+				r += `<strong>Pun:Chas</strong>`;
+				break;
+			default:
+				r += `<strong>Pun:Situ</strong>`;
+				break;
+		}
+		switch (slave.standardReward) {
+			case "relaxation":
+				r += `<strong>Rew:Relx</strong>`;
+				break;
+			case "drugs":
+				r += `<strong>Rew:Drug</strong>`;
+				break;
+			case "orgasm":
+				r += `<strong>Rew:Orga</strong>`;
+				break;
+			default:
+				r += `<strong>Rew:Situ</strong>`;
+				break;
+		}
+		switch (slave.releaseRules) {
+			case "permissive":
+				r += `<strong>MaR:P</strong>`;
+				break;
+			case "sapphic":
+				r += `<strong>MaR:S</strong>`;
+				break;
+			case "masturbation":
+				r += `<strong>MaR:M</strong>`;
+				break;
+			default:
+				r += `<strong>MaR:R</strong>`;
+				break;
 		}
 	}
-
-	if (slave.tired !== 0) {
-		r += `Tired.`;
+	
+	function long_rules(slave) {
+		r += `Living standard: ${slave.livingRules}.`;
+		if (canTalk(slave)) {
+			r += `Speech rules: ${slave.speechRules}.`;
+		}
+		r += `Relationship rules: ${slave.relationshipRules}.`;
+		r += `Typical punishment: ${slave.standardPunishment}.`;
+		r += `Typical reward: ${slave.standardReward}.`;
+		r += `Release rules: ${slave.releaseRules}.`;
 	}
-
-	if (V.abbreviateDiet === 1) {
+	
+	function short_weight(slave) {
 		if (slave.weight < -95) {
 			r += `<strong><span class="red">W---${V.summaryStats? `[${slave.weight}]` : ''}</span></strong>`;
 		} else if (slave.weight < -30) {
@@ -263,7 +266,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 				r += `<strong><span class="red">W++++++${V.summaryStats? `[${slave.weight}]` : ''}</span></strong>`;
 			}
 		}
-	} else if (V.abbreviateDiet === 2) {
+	}
+	
+	function long_weight(slave) {
 		if (slave.weight < -95) {
 			r += `<span class="red">Emaciated${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
 		} else if (slave.weight < -30) {
@@ -309,9 +314,10 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 				r += `<span class="red">Dangerously Obese${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
 			}
 		}
-	}
 
-	if (V.abbreviateDiet === 1) {
+	}
+	
+	function short_diet(slave) {
 		r += `<span class="teal">`;
 		switch (slave.diet) {
 			case "restricted":
@@ -359,7 +365,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			r += `<strong>Milk++</strong>`;
 		}
 		r += `</span>`;
-	} else if (V.abbreviateDiet === 2) {
+	}
+	
+	function long_diet(slave) {
 		r += `<span class="teal">`;
 		switch (slave.diet) {
 			case "restricted":
@@ -406,8 +414,8 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			r += `Diet Base: <span class="cyan">Milk Based.</span>`;
 		}
 	}
-
-	if (V.abbreviateHealth === 1) {
+	
+	function short_health(slave) {
 		if (slave.health < -20) {
 			r += `<strong><span class="red">H${V.summaryStats? `[${slave.health}]` : ''}</span></strong>`;
 		} else if (slave.health <= 20) {
@@ -415,7 +423,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		} else if (slave.health > 20) {
 			r += `<strong><span class="green">H${V.summaryStats? `[${slave.health}]` : ''}</span></strong>`;
 		}
-	} else if (V.abbreviateHealth === 2) {
+	}
+	
+	function long_health(slave) {
 		if (slave.health < -90) {
 			r += `<span class="red">On the edge of death${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
 		} else if (slave.health < -50) {
@@ -432,8 +442,8 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			r += `<span class="green">Unnaturally healthy${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
 		}
 	}
-
-	if (V.abbreviateDrugs === 1) {
+	
+	function short_drugs(slave) {
 		r += `<span class="tan">`;
 		switch (slave.drugs) {
 			case "breast injections":
@@ -612,7 +622,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			r += `<strong>${slave.bellyFluid}ccs ${slave.inflationType}</strong>`;
 		}
 		r += `</span>`;
-	} else if (V.abbreviateDrugs === 2) {
+	}
+	
+	function long_drugs(slave) {
 		if ((slave.drugs !== "no drugs") && (slave.drugs !== "none")) {
 			r += `<span class="tan">On ${slave.drugs}.</span>`;
 		}
@@ -715,111 +727,96 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		}
 		r += `</span>`;
 	}
-
-	if (V.abbreviateNationality + V.abbreviateGenitalia + V.abbreviatePhysicals + V.abbreviateSkills + V.abbreviateMental !== 0) {
-		r += `<br>`;
-		if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1) {
-			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+	
+	function long_race(slave) {
+		switch (slave.race) {
+			case "white":
+				r += `Caucasian.`;
+				break;
+			case "asian":
+				r += `Asian.`;
+				break;
+			case "indo-aryan":
+				r += `Indo-aryan.`;
+				break;
+			case "latina":
+				r += `Latina.`;
+				break;
+			case "middle eastern":
+				r += `Middle Eastern.`;
+				break;
+			case "black":
+				r += `Black.`;
+				break;
+			case "pacific islander":
+				r += `Pacific Islander.`;
+				break;
+			case "malay":
+				r += `Malay.`;
+				break;
+			case "amerindian":
+				r += `Amerindian.`;
+				break;
+			case "semitic":
+				r += `Semitic.`;
+				break;
+			case "southern european":
+				r += `Southern European.`;
+				break;
+			case "mixed race":
+				r += `Mixed race.`;
+				break;
+			default:
+				r += `${slave.race.charAt(0).toUpperCase() + slave.race.slice(1)}.`;
+				break;
 		}
 	}
-
-	V.desc = SlaveTitle(slave);
-	V.seed = V.desc.substring(0, 1);
-	V.seed = V.seed.toUpperCase();
-	V.desc = V.seed + V.desc.substring(1);
-	r += `<strong><span class="coral">${V.desc}${V.abbreviatePhysicals === 2? '.' : ''}</span></strong>`;
-
-	if (V.seeRace === 1) {
-		r += `<span class="tan">`;
-		if (V.abbreviateRace === 1) {
-			switch (slave.race) {
-				case "white":
-					r += `C`;
-					break;
-				case "asian":
-					r += `A`;
-					break;
-				case "indo-aryan":
-					r += `I`;
-					break;
-				case "latina":
-					r += `L`;
-					break;
-				case "middle eastern":
-					r += `ME`;
-					break;
-				case "black":
-					r += `B`;
-					break;
-				case "pacific islander":
-					r += `PI`;
-					break;
-				case "malay":
-					r += `M`;
-					break;
-				case "amerindian":
-					r += `AI`;
-					break;
-				case "semitic":
-					r += `S`;
-					break;
-				case "southern european":
-					r += `SE`;
-					break;
-				case "mixed race":
-					r += `MR`;
-					break;
-				default:
-					r += `${slave.race.charAt(0).toUpperCase() + slave.race.charAt(1) + slave.race.charAt(2)}`;
-					break;
-			}
-		} else if (V.abbreviateRace === 2) {
-			switch (slave.race) {
-				case "white":
-					r += `Caucasian.`;
-					break;
-				case "asian":
-					r += `Asian.`;
-					break;
-				case "indo-aryan":
-					r += `Indo-aryan.`;
-					break;
-				case "latina":
-					r += `Latina.`;
-					break;
-				case "middle eastern":
-					r += `Middle Eastern.`;
-					break;
-				case "black":
-					r += `Black.`;
-					break;
-				case "pacific islander":
-					r += `Pacific Islander.`;
-					break;
-				case "malay":
-					r += `Malay.`;
-					break;
-				case "amerindian":
-					r += `Amerindian.`;
-					break;
-				case "semitic":
-					r += `Semitic.`;
-					break;
-				case "southern european":
-					r += `Southern European.`;
-					break;
-				case "mixed race":
-					r += `Mixed race.`;
-					break;
-				default:
-					r += `${slave.race.charAt(0).toUpperCase() + slave.race.slice(1)}.`;
-					break;
-			}
+	
+	function short_race(slave) {
+		switch (slave.race) {
+			case "white":
+				r += `C`;
+				break;
+			case "asian":
+				r += `A`;
+				break;
+			case "indo-aryan":
+				r += `I`;
+				break;
+			case "latina":
+				r += `L`;
+				break;
+			case "middle eastern":
+				r += `ME`;
+				break;
+			case "black":
+				r += `B`;
+				break;
+			case "pacific islander":
+				r += `PI`;
+				break;
+			case "malay":
+				r += `M`;
+				break;
+			case "amerindian":
+				r += `AI`;
+				break;
+			case "semitic":
+				r += `S`;
+				break;
+			case "southern european":
+				r += `SE`;
+				break;
+			case "mixed race":
+				r += `MR`;
+				break;
+			default:
+				r += `${slave.race.charAt(0).toUpperCase() + slave.race.charAt(1) + slave.race.charAt(2)}`;
+				break;
 		}
-		r += `</span>`;
 	}
-
-	if (V.abbreviateNationality === 1) {
+	
+	function short_nationality(slave) {
 		r += `<span class="tan">`;
 		switch (slave.nationality) {
 			case "Afghan":
@@ -1488,7 +1485,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 				break;
 		}
 		r += `</span>`;
-	} else if (V.abbreviateNationality === 2) {
+	}
+	
+	function long_nationality(slave) {
 		r += `<span class="tan">`;
 		switch (slave.nationality) {
 			case "Zimbabwean":
@@ -1510,8 +1509,8 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		}
 		r += `</span>`;
 	}
-
-	if (V.abbreviatePhysicals === 1) {
+	
+	function short_skin(slave) {
 		r += `<span class="pink">`;
 		switch (slave.skin) {
 			case "light brown":
@@ -1545,10 +1544,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 				break;
 		}
 		r += `</span>`;
-	} else {
-		r += `<span class="pink">${slave.skin.charAt(0).toUpperCase() + slave.skin.slice(1)} skin.</span>`;
 	}
-	if (V.abbreviateGenitalia === 1) {
+	
+	function short_genitals(slave) {
 		if (slave.dick > 0) {
 			r += `<span class="pink">`;
 			if (slave.balls === 0) {
@@ -1604,7 +1602,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			r += `A+`;
 		}
 		r += `</span>`;
-	} else if (V.abbreviateGenitalia === 2) {
+	}
+	
+	function long_genitals(slave) {
 		if (slave.dick > 0) {
 			r += `<span class="pink">`;
 			if (slave.balls === 0) {
@@ -1661,8 +1661,8 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		}
 		r += `</span>`;
 	}
-
-	if (V.abbreviatePhysicals === 1) {
+	
+	function short_age(slave) {
 		r += `<span class="pink">`;
 		if (V.showAgeDetail === 1) {
 			r += slave.actualAge;
@@ -1685,6 +1685,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		if (slave.visualAge !== slave.physicalAge) {
 			r += `Lks${slave.visualAge}`;
 		}
+	}
+	
+	function short_face(slave) {
 		if (slave.face < -95) {
 			r += `<span class="red">Face---${V.summaryStats? `[${slave.face}]` : ''}</span>`;
 		} else if (slave.face < -40) {
@@ -1700,16 +1703,17 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		} else {
 			r += `<span class="pink">Face+++${V.summaryStats? `[${slave.face}]` : ''}</span>`;
 		}
+	}
+	
+	function short_eyes(slave) {
 		if (slave.eyes === -2) {
 			r += `<span class="red">Blind</span>`;
 		} else if (((slave.eyes === -1) && (slave.eyewear !== "corrective glasses") && (slave.eyewear !== "corrective contacts"))) {
 			r += `<span class="yellow">Sight-</span>`;
 		}
-
-		if (slave.markings !== "none") {
-			r += `Markings`;
-		}
-
+	}
+	
+	function short_lips(slave) {
 		if (slave.lips > 95) {
 			r += `Facepussy`;
 		} else if (slave.lips > 70) {
@@ -1723,6 +1727,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		} else {
 			r += `<span class="red">Lips-</span>${V.summaryStats? `[${slave.lips}]` : ''}`;
 		}
+	}
+	
+	function short_teeth(slave) {
 		if (slave.teeth === "crooked") {
 			r += `<span class="yellow">Cr Teeth</span>`;
 		} else if (slave.teeth === "cosmetic braces") {
@@ -1734,6 +1741,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		} else if (slave.teeth === "pointy") {
 			r += `Fangs`;
 		}
+	}
+	
+	function short_muscles(slave) {
 		if (slave.muscles > 95) {
 			r += `Musc++${V.summaryStats? `[${slave.muscles}]`: ''}`;
 		} else if (slave.muscles > 50) {
@@ -1757,6 +1767,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		} else {
 			r += `<span class="red">Weak++</span>${V.summaryStats? `[${slave.muscles}]`: ''}`;
 		}
+	}
+	
+	function short_limbs(slave) {
 		if (slave.amp !== 0) {
 			if (slave.amp === -1) {
 				r += `P-Limbs`;
@@ -1779,6 +1792,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			r += `Heel`;
 		}
 		r += `</span>`;
+	}
+	
+	function short_voice(slave) {
 		if (slave.voice === 0) {
 			r += `<span class="pink">Mute</span>`;
 		} else {
@@ -1792,6 +1808,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 				r += `<span class="pink">Acc</span>`;
 			}
 		}
+	}
+	
+	function short_tits_ass(slave) {
 		r += `<span class="pink">`;
 		if ((slave.boobs >= 12000) && (slave.butt > 9)) {
 			r += `T&A+++`;
@@ -1821,6 +1840,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			r += `Ass`;
 		}
 		r += `</span>`;
+	}
+	
+	function short_hips(slave) {
 		r += `<span class="red">`;
 		if (slave.hips < -1) {
 			if (slave.butt > 2 && (V.arcologies[0].FSTransformationFetishist < 20 || V.arcologies[0].FSTransformationFetishist === "unset") && (V.arcologies[0].FSHedonisticDecadence < 20 || V.arcologies[0].FSHedonisticDecadence === "unset")) {
@@ -1856,6 +1878,9 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			}
 		}
 		r += `</span>`;
+	}
+	
+	function short_waist(slave) {
 		if (slave.waist > 95) {
 			r += `<span class="red">Wst---${V.summaryStats? `[${slave.waist}]` : ''}</span>`;
 		} else if (slave.waist > 40) {
@@ -1871,18 +1896,26 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		} else {
 			r += `<span class="pink">Wst+++${V.summaryStats? `[${slave.waist}]`: ''}</span>`;
 		}
+	}
+	
+	function short_implants(slave) {
 		r += `<span class="pink">`;
 		if ((slave.boobsImplant === 0) && (slave.buttImplant === 0) && (slave.waist >= -95) && (slave.lipsImplant === 0) && (slave.faceImplant <= 5) && (slave.bellyImplant === -1)) {
 			r += `Natr`;
 		} else {
 			r += `Impl`;
 		}
+	}
+	
+	function short_lactation(slave) {
 		if (slave.lactation === 1) {
 			r += `Lact`;
 		} else if (slave.lactation === 2) {
 			r += `Lact++`;
 		}
-		modScore(slave);
+	}
+	
+	function short_mods(slave) {
 		if (slave.corsetPiercing === 0 && V.piercingScore < 3 && V.tatScore < 2) {
 			true;
 		} else if (V.modScore > 15 || (V.piercingScore > 8 && V.tatScore > 5)) {
@@ -1896,6 +1929,112 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 			r += `Br`;
 		}
 		r += `</span>`;
+	}
+	
+	return SlaveSummaryUncached;
+	
+	if (V.abbreviateDevotion === 1) {
+		short_devotion(slave);
+	} else if (V.abbreviateDevotion === 2) {
+		long_devotion(slave);
+	}
+
+	if (slave.fuckdoll === 0) {
+		if (V.abbreviateRules === 1) {
+			short_rules(slave);
+		} else if (V.abbreviateRules === 2) {
+			long_rules(slave);
+		}
+	}
+
+	if (slave.tired !== 0) {
+		r += `Tired.`;
+	}
+
+	if (V.abbreviateDiet === 1) {
+		short_weight(slave);
+	} else if (V.abbreviateDiet === 2) {
+		long_weight(slave);
+	}
+
+	if (V.abbreviateDiet === 1) {
+		short_diet(slave);
+	} else if (V.abbreviateDiet === 2) {
+		long_diet(slave);
+	}
+
+	if (V.abbreviateHealth === 1) {
+		short_health(slave);
+	} else if (V.abbreviateHealth === 2) {
+		long_health(slave);
+	}
+
+	if (V.abbreviateDrugs === 1) {
+		short_drugs(slave);
+	} else if (V.abbreviateDrugs === 2) {
+		long_drugs(slave);
+	}
+
+	if (V.abbreviateNationality + V.abbreviateGenitalia + V.abbreviatePhysicals + V.abbreviateSkills + V.abbreviateMental !== 0) {
+		r += `<br>`;
+		if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1) {
+			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		}
+	}
+
+	V.desc = SlaveTitle(slave);
+	V.seed = V.desc.substring(0, 1);
+	V.seed = V.seed.toUpperCase();
+	V.desc = V.seed + V.desc.substring(1);
+	r += `<strong><span class="coral">${V.desc}${V.abbreviatePhysicals === 2? '.' : ''}</span></strong>`;
+
+	if (V.seeRace === 1) {
+		r += `<span class="tan">`;
+		if (V.abbreviateRace === 1) {
+			short_race(slave);
+		} else if (V.abbreviateRace === 2) {
+			long_race(slave);
+		}
+		r += `</span>`;
+	}
+
+	if (V.abbreviateNationality === 1) {
+		short_nationality(slave);
+	} else if (V.abbreviateNationality === 2) {
+		long_nationality(slave);
+	}
+
+	if (V.abbreviatePhysicals === 1) {
+		short_skin(slave);
+	} else {
+		r += `<span class="pink">${slave.skin.charAt(0).toUpperCase() + slave.skin.slice(1)} skin.</span>`;
+	}
+	if (V.abbreviateGenitalia === 1) {
+		short_genitals(slave);
+	} else if (V.abbreviateGenitalia === 2) {
+		long_genitals(slave);
+	}
+
+	if (V.abbreviatePhysicals === 1) {
+		short_age(slave);
+		short_face(slave);
+		short_eyes(slave);
+		if (slave.markings !== "none") {
+			r += `Markings`;
+		}
+		short_lips(slave);
+		short_teeth(slave);
+		short_muscles(slave);
+		short_limbs(slave);
+		short_voice(slave);
+		short_tits_ass(slave);
+		short_hips(slave);
+		short_waist(slave);
+		short_implants(slave);
+		short_lactation(slave);
+		modScore(slave);
+		short_mods(slave);
+	// TODO: done up to here
 	} else if (V.abbreviatePhysicals === 2) {
 		r += `<span class="pink">`;
 		if (V.showAgeDetail === 1) {
@@ -4107,4 +4246,4 @@ window.SlaveSummaryUncached = function SlaveSummaryUncached(slave) {
 		r += `<span class="gray">${slave.origin}</span>`;
 	}
 	return r;
-};
+})();
