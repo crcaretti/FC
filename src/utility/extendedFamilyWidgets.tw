@@ -871,13 +871,32 @@
 <</widget>>
 
 <<widget "parentName">>
-<<if $activeSlave[$args[0]] == $PC.ID>>You<</if>><<for _j = 0; _j < $slaves.length; _j++>><<if $slaves[_j].ID == $activeSlave[$args[0]]>><<print $slaves[_j].slaveName>><</if>><</for>>
+<<if $activeSlave[$args[0]] == $PC.ID>>
+	You
+<<else>>
+	<<set _j = $slaveIndices[$activeSlave[$args[0]]]>>
+	<<if def _j>>
+		<<print $slaves[_j].slaveName>>
+	<<else>>
+		Unknown
+	<</if>>
+<</if>>
 <</widget>>
 
 <<widget "listOfSlavesWithSameParent">>
 <<if $activeSlave[$args[0]] != 0>>
-<<set _printSeperator = false>>
-<<if $activeSlave[$args[0]] == $PC[$args[0]]>>You<<set _printSeperator = true>><</if>><<for _j = 0; _j < $slaves.length; _j++>><<if $slaves[_j][$args[0]] == $activeSlave[$args[0]]>><<if _printSeperator>> | <</if>><<set _printSeperator = true>><<print $slaves[_j].slaveName>><</if>><</for>>
+	<<set _printSeperator = false>>
+	<<if $activeSlave[$args[0]] == $PC[$args[0]]>>
+		You
+		<<set _printSeperator = true>>
+	<</if>>
+	<<for _j = 0; _j < $slaves.length; _j++>>
+		<<if $slaves[_j][$args[0]] == $activeSlave[$args[0]]>>
+			<<if _printSeperator>> | <</if>>
+			<<set _printSeperator = true>>
+			<<print $slaves[_j].slaveName>>
+		<</if>>
+	<</for>>
 <</if>>
 <</widget>>
 
@@ -898,191 +917,276 @@
 /* First parameter is e.g. "father" or "mother" and second parameter is the ID to match */
 <<widget "listOfSlavesWithParent">>
 <<if $args[1] != 0>>
-<<set _printSeperator = false>>
-<<if $args[1] == $PC[$args[0]]>>You<<set _printSeperator = true>><</if>><<for _j = 0; _j < $slaves.length; _j++>><<if $slaves[_j][$args[0]] == $args[1]>><<if _printSeperator>> | <</if>><<set _printSeperator = true>><<print $slaves[_j].slaveName>><</if>><</for>>
+	<<set _printSeperator = false>>
+	<<if $args[1] == $PC[$args[0]]>>
+		You
+		<<set _printSeperator = true>>
+	<</if>>
+	<<for _j = 0; _j < $slaves.length; _j++>>
+		<<if $slaves[_j][$args[0]] == $args[1]>>
+			<<if _printSeperator>> | <</if>>
+			<<set _printSeperator = true>>
+			<<print $slaves[_j].slaveName>>
+		<</if>>
+	<</for>>
 <</if>>
 <</widget>>
 
 <<widget "editFamily">>
 <div id="editFamily"><div id="familyTable">
-<br>''Mother:'' <span id="motherName"><<parentName "mother">></span>.
+
+<br>''Mother:'' <span id="motherName"><<parentName "mother">></span>
 <<link "Reset">>
-<<set $activeSlave.mother = 0>>
-<<redisplayFamily>>
+	<<set $activeSlave.mother = 0>>
+	<<redisplayFamily>>
 <</link>>
-<<if $PC.vagina == 1 && (($PC.actualAge - $activeSlave.actualAge) >= $fertilityAge)>> | <<link "You">><<set $activeSlave.mother = $PC.ID>><<redisplayFamily>><</link>><</if>>
+<<if $PC.vagina == 1 && (($PC.actualAge - $activeSlave.actualAge) >= $fertilityAge) && $saveImported == 0>> | <<link "You">><<set $activeSlave.mother = $PC.ID>><<redisplayFamily>><</link>><</if>>
 <<for _efw = 0; _efw < $slaves.length; _efw++>>
-<<if $slaves[_efw].vagina > 0 && (($slaves[_efw].actualAge - $activeSlave.actualAge) >= $fertilityAge)>>
- |
-<<set _id = $slaves[_efw].ID>>
-<<set _slaveName = $slaves[_efw].slaveName>>
-<<print "
-<<link _slaveName>>
-<<set $activeSlave.mother = " + _id + ">>
-<<redisplayFamily>>
-<</link>>
-">>
-<</if>>
-<</for>>
-<br>''Father:'' <span id="fatherName"><<parentName "father">></span>.
-<<link "Reset">>
-<<set $activeSlave.father = 0>>
-<<redisplayFamily>>
-<</link>>
-<<if ($PC.dick == 1) && (($PC.actualAge - $activeSlave.actualAge) >= $potencyAge) >> | <<link "You">><<set $activeSlave.father = $PC.ID>><<redisplayFamily>><</link>><</if>>
-<<for _efw = 0; _efw < $slaves.length; _efw++>>
-<<if ($slaves[_efw].dick > 0) && ((($slaves[_efw].actualAge - $activeSlave.actualAge) >= $potencyAge))>>
- |
-<<set _id = $slaves[_efw].ID>>
-<<set _slaveName = $slaves[_efw].slaveName>>
-<<print "
-<<link _slaveName>>
-<<set $activeSlave.father = " + _id + ">>
-<<redisplayFamily>>
-<</link>>
-">>
-<</if>>
+	<<if $slaves[_efw].vagina > 0 && (($slaves[_efw].actualAge - $activeSlave.actualAge) >= $fertilityAge) && $slaves[_efw].newGamePlus == 0>>
+	|
+	<<set _id = $slaves[_efw].ID>>
+	<<set _slaveName = $slaves[_efw].slaveName>>
+	<<print "
+		<<link _slaveName>>
+			<<set $activeSlave.mother = " + _id + ">>
+			<<redisplayFamily>>
+		<</link>>
+	">>
+	<</if>>
 <</for>>
 
-<br>''Same mother as:'' <span id="sameMotherNames"><<listOfSlavesWithSameParent 'mother'>></span>.
+<br>''Father:'' <span id="fatherName"><<parentName "father">></span>
 <<link "Reset">>
-<<set $activeSlave.mother = 0>>
-<<redisplayFamily>>
+	<<set $activeSlave.father = 0>>
+	<<redisplayFamily>>
 <</link>>
- | <<link "You">>
-<<if $PC.mother != 0>>
-<<set $activeSlave.mother = $PC.mother>>
-<<elseif $activeSlave.mother != 0>>
-<<set $PC.mother = $activeSlave.mother>>
-<<else>>
-<<set $activeSlave.mother = -5 - 2*$activeSlave.ID>>
-<<set $PC.mother = $activeSlave.mother>>
-<</if>>
-<<redisplayFamily>>
-<</link>>
+<<if ($PC.dick == 1) && (($PC.actualAge - $activeSlave.actualAge) >= $potencyAge) && $saveImported == 0>> | <<link "You">><<set $activeSlave.father = $PC.ID>><<redisplayFamily>><</link>><</if>>
 <<for _efw = 0; _efw < $slaves.length; _efw++>>
- |
-<<set _slaveName = $slaves[_efw].slaveName>>
-
-<<print "
-<<link _slaveName>>
-<<set _slave = $slaves[" + _efw + "]>>
-<<if _slave.mother != 0>>
-<<set $activeSlave.mother = _slave.mother>>
-<<elseif $activeSlave.mother != 0>>
-<<set _slave.mother = $activeSlave.mother>>
-<<else>>
-<<set $activeSlave.mother = -5 - 2*$activeSlave.ID>>
-<<set _slave.mother = $activeSlave.mother>>
-<</if>>
-<<redisplayFamily>>
-<</link>>
-">>
+	<<if ($slaves[_efw].dick > 0) && ((($slaves[_efw].actualAge - $activeSlave.actualAge) >= $potencyAge)) && $slaves[_efw].newGamePlus == 0>>
+		|
+		<<set _id = $slaves[_efw].ID>>
+		<<set _slaveName = $slaves[_efw].slaveName>>
+		<<print "
+			<<link _slaveName>>
+				<<set $activeSlave.father = " + _id + ">>
+				<<redisplayFamily>>
+			<</link>>
+		">>
+	<</if>>
 <</for>>
 
-<br>''Same father as:'' <span id="sameFatherNames"><<listOfSlavesWithSameParent 'father'>></span>.
+<br>''Same mother as:'' <span id="sameMotherNames"><<listOfSlavesWithSameParent 'mother'>></span>
 <<link "Reset">>
-<<set $activeSlave.father = 0>>
-<<replace '#fatherName'>><</replace>>
-<<replace '#sameFatherNames'>><</replace>>
-<<redisplayFamily>>
+	<<set $activeSlave.mother = 0>>
+	<<redisplayFamily>>
 <</link>>
-| <<link "You">>
-<<if $PC.father != 0>>
-<<set $activeSlave.father = $PC.father>>
-<<elseif $activeSlave.father != 0>>
-<<set $PC.father = $activeSlave.father>>
-<<else>>
-<<set $activeSlave.father = -5 - 2*$activeSlave.ID -1>>
-<<set $PC.father = $activeSlave.father>>
+<<if $saveImported == 0>>
+	|
+	<<link "You">>
+		<<if $PC.mother != 0>>
+			<<set $activeSlave.mother = $PC.mother>>
+		<<elseif $activeSlave.mother != 0>>
+			<<set $PC.mother = $activeSlave.mother>>
+		<<else>>
+			<<set $activeSlave.mother = -5 - 2*$activeSlave.ID>>
+			<<set $PC.mother = $activeSlave.mother>>
+		<</if>>
+		<<redisplayFamily>>
+	<</link>>
 <</if>>
-<<redisplayFamily>>
-<</link>>
-
 <<for _efw = 0; _efw < $slaves.length; _efw++>>
- |
-<<set _slaveName = $slaves[_efw].slaveName>>
-<<print "
-<<link _slaveName>>
-<<set _slave = $slaves[" + _efw + "]>>
-<<if _slave.father != 0>>
-<<set $activeSlave.father = _slave.father>>
-<<elseif $activeSlave.father != 0>>
-<<set _slave.father = $activeSlave.father>>
-<<else>>
-<<set $activeSlave.father = -5 - 2*$activeSlave.ID -1>>
-<<set _slave.father = $activeSlave.father>>
-<</if>>
-<<redisplayFamily>>
-<</link>>
-">>
+	<<if $slaves[_efw].newGamePlus == 0>>
+		<<if $saveImported == 1>>|<</if>>
+		<<set _slaveName = $slaves[_efw].slaveName>>
+		<<print "
+			<<link _slaveName>>
+				<<set _slave = $slaves[" + _efw + "]>>
+				<<if _slave.mother != 0>>
+					<<set $activeSlave.mother = _slave.mother>>
+				<<elseif $activeSlave.mother != 0>>
+					<<set _slave.mother = $activeSlave.mother>>
+				<<else>>
+					<<set $activeSlave.mother = -5 - 2*$activeSlave.ID>>
+					<<set _slave.mother = $activeSlave.mother>>
+				<</if>>
+				<<redisplayFamily>>
+			<</link>>
+		">>
+	<</if>>
 <</for>>
 
-<br>''Mother of the children:'' <span id="motheredNames"><<listOfSlavesWithParent "mother" $activeSlave.ID>></span>.
+<br>''Same father as:'' <span id="sameFatherNames"><<listOfSlavesWithSameParent 'father'>></span>
 <<link "Reset">>
+	<<set $activeSlave.father = 0>>
+	<<replace '#fatherName'>><</replace>>
+	<<replace '#sameFatherNames'>><</replace>>
+	<<redisplayFamily>>
+<</link>>
+<<if $saveImported == 0>>
+	|
+	<<link "You">>
+		<<if $PC.father != 0>>
+			<<set $activeSlave.father = $PC.father>>
+		<<elseif $activeSlave.father != 0>>
+			<<set $PC.father = $activeSlave.father>>
+		<<else>>
+			<<set $activeSlave.father = -5 - 2*$activeSlave.ID -1>>
+			<<set $PC.father = $activeSlave.father>>
+		<</if>>
+		<<redisplayFamily>>
+	<</link>>
+<</if>>
 <<for _efw = 0; _efw < $slaves.length; _efw++>>
-<<if $slaves[_efw].mother == $activeSlave.ID>><<set $slaves[_efw].mother = 0>><</if>>
+	<<if $slaves[_efw].newGamePlus == 0>>
+		<<if $saveImported == 1>>|<</if>>
+		<<set _slaveName = $slaves[_efw].slaveName>>
+		<<print "
+			<<link _slaveName>>
+				<<set _slave = $slaves[" + _efw + "]>>
+				<<if _slave.father != 0>>
+					<<set $activeSlave.father = _slave.father>>
+				<<elseif $activeSlave.father != 0>>
+					<<set _slave.father = $activeSlave.father>>
+				<<else>>
+					<<set $activeSlave.father = -5 - 2*$activeSlave.ID -1>>
+					<<set _slave.father = $activeSlave.father>>
+				<</if>>
+				<<redisplayFamily>>
+			<</link>>
+		">>
+	<</if>>
 <</for>>
-<<if $PC.mother == $activeSlave.ID>><<set $PC.mother = 0>><</if>>
-<<redisplayFamily>>
+
+<br>''Mother of the children:'' <span id="motheredNames"><<listOfSlavesWithParent "mother" $activeSlave.ID>></span>
+<<link "Reset">>
+	<<for _efw = 0; _efw < $slaves.length; _efw++>>
+		<<if $slaves[_efw].mother == $activeSlave.ID && $slaves[_efw].newGamePlus == 0>>
+			<<set $slaves[_efw].mother = 0>>
+		<</if>>
+	<</for>>
+	<<if $PC.mother == $activeSlave.ID && $saveImported == 0>>
+		<<set $PC.mother = 0>>
+	<</if>>
+	<<redisplayFamily>>
 <</link>>
 <<if $activeSlave.vagina >= 0>>
-<<if ($activeSlave.actualAge - $PC.actualAge) >= $fertilityAge>>
-| <<link "You">>
-<<set $PC.mother = $activeSlave.ID>>
-<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina = 1>><</if>>
-<<redisplayFamily>>
-<</link>>
+	<<if ($activeSlave.actualAge - $PC.actualAge) >= $fertilityAge && $saveImported == 0>>
+		|
+		<<link "You">>
+			<<set $PC.mother = $activeSlave.ID>>
+			<<if $activeSlave.vagina == 0>>
+				<<set $activeSlave.vagina = 1>>
+			<</if>>
+			<<redisplayFamily>>
+		<</link>>
+	<</if>>
+
+	<<for _efw = 0; _efw < $slaves.length; _efw++>>
+		<<if $slaves[_efw].newGamePlus == 0>>
+			<<set _slaveName = $slaves[_efw].slaveName>>
+			<<set _slave = $slaves[_efw]>>
+			<<if ($activeSlave.actualAge - _slave.actualAge) >= $fertilityAge>>
+				|
+				<<print "
+					<<link _slaveName>>
+						<<set _slave = $slaves[" + _efw + "]>>
+						<<set _slave.mother = $activeSlave.ID>>
+						<<if $activeSlave.vagina == 0>>
+							<<set $activeSlave.vagina = 1>>
+						<</if>>
+						<<redisplayFamily>>
+					<</link>>
+				">>
+			<</if>>
+		<</if>>
+	<</for>>
 <</if>>
 
-<<for _efw = 0; _efw < $slaves.length; _efw++>>
-<<set _slaveName = $slaves[_efw].slaveName>>
-<<set _slave = $slaves[_efw]>>
-<<if ($activeSlave.actualAge - _slave.actualAge) >= $fertilityAge>>
- |
-<<print "
-<<link _slaveName>>
-<<set _slave = $slaves[" + _efw + "]>>
-<<set _slave.mother = $activeSlave.ID>>
-<<if $activeSlave.vagina == 0>><<set $activeSlave.vagina = 1>><</if>>
-<<redisplayFamily>>
-<</link>>
-">>
-<</if>>
-<</for>>
-<</if>>
-
-<br>''Father of the children:'' <span id="fatheredNames"><<listOfSlavesWithParent "father" $activeSlave.ID>></span>.
+<br>''Father of the children:'' <span id="fatheredNames"><<listOfSlavesWithParent "father" $activeSlave.ID>></span>
 <<link "Reset">>
-<<for _efw = 0; _efw < $slaves.length; _efw++>>
-<<if $slaves[_efw].father == $activeSlave.ID>><<set $slaves[_efw].father = 0>><</if>>
-<</for>>
-<<if $PC.father == $activeSlave.ID>><<set $PC.father = 0>><</if>>
-<<redisplayFamily>>
+	<<for _efw = 0; _efw < $slaves.length; _efw++>>
+		<<if $slaves[_efw].father == $activeSlave.ID && $slaves[_efw].newGamePlus == 0>>
+			<<set $slaves[_efw].father = 0>>
+		<</if>>
+	<</for>>
+	<<if $PC.father == $activeSlave.ID && $saveImported == 0>>
+		<<set $PC.father = 0>>
+	<</if>>
+	<<redisplayFamily>>
 <</link>>
 <<if $activeSlave.dick > 0>>
-<<if ($activeSlave.actualAge - $PC.actualAge) >= $fertilityAge>>
-| <<link "You">>
-<<set $PC.father = $activeSlave.ID>>
-<<redisplayFamily>>
-<</link>>
+	<<if ($activeSlave.actualAge - $PC.actualAge) >= $fertilityAge && $saveImported == 0>>
+		| 
+		<<link "You">>
+			<<set $PC.father = $activeSlave.ID>>
+			<<redisplayFamily>>
+		<</link>>
+	<</if>>
+
+	<<for _efw = 0; _efw < $slaves.length; _efw++>>
+		<<if $slaves[_efw].newGamePlus == 0>>
+			<<set _slaveName = $slaves[_efw].slaveName>>
+			<<set _slave = $slaves[_efw]>>
+			<<if ($activeSlave.actualAge - _slave.actualAge) >= $fertilityAge>>
+				|
+				<<print "
+					<<link _slaveName>>
+						<<set _slave = $slaves[" + _efw + "]>>
+						<<set _slave.father = $activeSlave.ID>>
+						<<redisplayFamily>>
+					<</link>>
+				">>
+			<</if>>
+		<</if>>
+	<</for>>
 <</if>>
 
-<<for _efw = 0; _efw < $slaves.length; _efw++>>
-
-<<set _slaveName = $slaves[_efw].slaveName>>
-<<set _slave = $slaves[_efw]>>
-<<if ($activeSlave.actualAge - _slave.actualAge) >= $fertilityAge>>
- |
-<<print "
-<<link _slaveName>>
-<<set _slave = $slaves[" + _efw + "]>>
-<<set _slave.father = $activeSlave.ID>>
-<<redisplayFamily>>
-<</link>>
-">>
-<</if>>
-<</for>>
+<br>
+<<if $saveImported == 0>>
+	<<link "Reset ALL PC Relatives">>
+		<<set _sameMother = 0, _sameFather = 0>>
+		<<for _efw = 0; _efw < $slaves.length; _efw++>>
+			<<if $slaves[_efw].newGamePlus == 0>>
+				<<if $slaves[_efw].mother == $PC.ID>>
+					<<set $slaves[_efw].mother = 0>>
+				<</if>>
+				<<if $slaves[_efw].father == $PC.ID>>
+					<<set $slaves[_efw].father = 0>>
+				<</if>>
+				<<if $slaves[_efw].mother == $PC.mother>>
+					<<set _sameMother++>>
+				<</if>>
+				<<if $slaves[_efw].father == $PC.father>>
+					<<set _sameFather++>>
+				<</if>>
+			<</if>>
+		<</for>>
+		<<if _sameMother == 0 && $activeSlave.mother == $PC.mother>>
+			<<set $activeSlave.mother = 0>>
+		<</if>>
+		<<if _sameFather == 0 && $activeSlave.father == $PC.father>>
+			<<set $activeSlave.father = 0>>
+		<</if>>
+		<<for _efw = 0; (_efw < $slaves.length && (_sameMother == 1 || _sameFather == 1)); _efw++>>
+			<<if $slaves[_efw].newGamePlus == 0>>
+				<<if $slaves[_efw].mother == $PC.mother && _sameMother == 1>>
+					<<set $slaves[_efw].mother = 0, _sameMother = 0>>
+				<</if>>
+				<<if $slaves[_efw].father == $PC.father && _sameFather == 1>>
+					<<set $slaves[_efw].father = 0, _sameFather = 0>>
+				<</if>>
+			<</if>>
+		<</for>>
+		<<if $activeSlave.mother == $PC.ID>>
+			<<set $activeSlave.mother = 0>>
+		<</if>>
+		<<if $activeSlave.father == $PC.ID>>
+			<<set $activeSlave.father = 0>>
+		<</if>>
+		<<set $PC.father = 0>>
+		<<set $PC.mother = 0>>
+		<<redisplayFamily>>
+	<</link>>
 <</if>>
 
 <br>
