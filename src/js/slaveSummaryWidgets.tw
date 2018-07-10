@@ -26,6 +26,197 @@ window.SlaveSummaryUncached = (function(){
 	function SlaveSummaryUncached(slave) {
 		V = State.variables;
 		r = "";
+		if (V.abbreviateDevotion === 1)
+			short_devotion(slave);
+		else if (V.abbreviateDevotion === 2)
+			long_devotion(slave);
+		if (slave.fuckdoll === 0) {
+			if (V.abbreviateRules === 1)
+				short_rules(slave);
+			else if (V.abbreviateRules === 2)
+				long_rules(slave);
+		}
+		if (slave.tired !== 0)
+			r += `Tired.`;
+		if (V.abbreviateDiet === 1)
+			short_weight(slave);
+		else if (V.abbreviateDiet === 2)
+			long_weight(slave);
+		if (V.abbreviateDiet === 1)
+			short_diet(slave);
+		else if (V.abbreviateDiet === 2)
+			long_diet(slave);
+		if (V.abbreviateHealth === 1)
+			short_health(slave);
+		else if (V.abbreviateHealth === 2)
+			long_health(slave);
+		if (V.abbreviateDrugs === 1)
+			short_drugs(slave);
+		else if (V.abbreviateDrugs === 2)
+			long_drugs(slave);
+		if (V.abbreviateNationality + V.abbreviateGenitalia + V.abbreviatePhysicals + V.abbreviateSkills + V.abbreviateMental !== 0) {
+			r += `<br>`;
+			if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1)
+				r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		}
+		V.desc = SlaveTitle(slave);
+		V.seed = V.desc.substring(0, 1);
+		V.seed = V.seed.toUpperCase();
+		V.desc = V.seed + V.desc.substring(1);
+		r += `<strong><span class="coral">${V.desc}${V.abbreviatePhysicals === 2? '.' : ''}</span></strong> `;
+		if (V.seeRace === 1) {
+			r += `<span class="tan">`;
+			if (V.abbreviateRace === 1)
+				short_race(slave);
+			else if (V.abbreviateRace === 2)
+				long_race(slave);
+			r += `</span>`;
+		}
+		if (V.abbreviateNationality === 1)
+			short_nationality(slave);
+		else if (V.abbreviateNationality === 2)
+			long_nationality(slave);
+		if (V.abbreviatePhysicals === 1)
+			short_skin(slave);
+		else
+			r += `<span class="pink">${slave.skin.charAt(0).toUpperCase() + slave.skin.slice(1)} skin.</span>`;
+		if (V.abbreviateGenitalia === 1)
+			short_genitals(slave);
+		else if (V.abbreviateGenitalia === 2)
+			long_genitals(slave);
+		if (V.abbreviatePhysicals === 1) {
+			short_age(slave);
+			short_face(slave);
+			short_eyes(slave);
+			if (slave.markings !== "none")
+				r += `Markings`;
+			short_lips(slave);
+			short_teeth(slave);
+			short_muscles(slave);
+			short_limbs(slave);
+			short_voice(slave);
+			short_tits_ass(slave);
+			short_hips(slave);
+			short_waist(slave);
+			short_implants(slave);
+			short_lactation(slave);
+			short_mods(slave);
+		} else if (V.abbreviatePhysicals === 2) {
+			long_age(slave);
+			long_face(slave);
+			long_eyes(slave);
+			long_lips(slave);
+			long_teeth(slave);
+			long_muscles(slave);
+			long_limbs(slave);
+			long_voice(slave);
+			long_tits_ass(slave);
+			long_hips(slave);
+			long_waist(slave);
+			long_implants(slave);
+			long_lactation(slave);
+			long_mods(slave);
+			if (slave.brand !== 0)
+				r += `Branded.`;
+			r += `</span>`;
+		}
+		r += `<br>`;
+		if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1)
+			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		if (V.abbreviateSkills === 1) {
+			short_intelligence(slave);
+			short_sex_skills(slave);
+			if (slave.combatSkill > 0)
+				r += `C`;
+			r += `</span>`;
+			short_prestige(slave);
+		} else if (V.abbreviateSkills === 2) {
+			long_intelligence(slave);
+			long_sex_skills(slave);
+			if (slave.combatSkill > 0)
+				r += `Trained fighter.`;
+			r += `</span>`;
+			long_prestige(slave);
+		}
+		if (V.abbreviateMental === 1) {
+			if (slave.fetish !== "mindbroken") {
+				if (slave.fetishKnown === 1)
+					short_fetish(slave);
+				if (slave.attrKnown === 1)
+					short_attraction(slave);
+			}
+			if (slave.clitPiercing === 3) {
+				short_smart_fetish(slave);
+				short_smart_attraction(slave);
+			}
+			short_behavior_flaw(slave);
+			short_sex_flaw(slave);
+			short_behavior_quirk(slave);
+			short_sex_quirk(slave);
+		} else if (V.abbreviateMental === 2) {
+			if (slave.fetish !== "mindbroken") {
+				if (slave.fetishKnown === 1)
+					long_fetish(slave);
+				if (slave.attrKnown === 1)
+					long_attraction(slave);
+			}
+			if (slave.clitPiercing === 3) {
+				long_smart_fetish(slave);
+				long_smart_attraction(slave);
+			}
+			long_behavior_flaw(slave);
+			long_sex_flaw(slave);
+			long_behavior_quirk(slave);
+			long_sex_quirk(slave);
+		}
+		if (slave.customLabel !== "")
+			r += `<strong><span class="yellow">${slave.customLabel}</span></strong>`;
+		if ((slave.relationship !== 0) || (slave.relation !== 0) || (V.abbreviateClothes === 2) || (V.abbreviateRulesets === 2)) {
+			r += `<br>`;
+			if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1)
+				r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		}
+		if (V.abbreviateMental === 1) {
+			r += `<span class="lightgreen">`;
+			let _relationshipHandled = 0;
+			if (V.familyTesting === 1)
+				short_extended_family(slave);
+			else
+				short_legacy_family(slave);
+			r += `</span>`;
+			_relationshipHandled = 0;
+			short_rival(slave);
+		} else if (V.abbreviateMental === 2) {
+			let _relationshipHandled = 0;
+			if (V.familyTesting === 1)
+				long_extended_family(slave);
+			else
+				long_legacy_family(slave);
+			_relationshipHandled = 0;
+			long_rival(slave);
+		}
+		if (slave.fuckdoll === 0) {
+			if (V.abbreviateClothes === 2) {
+				r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+				if (slave.choosesOwnClothes === 1)
+					r += `Dressing herself.`;
+				long_clothes(slave);
+				long_collar(slave);
+				long_belly(slave);
+				if (slave.amp !== 1)
+					long_legs(slave);
+				if (canWalk(slave))
+					long_shoes(slave);
+				long_vaginal_acc(slave);
+				long_dick_acc(slave);
+				long_buttplug(slave);
+			}
+		}
+		r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		rules_assistant(slave);
+		if (V.abbreviateOrigins === 2 && slave.origin !== 0)
+			origins(slave);
+		return r;
 	}
 	
 	function short_devotion(slave) {
@@ -47,7 +238,7 @@ window.SlaveSummaryUncached = (function(){
 			r += `<span class="magenta">Wor${V.summaryStats ? `[${slave.devotion$}]` : ''}</span>`;
 		}
 		if (slave.fetish === "mindbroken") {
-			true;
+			return;
 		} else if (slave.trust < -95) {
 			r += `<span class="darkgoldenrod">ETerr${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
 		} else if (slave.trust < -50) {
@@ -95,8 +286,9 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `<span class="magenta">Worshipful${V.summaryStats ? `[${slave.devotion}]` : ''}.</span>`;
 		}
+		r += " ";
 		if (slave.fetish === "mindbroken") {
-			true;
+			return;
 		} else if (slave.trust < -95) {
 			r += `<span class="darkgoldenrod">Extremely terrified${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
 		} else if (slave.trust < -50) {
@@ -124,6 +316,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `<span class="seagreen">Profoundly trusting${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
 			}
 		}
+		r += " ";
 	}
 	
 	function short_rules(slave) {
@@ -210,14 +403,14 @@ window.SlaveSummaryUncached = (function(){
 	}
 	
 	function long_rules(slave) {
-		r += `Living standard: ${slave.livingRules}.`;
+		r += `Living standard: ${slave.livingRules}. `;
 		if (canTalk(slave)) {
-			r += `Speech rules: ${slave.speechRules}.`;
+			r += `Speech rules: ${slave.speechRules}. `;
 		}
-		r += `Relationship rules: ${slave.relationshipRules}.`;
-		r += `Typical punishment: ${slave.standardPunishment}.`;
-		r += `Typical reward: ${slave.standardReward}.`;
-		r += `Release rules: ${slave.releaseRules}.`;
+		r += `Relationship rules: ${slave.relationshipRules}. `;
+		r += `Typical punishment: ${slave.standardPunishment}. `;
+		r += `Typical reward: ${slave.standardReward}. `;
+		r += `Release rules: ${slave.releaseRules}. `;
 	}
 	
 	function short_weight(slave) {
@@ -314,6 +507,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `<span class="red">Dangerously Obese${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
 			}
 		}
+		r += " ";
 
 	}
 	
@@ -401,7 +595,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `Fertility.`;
 				break;
 		}
-		r += `</span>`;
+		r += `</span> `;
 		if (slave.dietCum === 2) {
 			r += `Diet Base: <span class="cyan">Cum Based.</span>`;
 		} else if (((slave.dietCum === 1) && (slave.dietMilk === 0))) {
@@ -413,6 +607,7 @@ window.SlaveSummaryUncached = (function(){
 		} else if ((slave.dietMilk === 2)) {
 			r += `Diet Base: <span class="cyan">Milk Based.</span>`;
 		}
+		r += " ";
 	}
 	
 	function short_health(slave) {
@@ -441,6 +636,7 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `<span class="green">Unnaturally healthy${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
 		}
+		r += " ";
 	}
 	
 	function short_drugs(slave) {
@@ -626,7 +822,7 @@ window.SlaveSummaryUncached = (function(){
 	
 	function long_drugs(slave) {
 		if ((slave.drugs !== "no drugs") && (slave.drugs !== "none")) {
-			r += `<span class="tan">On ${slave.drugs}.</span>`;
+			r += `<span class="tan">On ${slave.drugs}.</span> `;
 		}
 		r += `<span class="lightgreen">`;
 		if (slave.curatives === 2) {
@@ -634,14 +830,14 @@ window.SlaveSummaryUncached = (function(){
 		} else if (slave.curatives === 1) {
 			r += `On preventatives.`;
 		}
-		r += `</span>`;
+		r += `</span> `;
 		r += `<span class="lightblue">`;
 		if (slave.aphrodisiacs > 0) {
 			r += `On ${slave.aphrodisiacs > 1 ? 'extreme': ''} aphrodisiacs.`;
 		} else if (slave.aphrodisiacs === -1) {
 			r += `On anaphrodisiacs.`;
 		}
-		r += `</span>`;
+		r += `</span> `;
 		if (slave.addict !== 0) {
 			r += `<span class="cyan">Addict.</span>`;
 		}
@@ -655,7 +851,7 @@ window.SlaveSummaryUncached = (function(){
 		} else if (slave.hormones < 0) {
 			r += `Male hormones.`;
 		}
-		r += `</span>`;
+		r += `</span> `;
 		r += `<span class="mediumseagreen">`;
 		if ((slave.bellyImplant > -1)) {
 			r += `Belly Implant.`;
@@ -705,7 +901,7 @@ window.SlaveSummaryUncached = (function(){
 				}
 			}
 		}
-		r += `</span>`;
+		r += `</span> `;
 		if (slave.induce === 1) {
 			r += `<span class="orange">Showing signs of early labor.</span>`;
 		}
@@ -725,7 +921,7 @@ window.SlaveSummaryUncached = (function(){
 		} else if (slave.bellyFluid > 0) {
 			r += `Stuffed with ${slave.bellyFluid}ccs of ${slave.inflationType}.`;
 		}
-		r += `</span>`;
+		r += `</span> `;
 	}
 	
 	function long_race(slave) {
@@ -770,6 +966,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `${slave.race.charAt(0).toUpperCase() + slave.race.slice(1)}.`;
 				break;
 		}
+		r += " ";
 	}
 	
 	function short_race(slave) {
@@ -1507,7 +1704,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `${slave.nationality}.`;
 				break;
 		}
-		r += `</span>`;
+		r += `</span> `;
 	}
 	
 	function short_skin(slave) {
@@ -1635,15 +1832,15 @@ window.SlaveSummaryUncached = (function(){
 			} else if (slave.balls > 3) {
 				r += `Big balls.`;
 			}
-			r += `</span>`;
+			r += `</span> `;
 		}
 		if (slave.vagina === 0) {
-			r += `<span class="lime">Virgin.</span>`;
+			r += `<span class="lime">Virgin.</span> `;
 		} else if ((slave.pregKnown === 1) && canWalk(slave) && (slave.clothes === "no clothing" || slave.clothes === "body oil") && (slave.shoes === "none")) {
-			r += `<span class="pink">Naked, barefoot, and pregnant.</span>`;
+			r += `<span class="pink">Naked, barefoot, and pregnant.</span> `;
 		}
 		if (slave.anus === 0) {
-			r += `<span class="lime">Anal virgin.</span>`;
+			r += `<span class="lime">Anal virgin.</span> `;
 		}
 		r += `<span class="pink">`;
 		if ((slave.vagina > 3) && (slave.anus > 3)) {
@@ -1659,7 +1856,7 @@ window.SlaveSummaryUncached = (function(){
 		} else if (slave.anus > 2) {
 			r += `Gaping anus.`;
 		}
-		r += `</span>`;
+		r += `</span> `;
 	}
 	
 	function short_age(slave) {
@@ -1918,7 +2115,7 @@ window.SlaveSummaryUncached = (function(){
 	function short_mods(slave) {
 		modScore(slave);
 		if (slave.corsetPiercing === 0 && V.piercingScore < 3 && V.tatScore < 2) {
-			true;
+			return;
 		} else if (V.modScore > 15 || (V.piercingScore > 8 && V.tatScore > 5)) {
 			r += `Mods++`;
 		} else if (V.modScore > 7) {
@@ -1953,16 +2150,17 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `Underage.`;
 		}
+		r += " ";
 		/*
 		 **  No NCS, then do the standard, However because of the wrinkes of Incubators, as long as visual age is greater 
 		 **  than or equal to physical age, we do the old physical body/Looks for fresh out of the can NCS slaves.
 		 */
 		if (((slave.inducedNCS === 0) || (slave.visualAge >= slave.physicalAge))) {
 			if (slave.actualAge !== slave.physicalAge) {
-				r += `${slave.physicalAge} year old body.`;
+				r += `${slave.physicalAge} year old body. `;
 			}
 			if (slave.visualAge !== slave.physicalAge) {
-				r += `Looks ${slave.visualAge}.`;
+				r += `Looks ${slave.visualAge}. `;
 			}
 		} else {
 			/*
@@ -1974,10 +2172,10 @@ window.SlaveSummaryUncached = (function(){
 			 **  say: 'Age 1. 11 year old body.' -- this conflicts with the way NCS works though, because she hasn't
 			 **  visually aged, so our change here makes it say 'Age 1. Appears to have a 10 year old body.'
 			 */
-			r += `Appears to have a ${slave.visualAge} year old body.`;
+			r += `Appears to have a ${slave.visualAge} year old body. `;
 		}
 		if (slave.inducedNCS === 1) {
-			r += `(<span class="orange">NCS</span>)`;
+			r += `(<span class="orange">NCS</span>) `;
 		}
 	}
 	
@@ -1997,7 +2195,7 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `<span class="pink">Very beautiful${V.summaryStats? `[${slave.face}]`: ''}</span>`;
 		}
-		r += `${slave.faceShape} face.`;
+		r += ` ${slave.faceShape} face.`;
 	}
 	
 	function long_eyes(slave) {
@@ -2006,6 +2204,7 @@ window.SlaveSummaryUncached = (function(){
 		} else if (((slave.eyes <= -1) && (slave.eyewear !== "corrective glasses") && (slave.eyewear !== "corrective contacts"))) {
 			r += `<span class="yellow">Nearsighted.</span>`;
 		}
+		r += " ";
 	}
 	
 	function long_lips(slave) {
@@ -2022,6 +2221,7 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `<span class="red">Thin lips${V.summaryStats? `[${slave.lips}]`: ''}.</span>`;
 		}
+		r += " ";
 	}
 	
 	function long_teeth(slave) {
@@ -2036,6 +2236,7 @@ window.SlaveSummaryUncached = (function(){
 		} else if (slave.teeth === "pointy") {
 			r += `Sharp fangs.`;
 		}
+		r += " ";
 	}
 	
 	function long_muscles(slave) {
@@ -2062,6 +2263,7 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `<span class="red">Frail${V.summaryStats? `[${slave.muscles}]`: ''}.</span>`;
 		}
+		r += " ";
 	}
 	
 	function long_limbs(slave) {
@@ -2080,13 +2282,14 @@ window.SlaveSummaryUncached = (function(){
 				r += `Amputee.`;
 			}
 		}
+		r += " ";
 		if (!canWalk(slave)) {
-			r += `Immobile.`;
+			r += `Immobile. `;
 		}
 		if (slave.heels === 1) {
-			r += `Heeled.`;
+			r += `Heeled. `;
 		}
-		r += `</span>`;
+		r += `</span> `;
 	}
 	
 	function long_voice(slave) {
@@ -2103,6 +2306,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `<span class="pink">Cute accent.</span>`;
 			}
 		}
+		r += " ";
 	}
 	
 	function long_tits_ass(slave) {
@@ -2134,7 +2338,7 @@ window.SlaveSummaryUncached = (function(){
 		} else if (slave.butt > 4) {
 			r += `Big ass.`;
 		}
-		r += `</span>`;
+		r += `</span> `;
 	}
 	
 	function long_hips(slave) {
@@ -2172,7 +2376,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `Disproportionately small butt.`;
 			}
 		}
-		r += `</span>`;
+		r += `</span> `;
 	}
 	
 	function long_waist(slave) {
@@ -2191,6 +2395,7 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `<span class="pink">Absurdly narrow waist${V.summaryStats? `[${slave.waist}]`: ''}.</span>`;
 		}
+		r += " ";
 	}
 	
 	function long_implants(slave) {
@@ -2202,6 +2407,7 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `All natural.`;
 		}
+		r += " ";
 	}
 	
 	function long_lactation(slave) {
@@ -2210,12 +2416,13 @@ window.SlaveSummaryUncached = (function(){
 		} else if (slave.lactation === 2) {
 			r += `Heavy lactation.`;
 		}
+		r += " ";
 	}
 	
 	function long_mods(slave) {
 		modScore(slave);
 		if (slave.corsetPiercing === 0 && V.piercingScore < 3 && V.tatScore < 2) {
-			true;
+			return;
 		} else if (V.modScore > 15 || (V.piercingScore > 8 && V.tatScore > 5)) {
 			r += `Extensive body mods.`;
 		} else if (V.modScore > 7) {
@@ -2223,11 +2430,12 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `Light body mods.`;
 		}
+		r += " ";
 	}
 	
 	function short_intelligence(slave) {
 		if (slave.fetish === "mindbroken") {
-			true;
+			return;
 		} else if (slave.intelligenceImplant === 1) {
 			switch (slave.intelligence) {
 				case 3:
@@ -2348,7 +2556,7 @@ window.SlaveSummaryUncached = (function(){
 	
 	function long_intelligence(slave) {
 		if (slave.fetish === "mindbroken") {
-			true;
+			return;
 		} else if (slave.intelligenceImplant === 1) {
 			switch (slave.intelligence) {
 				case 3:
@@ -2398,6 +2606,7 @@ window.SlaveSummaryUncached = (function(){
 					break;
 			}
 		}
+		r += " ";
 	}
 	
 	function long_sex_skills(slave) {
@@ -2437,6 +2646,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `Basic entertainer${V.summaryStats? `[${slave.entertainSkill}]`: ''}.`;
 			}
 		}
+		r += " ";
 	}
 	
 	function long_prestige(slave) {
@@ -2449,7 +2659,7 @@ window.SlaveSummaryUncached = (function(){
 			} else if (slave.prestige === 1) {
 				r += `Prestigious.`;
 			}
-			r += `</span>`;
+			r += `</span> `;
 		}
 	}
 	
@@ -2979,7 +3189,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `Sexually vanilla${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
 				break;
 		}
-		r += `</span>`;
+		r += `</span> `;
 	}
 	
 	function long_attraction(slave) {
@@ -3034,6 +3244,7 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `<span class="red">No sex drive${V.summaryStats? `[${slave.energy}]` : ''}.</span>`;
 		}
+		r += " ";
 	}
 	
 	function long_smart_fetish(slave) {
@@ -3110,6 +3321,7 @@ window.SlaveSummaryUncached = (function(){
 					break;
 			}
 		}
+		r += " ";
 	}
 	
 	function long_smart_attraction(slave) {
@@ -3126,6 +3338,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `SP: men.`;
 			}
 		}
+		r += " ";
 	}
 	
 	function long_behavior_flaw(slave) {
@@ -3162,7 +3375,7 @@ window.SlaveSummaryUncached = (function(){
 				slave.behavioralFlaw = "none";
 				break;
 		}
-		r += `</span>`;
+		r += `</span> `;
 	}
 	
 	function long_sex_flaw(slave) {
@@ -3225,6 +3438,7 @@ window.SlaveSummaryUncached = (function(){
 				slave.sexualFlaw = "none";
 				break;
 		}
+		r += " ";
 	}
 	
 	function long_behavior_quirk(slave) {
@@ -3261,6 +3475,7 @@ window.SlaveSummaryUncached = (function(){
 				slave.behavioralQuirk = "none";
 				break;
 		}
+		r += " ";
 	}
 	
 	function long_sex_quirk(slave) {
@@ -3296,374 +3511,175 @@ window.SlaveSummaryUncached = (function(){
 				slave.sexualQuirk = "none";
 				break;
 		}
-		r += `</span>`;
+		r += `</span> `;
 	}
 	
-	
-	
-	return SlaveSummaryUncached;
-	
-	if (V.abbreviateDevotion === 1) {
-		short_devotion(slave);
-	} else if (V.abbreviateDevotion === 2) {
-		long_devotion(slave);
-	}
-
-	if (slave.fuckdoll === 0) {
-		if (V.abbreviateRules === 1) {
-			short_rules(slave);
-		} else if (V.abbreviateRules === 2) {
-			long_rules(slave);
-		}
-	}
-
-	if (slave.tired !== 0) {
-		r += `Tired.`;
-	}
-
-	if (V.abbreviateDiet === 1) {
-		short_weight(slave);
-	} else if (V.abbreviateDiet === 2) {
-		long_weight(slave);
-	}
-
-	if (V.abbreviateDiet === 1) {
-		short_diet(slave);
-	} else if (V.abbreviateDiet === 2) {
-		long_diet(slave);
-	}
-
-	if (V.abbreviateHealth === 1) {
-		short_health(slave);
-	} else if (V.abbreviateHealth === 2) {
-		long_health(slave);
-	}
-
-	if (V.abbreviateDrugs === 1) {
-		short_drugs(slave);
-	} else if (V.abbreviateDrugs === 2) {
-		long_drugs(slave);
-	}
-
-	if (V.abbreviateNationality + V.abbreviateGenitalia + V.abbreviatePhysicals + V.abbreviateSkills + V.abbreviateMental !== 0) {
-		r += `<br>`;
-		if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1) {
-			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
-		}
-	}
-
-	V.desc = SlaveTitle(slave);
-	V.seed = V.desc.substring(0, 1);
-	V.seed = V.seed.toUpperCase();
-	V.desc = V.seed + V.desc.substring(1);
-	r += `<strong><span class="coral">${V.desc}${V.abbreviatePhysicals === 2? '.' : ''}</span></strong>`;
-
-	if (V.seeRace === 1) {
-		r += `<span class="tan">`;
-		if (V.abbreviateRace === 1) {
-			short_race(slave);
-		} else if (V.abbreviateRace === 2) {
-			long_race(slave);
-		}
-		r += `</span>`;
-	}
-
-	if (V.abbreviateNationality === 1) {
-		short_nationality(slave);
-	} else if (V.abbreviateNationality === 2) {
-		long_nationality(slave);
-	}
-
-	if (V.abbreviatePhysicals === 1) {
-		short_skin(slave);
-	} else {
-		r += `<span class="pink">${slave.skin.charAt(0).toUpperCase() + slave.skin.slice(1)} skin.</span>`;
-	}
-	if (V.abbreviateGenitalia === 1) {
-		short_genitals(slave);
-	} else if (V.abbreviateGenitalia === 2) {
-		long_genitals(slave);
-	}
-
-	if (V.abbreviatePhysicals === 1) {
-		short_age(slave);
-		short_face(slave);
-		short_eyes(slave);
-		if (slave.markings !== "none") {
-			r += `Markings`;
-		}
-		short_lips(slave);
-		short_teeth(slave);
-		short_muscles(slave);
-		short_limbs(slave);
-		short_voice(slave);
-		short_tits_ass(slave);
-		short_hips(slave);
-		short_waist(slave);
-		short_implants(slave);
-		short_lactation(slave);
-		short_mods(slave);
-	} else if (V.abbreviatePhysicals === 2) {
-		long_age(slave);
-		long_face(slave);
-		long_eyes(slave);
-		long_lips(slave);
-		long_teeth(slave);
-		long_muscles(slave);
-		long_limbs(slave);
-		long_voice(slave);
-		long_tits_ass(slave);
-		long_hips(slave);
-		long_waist(slave);
-		long_implants(slave);
-		long_lactation(slave);
-		long_mods(slave);
-		if (slave.brand !== 0) {
-			r += `Branded.`;
-		}
-		r += `</span>`;
-	}
-
-	r += `<br>`;
-	if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1) {
-		r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
-	}
-
-	if (V.abbreviateSkills === 1) {
-		short_intelligence(slave);
-		short_sex_skills(slave);
-		
-		if (slave.combatSkill > 0) {
-			r += `C`;
-		}
-		r += `</span>`;
-		short_prestige(slave);
-	} else if (V.abbreviateSkills === 2) {
-		long_intelligence(slave);
-		long_sex_skills(slave);
-		if (slave.combatSkill > 0) {
-			r += `Trained fighter.`;
-		}
-		r += `</span>`;
-		long_prestige(slave);
-	}
-
-	if (V.abbreviateMental === 1) {
-		if (slave.fetish !== "mindbroken") {
-			if (slave.fetishKnown === 1) {
-				short_fetish(slave);
-			}
-			if (slave.attrKnown === 1) {
-				short_attraction(slave);
-			}
-		}
-		if (slave.clitPiercing === 3) {
-			short_smart_fetish(slave);
-			short_smart_attraction(slave);
-			
-		}
-		short_behavior_flaw(slave);
-		short_sex_flaw(slave);
-		short_behavior_quirk(slave);
-		short_sex_quirk(slave);
-	} else if (V.abbreviateMental === 2) {
-		if (slave.fetish !== "mindbroken") {
-			if (slave.fetishKnown === 1) {
-				long_fetish(slave);
-			}
-		}
-		if (slave.attrKnown === 1) {
-			long_attraction(slave);
-		}
-		if (slave.clitPiercing === 3) {
-			long_smart_fetish(slave);
-			long_smart_attraction(slave);
-		}
-		long_behavior_flaw(slave);
-		long_sex_flaw(slave);
-		long_behavior_quirk(slave);
-		long_sex_quirk(slave);
-	}
-
-	if (slave.customLabel !== "") {
-		r += `<strong><span class="yellow">${slave.customLabel}</span></strong>`;
-	}
-
-	if ((slave.relationship !== 0) || (slave.relation !== 0) || (V.abbreviateClothes === 2) || (V.abbreviateRulesets === 2)) {
-		r += `<br>`;
-		if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1) {
-			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
-		}
-	}
-	
-	// TODO done up to here
-	if (V.abbreviateMental === 1) {
-		r += `<span class="lightgreen">`;
-		let _relationshipHandled = 0;
-		if (V.familyTesting === 1) {
-			if (slave.mother > 0) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.ID === slave.mother;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s daughter`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID) {
-						if (slave.relationship === 1) {
-							r += ` & friend`;
-						} else if (slave.relationship === 2) {
-							r += ` & BFF`;
-						} else if (slave.relationship === 3) {
-							r += ` & FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` & lover`;
-						} else {
-							r += ` & wife`;
-						}
-						_relationshipHandled = 1;
+	function short_extended_family(slave) {
+		if (slave.mother > 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.mother;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s daughter`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
 					}
-				}
-			} else if (slave.mother === -1) {
-				r += `Your daughter`;
-				if (slave.relationship === -3) {
-					r += `& wife`;
-					_relationshipHandled = 1;
-				} else if (slave.relationship === -2) {
-					r += `& lover`;
 					_relationshipHandled = 1;
 				}
 			}
-			if (slave.father > 0 && slave.father !== slave.mother) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.ID === slave.father;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s daughter`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID && _relationshipHandled !== 1) {
-						if (slave.relationship === 1) {
-							r += ` & friend`;
-						} else if (slave.relationship === 2) {
-							r += ` & BFF`;
-						} else if (slave.relationship === 3) {
-							r += ` & FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` & lover`;
-						} else {
-							r += ` & wife`;
-						}
-						_relationshipHandled = 1;
-					}
-				}
-			} else if (slave.father === -1 && slave.mother !== -1) {
-				r += `Your daughter`;
-				if (slave.relationship === -3) {
-					r += `& wife`;
-					_relationshipHandled = 1;
-				} else if (slave.relationship === -2) {
-					r += `& lover`;
-					_relationshipHandled = 1;
-				}
-			}
-			if (slave.daughters === 1) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.mother === slave.ID;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s mother`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID) {
-						if (slave.relationship === 1) {
-							r += ` & friend`;
-						} else if (slave.relationship === 2) {
-							r += ` & BFF`;
-						} else if (slave.relationship === 3) {
-							r += ` & FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` & lover`;
-						} else {
-							r += ` & wife`;
-						}
-						_relationshipHandled = 1;
-					}
-				}
-				_ssj = V.slaves.findIndex(function(s) {
-					return s.father === slave.ID;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s father`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID && _relationshipHandled !== 1) {
-						if (slave.relationship === 1) {
-							r += ` & friend`;
-						} else if (slave.relationship === 2) {
-							r += ` & BFF`;
-						} else if (slave.relationship === 3) {
-							r += ` & FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` & lover`;
-						} else {
-							r += ` & wife`;
-						}
-						_relationshipHandled = 1;
-					}
-				}
-			} else if (slave.daughters > 1) {
-				r += `multiple daughters`;
-			}
-			if (slave.sisters === 1) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return areSisters(s, slave) > 0;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s sister`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID) {
-						if (slave.relationship === 1) {
-							r += ` & friend`;
-						} else if (slave.relationship === 2) {
-							r += ` & BFF`;
-						} else if (slave.relationship === 3) {
-							r += ` & FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` & lover`;
-						} else {
-							r += ` & wife`;
-						}
-						_relationshipHandled = 1;
-					}
-				}
-			} else if (slave.sisters > 1) {
-				r += `multiple sisters`;
-			}
-			if (slave.relationship > 0 && _relationshipHandled !== 1) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.ID === slave.relationshipTarget;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s`;
-					switch (slave.relationship) {
-						case 1:
-							r += `friend`;
-							break;
-						case 2:
-							r += `BFF`;
-							break;
-						case 3:
-							r += `FWB`;
-							break;
-						case 4:
-							r += `lover`;
-							break;
-						case 5:
-							r += `wife`;
-							break;
-					}
-				}
-			} else if (slave.relationship === -3) {
-				r += `Your wife`;
+		} else if (slave.mother === -1) {
+			r += `Your daughter`;
+			if (slave.relationship === -3) {
+				r += `& wife`;
+				_relationshipHandled = 1;
 			} else if (slave.relationship === -2) {
-				r += `E Bonded`;
-			} else if (slave.relationship === -1) {
-				r += `E Slut`;
+				r += `& lover`;
+				_relationshipHandled = 1;
 			}
-		} else {
-			if (slave.relation !== 0) {
+		}
+		if (slave.father > 0 && slave.father !== slave.mother) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.father;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s daughter`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID && _relationshipHandled !== 1) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
+					}
+					_relationshipHandled = 1;
+				}
+			}
+		} else if (slave.father === -1 && slave.mother !== -1) {
+			r += `Your daughter`;
+			if (slave.relationship === -3) {
+				r += `& wife`;
+				_relationshipHandled = 1;
+			} else if (slave.relationship === -2) {
+				r += `& lover`;
+				_relationshipHandled = 1;
+			}
+		}
+		if (slave.daughters === 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.mother === slave.ID;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s mother`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
+					}
+					_relationshipHandled = 1;
+				}
+			}
+			_ssj = V.slaves.findIndex(function(s) {
+				return s.father === slave.ID;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s father`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID && _relationshipHandled !== 1) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
+					}
+					_relationshipHandled = 1;
+				}
+			}
+		} else if (slave.daughters > 1) {
+			r += `multiple daughters`;
+		}
+		if (slave.sisters === 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return areSisters(s, slave) > 0;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s sister`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
+					}
+					_relationshipHandled = 1;
+				}
+			}
+		} else if (slave.sisters > 1) {
+			r += `multiple sisters`;
+		}
+		if (slave.relationship > 0 && _relationshipHandled !== 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationshipTarget;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+				switch (slave.relationship) {
+					case 1:
+						r += `friend`;
+						break;
+					case 2:
+						r += `BFF`;
+						break;
+					case 3:
+						r += `FWB`;
+						break;
+					case 4:
+						r += `lover`;
+						break;
+					case 5:
+						r += `wife`;
+						break;
+				}
+			}
+		} else if (slave.relationship === -3) {
+			r += `Your wife`;
+		} else if (slave.relationship === -2) {
+			r += `E Bonded`;
+		} else if (slave.relationship === -1) {
+			r += `E Slut`;
+		}
+	}
+	
+	function short_legacy_family(slave) {
+		if (slave.relation !== 0) {
 				let _ssj = V.slaves.findIndex(function(s) {
 					return s.ID === slave.relationTarget;
 				});
@@ -3726,9 +3742,9 @@ window.SlaveSummaryUncached = (function(){
 			} else if (slave.relationship === -1) {
 				r += `E Slut`;
 			}
-		}
-		r += `</span>`;
-		_relationshipHandled = 0;
+	}
+	
+	function short_rival(slave) {
 		if (slave.rivalry !== 0) {
 			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
 			let _ssj = V.slaves.findIndex(function(s) {
@@ -3746,265 +3762,268 @@ window.SlaveSummaryUncached = (function(){
 				r += `</span>`;
 			}
 		}
-	} else if (V.abbreviateMental === 2) {
-		let _relationshipHandled = 0;
-		if (V.familyTesting === 1) {
-			if (slave.mother > 0) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.ID === slave.mother;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">daughter`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID) {
-						if (slave.relationship === 1) {
-							r += ` and friend`;
-						} else if (slave.relationship === 2) {
-							r += ` and best friend`;
-						} else if (slave.relationship === 3) {
-							r += ` and FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` and lover`;
-						} else {
-							r += ` and wife`;
-						}
-						_relationshipHandled = 1;
-					}
-					r += `.</span>`;
-				}
-			} else if (slave.mother === -1) {
-				r += `Your`;
-				if (slave.relationship === -3) {
-					r += `<span class="lightgreen">daughter and wife.</span>`;
-					_relationshipHandled = 1;
-				} else if (slave.relationship === -2) {
-					r += `<span class="lightgreen">daughter and lover.</span>`;
-					_relationshipHandled = 1;
-				} else {
-					r += `<span class="lightgreen">daughter.</span>`;
-				}
-			}
-			if (slave.father > 0 && slave.father !== slave.mother) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.ID === slave.father;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">daughter`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID) {
-						if (slave.relationship === 1) {
-							r += ` and friend`;
-						} else if (slave.relationship === 2) {
-							r += ` and best friend`;
-						} else if (slave.relationship === 3) {
-							r += ` and FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` and lover`;
-						} else {
-							r += ` and wife`;
-						}
-						_relationshipHandled = 1;
-					}
-					r += `.</span>`;
-				}
-			} else if (slave.father === -1 && slave.father !== slave.mother) {
-				r += `Your`;
-				if (slave.relationship === -3) {
-					r += `<span class="lightgreen">daughter and wife.</span>`;
-					_relationshipHandled = 1;
-				} else if (slave.relationship === -2) {
-					r += `<span class="lightgreen">daughter and lover.</span>`;
-					_relationshipHandled = 1;
-				} else {
-					r += `<span class="lightgreen">daughter.</span>`;
-				}
-			}
-			if (slave.daughters === 1) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.mother === slave.ID;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">mother`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID) {
-						if (slave.relationship === 1) {
-							r += ` and friend`;
-						} else if (slave.relationship === 2) {
-							r += ` and best friend`;
-						} else if (slave.relationship === 3) {
-							r += ` and FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` and lover`;
-						} else {
-							r += ` and wife`;
-						}
-						_relationshipHandled = 1;
-					}
-					r += `.</span>`;
-				}
-				_ssj = V.slaves.findIndex(function(s) {
-					return s.father === slave.ID;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">father`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID) {
-						if (slave.relationship === 1) {
-							r += ` and friend`;
-						} else if (slave.relationship === 2) {
-							r += ` and best friend`;
-						} else if (slave.relationship === 3) {
-							r += ` and FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` and lover`;
-						} else {
-							r += ` and wife`;
-						}
-						_relationshipHandled = 1;
-					}
-					r += `.</span>`;
-				}
-			} else if (slave.daughters > 1) {
-				if (slave.daughters > 10) {
-					r += `<span class="lightgreen">Has tons of daughters.</span>`;
-				} else if (slave.daughters > 5) {
-					r += `<span class="lightgreen">Has many daughters.</span>`;
-				} else {
-					r += `<span class="lightgreen">Has several daughters.</span>`;
-				}
-			}
-			if (slave.sisters === 1) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return areSisters(s, slave) > 0;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">sister`;
-					if (slave.relationshipTarget === V.slaves[_ssj].ID) {
-						if (slave.relationship === 1) {
-							r += ` and friend`;
-						} else if (slave.relationship === 2) {
-							r += ` and best friend`;
-						} else if (slave.relationship === 3) {
-							r += ` and FWB`;
-						} else if (slave.relationship === 4) {
-							r += ` and lover`;
-						} else {
-							r += ` and wife`;
-						}
-						_relationshipHandled = 1;
-					}
-					r += `.</span>`;
-				}
-			} else if (slave.sisters > 1) {
-				if (slave.sisters > 10) {
-					r += `<span class="lightgreen">One of many sisters.</span>`;
-				} else if (slave.sisters > 5) {
-					r += `<span class="lightgreen">Has many sisters.</span>`;
-				} else {
-					r += `<span class="lightgreen">Has several sisters.</span>`;
-				}
-			}
-			if (slave.relationship > 0 && _relationshipHandled !== 1) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.ID === slave.relationshipTarget;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s`;
-					switch (slave.relationship) {
-						case 1:
-							r += `<span class="lightgreen">friend.</span>`;
-							break;
-						case 2:
-							r += `<span class="lightgreen">best friend.</span>`;
-							break;
-						case 3:
-							r += `<span class="lightgreen">FWB.</span>`;
-							break;
-						case 4:
-							r += `<span class="lightgreen">lover.</span>`;
-							break;
-						case 5:
-							r += `<span class="lightgreen">slave wife.</span>`;
-							break;
-					}
-				}
-			} else if (slave.relationship === -3) {
-				r += `<span class="lightgreen">Your wife.</span>`;
-			} else if (slave.relationship === -2) {
-				r += `<span class="lightgreen">Emotionally bonded to you.</span>`;
-			} else if (slave.relationship === -1) {
-				r += `<span class="lightgreen">Emotional slut.</span>`;
-			}
-		} else {
-			if (slave.relation !== 0) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.ID === slave.relationTarget;
-				});
-				if (_ssj !== -1) {
-					r += `${SlaveFullName(V.slaves[_ssj])}'s`;
-					if (slave.relationshipTarget !== slave.relationTarget) {
-						r += `<span class="lightgreen">${slave.relation}</span>.`;
+	}
+	
+	function long_extended_family(slave) {
+		if (slave.mother > 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.mother;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">daughter`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
 					} else {
-						r += `<span class="lightgreen">${slave.relation}</span>`;
+						r += ` and wife`;
 					}
-					if (slave.relationship <= 0) {
-						r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
-					}
+					_relationshipHandled = 1;
 				}
+				r += `.</span> `;
 			}
-			if (slave.relationship > 0) {
-				let _ssj = V.slaves.findIndex(function(s) {
-					return s.ID === slave.relationshipTarget;
-				});
-				if (_ssj !== -1) {
-					switch (slave.relationship) {
-						case 1:
-							if (slave.relationshipTarget !== slave.relationTarget) {
-								r += `${SlaveFullName(V.slaves[_ssj])}'s`;
-							} else {
-								r += `and`;
-							}
-							r += `<span class="lightgreen">friend.</span>`;
-							break;
-						case 2:
-							if (slave.relationshipTarget !== slave.relationTarget) {
-								r += `${SlaveFullName(V.slaves[_ssj])}'s`;
-							} else {
-								r += `and`;
-							}
-							r += `<span class="lightgreen">best friend.</span>`;
-							break;
-						case 3:
-							if (slave.relationshipTarget !== slave.relationTarget) {
-								r += `${SlaveFullName(V.slaves[_ssj])}'s`;
-							} else {
-								r += `and`;
-							}
-							r += `<span class="lightgreen">FWB.</span>`;
-							break;
-						case 4:
-							if (slave.relationshipTarget !== slave.relationTarget) {
-								r += `${SlaveFullName(V.slaves[_ssj])}'s`;
-							} else {
-								r += `and`;
-							}
-							r += `<span class="lightgreen">lover.</span>`;
-							break;
-						case 5:
-							if (slave.relationshipTarget !== slave.relationTarget) {
-								r += `${SlaveFullName(V.slaves[_ssj])}'s`;
-							} else {
-								r += `and`;
-							}
-							r += `<span class="lightgreen">slave wife.</span>`;
-							break;
-					}
-				}
-			} else if (slave.relationship === -3) {
-				r += `<span class="lightgreen">Your wife.</span>`;
+		} else if (slave.mother === -1) {
+			r += `Your`;
+			if (slave.relationship === -3) {
+				r += `<span class="lightgreen">daughter and wife.</span> `;
+				_relationshipHandled = 1;
 			} else if (slave.relationship === -2) {
-				r += `<span class="lightgreen">Emotionally bonded to you.</span>`;
-			} else if (slave.relationship === -1) {
-				r += `<span class="lightgreen">Emotional slut.</span>`;
+				r += `<span class="lightgreen">daughter and lover.</span> `;
+				_relationshipHandled = 1;
+			} else {
+				r += `<span class="lightgreen">daughter.</span> `;
 			}
 		}
-		_relationshipHandled = 0;
+		if (slave.father > 0 && slave.father !== slave.mother) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.father;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">daughter`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
+					} else {
+						r += ` and wife`;
+					}
+					_relationshipHandled = 1;
+				}
+				r += `.</span> `;
+			}
+		} else if (slave.father === -1 && slave.father !== slave.mother) {
+			r += `Your`;
+			if (slave.relationship === -3) {
+				r += `<span class="lightgreen">daughter and wife.</span> `;
+				_relationshipHandled = 1;
+			} else if (slave.relationship === -2) {
+				r += `<span class="lightgreen">daughter and lover.</span> `;
+				_relationshipHandled = 1;
+			} else {
+				r += `<span class="lightgreen">daughter.</span> `;
+			}
+		}
+		if (slave.daughters === 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.mother === slave.ID;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">mother`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
+					} else {
+						r += ` and wife`;
+					}
+					_relationshipHandled = 1;
+				}
+				r += `.</span> `;
+			}
+			_ssj = V.slaves.findIndex(function(s) {
+				return s.father === slave.ID;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">father`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
+					} else {
+						r += ` and wife`;
+					}
+					_relationshipHandled = 1;
+				}
+				r += `.</span> `;
+			}
+		} else if (slave.daughters > 1) {
+			if (slave.daughters > 10) {
+				r += `<span class="lightgreen">Has tons of daughters.</span> `;
+			} else if (slave.daughters > 5) {
+				r += `<span class="lightgreen">Has many daughters.</span> `;
+			} else {
+				r += `<span class="lightgreen">Has several daughters.</span> `;
+			}
+		}
+		if (slave.sisters === 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return areSisters(s, slave) > 0;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">sister`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
+					} else {
+						r += ` and wife`;
+					}
+					_relationshipHandled = 1;
+				}
+				r += `.</span> `;
+			}
+		} else if (slave.sisters > 1) {
+			if (slave.sisters > 10) {
+				r += `<span class="lightgreen">One of many sisters.</span> `;
+			} else if (slave.sisters > 5) {
+				r += `<span class="lightgreen">Has many sisters.</span> `;
+			} else {
+				r += `<span class="lightgreen">Has several sisters.</span> `;
+			}
+		}
+		if (slave.relationship > 0 && _relationshipHandled !== 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationshipTarget;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+				switch (slave.relationship) {
+					case 1:
+						r += `<span class="lightgreen">friend.</span> `;
+						break;
+					case 2:
+						r += `<span class="lightgreen">best friend.</span> `;
+						break;
+					case 3:
+						r += `<span class="lightgreen">FWB.</span> `;
+						break;
+					case 4:
+						r += `<span class="lightgreen">lover.</span> `;
+						break;
+					case 5:
+						r += `<span class="lightgreen">slave wife.</span> `;
+						break;
+				}
+			}
+		} else if (slave.relationship === -3) {
+			r += `<span class="lightgreen">Your wife.</span> `;
+		} else if (slave.relationship === -2) {
+			r += `<span class="lightgreen">Emotionally bonded to you.</span> `;
+		} else if (slave.relationship === -1) {
+			r += `<span class="lightgreen">Emotional slut.</span> `;
+		}
+	}
+	
+	function long_legacy_family(slave) {
+		if (slave.relation !== 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationTarget;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+				if (slave.relationshipTarget !== slave.relationTarget) {
+					r += `<span class="lightgreen">${slave.relation}</span>. `;
+				} else {
+					r += `<span class="lightgreen">${slave.relation}</span> `;
+				}
+				if (slave.relationship <= 0) {
+					r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+				}
+			}
+		}
+		if (slave.relationship > 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationshipTarget;
+			});
+			if (_ssj !== -1) {
+				switch (slave.relationship) {
+					case 1:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">friend.</span> `;
+						break;
+					case 2:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">best friend.</span> `;
+						break;
+					case 3:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">FWB.</span> `;
+						break;
+					case 4:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">lover.</span> `;
+						break;
+					case 5:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">slave wife.</span> `;
+						break;
+				}
+			}
+		} else if (slave.relationship === -3) {
+			r += `<span class="lightgreen">Your wife.</span> `;
+		} else if (slave.relationship === -2) {
+			r += `<span class="lightgreen">Emotionally bonded to you.</span> `;
+		} else if (slave.relationship === -1) {
+			r += `<span class="lightgreen">Emotional slut.</span> `;
+		}
+	}
+	
+	function long_rival(slave) {
 		if (slave.rivalry !== 0) {
 			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
 			let _ssj = V.slaves.findIndex(function(s) {
@@ -4019,378 +4038,400 @@ window.SlaveSummaryUncached = (function(){
 					r += `<span class="lightsalmon">Hates</span> ${SlaveFullName(V.slaves[_ssj])}.`;
 				}
 			}
+			r += " ";
 		}
 	}
+	
+	function long_clothes(slave) {
+		switch (slave.clothes) {
+			case "attractive lingerie":
+				r += `Lingerie.`;
+				break;
+			case "a succubus outfit":
+				r += `Succubus outfit.`;
+				break;
+			case "a string bikini":
+				r += `String bikini.`;
+				break;
+			case "a scalemail bikini":
+				r += `Scalemail bikini.`;
+				break;
+			case "a monokini":
+				r += `Monokini.`;
+				break;
+			case "an apron":
+				r += `Apron.`;
+				break;
+			case "a cybersuit":
+				r += `Cybersuit.`;
+				break;
+			case "cutoffs and a t-shirt":
+				r += `Cutoffs, t-shirt.`;
+				break;
+			case "a slutty outfit":
+				r += `Slutty outfit.`;
+				break;
+			case "uncomfortable straps":
+				r += `Leather straps.`;
+				break;
+			case "a fallen nuns habit":
+				r += `Slutty habit.`;
+				break;
+			case "a chattel habit":
+				r += `Chattel habit.`;
+				break;
+			case "a penitent nuns habit":
+				r += `Cilice.`;
+				break;
+			case "slutty jewelry":
+				r += `Bangles.`;
+				break;
+			case "attractive lingerie for a pregnant woman":
+				r += `Preggo lingerie.`;
+				break;
+			case "a maternity dress":
+				r += `Maternity dress.`;
+				break;
+			case "stretch pants and a crop-top":
+				r += `Stretch pants, crop-top.`;
+				break;
+			case "harem gauze":
+				r += `Harem outfit.`;
+				break;
+			case "a slave gown":
+				r += `Slave gown.`;
+				break;
+			case "a halter top dress":
+				r += `Halter top dress.`;
+				break;
+			case "a mini dress":
+				r += `Mini dress.`;
+				break;
+			case "a ball gown":
+				r += `Ball gown.`;
+				break;
+			case "slutty business attire":
+				r += `Slutty suit.`;
+				break;
+			case "nice business attire":
+				r += `Nice suit.`;
+				break;
+			case "a comfortable bodysuit":
+				r += `Bodysuit.`;
+				break;
+			case "a military uniform":
+				r += `Military uniform.`;
+				break;
+			case "a schutzstaffel uniform":
+				r += `Schutzstaffel uniform.`;
+				break;
+			case "a slutty schutzstaffel uniform":
+				r += `Slutty Schutzstaffel uniform.`;
+				break;
+			case "a red army uniform":
+				r += `Red Army uniform.`;
+				break;
+			case "a long qipao":
+				r += `Long Qipao.`;
+				break;
+			case "battlearmor":
+				r += `Battlearmor.`;
+				break;
+			case "a mounty outfit":
+				r += `Mounty outfit.`;
+				break;
+			case "a dirndl":
+				r += `Dirndl.`;
+				break;
+			case "lederhosen":
+				r += `Lederhosen.`;
+				break;
+			case "a biyelgee costume":
+				r += `Biyelgee costume.`;
+				break;
+			case "a leotard":
+				r += `Leotard.`;
+				break;
+			case "a bunny outfit":
+				r += `Bunny outfit.`;
+				break;
+			case "a slutty maid outfit":
+				r += `Slutty maid.`;
+				break;
+			case "a nice maid outfit":
+				r += `Nice maid.`;
+				break;
+			case "a slutty nurse outfit":
+				r += `Slutty nurse.`;
+				break;
+			case "a nice nurse outfit":
+				r += `Nice nurse.`;
+				break;
+			case "a schoolgirl outfit":
+				r += `Schoolgirl outfit.`;
+				break;
+			case "a kimono":
+				r += `Kimono.`;
+				break;
+			case "a hijab and abaya":
+				r += `Hijab and abaya.`;
+				break;
+			case "battledress":
+				r += `Battledress.`;
+				break;
+			case "a latex catsuit":
+				r += `Nice latex.`;
+				break;
+			case "restrictive latex":
+				r += `Bondage latex.`;
+				break;
+			case "conservative clothing":
+				r += `Conservative clothing.`;
+				break;
+			case "chains":
+				r += `Chains.`;
+				break;
+			case "a cheerleader outfit":
+				r += `Cheerleader.`;
+				break;
+			case "clubslut netting":
+				r += `Netting.`;
+				break;
+			case "shibari ropes":
+				r += `Shibari.`;
+				break;
+			case "Western clothing":
+				r += `Chaps.`;
+				break;
+			case "body oil":
+				r += `Body oil.`;
+				break;
+			case "a toga":
+				r += `Toga.`;
+				break;
+			case "a huipil":
+				r += `Huipil.`;
+				break;
+			case "a slutty qipao":
+				r += `Qipao.`;
+				break;
+			case "spats and a tank top":
+				r += `Spats, tank top.`;
+				break;
+			default:
+				r += `Naked.`;
+				break;
+		}
+		r += " ";
+	}
 
-	if (slave.fuckdoll === 0) {
-		if (V.abbreviateClothes === 2) {
-			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
-			if (slave.choosesOwnClothes === 1) {
-				r += `Dressing herself.`;
-			}
-			switch (slave.clothes) {
-				case "attractive lingerie":
-					r += `Lingerie.`;
-					break;
-				case "a succubus outfit":
-					r += `Succubus outfit.`;
-					break;
-				case "a string bikini":
-					r += `String bikini.`;
-					break;
-				case "a scalemail bikini":
-					r += `Scalemail bikini.`;
-					break;
-				case "a monokini":
-					r += `Monokini.`;
-					break;
-				case "an apron":
-					r += `Apron.`;
-					break;
-				case "a cybersuit":
-					r += `Cybersuit.`;
-					break;
-				case "cutoffs and a t-shirt":
-					r += `Cutoffs, t-shirt.`;
-					break;
-				case "a slutty outfit":
-					r += `Slutty outfit.`;
-					break;
-				case "uncomfortable straps":
-					r += `Leather straps.`;
-					break;
-				case "a fallen nuns habit":
-					r += `Slutty habit.`;
-					break;
-				case "a chattel habit":
-					r += `Chattel habit.`;
-					break;
-				case "a penitent nuns habit":
-					r += `Cilice.`;
-					break;
-				case "slutty jewelry":
-					r += `Bangles.`;
-					break;
-				case "attractive lingerie for a pregnant woman":
-					r += `Preggo lingerie.`;
-					break;
-				case "a maternity dress":
-					r += `Maternity dress.`;
-					break;
-				case "stretch pants and a crop-top":
-					r += `Stretch pants, crop-top.`;
-					break;
-				case "harem gauze":
-					r += `Harem outfit.`;
-					break;
-				case "a slave gown":
-					r += `Slave gown.`;
-					break;
-				case "a halter top dress":
-					r += `Halter top dress.`;
-					break;
-				case "a mini dress":
-					r += `Mini dress.`;
-					break;
-				case "a ball gown":
-					r += `Ball gown.`;
-					break;
-				case "slutty business attire":
-					r += `Slutty suit.`;
-					break;
-				case "nice business attire":
-					r += `Nice suit.`;
-					break;
-				case "a comfortable bodysuit":
-					r += `Bodysuit.`;
-					break;
-				case "a military uniform":
-					r += `Military uniform.`;
-					break;
-				case "a schutzstaffel uniform":
-					r += `Schutzstaffel uniform.`;
-					break;
-				case "a slutty schutzstaffel uniform":
-					r += `Slutty Schutzstaffel uniform.`;
-					break;
-				case "a red army uniform":
-					r += `Red Army uniform.`;
-					break;
-				case "a long qipao":
-					r += `Long Qipao.`;
-					break;
-				case "battlearmor":
-					r += `Battlearmor.`;
-					break;
-				case "a mounty outfit":
-					r += `Mounty outfit.`;
-					break;
-				case "a dirndl":
-					r += `Dirndl.`;
-					break;
-				case "lederhosen":
-					r += `Lederhosen.`;
-					break;
-				case "a biyelgee costume":
-					r += `Biyelgee costume.`;
-					break;
-				case "a leotard":
-					r += `Leotard.`;
-					break;
-				case "a bunny outfit":
-					r += `Bunny outfit.`;
-					break;
-				case "a slutty maid outfit":
-					r += `Slutty maid.`;
-					break;
-				case "a nice maid outfit":
-					r += `Nice maid.`;
-					break;
-				case "a slutty nurse outfit":
-					r += `Slutty nurse.`;
-					break;
-				case "a nice nurse outfit":
-					r += `Nice nurse.`;
-					break;
-				case "a schoolgirl outfit":
-					r += `Schoolgirl outfit.`;
-					break;
-				case "a kimono":
-					r += `Kimono.`;
-					break;
-				case "a hijab and abaya":
-					r += `Hijab and abaya.`;
-					break;
-				case "battledress":
-					r += `Battledress.`;
-					break;
-				case "a latex catsuit":
-					r += `Nice latex.`;
-					break;
-				case "restrictive latex":
-					r += `Bondage latex.`;
-					break;
-				case "conservative clothing":
-					r += `Conservative clothing.`;
-					break;
-				case "chains":
-					r += `Chains.`;
-					break;
-				case "a cheerleader outfit":
-					r += `Cheerleader.`;
-					break;
-				case "clubslut netting":
-					r += `Netting.`;
-					break;
-				case "shibari ropes":
-					r += `Shibari.`;
-					break;
-				case "Western clothing":
-					r += `Chaps.`;
-					break;
-				case "body oil":
-					r += `Body oil.`;
-					break;
-				case "a toga":
-					r += `Toga.`;
-					break;
-				case "a huipil":
-					r += `Huipil.`;
-					break;
-				case "a slutty qipao":
-					r += `Qipao.`;
-					break;
-				case "spats and a tank top":
-					r += `Spats, tank top.`;
-					break;
-				default:
-					r += `Naked.`;
-					break;
-			}
-			switch (slave.collar) {
-				case "uncomfortable leather":
-					r += `Leather collar.`;
-					break;
-				case "tight steel":
-					r += `Steel collar.`;
-					break;
-				case "preg biometrics":
-					r += `Pregnancy biometrics collar.`;
-					break;
-				case "cruel retirement counter":
-					r += `Cruel counter collar.`;
-					break;
-				case "shock punishment":
-					r += `Shock collar.`;
-					break;
-				case "dildo gag":
-					r += `Dildo gag.`;
-					break;
-				case "massive dildo gag":
-					r += `Throat-bulging dildo gag.`;
-					break;
-				case "neck corset":
-					r += `Neck corset.`;
-					break;
-				case "stylish leather":
-					r += `Stylish leather collar.`;
-					break;
-				case "satin choker":
-					r += `Satin choker.`;
-					break;
-				case "silk ribbon":
-					r += `Silken ribbon.`;
-					break;
-				case "heavy gold":
-					r += `Gold collar.`;
-					break;
-				case "bowtie":
-					r += `Bowtie collar.`;
-					break;
-				case "pretty jewelry":
-					r += `Pretty collar.`;
-					break;
-				case "nice retirement counter":
-					r += `Nice counter collar.`;
-					break;
-				case "leather with cowbell":
-					r += `Cowbell collar.`;
-					break;
-				case "ancient Egyptian":
-					r += `Wesekh.`;
-					break;
-				case "ball gag":
-					r += `Ball gag.`;
-					break;
-				case "bit gag":
-					r += `Bit gag.`;
-					break;
-				case "porcelain mask":
-					r += `Porcelain mask.`;
-					break;
-			}
-			switch (slave.bellyAccessory) {
-				case "shapewear":
-					r += `Shapewear.`;
-					break;
-				case "a small empathy belly":
-					r += `Small fake belly.`;
-					break;
-				case "a medium empathy belly":
-					r += `Medium fake belly.`;
-					break;
-				case "a large empathy belly":
-					r += `Large fake belly.`;
-					break;
-				case "a huge empathy belly":
-					r += `Huge fake belly.`;
-					break;
-				case "a corset":
-					r += `Corset.`;
-					break;
-				case "an extreme corset":
-					r += `Extreme corsetage.`;
-					break;
-			}
-			if (slave.amp !== 1) {
-				if (slave.legAccessory === "short stockings") {
-					r += `Short stockings.`;
-				} else if (slave.legAccessory === "long stockings") {
-					r += `Long stockings.`;
-				}
-			}
-			if (canWalk(slave)) {
-				if (slave.shoes === "heels") {
-					r += `Heels.`;
-				} else if (slave.shoes === "pumps") {
-					r += `Pumps.`;
-				} else if (slave.shoes === "extreme heels") {
-					r += `Extreme heels.`;
-				} else if (slave.shoes === "boots") {
-					r += `Boots.`;
-				} else if (slave.heels === 1) {
-					r += `<span class="yellow">Crawling.</span>`;
-				} else if (slave.shoes === "flats") {
-					r += `Flats.`;
-				}
-			}
-			switch (slave.vaginalAccessory) {
-				case "chastity belt":
-					r += `Vaginal chastity.`;
-					break;
-				case "combined chastity":
-					r += `Combined chastity.`;
-					break;
-				case "anal chastity":
-					r += `Anal chastity.`;
-					break;
-				case "dildo":
-					r += `Vaginal dildo.`;
-					break;
-				case "large dildo":
-					r += `Large vaginal dildo.`;
-					break;
-				case "huge dildo":
-					r += `Huge vaginal dildo.`;
-					break;
-				case "long dildo":
-					r += `Long vaginal dildo.`;
-					break;
-				case "long, large dildo":
-					r += `Long and large vaginal dildo.`;
-					break;
-				case "long, huge dildo":
-					r += `Long and wide vaginal dildo.`;
-					break;
-			}
-			if (slave.dickAccessory === "chastity") {
-				r += `Chastity cage.`;
-			} else if (slave.dickAccessory === "combined chastity") {
+	function long_collar(slave) {
+		switch (slave.collar) {
+			case "uncomfortable leather":
+				r += `Leather collar.`;
+				break;
+			case "tight steel":
+				r += `Steel collar.`;
+				break;
+			case "preg biometrics":
+				r += `Pregnancy biometrics collar.`;
+				break;
+			case "cruel retirement counter":
+				r += `Cruel counter collar.`;
+				break;
+			case "shock punishment":
+				r += `Shock collar.`;
+				break;
+			case "dildo gag":
+				r += `Dildo gag.`;
+				break;
+			case "massive dildo gag":
+				r += `Throat-bulging dildo gag.`;
+				break;
+			case "neck corset":
+				r += `Neck corset.`;
+				break;
+			case "stylish leather":
+				r += `Stylish leather collar.`;
+				break;
+			case "satin choker":
+				r += `Satin choker.`;
+				break;
+			case "silk ribbon":
+				r += `Silken ribbon.`;
+				break;
+			case "heavy gold":
+				r += `Gold collar.`;
+				break;
+			case "bowtie":
+				r += `Bowtie collar.`;
+				break;
+			case "pretty jewelry":
+				r += `Pretty collar.`;
+				break;
+			case "nice retirement counter":
+				r += `Nice counter collar.`;
+				break;
+			case "leather with cowbell":
+				r += `Cowbell collar.`;
+				break;
+			case "ancient Egyptian":
+				r += `Wesekh.`;
+				break;
+			case "ball gag":
+				r += `Ball gag.`;
+				break;
+			case "bit gag":
+				r += `Bit gag.`;
+				break;
+			case "porcelain mask":
+				r += `Porcelain mask.`;
+				break;
+		}
+		r += " ";
+	}
+	
+	function long_belly(slave) {
+		switch (slave.bellyAccessory) {
+			case "shapewear":
+				r += `Shapewear.`;
+				break;
+			case "a small empathy belly":
+				r += `Small fake belly.`;
+				break;
+			case "a medium empathy belly":
+				r += `Medium fake belly.`;
+				break;
+			case "a large empathy belly":
+				r += `Large fake belly.`;
+				break;
+			case "a huge empathy belly":
+				r += `Huge fake belly.`;
+				break;
+			case "a corset":
+				r += `Corset.`;
+				break;
+			case "an extreme corset":
+				r += `Extreme corsetage.`;
+				break;
+		}
+		r += " ";
+	}
+	
+	function long_legs(slave) {
+		if (slave.legAccessory === "short stockings") {
+			r += `Short stockings.`;
+		} else if (slave.legAccessory === "long stockings") {
+			r += `Long stockings.`;
+		}
+		r += " ";
+	}
+	
+	function long_shoes(slave) {
+		if (slave.shoes === "heels") {
+			r += `Heels.`;
+		} else if (slave.shoes === "pumps") {
+			r += `Pumps.`;
+		} else if (slave.shoes === "extreme heels") {
+			r += `Extreme heels.`;
+		} else if (slave.shoes === "boots") {
+			r += `Boots.`;
+		} else if (slave.heels === 1) {
+			r += `<span class="yellow">Crawling.</span>`;
+		} else if (slave.shoes === "flats") {
+			r += `Flats.`;
+		}
+		r += " ";
+	}
+	
+	function long_vaginal_acc(slave) {
+		switch (slave.vaginalAccessory) {
+			case "chastity belt":
+				r += `Vaginal chastity.`;
+				break;
+			case "combined chastity":
 				r += `Combined chastity.`;
-			} else if (slave.dickAccessory === "anal chastity") {
+				break;
+			case "anal chastity":
 				r += `Anal chastity.`;
-			}
-			switch (slave.buttplug) {
-				case "plug":
-					r += `Buttplug.`;
-					break;
-				case "large plug":
-					r += `Large buttplug.`;
-					break;
-				case "huge plug":
-					r += `Huge buttplug.`;
-					break;
-				case "long plug":
-					r += `Long buttplug.`;
-					break;
-				case "long, large plug":
-					r += `Large, long buttplug.`;
-					break;
-				case "long, huge plug":
-					r += `Enormous buttplug.`;
-					break;
-			}
-			switch (slave.buttplugAttachment) {
-				case "tail":
-					r += `Attached tail.`;
-					break;
-			}
+				break;
+			case "dildo":
+				r += `Vaginal dildo.`;
+				break;
+			case "large dildo":
+				r += `Large vaginal dildo.`;
+				break;
+			case "huge dildo":
+				r += `Huge vaginal dildo.`;
+				break;
+			case "long dildo":
+				r += `Long vaginal dildo.`;
+				break;
+			case "long, large dildo":
+				r += `Long and large vaginal dildo.`;
+				break;
+			case "long, huge dildo":
+				r += `Long and wide vaginal dildo.`;
+				break;
+		}
+		r += " ";
+	}
+	
+	function long_dick_acc(slave) {
+		if (slave.dickAccessory === "chastity") {
+			r += `Chastity cage.`;
+		} else if (slave.dickAccessory === "combined chastity") {
+			r += `Combined chastity.`;
+		} else if (slave.dickAccessory === "anal chastity") {
+			r += `Anal chastity.`;
+		}
+		r += " ";
+	}
+	
+	function long_buttplug(slave) {
+		switch (slave.buttplug) {
+			case "plug":
+				r += `Buttplug.`;
+				break;
+			case "large plug":
+				r += `Large buttplug.`;
+				break;
+			case "huge plug":
+				r += `Huge buttplug.`;
+				break;
+			case "long plug":
+				r += `Long buttplug.`;
+				break;
+			case "long, large plug":
+				r += `Large, long buttplug.`;
+				break;
+			case "long, huge plug":
+				r += `Enormous buttplug.`;
+				break;
+		}
+		r += " ";
+		switch (slave.buttplugAttachment) {
+			case "tail":
+				r += `Attached tail. `;
+				break;
 		}
 	}
-
-	r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
-	if (slave.useRulesAssistant === 0) {
-		r += `<span class="lightgreen">RA-Exempt</span>`;
-	} else if (V.abbreviateRulesets === 2 && (slave.currentRules !== undefined) && (slave.currentRules.length > 0)) {
-		r += `Rules: ${V.defaultRules.filter(x => ruleApplied(slave, x)).map(x => x.name).join(", ") }`;
+	
+	function rules_assistant(slave) {
+		if (slave.useRulesAssistant === 0) {
+			r += `<span class="lightgreen">RA-Exempt</span> `;
+		} else if (V.abbreviateRulesets === 2 && (slave.currentRules !== undefined) && (slave.currentRules.length > 0)) {
+			r += `Rules: ${V.defaultRules.filter(x => ruleApplied(slave, x)).map(x => x.name).join(", ") }`;
+		}
 	}
-
-	if (V.abbreviateOrigins === 2 && slave.origin !== 0) {
+	
+	function origins(slave) {
 		r += `<br>`;
 		if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1) {
 			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
 		}
 		r += `<span class="gray">${slave.origin}</span>`;
 	}
-	return r;
+	
+	return SlaveSummaryUncached;
 })();
