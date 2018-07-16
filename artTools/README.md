@@ -10,6 +10,8 @@ Note: This does not actually describe how to be an artist.
     killall inkscape
     artTools/vector_layer_split.py artTools/vector_source.svg tw src/art/vector/layers/
     compile
+    python3 artTools/normalize_svg.py artTools/vector_source.svg
+    git commit -a
 
 ## 1. Be an artist
 
