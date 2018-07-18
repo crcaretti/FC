@@ -7776,6 +7776,7 @@ window.MenialPopCap = function MenialPopCap () {
 			r += "You don't have enough room for all your menial bioreactors and are obliged to sell some.";
 		}
 	}
+	V.PopCap = popCap;
 	return r;
 };
 
@@ -10780,6 +10781,4474 @@ window.clearSummaryCache = function clearSummaryCache(slave) {
 	else
 		setup.summaryCache[slave] = undefined;
 };
+
+window.SlaveSummary = function SlaveSummary(slave) {
+	const V = State.variables;
+	if(V.useSummaryCache) {
+		if (setup.summaryCache[slave.ID] === undefined)
+			setup.summaryCache[slave.ID] = SlaveSummaryUncached(slave);
+		//this.output.appendChild(setup.summaryCache[State.temporary.Slave.ID].cloneNode(true))
+		return setup.summaryCache[slave.ID];
+	} else return SlaveSummaryUncached(slave);
+};
+
+window.SlaveSummaryUncached = (function(){
+	"use strict";
+	let V, r;
+	
+	function SlaveSummaryUncached(slave) {
+		V = State.variables;
+		r = "";
+		if (V.abbreviateDevotion === 1)
+			short_devotion(slave);
+		else if (V.abbreviateDevotion === 2)
+			long_devotion(slave);
+		if (slave.fuckdoll === 0) {
+			if (V.abbreviateRules === 1)
+				short_rules(slave);
+			else if (V.abbreviateRules === 2)
+				long_rules(slave);
+		}
+		if (slave.tired !== 0)
+			r += `Tired.`;
+		if (V.abbreviateDiet === 1)
+			short_weight(slave);
+		else if (V.abbreviateDiet === 2)
+			long_weight(slave);
+		if (V.abbreviateDiet === 1)
+			short_diet(slave);
+		else if (V.abbreviateDiet === 2)
+			long_diet(slave);
+		if (V.abbreviateHealth === 1)
+			short_health(slave);
+		else if (V.abbreviateHealth === 2)
+			long_health(slave);
+		if (V.abbreviateDrugs === 1)
+			short_drugs(slave);
+		else if (V.abbreviateDrugs === 2)
+			long_drugs(slave);
+		if (V.abbreviateNationality + V.abbreviateGenitalia + V.abbreviatePhysicals + V.abbreviateSkills + V.abbreviateMental !== 0) {
+			r += `<br>`;
+			if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1)
+				r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		}
+		V.desc = SlaveTitle(slave);
+		V.seed = V.desc.substring(0, 1);
+		V.seed = V.seed.toUpperCase();
+		V.desc = V.seed + V.desc.substring(1);
+		r += `<strong><span class="coral">${V.desc}${V.abbreviatePhysicals === 2? '.' : ''}</span></strong> `;
+		if (V.seeRace === 1) {
+			r += `<span class="tan">`;
+			if (V.abbreviateRace === 1)
+				short_race(slave);
+			else if (V.abbreviateRace === 2)
+				long_race(slave);
+			r += `</span> `;
+		}
+		if (V.abbreviateNationality === 1)
+			short_nationality(slave);
+		else if (V.abbreviateNationality === 2)
+			long_nationality(slave);
+		if (V.abbreviatePhysicals === 1)
+			short_skin(slave);
+		else
+			r += `<span class="pink">${slave.skin.charAt(0).toUpperCase() + slave.skin.slice(1)} skin.</span> `;
+		if (V.abbreviateGenitalia === 1)
+			short_genitals(slave);
+		else if (V.abbreviateGenitalia === 2)
+			long_genitals(slave);
+		if (V.abbreviatePhysicals === 1) {
+			short_age(slave);
+			short_face(slave);
+			short_eyes(slave);
+			if (slave.markings !== "none")
+				r += `Markings`;
+			short_lips(slave);
+			short_teeth(slave);
+			short_muscles(slave);
+			short_limbs(slave);
+			short_voice(slave);
+			short_tits_ass(slave);
+			short_hips(slave);
+			short_waist(slave);
+			short_implants(slave);
+			short_lactation(slave);
+			short_mods(slave);
+			r += `</span>`;
+		} else if (V.abbreviatePhysicals === 2) {
+			long_age(slave);
+			long_face(slave);
+			long_eyes(slave);
+			long_lips(slave);
+			long_teeth(slave);
+			long_muscles(slave);
+			long_limbs(slave);
+			long_voice(slave);
+			long_tits_ass(slave);
+			long_hips(slave);
+			long_waist(slave);
+			long_implants(slave);
+			long_lactation(slave);
+			long_mods(slave);
+			if (slave.brand !== 0)
+				r += `Branded.`;
+			r += `</span>`;
+		}
+		r += `<br>`;
+		if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1)
+			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		if (V.abbreviateSkills === 1) {
+			short_intelligence(slave);
+			short_sex_skills(slave);
+			if (slave.combatSkill > 0)
+				r += `C`;
+			r += `</span> `;
+			short_prestige(slave);
+		} else if (V.abbreviateSkills === 2) {
+			long_intelligence(slave);
+			long_sex_skills(slave);
+			if (slave.combatSkill > 0)
+				r += `Trained fighter.`;
+			r += `</span> `;
+			long_prestige(slave);
+		}
+		if (V.abbreviateMental === 1) {
+			if (slave.fetish !== "mindbroken") {
+				if (slave.fetishKnown === 1)
+					short_fetish(slave);
+				if (slave.attrKnown === 1)
+					short_attraction(slave);
+			}
+			if (slave.clitPiercing === 3) {
+				short_smart_fetish(slave);
+				short_smart_attraction(slave);
+			}
+			short_behavior_flaw(slave);
+			short_sex_flaw(slave);
+			short_behavior_quirk(slave);
+			short_sex_quirk(slave);
+		} else if (V.abbreviateMental === 2) {
+			if (slave.fetish !== "mindbroken") {
+				if (slave.fetishKnown === 1)
+					long_fetish(slave);
+				if (slave.attrKnown === 1)
+					long_attraction(slave);
+			}
+			if (slave.clitPiercing === 3) {
+				long_smart_fetish(slave);
+				long_smart_attraction(slave);
+			}
+			long_behavior_flaw(slave);
+			long_sex_flaw(slave);
+			long_behavior_quirk(slave);
+			long_sex_quirk(slave);
+		}
+		if (slave.customLabel != "")
+			r += `<strong><span class="yellow">${slave.customLabel}</span></strong>`;
+		if ((slave.relationship !== 0) || (slave.relation !== 0) || (V.abbreviateClothes === 2) || (V.abbreviateRulesets === 2)) {
+			r += `<br>`;
+			if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1)
+				r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		}
+		if (V.abbreviateMental === 1) {
+			r += `<span class="lightgreen">`;
+			if (V.familyTesting === 1)
+				short_extended_family(slave);
+			else
+				short_legacy_family(slave);
+			r += `</span>`;
+			short_rival(slave);
+		} else if (V.abbreviateMental === 2) {
+			if (V.familyTesting === 1)
+				long_extended_family(slave);
+			else
+				long_legacy_family(slave);
+			long_rival(slave);
+		}
+		if (slave.fuckdoll === 0) {
+			if (V.abbreviateClothes === 2) {
+				r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+				if (slave.choosesOwnClothes === 1)
+					r += `Dressing herself. `;
+				long_clothes(slave);
+				long_collar(slave);
+				long_belly(slave);
+				if (slave.amp !== 1)
+					long_legs(slave);
+				if (canWalk(slave))
+					long_shoes(slave);
+				long_vaginal_acc(slave);
+				long_dick_acc(slave);
+				long_buttplug(slave);
+			}
+		}
+		r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		rules_assistant(slave);
+		if (V.abbreviateOrigins === 2 && slave.origin !== 0)
+			origins(slave);
+		return r;
+	}
+	
+	function short_devotion(slave) {
+		if (slave.fetish === "mindbroken") {
+			r += `<span class="red">MB</span>`;
+		} else if (slave.devotion < -95) {
+			r += `<span class="darkviolet">Hate${V.summaryStats ? `[${slave.devotion}]` : ''}</span>`;
+		} else if (slave.devotion < -50) {
+			r += `<span class="darkviolet">Hate${V.summaryStats ? `[${slave.devotion}]` : ''}</span>`;
+		} else if (slave.devotion < -20) {
+			r += `<span class="mediumorchid">Res${V.summaryStats ? `[${slave.devotion}]` : ''}</span>`;
+		} else if (slave.devotion <= 20) {
+			r += `<span class="yellow">Ambiv${V.summaryStats ? `[${slave.devotion}]` : ''}</span>`;
+		} else if (slave.devotion <= 50) {
+			r += `<span class="hotpink">Accept${V.summaryStats ? `[${slave.devotion}]` : ''}</span>`;
+		} else if (slave.devotion <= 95) {
+			r += `<span class="deeppink">Devo${V.summaryStats ? `[${slave.devotion}]` : ''}</span>`;
+		} else {
+			r += `<span class="magenta">Wor${V.summaryStats ? `[${slave.devotion}]` : ''}</span>`;
+		}
+		r += " ";
+		if (slave.fetish === "mindbroken") {
+			return;
+		} else if (slave.trust < -95) {
+			r += `<span class="darkgoldenrod">ETerr${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+		} else if (slave.trust < -50) {
+			r += `<span class="goldenrod">Terr${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+		} else if (slave.trust < -20) {
+			r += `<span class="gold">Fright${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+		} else if (slave.trust <= 20) {
+			r += `<span class="yellow">Fear${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+		} else if (slave.trust <= 50) {
+			if (slave.devotion < -20) {
+				r += `<span class="orange">Caref${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+			} else {
+				r += `<span class="mediumaquamarine">Caref${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+			}
+		} else if (slave.trust < 95) {
+			if (slave.devotion < -20) {
+				r += `<span class="orangered">Bold${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+			} else {
+				r += `<span class="mediumseagreen">Trust${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+			}
+		} else {
+			if (slave.devotion < -20) {
+				r += `<span class="darkred">Defiant${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+			} else {
+				r += `<span class="seagreen">VTrust ${V.summaryStats ? `[${slave.trust}]` : ''}</span>`;
+			}
+		}
+		r += " ";
+	}
+	
+	function long_devotion(slave) {
+		if (slave.fetish === "mindbroken") {
+			r += `<span class="red">Mindbroken.</span>`;
+		} else if (slave.devotion < -95) {
+			r += `<span class="darkviolet">Very hateful${V.summaryStats ? `[${slave.devotion}]` : ''}.</span>`;
+		} else if (slave.devotion < -50) {
+			r += `<span class="darkviolet">Hateful${V.summaryStats ? `[${slave.devotion}]` : ''}.</span>`;
+		} else if (slave.devotion < -20) {
+			r += `<span class="mediumorchid">Resistant${V.summaryStats ? `[${slave.devotion}]` : ''}.</span>`;
+		} else if (slave.devotion <= 20) {
+			r += `<span class="yellow">Ambivalent${V.summaryStats ? `[${slave.devotion}]` : ''}.</span>`;
+		} else if (slave.devotion <= 50) {
+			r += `<span class="hotpink">Accepting${V.summaryStats ? `[${slave.devotion}]` : ''}.</span>`;
+		} else if (slave.devotion <= 95) {
+			r += `<span class="deeppink">Devoted${V.summaryStats ? `[${slave.devotion}]` : ''}.</span>`;
+		} else {
+			r += `<span class="magenta">Worshipful${V.summaryStats ? `[${slave.devotion}]` : ''}.</span>`;
+		}
+		r += " ";
+		if (slave.fetish === "mindbroken") {
+			return;
+		} else if (slave.trust < -95) {
+			r += `<span class="darkgoldenrod">Extremely terrified${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+		} else if (slave.trust < -50) {
+			r += `<span class="goldenrod">Terrified${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+		} else if (slave.trust < -20) {
+			r += `<span class="gold">Frightened${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+		} else if (slave.trust <= 20) {
+			r += `<span class="yellow">Fearful${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+		} else if (slave.trust <= 50) {
+			if (slave.devotion < -20) {
+				r += `<span class="orange">Careful${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+			} else {
+				r += `<span class="mediumaquamarine">Careful${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+			}
+		} else if (slave.trust < 95) {
+			if (slave.devotion < -20) {
+				r += `<span class="orangered">Bold${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+			} else {
+				r += `<span class="mediumseagreen">Trusting${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+			}
+		} else {
+			if (slave.devotion < -20) {
+				r += `<span class="darkred">Defiant${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+			} else {
+				r += `<span class="seagreen">Profoundly trusting${V.summaryStats ? `[${slave.trust}]` : ''}.</span>`;
+			}
+		}
+		r += " ";
+	}
+	
+	function short_rules(slave) {
+		switch (slave.livingRules) {
+			case "luxurious":
+				r += `<strong>LS:Lux</strong>`;
+				break;
+			case "normal":
+				r += `<strong>LS:Nor</strong>`;
+				break;
+			default:
+				r += `<strong>LS:Spa</strong>`;
+				break;
+		}
+		r += " ";
+		if (canTalk(slave)) {
+			switch (slave.speechRules) {
+				case "permissive":
+					r += `<strong>SpR:P</strong>`;
+					break;
+				case "accent elimination":
+					r += `<strong>SpR:NoAcc</strong>`;
+					break;
+				case "language lessons":
+					r += `<strong>SpR:LL</strong>`;
+					break;
+				default:
+					r += `<strong>SpR:R</strong>`;
+					break;
+			}
+			r += " ";
+		}
+		switch (slave.relationshipRules) {
+			case "permissive":
+				r += `<strong>ReR:P</strong>`;
+				break;
+			case "just friends":
+				r += `<strong>ReR:Fr</strong>`;
+				break;
+			default:
+				r += `<strong>ReR:R</strong>`;
+				break;
+		}
+		r += " ";
+		switch (slave.standardPunishment) {
+			case "confinement":
+				r += `<strong>Pun:Conf</strong>`;
+				break;
+			case "whipping":
+				r += `<strong>Pun:Whip</strong>`;
+				break;
+			case "chastity":
+				r += `<strong>Pun:Chas</strong>`;
+				break;
+			default:
+				r += `<strong>Pun:Situ</strong>`;
+				break;
+		}
+		r += " ";
+		switch (slave.standardReward) {
+			case "relaxation":
+				r += `<strong>Rew:Relx</strong>`;
+				break;
+			case "drugs":
+				r += `<strong>Rew:Drug</strong>`;
+				break;
+			case "orgasm":
+				r += `<strong>Rew:Orga</strong>`;
+				break;
+			default:
+				r += `<strong>Rew:Situ</strong>`;
+				break;
+		}
+		r += " ";
+		switch (slave.releaseRules) {
+			case "permissive":
+				r += `<strong>MaR:P</strong>`;
+				break;
+			case "sapphic":
+				r += `<strong>MaR:S</strong>`;
+				break;
+			case "masturbation":
+				r += `<strong>MaR:M</strong>`;
+				break;
+			default:
+				r += `<strong>MaR:R</strong>`;
+				break;
+		}
+		r += " ";
+	}
+	
+	function long_rules(slave) {
+		r += `Living standard: ${slave.livingRules}. `;
+		if (canTalk(slave)) {
+			r += `Speech rules: ${slave.speechRules}. `;
+		}
+		r += `Relationship rules: ${slave.relationshipRules}. `;
+		r += `Typical punishment: ${slave.standardPunishment}. `;
+		r += `Typical reward: ${slave.standardReward}. `;
+		r += `Release rules: ${slave.releaseRules}. `;
+	}
+	
+	function short_weight(slave) {
+		if (slave.weight < -95) {
+			r += `<strong><span class="red">W---${V.summaryStats? `[${slave.weight}]` : ''}</span></strong>`;
+		} else if (slave.weight < -30) {
+			if (slave.hips < -1) {
+				r += `<strong>W--${V.summaryStats? `[${slave.weight}]` : ''}</strong>`;
+			} else {
+				r += `<strong><span class="red">W--${V.summaryStats? `[${slave.weight}]` : ''}</span></strong>`;
+			}
+		} else if (slave.weight < -10) {
+			r += `<strong>W-${V.summaryStats? `[${slave.weight}]` : ''}</strong>`;
+		} else if (slave.weight <= 10) {
+			r += `<strong>W${V.summaryStats? `[${slave.weight}]` : ''}</strong>`;
+		} else if (slave.weight <= 30) {
+			r += `<strong>W+${V.summaryStats? `[${slave.weight}]` : ''}</strong>`;
+		} else if (slave.weight <= 95) {
+			if (slave.hips > 1 || V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `<strong>W++${V.summaryStats? `[${slave.weight}]` : ''}</strong>`;
+			} else {
+				r += `<strong><span class="red">W++${V.summaryStats? `[${slave.weight}]` : ''}</span></strong>`;
+			}
+		} else if (slave.weight <= 130) {
+			if (slave.hips >= 2 || V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `<strong>W+++${V.summaryStats? `[${slave.weight}]` : ''}</strong>`;
+			} else {
+				r += `<strong><span class="red">W+++${V.summaryStats? `[${slave.weight}]` : ''}</span></strong>`;
+			}
+		} else if (slave.weight <= 160) {
+			if (V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `<strong>W++++${V.summaryStats? `[${slave.weight}]` : ''}</strong>`;
+			} else {
+				r += `<strong><span class="red">W++++${V.summaryStats? `[${slave.weight}]` : ''}</span></strong>`;
+			}
+		} else if (slave.weight <= 190) {
+			if (V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `<strong>W+++++${V.summaryStats? `[${slave.weight}]` : ''}</strong>`;
+			} else {
+				r += `<strong><span class="red">W+++++${V.summaryStats? `[${slave.weight}]` : ''}</span></strong>`;
+			}
+		} else {
+			if (V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `<strong>W++++++${V.summaryStats? `[${slave.weight}]` : ''}</strong>`;
+			} else {
+				r += `<strong><span class="red">W++++++${V.summaryStats? `[${slave.weight}]` : ''}</span></strong>`;
+			}
+		}
+		r += " ";
+	}
+	
+	function long_weight(slave) {
+		if (slave.weight < -95) {
+			r += `<span class="red">Emaciated${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
+		} else if (slave.weight < -30) {
+			if (slave.hips < -1) {
+				r += `Model-thin${V.summaryStats? `[${slave.weight}]`: ''}.`;
+			} else {
+				r += `<span class="red">Very thin${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
+			}
+		} else if (slave.weight < -10) {
+			r += `Thin${V.summaryStats? `[${slave.weight}]`: ''}.`;
+		} else if (slave.weight <= 10) {
+			r += `Trim${V.summaryStats? `[${slave.weight}]`: ''}.`;
+		} else if (slave.weight <= 30) {
+			r += `Plush${V.summaryStats? `[${slave.weight}]`: ''}.`;
+		} else if (slave.weight <= 95) {
+			if (slave.hips > 1 || V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `Nicely chubby${V.summaryStats? `[${slave.weight}]`: ''}.`;
+			} else {
+				r += `<span class="red">Overweight${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
+			}
+		} else if (slave.weight <= 130) {
+			if (slave.hips >= 2 || V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `Pleasantly soft and shapely${V.summaryStats? `[${slave.weight}]`: ''}.`;
+			} else {
+				r += `<span class="red">Fat${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
+			}
+		} else if (slave.weight <= 160) {
+			if (V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `Amazingly voluptuous${V.summaryStats? `[${slave.weight}]`: ''}.`;
+			} else {
+				r += `<span class="red">Obese${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
+			}
+		} else if (slave.weight <= 190) {
+			if (V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `SSBBW${V.summaryStats? `[${slave.weight}]`: ''}.`;
+			} else {
+				r += `<span class="red">Super Obese${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
+			}
+		} else {
+			if (V.arcologies[0].FSHedonisticDecadence !== "unset") {
+				r += `Perfectly massive${V.summaryStats? `[${slave.weight}]`: ''}.`;
+			} else {
+				r += `<span class="red">Dangerously Obese${V.summaryStats ? `[${slave.weight}]`: ''}.</span>`;
+			}
+		}
+		r += " ";
+
+	}
+	
+	function short_diet(slave) {
+		r += `<span class="teal">`;
+		switch (slave.diet) {
+			case "restricted":
+				r += `<strong>Di:W-</strong>`;
+				break;
+			case "fattening":
+				r += `<strong>Di:W+</strong>`;
+				break;
+			case "XX":
+				r += `<strong>Di:XX+</strong>`;
+				break;
+			case "XY":
+				r += `<strong>Di:XY+</strong>`;
+				break;
+			case "XXY":
+				r += `<strong>Di:XXY+</strong>`;
+				break;
+			case "muscle building":
+				r += `<strong>Di:M+</strong>`;
+				break;
+			case "slimming":
+				r += `<strong>Di:M-</strong>`;
+				break;
+			case "cum production":
+				r += `<strong>Di:C+</strong>`;
+				break;
+			case "cleansing":
+				r += `<strong>Di:H+</strong>`;
+				break;
+			case "fertility":
+				r += `<strong>Di:F+</strong>`;
+				break;
+		}
+		r += `</span> `;
+		r += `<span class="cyan">`;
+		if (slave.dietCum === 2) {
+			r += `<strong>Cum++</strong>`;
+		} else if (((slave.dietCum === 1) && (slave.dietMilk === 0))) {
+			r += `<strong>Cum+</strong>`;
+		} else if (((slave.dietCum === 1) && (slave.dietMilk === 1))) {
+			r += `<strong>Cum+ Milk+</strong>`;
+		} else if (((slave.dietCum === 0) && (slave.dietMilk === 1))) {
+			r += `<strong>Milk+</strong>`;
+		} else if ((slave.dietMilk === 2)) {
+			r += `<strong>Milk++</strong>`;
+		}
+		r += `</span> `;
+	}
+	
+	function long_diet(slave) {
+		r += `<span class="teal">`;
+		switch (slave.diet) {
+			case "restricted":
+				r += `Dieting.`;
+				break;
+			case "fattening":
+				r += `Gaining weight.`;
+				break;
+			case "XX":
+				r += `Estrogen rich.`;
+				break;
+			case "XY":
+				r += `Testosterone rich.`;
+				break;
+			case "XXY":
+				r += `Futanari mix.`;
+				break;
+			case "muscle building":
+				r += `Pumping iron.`;
+				break;
+			case "slimming":
+				r += `Slimming down.`;
+				break;
+			case "cum production":
+				r += `Cum production.`;
+				break;
+			case "cleansing":
+				r += `Cleansing.`;
+				break;
+			case "fertility":
+				r += `Fertility.`;
+				break;
+		}
+		r += `</span> `;
+		if (slave.dietCum === 2) {
+			r += `Diet Base: <span class="cyan">Cum Based.</span>`;
+		} else if (((slave.dietCum === 1) && (slave.dietMilk === 0))) {
+			r += `Diet Base: <span class="cyan">Cum Added.</span>`;
+		} else if (((slave.dietCum === 1) && (slave.dietMilk === 1))) {
+			r += `Diet Base: <span class="cyan">Milk & Cum Added.</span>`;
+		} else if (((slave.dietCum === 0) && (slave.dietMilk === 1))) {
+			r += `Diet Base: <span class="cyan">Milk Added.</span>`;
+		} else if ((slave.dietMilk === 2)) {
+			r += `Diet Base: <span class="cyan">Milk Based.</span>`;
+		}
+		r += " ";
+	}
+	
+	function short_health(slave) {
+		if (slave.health < -20) {
+			r += `<strong><span class="red">H${V.summaryStats? `[${slave.health}]` : ''}</span></strong>`;
+		} else if (slave.health <= 20) {
+			r += `<strong><span class="yellow">H${V.summaryStats? `[${slave.health}]` : ''}</span></strong>`;
+		} else if (slave.health > 20) {
+			r += `<strong><span class="green">H${V.summaryStats? `[${slave.health}]` : ''}</span></strong>`;
+		}
+		r += " ";
+	}
+	
+	function long_health(slave) {
+		if (slave.health < -90) {
+			r += `<span class="red">On the edge of death${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
+		} else if (slave.health < -50) {
+			r += `<span class="red">Extremely unhealthy${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
+		} else if (slave.health < -20) {
+			r += `<span class="red">Unhealthy${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
+		} else if (slave.health <= 20) {
+			r += `<span class="yellow">Healthy${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
+		} else if (slave.health <= 50) {
+			r += `<span class="green">Very healthy${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
+		} else if (slave.health <= 90) {
+			r += `<span class="green">Extremely healthy${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
+		} else {
+			r += `<span class="green">Unnaturally healthy${V.summaryStats? `[${slave.health}]` : ''}.</span>`;
+		}
+		r += " ";
+	}
+	
+	function short_drugs(slave) {
+		r += `<span class="tan">`;
+		switch (slave.drugs) {
+			case "breast injections":
+				r += `<strong>Dr:Boobs+</strong>`;
+				break;
+			case "intensive breast injections":
+				r += `<strong>Dr:Boobs++</strong>`;
+				break;
+			case "hyper breast injections":
+				r += `<strong>Dr:Boobs+++</strong>`;
+				break;
+			case "butt injections":
+				r += `<strong>Dr:Butt+</strong>`;
+				break;
+			case "intensive butt injections":
+				r += `<strong>Dr:Butt++</strong>`;
+				break;
+			case "hyper butt injections":
+				r += `<strong>Dr:Butt+++</strong>`;
+				break;
+			case "lip injections":
+				r += `<strong>Dr:Lip+</strong>`;
+				break;
+			case "fertility drugs":
+				r += `<strong>Dr:Fert+</strong>`;
+				break;
+			case "super fertility drugs":
+				r += `<strong>Dr:Fert++</strong>`;
+				break;
+			case "penis enhancement":
+				r += `<strong>Dr:Dick+</strong>`;
+				break;
+			case "intensive penis enhancement":
+				r += `<strong>Dr:Dick++</strong>`;
+				break;
+			case "hyper penis enhancement":
+				r += `<strong>Dr:Dick+++</strong>`;
+				break;
+			case "testicle enhancement":
+				r += `<strong>Dr:Balls+</strong>`;
+				break;
+			case "intensive testicle enhancement":
+				r += `<strong>Dr:Balls++</strong>`;
+				break;
+			case "hyper testicle enhancement":
+				r += `<strong>Dr:Balls+++</strong>`;
+				break;
+			case "psychosuppressants":
+				r += `<strong>Dr:Psych</strong>`;
+				break;
+			case "steroids":
+				r += `<strong>Dr:Ster</strong>`;
+				break;
+			case "female hormone injections":
+				r += `<strong>Dr:HormXX++</strong>`;
+				break;
+			case "male hormone injections":
+				r += `<strong>Dr:HormXY++</strong>`;
+				break;
+			case "hormone enhancers":
+				r += `<strong>Dr:Horm+</strong>`;
+				break;
+			case "hormone blockers":
+				r += `<strong>Dr:Horm-</strong>`;
+				break;
+			case "anti-aging cream":
+				r += `<strong>Dr:Age-</strong>`;
+				break;
+			case "appetite suppressors":
+				r += `<strong>Dr:ApSup</strong>`;
+				break;
+			case "penis atrophiers":
+				r += `<strong>Dr:Dick-</strong>`;
+				break;
+			case "testicle atrophiers":
+				r += `<strong>Dr:Balls-</strong>`;
+				break;
+			case "clitoris atrophiers":
+				r += `<strong>Dr:Clit-</strong>`;
+				break;
+			case "labia atrophiers":
+				r += `<strong>Dr:Labia-</strong>`;
+				break;
+			case "nipple atrophiers":
+				r += `<strong>Dr:Nipple-</strong>`;
+				break;
+			case "lip atrophiers":
+				r += `<strong>Dr:Lip-</strong>`;
+				break;
+			case "breast redistributors":
+				r += `<strong>Dr:Breast-</strong>`;
+				break;
+			case "butt redistributors":
+				r += `<strong>Dr:Butt-</strong>`;
+				break;
+			case "sag-B-gone":
+				r += `<strong>Dr:AntiSag</strong>`;
+				break;
+			case "growth stimulants":
+				r += `<strong>Dr:groStim</strong>`;
+				break;
+		}
+		r += `</span> `;
+		r += `<span class="lightgreen">`;
+		if (slave.curatives === 2) {
+			r += `<strong>Cura</strong>`;
+		} else if (slave.curatives === 1) {
+			r += `<strong>Prev</strong>`;
+		}
+		r += `</span> `;
+		if (slave.aphrodisiacs !== 0) {
+			r += `<span class="lightblue">`;
+			if (slave.aphrodisiacs === 1) {
+				r += `<strong>Aph</strong>`;
+			} else if (slave.aphrodisiacs === 2) {
+				r += `<strong>Aph++</strong>`;
+			} else {
+				r += `<strong>Anaph</strong>`;
+			}
+			r += `</span> `;
+		}
+		if (slave.addict !== 0) {
+			r += `<span class="cyan">Add</span>`;
+		}
+		r += `<span class="lightsalmon">`;
+		if (slave.hormones > 1) {
+			r += `<strong>Ho:F+</strong>`;
+		} else if (slave.hormones > 0) {
+			r += `<strong>Ho:F</strong>`;
+		} else if (slave.hormones < -1) {
+			r += `<strong>Ho:M+</strong>`;
+		} else if (slave.hormones < 0) {
+			r += `<strong>Ho:M</strong>`;
+		}
+		r += `</span> `;
+		r += `<span class="mediumseagreen">`;
+		if ((slave.bellyImplant > -1)) {
+			r += `<strong>Belly Imp</strong>`;
+		} else if (((slave.preg <= -2) || (slave.ovaries === 0)) && (slave.vagina !== -1)) {
+			r += `<strong>Barr</strong>`;
+		} else if (slave.pubertyXX === 0 && (slave.ovaries === 1 || slave.mpreg === 1)) {
+			r += `<strong>Prepub</strong>`;
+		} else if (slave.ovaryAge >= 47 && (slave.ovaries === 1 || slave.mpreg === 1)) {
+			r += `<strong>Meno</strong>`;
+		} else if (slave.pregWeek < 0) {
+			r += `<strong>Postpartum</strong>`;
+		} else if (slave.preg === -1) {
+			r += `<strong>CC</strong>`;
+		} else if (slave.preg === 0 && (slave.ovaries === 1 || slave.mpreg === 1)) {
+			r += `<strong>Fert+</strong>`;
+		} else if (((slave.preg < 4) && (slave.preg > 0) && slave.pregKnown === 0) || slave.pregWeek === 1) {
+			r += `<strong>Preg?</strong>`;
+		} else if ((slave.preg >= 36) && (slave.broodmother > 0)) {
+			r += `<strong>Perm preg</strong>`;
+		} else if (slave.pregKnown === 1) {
+			r += `<strong>${slave.pregWeek} wks preg</strong>`;
+		}
+		r += `</span> `;
+		if (slave.induce === 1) {
+			r += `<span class="orange"><strong>Early Labor</strong></span>`;
+		}
+		if (slave.pubertyXY === 0 && slave.balls > 0) {
+			r += `<strong>Prepub balls</strong>`;
+		}
+		if (slave.balls > 0 && slave.vasectomy === 1) {
+			r += `<strong>Vasect</strong>`;
+		}
+		r += `<span class="springgreen">`;
+		if (slave.inflation === 3) {
+			r += `<strong>8 ltr ${slave.inflationType}</strong>`;
+		} else if (slave.inflation === 2) {
+			r += `<strong>4 ltr ${slave.inflationType}</strong>`;
+		} else if (slave.inflation === 1) {
+			r += `<strong>2 ltr ${slave.inflationType}</strong>`;
+		} else if (slave.bellyFluid > 0) {
+			r += `<strong>${slave.bellyFluid}ccs ${slave.inflationType}</strong>`;
+		}
+		r += `</span> `;
+	}
+	
+	function long_drugs(slave) {
+		if ((slave.drugs !== "no drugs") && (slave.drugs !== "none")) {
+			r += `<span class="tan">On ${slave.drugs}.</span> `;
+		}
+		r += `<span class="lightgreen">`;
+		if (slave.curatives === 2) {
+			r += `On curatives.`;
+		} else if (slave.curatives === 1) {
+			r += `On preventatives.`;
+		}
+		r += `</span> `;
+		r += `<span class="lightblue">`;
+		if (slave.aphrodisiacs > 0) {
+			r += `On ${slave.aphrodisiacs > 1 ? 'extreme': ''} aphrodisiacs.`;
+		} else if (slave.aphrodisiacs === -1) {
+			r += `On anaphrodisiacs.`;
+		}
+		r += `</span> `;
+		if (slave.addict !== 0) {
+			r += `<span class="cyan">Addict.</span>`;
+		}
+		r += `<span class="lightsalmon">`;
+		if (slave.hormones > 1) {
+			r += `Heavy female hormones.`;
+		} else if (slave.hormones > 0) {
+			r += `Female hormones.`;
+		} else if (slave.hormones < -1) {
+			r += `Heavy male hormones.`;
+		} else if (slave.hormones < 0) {
+			r += `Male hormones.`;
+		}
+		r += `</span> `;
+		r += `<span class="mediumseagreen">`;
+		if ((slave.bellyImplant > -1)) {
+			r += `Belly Implant.`;
+		} else if (((slave.preg <= -2) || (slave.ovaries === 0)) && (slave.vagina !== -1)) {
+			r += `Barren.`;
+		} else if (slave.pubertyXX === 0 && (slave.ovaries === 1 || slave.mpreg === 1)) {
+			r += `Not ovulating yet.`;
+		} else if (slave.ovaryAge >= 47 && (slave.ovaries === 1 || slave.mpreg === 1)) {
+			r += `Menopausal.`;
+		} else if (slave.pregWeek < 0) {
+			r += `Postpartum.`;
+		} else if (slave.preg === -1) {
+			r += `On contraceptives.`;
+		} else if (slave.preg === 0 && (slave.ovaries === 1 || slave.mpreg === 1)) {
+			r += `Fertile.`;
+		} else if (((slave.preg < 4) && (slave.preg > 0) && slave.pregKnown === 0) || slave.pregWeek === 1) {
+			r += `May be pregnant.`;
+		} else if ((slave.preg >= 36) && (slave.broodmother > 0)) {
+			r += `Permanently pregnant.`;
+		} else if (slave.pregKnown === 1) {
+			if (slave.pregType < 2 || slave.broodmother > 0) {
+				r += `${slave.pregWeek} weeks pregnant.`;
+			} else {
+				r += `${slave.pregWeek} weeks pregnant with `;
+				if (slave.pregType >= 40) {
+					r += `a tremendous brood of offspring.`;
+				} else if (slave.pregType >= 20) {
+					r += `a brood of offspring.`;
+				} else if (slave.pregType >= 10) {
+					r += `${slave.pregType} babies.`;
+				} else if (slave.pregType === 9) {
+					r += `nonuplets.`;
+				} else if (slave.pregType === 8) {
+					r += `octuplets.`;
+				} else if (slave.pregType === 7) {
+					r += `septuplets.`;
+				} else if (slave.pregType === 6) {
+					r += `sextuplets.`;
+				} else if (slave.pregType === 5) {
+					r += `quintuplets.`;
+				} else if (slave.pregType === 4) {
+					r += `quadruplets.`;
+				} else if (slave.pregType === 3) {
+					r += `triplets.`;
+				} else {
+					r += `twins.`;
+				}
+			}
+		}
+		r += `</span> `;
+		if (slave.induce === 1) {
+			r += `<span class="orange">Showing signs of early labor.</span>`;
+		}
+		if (slave.pubertyXY === 0 && slave.balls > 0) {
+			r += `Has not had first ejaculation.`;
+		}
+		if (slave.balls > 0 && slave.vasectomy === 1) {
+			r += `Vasectomy.`;
+		}
+		r += `<span class="springgreen">`;
+		if (slave.inflation === 3) {
+			r += `Filled with 8 liters of ${slave.inflationType}.`;
+		} else if (slave.inflation === 2) {
+			r += `Filled with 4 liters of ${slave.inflationType}.`;
+		} else if (slave.inflation === 1) {
+			r += `Filled with 2 liters of ${slave.inflationType}.`;
+		} else if (slave.bellyFluid > 0) {
+			r += `Stuffed with ${slave.bellyFluid}ccs of ${slave.inflationType}.`;
+		}
+		r += `</span> `;
+	}
+	
+	function long_race(slave) {
+		switch (slave.race) {
+			case "white":
+				r += `Caucasian.`;
+				break;
+			case "asian":
+				r += `Asian.`;
+				break;
+			case "indo-aryan":
+				r += `Indo-aryan.`;
+				break;
+			case "latina":
+				r += `Latina.`;
+				break;
+			case "middle eastern":
+				r += `Middle Eastern.`;
+				break;
+			case "black":
+				r += `Black.`;
+				break;
+			case "pacific islander":
+				r += `Pacific Islander.`;
+				break;
+			case "malay":
+				r += `Malay.`;
+				break;
+			case "amerindian":
+				r += `Amerindian.`;
+				break;
+			case "semitic":
+				r += `Semitic.`;
+				break;
+			case "southern european":
+				r += `Southern European.`;
+				break;
+			case "mixed race":
+				r += `Mixed race.`;
+				break;
+			default:
+				r += `${slave.race.charAt(0).toUpperCase() + slave.race.slice(1)}.`;
+				break;
+		}
+		r += " ";
+	}
+	
+	function short_race(slave) {
+		switch (slave.race) {
+			case "white":
+				r += `C`;
+				break;
+			case "asian":
+				r += `A`;
+				break;
+			case "indo-aryan":
+				r += `I`;
+				break;
+			case "latina":
+				r += `L`;
+				break;
+			case "middle eastern":
+				r += `ME`;
+				break;
+			case "black":
+				r += `B`;
+				break;
+			case "pacific islander":
+				r += `PI`;
+				break;
+			case "malay":
+				r += `M`;
+				break;
+			case "amerindian":
+				r += `AI`;
+				break;
+			case "semitic":
+				r += `S`;
+				break;
+			case "southern european":
+				r += `SE`;
+				break;
+			case "mixed race":
+				r += `MR`;
+				break;
+			default:
+				r += `${slave.race.charAt(0).toUpperCase() + slave.race.charAt(1) + slave.race.charAt(2)}`;
+				break;
+		}
+		r += " ";
+	}
+	
+	function short_nationality(slave) {
+		r += `<span class="tan">`;
+		switch (slave.nationality) {
+			case "Afghan":
+				r += `Afg`;
+				break;
+			case "Albanian":
+				r += `Alb`;
+				break;
+			case "Algerian":
+				r += `Alg`;
+				break;
+			case "American":
+				r += `USA`;
+				break;
+			case "Andorran":
+				r += `And`;
+				break;
+			case "Angolan":
+				r += `Ang`;
+				break;
+			case "Antiguan":
+				r += `AB`;
+				break;
+			case "Argentinian":
+				r += `Arg`;
+				break;
+			case "Armenian":
+				r += `Arm`;
+				break;
+			case "Aruban":
+				r += `Aru`;
+				break;
+			case "Australian":
+				r += `Aus`;
+				break;
+			case "Austrian":
+				r += `Aut`;
+				break;
+			case "Azerbaijani":
+				r += `Aze`;
+				break;
+			case "Bahamian":
+				r += `Bah`;
+				break;
+			case "Bahraini":
+				r += `Bah`;
+				break;
+			case "Bangladeshi":
+				r += `Bgd`;
+				break;
+			case "Barbadian":
+				r += `Bar`;
+				break;
+			case "Belarusian":
+				r += `Ber`;
+				break;
+			case "Belgian":
+				r += `Bel`;
+				break;
+			case "Belizean":
+				r += `Blz`;
+				break;
+			case "Beninese":
+				r += `Ben`;
+				break;
+			case "Bermudian":
+				r += `Bmd`;
+				break;
+			case "Bhutanese":
+				r += `Bhu`;
+				break;
+			case "Bissau-Guinean":
+				r += `GB`;
+				break;
+			case "Bolivian":
+				r += `Bol`;
+				break;
+			case "Bosnian":
+				r += `Bos`;
+				break;
+			case "Brazilian":
+				r += `Bra`;
+				break;
+			case "British":
+				r += `UK`;
+				break;
+			case "Bruneian":
+				r += `Bru`;
+				break;
+			case "Bulgarian":
+				r += `Bul`;
+				break;
+			case "Burkinabé":
+				r += `BF`;
+				break;
+			case "Burmese":
+				r += `Bur`;
+				break;
+			case "Burundian":
+				r += `Bnd`;
+				break;
+			case "Cambodian":
+				r += `Kam`;
+				break;
+			case "Cameroonian":
+				r += `Cam`;
+				break;
+			case "Canadian":
+				r += `Can`;
+				break;
+			case "Cape Verdean":
+				r += `CV`;
+				break;
+			case "Catalan":
+				r += `Cat`;
+				break;
+			case "Central African":
+				r += `CAR`;
+				break;
+			case "Chadian":
+				r += `Cha`;
+				break;
+			case "Chilean":
+				r += `Chl`;
+				break;
+			case "Chinese":
+				r += `Chi`;
+				break;
+			case "Colombian":
+				r += `Col`;
+				break;
+			case "Comorian":
+				r += `Com`;
+				break;
+			case "Congolese":
+				r += `RC`;
+				break;
+			case "a Cook Islander":
+				r += `CI`;
+				break;
+			case "Costa Rican":
+				r += `CR`;
+				break;
+			case "Croatian":
+				r += `Cro`;
+				break;
+			case "Cuban":
+				r += `Cub`;
+				break;
+			case "Cypriot":
+				r += `Cyp`;
+				break;
+			case "Czech":
+				r += `Cze`;
+				break;
+			case "Danish":
+				r += `Den`;
+				break;
+			case "Djiboutian":
+				r += `Dji`;
+				break;
+			case "Dominican":
+				r += `DR`;
+				break;
+			case "Dominiquais":
+				r += `Dom`;
+				break;
+			case "Dutch":
+				r += `Nld`;
+				break;
+			case "East Timorese":
+				r += `ET`;
+				break;
+			case "Ecuadorian":
+				r += `Ecu`;
+				break;
+			case "Egyptian":
+				r += `Egy`;
+				break;
+			case "Emirati":
+				r += `UAE`;
+				break;
+			case "Equatoguinean":
+				r += `EG`;
+				break;
+			case "Eritrean":
+				r += `Eri`;
+				break;
+			case "Estonian":
+				r += `Est`;
+				break;
+			case "Ethiopian":
+				r += `Eth`;
+				break;
+			case "Fijian":
+				r += `Fij`;
+				break;
+			case "Filipina":
+				r += `Phl`;
+				break;
+			case "Finnish":
+				r += `Fin`;
+				break;
+			case "French":
+				r += `Fra`;
+				break;
+			case "French Guianan":
+				r += `FG`;
+				break;
+			case "French Polynesian":
+				r += `FP`;
+				break;
+			case "Gabonese":
+				r += `Gab`;
+				break;
+			case "Gambian":
+				r += `Gam`;
+				break;
+			case "Georgian":
+				r += `Geo`;
+				break;
+			case "German":
+				r += `Ger`;
+				break;
+			case "Ghanan":
+				r += `Gha`;
+				break;
+			case "Greek":
+				r += `Gre`;
+				break;
+			case "Greenlandic":
+				r += `Grn`;
+				break;
+			case "Grenadian":
+				r += `Gda`;
+				break;
+			case "Guamanian":
+				r += `Gua`;
+				break;
+			case "Guatemalan":
+				r += `Gtm`;
+				break;
+			case "Guinean":
+				r += `Gui`;
+				break;
+			case "Guyanese":
+				r += `Guy`;
+				break;
+			case "Haitian":
+				r += `Hai`;
+				break;
+			case "Honduran":
+				r += `Hon`;
+				break;
+			case "Hungarian":
+				r += `Hun`;
+				break;
+			case "I-Kiribati":
+				r += `Kir`;
+				break;
+			case "Icelandic":
+				r += `Ice`;
+				break;
+			case "Indian":
+				r += `Ind`;
+				break;
+			case "Indonesian":
+				r += `Idn`;
+				break;
+			case "Iranian":
+				r += `Irn`;
+				break;
+			case "Iraqi":
+				r += `Irq`;
+				break;
+			case "Irish":
+				r += `Irl`;
+				break;
+			case "Israeli":
+				r += `Isr`;
+				break;
+			case "Italian":
+				r += `Ita`;
+				break;
+			case "Ivorian":
+				r += `IC`;
+				break;
+			case "Jamaican":
+				r += `Jam`;
+				break;
+			case "Japanese":
+				r += `Jpn`;
+				break;
+			case "Jordanian":
+				r += `Jor`;
+				break;
+			case "Kazakh":
+				r += `Kaz`;
+				break;
+			case "Kenyan":
+				r += `Ken`;
+				break;
+			case "Kittitian":
+				r += `SKN`;
+				break;
+			case "Korean":
+				r += `Kor`;
+				break;
+			case "Kosovan":
+				r += `Kos`;
+				break;
+			case "Kurdish":
+				r += `Kur`;
+				break;
+			case "Kuwaiti":
+				r += `Kuw`;
+				break;
+			case "Kyrgyz":
+				r += `Kyr`;
+				break;
+			case "Laotian":
+				r += `Lao`;
+				break;
+			case "Latvian":
+				r += `Lat`;
+				break;
+			case "Lebanese":
+				r += `Lbn`;
+				break;
+			case "Liberian":
+				r += `Lib`;
+				break;
+			case "Libyan":
+				r += `Lby`;
+				break;
+			case "a Liechtensteiner":
+				r += `Lie`;
+				break;
+			case "Lithuanian":
+				r += `Lit`;
+				break;
+			case "Luxembourgian":
+				r += `Lux`;
+				break;
+			case "Macedonian":
+				r += `Mac`;
+				break;
+			case "Malagasy":
+				r += `Mad`;
+				break;
+			case "Malawian":
+				r += `Mwi`;
+				break;
+			case "Malaysian":
+				r += `Mys`;
+				break;
+			case "Maldivian":
+				r += `Mdv`;
+				break;
+			case "Malian":
+				r += `Mal`;
+				break;
+			case "Maltese":
+				r += `Mlt`;
+				break;
+			case "Marshallese":
+				r += `MI`;
+				break;
+			case "Mauritanian":
+				r += `Mta`;
+				break;
+			case "Mauritian":
+				r += `Mts`;
+				break;
+			case "Mexican":
+				r += `Mex`;
+				break;
+			case "Micronesian":
+				r += `FSM`;
+				break;
+			case "Moldovan":
+				r += `Mol`;
+				break;
+			case "Monégasque":
+				r += `Mnc`;
+				break;
+			case "Mongolian":
+				r += `Mon`;
+				break;
+			case "Montenegrin":
+				r += `Mng`;
+				break;
+			case "Moroccan":
+				r += `Mor`;
+				break;
+			case "Mosotho":
+				r += `Les`;
+				break;
+			case "Motswana":
+				r += `Bot`;
+				break;
+			case "Mozambican":
+				r += `Moz`;
+				break;
+			case "Namibian":
+				r += `Nam`;
+				break;
+			case "Nauruan":
+				r += `Nau`;
+				break;
+			case "Nepalese":
+				r += `Npl`;
+				break;
+			case "New Caledonian":
+				r += `NC`;
+				break;
+			case "a New Zealander":
+				r += `NZ`;
+				break;
+			case "Ni-Vanuatu":
+				r += `Van`;
+				break;
+			case "Nicaraguan":
+				r += `Nic`;
+				break;
+			case "Nigerian":
+				r += `Nga`;
+				break;
+			case "Nigerien":
+				r += `Ngr`;
+				break;
+			case "Niuean":
+				r += `Niu`;
+				break;
+			case "Norwegian":
+				r += `Nor`;
+				break;
+			case "Omani":
+				r += `Omn`;
+				break;
+			case "Pakistani":
+				r += `Pak`;
+				break;
+			case "Palauan":
+				r += `Plu`;
+				break;
+			case "Palestinian":
+				r += `Pal`;
+				break;
+			case "Panamanian":
+				r += `Pan`;
+				break;
+			case "Papua New Guinean":
+				r += `PNG`;
+				break;
+			case "Paraguayan":
+				r += `Par`;
+				break;
+			case "Peruvian":
+				r += `Per`;
+				break;
+			case "Polish":
+				r += `Pol`;
+				break;
+			case "Portuguese":
+				r += `Por`;
+				break;
+			case "Puerto Rican":
+				r += `PR`;
+				break;
+			case "Qatari":
+				r += `Qat`;
+				break;
+			case "Romanian":
+				r += `Rom`;
+				break;
+			case "Russian":
+				r += `Rus`;
+				break;
+			case "Rwandan":
+				r += `Rwa`;
+				break;
+			case "Sahrawi":
+				r += `Sah`;
+				break;
+			case "Saint Lucian":
+				r += `SL`;
+				break;
+			case "Salvadoran":
+				r += `ES`;
+				break;
+			case "Sammarinese":
+				r += `SM`;
+				break;
+			case "Samoan":
+				r += `Sam`;
+				break;
+			case "São Toméan":
+				r += `STP`;
+				break;
+			case "Saudi":
+				r += `Sau`;
+				break;
+			case "Scottish":
+				r += `Sco`;
+				break;
+			case "Senegalese":
+				r += `Sen`;
+				break;
+			case "Serbian":
+				r += `Srb`;
+				break;
+			case "Seychellois":
+				r += `Sey`;
+				break;
+			case "Sierra Leonean":
+				r += `Sie`;
+				break;
+			case "Singaporean":
+				r += `Sng`;
+				break;
+			case "Slovak":
+				r += `Svk`;
+				break;
+			case "Slovene":
+				r += `Svn`;
+				break;
+			case "a Solomon Islander":
+				r += `SI`;
+				break;
+			case "Somali":
+				r += `Som`;
+				break;
+			case "South African":
+				r += `RSA`;
+				break;
+			case "South Sudanese":
+				r += `SS`;
+				break;
+			case "Spanish":
+				r += `Spa`;
+				break;
+			case "Sri Lankan":
+				r += `Sri`;
+				break;
+			case "Sudanese":
+				r += `Sud`;
+				break;
+			case "Surinamese":
+				r += `Sur`;
+				break;
+			case "Swazi":
+				r += `Swa`;
+				break;
+			case "Swedish":
+				r += `Swe`;
+				break;
+			case "Swiss":
+				r += `Swi`;
+				break;
+			case "Syrian":
+				r += `Syr`;
+				break;
+			case "Taiwanese":
+				r += `Tai`;
+				break;
+			case "Tajik":
+				r += `Taj`;
+				break;
+			case "Tanzanian":
+				r += `Tza`;
+				break;
+			case "Thai":
+				r += `Tha`;
+				break;
+			case "Tibetan":
+				r += `Tib`;
+				break;
+			case "Togolese":
+				r += `Tog`;
+				break;
+			case "Tongan":
+				r += `Ton`;
+				break;
+			case "Trinidadian":
+				r += `TT`;
+				break;
+			case "Tunisian":
+				r += `Tun`;
+				break;
+			case "Turkish":
+				r += `Tur`;
+				break;
+			case "Turkmen":
+				r += `Tkm`;
+				break;
+			case "Tuvaluan":
+				r += `Tuv`;
+				break;
+			case "Ugandan":
+				r += `Uga`;
+				break;
+			case "Ukrainian":
+				r += `Ukr`;
+				break;
+			case "Uruguayan":
+				r += `Uru`;
+				break;
+			case "Uzbek":
+				r += `Uzb`;
+				break;
+			case "Vatican":
+				r += `VC`;
+				break;
+			case "Venezuelan":
+				r += `Ven`;
+				break;
+			case "Vietnamese":
+				r += `Vnm`;
+				break;
+			case "Vincentian":
+				r += `SVG`;
+				break;
+			case "Yemeni":
+				r += `Yem`;
+				break;
+			case "Zairian":
+				r += `DRC`;
+				break;
+			case "Zambian":
+				r += `Zam`;
+				break;
+			case "Zimbabwean":
+				if (slave.race === "white") {
+					r += `Rho`;
+				} else {
+					r += `Zwe`;
+				}
+				break;
+			case "Ancient Chinese Revivalist":
+				r += `Chi Rev`;
+				break;
+			case "Ancient Egyptian Revivalist":
+				r += `Egy Rev`;
+				break;
+			case "Arabian Revivalist":
+				r += `Ara Rev`;
+				break;
+			case "Aztec Revivalist":
+				r += `Azt Rev`;
+				break;
+			case "Edo Revivalist":
+				r += `Edo Rev`;
+				break;
+			case "Roman Revivalist":
+				r += `Rom Rev`;
+				break;
+			case "":
+			case "none":
+			case "slave":
+			case "Stateless":
+				r += `None`;
+				break;
+			default:
+				r += `${slave.nationality.charAt(0) + slave.nationality.charAt(1) + slave.nationality.charAt(2)}`;
+				break;
+		}
+		r += `</span> `;
+	}
+	
+	function long_nationality(slave) {
+		r += `<span class="tan">`;
+		switch (slave.nationality) {
+			case "Zimbabwean":
+				if (slave.race === "white") {
+					r += `Rhodesian.`;
+				} else {
+					r += `${slave.nationality}.`;
+				}
+				break;
+			case "slave":
+			case "none":
+			case "":
+			case "Stateless":
+				r += `Stateless.`;
+				break;
+			default:
+				r += `${slave.nationality}.`;
+				break;
+		}
+		r += `</span> `;
+	}
+	
+	function short_skin(slave) {
+		r += `<span class="pink">`;
+		switch (slave.skin) {
+			case "light brown":
+				r += `L. Br`;
+				break;
+			case "dark brown":
+				r += `D. Br`;
+				break;
+			case "light olive":
+				r += `L. Oli`;
+				break;
+			case "dark olive":
+				r += `D. Oli`;
+				break;
+			case "extremely pale":
+				r += `Ex. Pa`;
+				break;
+			case "pure white":
+				r += `P. Whi`;
+				break;
+			case "tanned":
+				r += `Tan`;
+				break;
+			case "dark":
+			case "fair":
+			case "pale":
+				r += `${slave.skin.charAt(0).toUpperCase() + slave.skin.slice(1)}`;
+				break;
+			default:
+				r += `${slave.skin.charAt(0).toUpperCase() + slave.skin.charAt(1) + slave.skin.charAt(2)}`;
+				break;
+		}
+		r += `</span> `;
+	}
+	
+	function short_genitals(slave) {
+		if (slave.dick > 0) {
+			r += `<span class="pink">`;
+			if (slave.balls === 0) {
+				r += `Geld`;
+			}
+			if ((slave.dick > 8) && (slave.balls > 8)) {
+				r += `Junk+++`;
+			} else if ((slave.dick > 5) && (slave.balls > 5)) {
+				r += `Junk++`;
+			} else if ((slave.dick > 4) && (slave.balls > 4)) {
+				r += `Junk+`;
+			} else if ((slave.dick > 3) && (slave.balls > 3)) {
+				r += `Junk`;
+			} else if (slave.dick > 8) {
+				r += `Dick+++`;
+			} else if (slave.dick > 5) {
+				r += `Dick++`;
+			} else if (slave.dick > 4) {
+				r += `Dick+`;
+			} else if (slave.dick > 3) {
+				r += `Dick`;
+			} else if (slave.balls > 10) {
+				r += `Balls+++`;
+			} else if (slave.balls > 5) {
+				r += `Balls++`;
+			} else if (slave.balls > 4) {
+				r += `Balls+`;
+			} else if (slave.balls > 3) {
+				r += `Balls`;
+			}
+			r += `</span> `;
+		}
+		if (slave.vagina === 0) {
+			r += `<span class="lime">VV</span>`;
+		} else if ((slave.pregKnown === 1) && canWalk(slave) && (slave.clothes === "no clothing" || slave.clothes === "body oil") && (slave.shoes === "none")) {
+			r += `<span class="pink">NBP</span>`;
+		}
+		if (slave.anus === 0) {
+			r += `	<span class="lime">AV</span>`;
+		}
+		r += `<span class="pink">`;
+		if ((slave.vagina > 3) && (slave.anus > 3)) {
+			r += ` V++A++`;
+		} else if ((slave.vagina > 2) && (slave.anus > 2)) {
+			r += ` V+A+`;
+		} else if (slave.vagina > 3) {
+			r += ` V++`;
+		} else if (slave.vagina > 2) {
+			r += ` V+`;
+		} else if (slave.anus > 3) {
+			r += ` A++`;
+		} else if (slave.anus > 2) {
+			r += ` A+`;
+		}
+		r += `</span> `;
+	}
+	
+	function long_genitals(slave) {
+		if (slave.dick > 0) {
+			r += `<span class="pink">`;
+			if (slave.balls === 0) {
+				r += `Gelded.`;
+			}
+			if ((slave.dick > 8) && (slave.balls > 8)) {
+				r += `Hyper dick & balls.`;
+			} else if ((slave.dick > 5) && (slave.balls > 5)) {
+				r += `Monster dick & balls.`;
+			} else if ((slave.dick > 4) && (slave.balls > 4)) {
+				r += `Huge dick & balls.`;
+			} else if ((slave.dick > 3) && (slave.balls > 3)) {
+				r += `Big dick & balls.`;
+			} else if (slave.dick > 8) {
+				r += `Hyper dong.`;
+			} else if (slave.dick > 5) {
+				r += `Monster dong.`;
+			} else if (slave.dick > 4) {
+				r += `Huge dick.`;
+			} else if (slave.dick > 3) {
+				r += `Big dick.`;
+			} else if (slave.balls > 8) {
+				r += `Hyper balls.`;
+			} else if (slave.balls > 5) {
+				r += `Monstrous balls.`;
+			} else if (slave.balls > 4) {
+				r += `Huge balls.`;
+			} else if (slave.balls > 3) {
+				r += `Big balls.`;
+			}
+			r += `</span> `;
+		}
+		if (slave.vagina === 0) {
+			r += `<span class="lime">Virgin.</span> `;
+		} else if ((slave.pregKnown === 1) && canWalk(slave) && (slave.clothes === "no clothing" || slave.clothes === "body oil") && (slave.shoes === "none")) {
+			r += `<span class="pink">Naked, barefoot, and pregnant.</span> `;
+		}
+		if (slave.anus === 0) {
+			r += `<span class="lime">Anal virgin.</span> `;
+		}
+		r += `<span class="pink">`;
+		if ((slave.vagina > 3) && (slave.anus > 3)) {
+			r += `Blown out holes.`;
+		} else if ((slave.vagina > 2) && (slave.anus > 2)) {
+			r += `High mileage.`;
+		} else if (slave.vagina > 3) {
+			r += `Cavernous pussy.`;
+		} else if (slave.vagina > 2) {
+			r += `Loose pussy.`;
+		} else if (slave.anus > 3) {
+			r += `Permagaped anus.`;
+		} else if (slave.anus > 2) {
+			r += `Gaping anus.`;
+		}
+		r += `</span> `;
+	}
+	
+	function short_age(slave) {
+		r += `<span class="pink">`;
+		if (V.showAgeDetail === 1) {
+			r += slave.actualAge;
+		} else if (slave.actualAge >= 40) {
+			r += `40s`;
+		} else if (slave.actualAge >= 35) {
+			r += `Lt30s`;
+		} else if (slave.actualAge >= 30) {
+			r += `Ea30s`;
+		} else if (slave.actualAge >= 25) {
+			r += `Lt20s`;
+		} else if (slave.actualAge >= 20) {
+			r += `Ea20s`;
+		} else if (slave.actualAge >= 18) {
+			r += slave.actualAge;
+		}
+		if (slave.actualAge !== slave.physicalAge) {
+			r += `${slave.physicalAge}y-bdy`;
+		}
+		if (slave.visualAge !== slave.physicalAge) {
+			r += `Lks${slave.visualAge}`;
+		}
+		r += " ";
+	}
+	
+	function short_face(slave) {
+		if (slave.face < -95) {
+			r += `<span class="red">Face---${V.summaryStats? `[${slave.face}]` : ''}</span>`;
+		} else if (slave.face < -40) {
+			r += `<span class="red">Face--${V.summaryStats? `[${slave.face}]` : ''}</span>`;
+		} else if (slave.face < -10) {
+			r += `<span class="red">Face-${V.summaryStats? `[${slave.face}]` : ''}</span>`;
+		} else if (slave.face <= 10) {
+			r += `Face${V.summaryStats? `[${slave.face}]` : ''}`;
+		} else if (slave.face <= 40) {
+			r += `<span class="pink">Face+${V.summaryStats? `[${slave.face}]` : ''}</span>`;
+		} else if (slave.face <= 95) {
+			r += `<span class="pink">Face++${V.summaryStats? `[${slave.face}]` : ''}</span>`;
+		} else {
+			r += `<span class="pink">Face+++${V.summaryStats? `[${slave.face}]` : ''}</span>`;
+		}
+		r += " ";
+	}
+	
+	function short_eyes(slave) {
+		if (slave.eyes === -2) {
+			r += `<span class="red">Blind</span>`;
+		} else if (((slave.eyes === -1) && (slave.eyewear !== "corrective glasses") && (slave.eyewear !== "corrective contacts"))) {
+			r += `<span class="yellow">Sight-</span>`;
+		}
+		r += " ";
+	}
+	
+	function short_lips(slave) {
+		if (slave.lips > 95) {
+			r += `Facepussy`;
+		} else if (slave.lips > 70) {
+			r += `Lips+++${V.summaryStats? `[${slave.lips}]` : ''}`;
+		} else if (slave.lips > 40) {
+			r += `Lips++${V.summaryStats? `[${slave.lips}]` : ''}`;
+		} else if (slave.lips > 20) {
+			r += `Lips+${V.summaryStats? `[${slave.lips}]` : ''}`;
+		} else if (slave.lips > 10) {
+			r += `Lips${V.summaryStats? `[${slave.lips}]` : ''}`;
+		} else {
+			r += `<span class="red">Lips-</span>${V.summaryStats? `[${slave.lips}]` : ''}`;
+		}
+		r += " ";
+	}
+	
+	function short_teeth(slave) {
+		if (slave.teeth === "crooked") {
+			r += `<span class="yellow">Cr Teeth</span>`;
+		} else if (slave.teeth === "cosmetic braces") {
+			r += `Cos Braces`;
+		} else if (slave.teeth === "straightening braces") {
+			r += `Braces`;
+		} else if (slave.teeth === "removable") {
+			r += `Rem Teeth`;
+		} else if (slave.teeth === "pointy") {
+			r += `Fangs`;
+		}
+		r += " ";
+	}
+	
+	function short_muscles(slave) {
+		if (slave.muscles > 95) {
+			r += `Musc++${V.summaryStats? `[${slave.muscles}]`: ''}`;
+		} else if (slave.muscles > 50) {
+			r += `Musc+${V.summaryStats? `[${slave.muscles}]`: ''}`;
+		} else if (slave.muscles > 5) {
+			r += `Fit${V.summaryStats? `[${slave.muscles}]`: ''}`;
+		} else if (slave.muscles > -6) {
+			r += `Soft${V.summaryStats? `[${slave.muscles}]`: ''}`;
+		} else if (slave.muscles > -31) {
+			if (V.arcologies[0].FSPhysicalIdealist === "unset") {
+				r += `<span class="red">Weak</span>${V.summaryStats? `[${slave.muscles}]`: ''}`;
+			} else {
+				r += `Soft${V.summaryStats? `[${slave.muscles}]`: ''}`;
+			}
+		} else if (slave.muscles > -96) {
+			if (V.arcologies[0].FSPhysicalIdealist === "unset") {
+				r += `<span class="red">Weak+</span>${V.summaryStats? `[${slave.muscles}]`: ''}`;
+			} else {
+				r += `Soft+${V.summaryStats? `[${slave.muscles}]`: ''}`;
+			}
+		} else {
+			r += `<span class="red">Weak++</span>${V.summaryStats? `[${slave.muscles}]`: ''}`;
+		}
+		r += " ";
+	}
+	
+	function short_limbs(slave) {
+		if (slave.amp !== 0) {
+			if (slave.amp === -1) {
+				r += `P-Limbs`;
+			} else if (slave.amp === -2) {
+				r += `Sex P-Limbs`;
+			} else if (slave.amp === -3) {
+				r += `Beauty P-Limbs`;
+			} else if (slave.amp === -4) {
+				r += `Combat P-Limbs`;
+			} else if (slave.amp === -5) {
+				r += `Cyber P-Limbs`;
+			} else {
+				r += `Amp`;
+			}
+			r += " ";
+		}
+		if (!canWalk(slave)) {
+			r += `Immob`;
+		}
+		if (slave.heels === 1) {
+			r += `Heel`;
+		}
+		r += `</span> `;
+	}
+	
+	function short_voice(slave) {
+		if (slave.voice === 0) {
+			r += `<span class="pink">Mute</span>`;
+		} else {
+			if (slave.accent === 3) {
+				r += `<span class="red">Acc--</span>`;
+			} else if (slave.accent === 2) {
+				r += `Acc-`;
+			} else if (slave.accent === 4) {
+				r += `Acc--`;
+			} else if (slave.accent === 1) {
+				r += `<span class="pink">Acc</span>`;
+			}
+		}
+		r += " ";
+	}
+	
+	function short_tits_ass(slave) {
+		r += `<span class="pink">`;
+		if ((slave.boobs >= 12000) && (slave.butt > 9)) {
+			r += `T&A+++`;
+		} else if ((slave.boobs > 4000) && (slave.butt > 8)) {
+			r += `T&A++`;
+		} else if ((slave.boobs > 2000) && (slave.butt > 6)) {
+			r += `T&A+`;
+		} else if ((slave.boobs > 800) && (slave.butt > 4)) {
+			r += `T&A`;
+		} else if ((slave.boobs < 500) && (slave.butt < 3) && (slave.weight <= 10) && (slave.muscles <= 30)) {
+			r += `Girlish`;
+		} else if (slave.boobs >= 12000) {
+			r += `Boobs+++`;
+		} else if (slave.boobs > 4000) {
+			r += `Boobs++`;
+		} else if (slave.boobs > 2000) {
+			r += `Boobs+`;
+		} else if (slave.boobs > 800) {
+			r += `Boobs`;
+		} else if (slave.butt > 9) {
+			r += `Ass+++`;
+		} else if (slave.butt > 8) {
+			r += `Ass++`;
+		} else if (slave.butt > 6) {
+			r += `Ass+`;
+		} else if (slave.butt > 4) {
+			r += `Ass`;
+		}
+		r += `</span> `;
+	}
+	
+	function short_hips(slave) {
+		r += `<span class="red">`;
+		if (slave.hips < -1) {
+			if (slave.butt > 2 && (V.arcologies[0].FSTransformationFetishist < 20 || V.arcologies[0].FSTransformationFetishist === "unset") && (V.arcologies[0].FSHedonisticDecadence < 20 || V.arcologies[0].FSHedonisticDecadence === "unset")) {
+				r += `Disp+`;
+			}
+		} else if (slave.hips < 0) {
+			if (slave.butt > 4 && (V.arcologies[0].FSTransformationFetishist < 20 || V.arcologies[0].FSTransformationFetishist === "unset") && (V.arcologies[0].FSHedonisticDecadence < 20 || V.arcologies[0].FSHedonisticDecadence === "unset")) {
+				r += `Disp+`;
+			}
+		} else if (slave.hips > 2) {
+			if (slave.butt <= 8) {
+				r += `Disp-`;
+			}
+		} else if (slave.hips > 1) {
+			if (slave.butt <= 3 && (V.arcologies[0].FSSlimnessEnthusiast === "unset" || (slave.boobs >= 500))) {
+				r += `Disp-`;
+			}
+		} else if (slave.hips > 0) {
+			if (slave.butt > 8) {
+				if ((V.arcologies[0].FSTransformationFetishist < 20 || V.arcologies[0].FSTransformationFetishist === "unset") && (V.arcologies[0].FSHedonisticDecadence < 20 || V.arcologies[0].FSHedonisticDecadence === "unset")) {
+					r += `Disp+`;
+				}
+			} else if (slave.butt <= 2 && (V.arcologies[0].FSSlimnessEnthusiast === "unset" || (slave.boobs >= 500))) {
+				r += `Disp-`;
+			}
+		} else {
+			if (slave.butt > 6) {
+				if ((V.arcologies[0].FSTransformationFetishist < 20 || V.arcologies[0].FSTransformationFetishist === "unset") && (V.arcologies[0].FSHedonisticDecadence < 20 || V.arcologies[0].FSHedonisticDecadence === "unset")) {
+					r += `Disp+`;
+				}
+			} else if (slave.butt <= 1 && (V.arcologies[0].FSSlimnessEnthusiast === "unset" || (slave.boobs >= 500))) {
+				r += `Disp-`;
+			}
+		}
+		r += `</span> `;
+	}
+	
+	function short_waist(slave) {
+		if (slave.waist > 95) {
+			r += `<span class="red">Wst---${V.summaryStats? `[${slave.waist}]` : ''}</span>`;
+		} else if (slave.waist > 40) {
+			r += `<span class="red">Wst--${V.summaryStats? `[${slave.waist}]`: ''}</span>`;
+		} else if (slave.waist > 10) {
+			r += `<span class="red">Wst-${V.summaryStats? `[${slave.waist}]` : ''}</span>`;
+		} else if (slave.waist >= -10) {
+			r += `Wst${V.summaryStats? `[${slave.waist}]`: ''}`;
+		} else if (slave.waist >= -40) {
+			r += `<span class="pink">Wst+${V.summaryStats? `[${slave.waist}]` : ''}</span>`;
+		} else if (slave.waist >= -95) {
+			r += `<span class="pink">Wst++${V.summaryStats? `[${slave.waist}]` : ''}</span>`;
+		} else {
+			r += `<span class="pink">Wst+++${V.summaryStats? `[${slave.waist}]`: ''}</span>`;
+		}
+		r += " ";
+	}
+	
+	function short_implants(slave) {
+		r += `<span class="pink">`;
+		if ((slave.boobsImplant === 0) && (slave.buttImplant === 0) && (slave.waist >= -95) && (slave.lipsImplant === 0) && (slave.faceImplant <= 5) && (slave.bellyImplant === -1)) {
+			r += `Natr`;
+		} else {
+			r += `Impl`;
+		}
+		r += " ";
+	}
+	
+	function short_lactation(slave) {
+		if (slave.lactation === 1) {
+			r += `Lact`;
+		} else if (slave.lactation === 2) {
+			r += `Lact++`;
+		}
+		r += " ";
+	}
+	
+	function short_mods(slave) {
+		modScore(slave);
+		if (slave.corsetPiercing === 0 && V.piercingScore < 3 && V.tatScore < 2) {
+			return;
+		} else if (V.modScore > 15 || (V.piercingScore > 8 && V.tatScore > 5)) {
+			r += `Mods++`;
+		} else if (V.modScore > 7) {
+			r += `Mods+`;
+		} else {
+			r += `Mods`;
+		}
+		if (slave.brand !== 0) {
+			r += `Br`;
+		}
+		r += " ";
+	}
+	
+	function long_age(slave) {
+		r += `<span class="pink">`;
+		if (V.showAgeDetail === 1) {
+			r += `Age ${slave.actualAge}.`;
+		} else if (slave.actualAge >= 40) {
+			r += `Forties.`;
+		} else if (slave.actualAge >= 35) {
+			r += `Late thirties.`;
+		} else if (slave.actualAge >= 30) {
+			r += `Early thirties.`;
+		} else if (slave.actualAge >= 25) {
+			r += `Late twenties.`;
+		} else if (slave.actualAge >= 20) {
+			r += `Early twenties.`;
+		} else if (slave.actualAge >= 19) {
+			r += `Nineteen.`;
+		} else if (slave.actualAge >= 18) {
+			r += `Eighteen.`;
+		} else {
+			r += `Underage.`;
+		}
+		r += " ";
+		/*
+		 **  No NCS, then do the standard, However because of the wrinkes of Incubators, as long as visual age is greater 
+		 **  than or equal to physical age, we do the old physical body/Looks for fresh out of the can NCS slaves.
+		 */
+		if (((slave.inducedNCS === 0) || (slave.visualAge >= slave.physicalAge))) {
+			if (slave.actualAge !== slave.physicalAge) {
+				r += `${slave.physicalAge} year old body. `;
+			}
+			if (slave.visualAge !== slave.physicalAge) {
+				r += `Looks ${slave.visualAge}. `;
+			}
+		} else {
+			/*
+			 **  Now the rub. The use of physical Age for the year old body above, basically conflicts with the changes
+			 **  that NCS introduces, so here to *distinguish* the changes, we use visual age with the 'year old body'
+			 **  and appears, for example: Slave release from incubator at age 10, Her summary would show, 'Age 0. 10 
+			 **  year old body.' But if she's given NCS a few weeks after release, while she's still before her first 
+			 **  birthday, it'll appear the same. But once her birthday fires, if we ran with the above code it would 
+			 **  say: 'Age 1. 11 year old body.' -- this conflicts with the way NCS works though, because she hasn't
+			 **  visually aged, so our change here makes it say 'Age 1. Appears to have a 10 year old body.'
+			 */
+			r += `Appears to have a ${slave.visualAge} year old body. `;
+		}
+		if (slave.inducedNCS === 1) {
+			r += `(<span class="orange">NCS</span>) `;
+		}
+	}
+	
+	function long_face(slave) {
+		if (slave.face < -95) {
+			r += `<span class="red">Very ugly${V.summaryStats? `[${slave.face}]`: ''}</span>`;
+		} else if (slave.face < -40) {
+			r += `<span class="red">Ugly${V.summaryStats? `[${slave.face}]`: ''}</span>`;
+		} else if (slave.face < -10) {
+			r += `<span class="red">Unattractive${V.summaryStats? `[${slave.face}]`: ''}</span>`;
+		} else if (slave.face <= 10) {
+			r += `Average${V.summaryStats? `[${slave.face}]`: ''}`;
+		} else if (slave.face <= 40) {
+			r += `<span class="pink">Attractive${V.summaryStats? `[${slave.face}]`: ''}</span>`;
+		} else if (slave.face <= 95) {
+			r += `<span class="pink">Beautiful${V.summaryStats? `[${slave.face}]`: ''}</span>`;
+		} else {
+			r += `<span class="pink">Very beautiful${V.summaryStats? `[${slave.face}]`: ''}</span>`;
+		}
+		r += ` ${slave.faceShape} face.`;
+	}
+	
+	function long_eyes(slave) {
+		if (slave.eyes <= -2) {
+			r += `<span class="red">Blind.</span>`;
+		} else if (((slave.eyes <= -1) && (slave.eyewear !== "corrective glasses") && (slave.eyewear !== "corrective contacts"))) {
+			r += `<span class="yellow">Nearsighted.</span>`;
+		}
+		r += " ";
+	}
+	
+	function long_lips(slave) {
+		if (slave.lips > 95) {
+			r += `Facepussy${V.summaryStats? `[${slave.lips}]`: ''}.`;
+		} else if (slave.lips > 70) {
+			r += `Huge lips${V.summaryStats? `[${slave.lips}]`: ''}.`;
+		} else if (slave.lips > 40) {
+			r += `Big lips${V.summaryStats? `[${slave.lips}]`: ''}.`;
+		} else if (slave.lips > 20) {
+			r += `Pretty lips${V.summaryStats? `[${slave.lips}]`: ''}.`;
+		} else if (slave.lips > 10) {
+			r += `Normal lips${V.summaryStats? `[${slave.lips}]`: ''}.`;
+		} else {
+			r += `<span class="red">Thin lips${V.summaryStats? `[${slave.lips}]`: ''}.</span>`;
+		}
+		r += " ";
+	}
+	
+	function long_teeth(slave) {
+		if (slave.teeth === "crooked") {
+			r += `<span class="yellow">Crooked teeth.</span>`;
+		} else if (slave.teeth === "cosmetic braces") {
+			r += `Cosmetic braces.`;
+		} else if (slave.teeth === "straightening braces") {
+			r += `Braces.`;
+		} else if (slave.teeth === "removable") {
+			r += `Removable teeth.`;
+		} else if (slave.teeth === "pointy") {
+			r += `Sharp fangs.`;
+		}
+		r += " ";
+	}
+	
+	function long_muscles(slave) {
+		if (slave.muscles > 95) {
+			r += `Hugely muscular${V.summaryStats? `[${slave.muscles}]` : ''}.`;
+		} else if (slave.muscles > 50) {
+			r += `Muscular${V.summaryStats? `[${slave.muscles}]`: ''}.`;
+		} else if (slave.muscles > 5) {
+			r += `Fit${V.summaryStats? `[${slave.muscles}]`: ''}.`;
+		} else if (slave.muscles > -6) {
+			r += `Soft${V.summaryStats? `[${slave.muscles}]`: ''}.`;
+		} else if (slave.muscles > -31) {
+			if (V.arcologies[0].FSPhysicalIdealist === "unset") {
+				r += `<span class="red">Weak${V.summaryStats? `[${slave.muscles}]`: ''}.</span>`;
+			} else {
+				r += `Weak${V.summaryStats? `[${slave.muscles}]`: ''}.`;
+			}
+		} else if (slave.muscles > -96) {
+			if (V.arcologies[0].FSPhysicalIdealist === "unset") {
+				r += `<span class="red">Very weak${V.summaryStats? `[${slave.muscles}]`: ''}.</span>`;
+			} else {
+				r += `Very weak${V.summaryStats? `[${slave.muscles}]`: ''}.`;
+			}
+		} else {
+			r += `<span class="red">Frail${V.summaryStats? `[${slave.muscles}]`: ''}.</span>`;
+		}
+		r += " ";
+	}
+	
+	function long_limbs(slave) {
+		if (slave.amp !== 0) {
+			if (slave.amp === -1) {
+				r += `Prosthetic limbs.`;
+			} else if (slave.amp === -2) {
+				r += `Sexy prosthetic limbs.`;
+			} else if (slave.amp === -3) {
+				r += `Beautiful prosthetic limbs.`;
+			} else if (slave.amp === -4) {
+				r += `Deadly prosthetic limbs.`;
+			} else if (slave.amp === -5) {
+				r += `Cyber prosthetic limbs.`;
+			} else {
+				r += `Amputee.`;
+			}
+		}
+		r += " ";
+		if (!canWalk(slave)) {
+			r += `Immobile. `;
+		}
+		if (slave.heels === 1) {
+			r += `Heeled. `;
+		}
+		r += `</span> `;
+	}
+	
+	function long_voice(slave) {
+		if (slave.voice === 0) {
+			r += `<span class="pink">Mute.</span>`;
+		} else {
+			if (slave.accent === 3) {
+				r += `<span class="red">Bad accent.</span>`;
+			} else if (slave.accent === 4) {
+				r += `<span class="red">No language skills.</span>`;
+			} else if (slave.accent === 2) {
+				r += `Accent.`;
+			} else if (slave.accent === 1) {
+				r += `<span class="pink">Cute accent.</span>`;
+			}
+		}
+		r += " ";
+	}
+	
+	function long_tits_ass(slave) {
+		r += `<span class="pink">`;
+		if ((slave.boobs >= 12000) && (slave.butt > 9)) {
+			r += `Hyper T&A.`;
+		} else if ((slave.boobs > 4000) && (slave.butt > 8)) {
+			r += `Enormous T&A.`;
+		} else if ((slave.boobs > 2000) && (slave.butt > 6)) {
+			r += `Huge T&A.`;
+		} else if ((slave.boobs > 800) && (slave.butt > 4)) {
+			r += `Big T&A.`;
+		} else if ((slave.boobs < 500) && (slave.butt < 3) && (slave.weight <= 10) && (slave.muscles <= 30)) {
+			r += `Girlish figure.`;
+		} else if (slave.boobs >= 12000) {
+			r += `Immobilizing tits.`;
+		} else if (slave.boobs > 4000) {
+			r += `Monstrous tits.`;
+		} else if (slave.boobs > 2000) {
+			r += `Huge tits.`;
+		} else if (slave.boobs > 800) {
+			r += `Big tits.`;
+		} else if (slave.butt > 9) {
+			r += `Hyper ass.`;
+		} else if (slave.butt > 8) {
+			r += `Titanic ass.`;
+		} else if (slave.butt > 6) {
+			r += `Huge ass.`;
+		} else if (slave.butt > 4) {
+			r += `Big ass.`;
+		}
+		r += `</span> `;
+	}
+	
+	function long_hips(slave) {
+		r += `<span class="red">`;
+		if (slave.hips < -1) {
+			if (slave.butt > 2 && (V.arcologies[0].FSTransformationFetishist < 20 || V.arcologies[0].FSTransformationFetishist === "unset") && (V.arcologies[0].FSHedonisticDecadence < 20 || V.arcologies[0].FSHedonisticDecadence === "unset")) {
+				r += `Disproportionately big butt.`;
+			}
+		} else if (slave.hips < 0) {
+			if (slave.butt > 4 && (V.arcologies[0].FSTransformationFetishist < 20 || V.arcologies[0].FSTransformationFetishist === "unset") && (V.arcologies[0].FSHedonisticDecadence < 20 || V.arcologies[0].FSHedonisticDecadence === "unset")) {
+				r += `Disproportionately big butt.`;
+			}
+		} else if (slave.hips > 2) {
+			if (slave.butt <= 8) {
+				r += `Disproportionately small butt.`;
+			}
+		} else if (slave.hips > 1) {
+			if (slave.butt <= 3 && ((V.arcologies[0].FSSlimnessEnthusiast === "unset") || (slave.boobs >= 500))) {
+				r += `Disproportionately small butt.`;
+			}
+		} else if (slave.hips > 0) {
+			if (slave.butt > 8) {
+				if ((V.arcologies[0].FSTransformationFetishist < 20 || V.arcologies[0].FSTransformationFetishist === "unset") && (V.arcologies[0].FSHedonisticDecadence < 20 || V.arcologies[0].FSHedonisticDecadence === "unset")) {
+					r += `Disproportionately big butt.`;
+				}
+			} else if (slave.butt <= 2 && ((V.arcologies[0].FSSlimnessEnthusiast === "unset") || (slave.boobs >= 500))) {
+				r += `Disproportionately small butt.`;
+			}
+		} else {
+			if (slave.butt > 6) {
+				if ((V.arcologies[0].FSTransformationFetishist < 20 || V.arcologies[0].FSTransformationFetishist === "unset") && (V.arcologies[0].FSHedonisticDecadence < 20 || V.arcologies[0].FSHedonisticDecadence === "unset")) {
+					r += `Disproportionately big butt.`;
+				}
+			} else if (slave.butt <= 1 && ((V.arcologies[0].FSSlimnessEnthusiast === "unset") || (slave.boobs >= 500))) {
+				r += `Disproportionately small butt.`;
+			}
+		}
+		r += `</span> `;
+	}
+	
+	function long_waist(slave) {
+		if (slave.waist > 95) {
+			r += `<span class="red">Masculine waist${V.summaryStats? `[${slave.waist}]`: ''}.</span>`;
+		} else if (slave.waist > 40) {
+			r += `<span class="red">Ugly waist${V.summaryStats? `[${slave.waist}]`: ''}.</span>`;
+		} else if (slave.waist > 10) {
+			r += `<span class="red">Unattractive waist${V.summaryStats? `[${slave.waist}]`: ''}.</span>`;
+		} else if (slave.waist >= -10) {
+			r += `Average waist${V.summaryStats? `[${slave.waist}]`: ''}.`;
+		} else if (slave.waist >= -40) {
+			r += `<span class="pink">Feminine waist${V.summaryStats? `[${slave.waist}]`: ''}.</span>`;
+		} else if (slave.waist >= -95) {
+			r += `<span class="pink">Hourglass waist${V.summaryStats? `[${slave.waist}]`: ''}.</span>`;
+		} else {
+			r += `<span class="pink">Absurdly narrow waist${V.summaryStats? `[${slave.waist}]`: ''}.</span>`;
+		}
+		r += " ";
+	}
+	
+	function long_implants(slave) {
+		r += `<span class="pink">`;
+		if ((slave.boobsImplant !== 0) || (slave.buttImplant !== 0) || (slave.lipsImplant !== 0) || (slave.bellyImplant !== -1)) {
+			r += `Implants.`;
+		} else if ((slave.faceImplant >= 30) || (slave.waist < -95)) {
+			r += `Surgery enhanced.`;
+		} else {
+			r += `All natural.`;
+		}
+		r += " ";
+	}
+	
+	function long_lactation(slave) {
+		if (slave.lactation === 1) {
+			r += `Lactating naturally.`;
+		} else if (slave.lactation === 2) {
+			r += `Heavy lactation.`;
+		}
+		r += " ";
+	}
+	
+	function long_mods(slave) {
+		modScore(slave);
+		if (slave.corsetPiercing === 0 && V.piercingScore < 3 && V.tatScore < 2) {
+			return;
+		} else if (V.modScore > 15 || (V.piercingScore > 8 && V.tatScore > 5)) {
+			r += `Extensive body mods.`;
+		} else if (V.modScore > 7) {
+			r += `Noticeable body mods.`;
+		} else {
+			r += `Light body mods.`;
+		}
+		r += " ";
+	}
+	
+	function short_intelligence(slave) {
+		if (slave.fetish === "mindbroken") {
+			return;
+		} else if (slave.intelligenceImplant === 1) {
+			switch (slave.intelligence) {
+				case 3:
+					r += `<span class="deepskyblue">I+++(e)</span>`;
+					break;
+				case 2:
+					r += `<span class="deepskyblue">I++(e)</span>`;
+					break;
+				case 1:
+					r += `<span class="deepskyblue">I+(e)</span>`;
+					break;
+				case -1:
+					r += `<span class="orangered">I-(e)</span>`;
+					break;
+				case -2:
+					r += `<span class="orangered">I--(e)</span>`;
+					break;
+				case -3:
+					r += `<span class="orangered">I---(e)</span>`;
+					break;
+				default:
+					r += `I(e)`;
+					break;
+			}
+		} else {
+			switch (slave.intelligence) {
+				case 3:
+					r += `<span class="deepskyblue">I+++</span>`;
+					break;
+				case 2:
+					r += `<span class="deepskyblue">I++</span>`;
+					break;
+				case 1:
+					r += `<span class="deepskyblue">I+</span>`;
+					break;
+				case -1:
+					r += `<span class="orangered">I-</span>`;
+					break;
+				case -2:
+					r += `<span class="orangered">I--</span>`;
+					break;
+				case -3:
+					r += `<span class="orangered">I---</span>`;
+					break;
+				default:
+					r += `I`;
+					break;
+			}
+		}
+		r += " ";
+	} 
+	
+	function short_sex_skills(slave) {
+		let _SSkills = slave.analSkill + slave.oralSkill;
+		r += `<span class="aquamarine">`;
+		if (((_SSkills + slave.whoreSkill + slave.entertainSkill) >= 400) && ((slave.vagina < 0) || (slave.vaginalSkill >= 100))) {
+			r += `MSS`;
+		} else {
+			_SSkills += slave.vaginalSkill;
+			_SSkills = Math.trunc(_SSkills);
+			if (_SSkills > 180) {
+				r += `S++`;
+			} else if ((_SSkills > 120) && (slave.vagina < 0)) {
+				r += `Sh++`;
+			} else if (_SSkills > 90) {
+				r += `S+`;
+			} else if (_SSkills > 30) {
+				r += `S`;
+			} else {
+				r += `S-`;
+			}
+			if (V.summaryStats) {
+				r += `[${_SSkills}] `;
+			}
+			r += " ";
+			if (slave.whoreSkill >= 100) {
+				r += `W+++`;
+			} else if (slave.whoreSkill > 60) {
+				r += `W++`;
+			} else if (slave.whoreSkill > 30) {
+				r += `W+`;
+			} else if (slave.whoreSkill > 10) {
+				r += `W`;
+			}
+			if (slave.whoreSkill > 10) {
+				if (V.summaryStats) {
+					r += `[${slave.whoreSkill}] `;
+				}
+			}
+			r += " ";
+			if (slave.entertainSkill >= 100) {
+				r += `E+++`;
+			} else if (slave.entertainSkill > 60) {
+				r += `E++`;
+			} else if (slave.entertainSkill > 30) {
+				r += `E+`;
+			} else if (slave.entertainSkill > 10) {
+				r += `E`;
+			}
+			if (slave.entertainSkill > 10) {
+				if (V.summaryStats) {
+					r += `[${slave.entertainSkill}] `;
+				}
+			}
+		}
+		r += " ";
+	}
+	
+	function short_prestige(slave) {
+		if (slave.prestige > 0) {
+			r += `<span class="green">`;
+			if (slave.prestige > 2) {
+				r += `Prest++`;
+			} else if (slave.prestige === 2) {
+				r += `Prest+`;
+			} else if (slave.prestige === 1) {
+				r += `Prest`;
+			}
+			r += `</span> `;
+		}
+	}
+	
+	function long_intelligence(slave) {
+		if (slave.fetish === "mindbroken") {
+			return;
+		} else if (slave.intelligenceImplant === 1) {
+			switch (slave.intelligence) {
+				case 3:
+					r += `<span class="deepskyblue">Brilliant, educated.</span>`;
+					break;
+				case 2:
+					r += `<span class="deepskyblue">Very smart, educated.</span>`;
+					break;
+				case 1:
+					r += `<span class="deepskyblue">Smart, educated.</span>`;
+					break;
+				case -1:
+					r += `<span class="orangered">Slow, educated.</span>`;
+					break;
+				case -2:
+					r += `<span class="orangered">Very slow, educated.</span>`;
+					break;
+				case -3:
+					r += `<span class="orangered">Moronic, educated.</span>`;
+					break;
+				default:
+					r += `Average intelligence, educated.`;
+					break;
+			}
+		} else {
+			switch (slave.intelligence) {
+				case 3:
+					r += `<span class="deepskyblue">Brilliant.</span>`;
+					break;
+				case 2:
+					r += `<span class="deepskyblue">Very smart.</span>`;
+					break;
+				case 1:
+					r += `<span class="deepskyblue">Smart.</span>`;
+					break;
+				case -1:
+					r += `<span class="orangered">Slow.</span>`;
+					break;
+				case -2:
+					r += `<span class="orangered">Very slow.</span>`;
+					break;
+				case -3:
+					r += `<span class="orangered">Moronic.</span>`;
+					break;
+				default:
+					r += `Average intelligence.`;
+					break;
+			}
+		}
+		r += " ";
+	}
+	
+	function long_sex_skills(slave) {
+		let _SSkills = (slave.analSkill + slave.oralSkill);
+		r += `<span class="aquamarine">`;
+		if (((_SSkills + slave.whoreSkill + slave.entertainSkill) >= 400) && ((slave.vagina < 0) || (slave.vaginalSkill >= 100))) {
+			r += `Masterful Sex Slave. `;
+		} else {
+			_SSkills += slave.vaginalSkill;
+			if (_SSkills > 180) {
+				r += `Sex master${V.summaryStats? `[${Math.trunc(_SSkills)}]`: ''}.`;
+			} else if ((_SSkills > 120) && (slave.vagina < 0)) {
+				r += `Masterful shemale${V.summaryStats? `[${Math.trunc(_SSkills)}]`: ''}.`;
+			} else if (_SSkills > 90) {
+				r += `Sexual expert${V.summaryStats? `[${Math.trunc(_SSkills)}]`: ''}.`;
+			} else if (_SSkills > 30) {
+				r += `Sexually skilled${V.summaryStats? `[${Math.trunc(_SSkills)}]` : ''}.`;
+			} else {
+				r += `Sexually unskilled${V.summaryStats? `[${Math.trunc(_SSkills)}]` : ''}.`;
+			}
+			r += " ";
+			if (slave.whoreSkill >= 100) {
+				r += `Masterful whore${V.summaryStats? `[${slave.whoreSkill}]`: ''}.`;
+			} else if (slave.whoreSkill >= 60) {
+				r += `Expert whore${V.summaryStats? `[${slave.whoreSkill}]`: ''}.`;
+			} else if (slave.whoreSkill >= 30) {
+				r += `Skilled whore${V.summaryStats? `[${slave.whoreSkill}]`: ''}.`;
+			} else if (slave.whoreSkill >= 10) {
+				r += `Basic whore${V.summaryStats? `[${slave.whoreSkill}]`: ''}.`;
+			}
+			r += " ";
+			if (slave.entertainSkill >= 100) {
+				r += `Masterful entertainer${V.summaryStats? `[${slave.entertainSkill}]`: ''}.`;
+			} else if (slave.entertainSkill >= 60) {
+				r += `Expert entertainer${V.summaryStats? `[${slave.entertainSkill}]`: ''}.`;
+			} else if (slave.entertainSkill >= 30) {
+				r += `Skilled entertainer${V.summaryStats? `[${slave.entertainSkill}]`: ''}.`;
+			} else if (slave.entertainSkill >= 10) {
+				r += `Basic entertainer${V.summaryStats? `[${slave.entertainSkill}]`: ''}.`;
+			}
+			r += " ";
+		}
+	}
+	
+	function long_prestige(slave) {
+		if (slave.prestige > 0) {
+			r += `<span class="green">`;
+			if (slave.prestige > 2) {
+				r += `Extremely prestigious.`;
+			} else if (slave.prestige === 2) {
+				r += `Very prestigious.`;
+			} else if (slave.prestige === 1) {
+				r += `Prestigious.`;
+			}
+			r += `</span> `;
+		}
+	}
+	
+	function short_fetish(slave) {
+		r += `<span class="lightcoral">`;
+		switch (slave.fetish) {
+			case "submissive":
+				if (slave.fetishStrength > 95) {
+					r += `Sub++`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Sub+`;
+				} else {
+					r += `Sub`;
+				}
+				break;
+			case "cumslut":
+				if (slave.fetishStrength > 95) {
+					r += `Oral++`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Oral+`;
+				} else {
+					r += `Oral`;
+				}
+				break;
+			case "humiliation":
+				if (slave.fetishStrength > 95) {
+					r += `Humil++`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Humil+`;
+				} else {
+					r += `Humil`;
+				}
+				break;
+			case "buttslut":
+				if (slave.fetishStrength > 95) {
+					r += `Anal++`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Anal+`;
+				} else {
+					r += `Anal`;
+				}
+				break;
+			case "boobs":
+				if (slave.fetishStrength > 95) {
+					r += `Boobs++`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Boobs+`;
+				} else {
+					r += `Boobs`;
+				}
+				break;
+			case "sadist":
+				if (slave.fetishStrength > 95) {
+					r += `Sadist++`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Sadist+`;
+				} else {
+					r += `Sadist`;
+				}
+				break;
+			case "masochist":
+				if (slave.fetishStrength > 95) {
+					r += `Pain++`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Pain+`;
+				} else {
+					r += `Pain`;
+				}
+				break;
+			case "dom":
+				if (slave.fetishStrength > 95) {
+					r += `Dom++`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Dom+`;
+				} else {
+					r += `Dom`;
+				}
+				break;
+			case "pregnancy":
+				if (slave.fetishStrength > 95) {
+					r += `Preg++`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Preg+`;
+				} else {
+					r += `Preg`;
+				}
+				break;
+			default:
+				r += `Vanilla`;
+				break;
+		}
+		if (V.summaryStats) {
+			r += `[${slave.fetishStrength}]`;
+		}
+		r += `</span> `;
+	}
+	
+	function short_attraction(slave) {
+		if (slave.attrXY <= 5) {
+			r += `<span class="red">XY---${V.summaryStats? `[${slave.attrXY}]`: ''}</span>`;
+		} else if (slave.attrXY <= 15) {
+			r += `<span class="red">XY--${V.summaryStats? `[${slave.attrXY}]`: ''}</span>`;
+		} else if (slave.attrXY <= 35) {
+			r += `<span class="red">XY-${V.summaryStats? `[${slave.attrXY}]`: ''}</span>`;
+		} else if (slave.attrXY <= 65) {
+			r += `XY${V.summaryStats? `[${slave.attrXY}]`: ''}`;
+		} else if (slave.attrXY <= 85) {
+			r += `<span class="green">XY+${V.summaryStats? `[${slave.attrXY}]`: ''}</span>`;
+		} else if (slave.attrXY <= 95) {
+			r += `<span class="green">XY++${V.summaryStats? `[${slave.attrXY}]`: ''}</span>`;
+		} else if (slave.attrXX > 95) {
+			if (slave.energy <= 95) {
+				r += `<span class="green">Omni!</span>`;
+			} else {
+				r += `<span class="green">Omni+Nympho!!</span>`;
+			}
+		} else {
+			r += `<span class="green">XY+++${V.summaryStats? `[${slave.attrXY}]`: ''}</span>`;
+		}
+		r += " ";
+		if (slave.attrXX <= 5) {
+			r += `<span class="red">XX---${V.summaryStats? `[${slave.attrXX}]`: ''}</span>`;
+		} else if (slave.attrXX <= 15) {
+			r += `<span class="red">XX--${V.summaryStats? `[${slave.attrXX}]`: ''}</span>`;
+		} else if (slave.attrXX <= 35) {
+			r += `<span class="red">XX-${V.summaryStats? `[${slave.attrXX}]`: ''}</span>`;
+		} else if (slave.attrXX <= 65) {
+			r += `XX${V.summaryStats? `[${slave.attrXX}]`: ''}`;
+		} else if (slave.attrXX <= 85) {
+			r += `<span class="green">XX+${V.summaryStats? `[${slave.attrXX}]`: ''}</span>`;
+		} else if (slave.attrXX <= 95) {
+			r += `<span class="green">XX++${V.summaryStats? `[${slave.attrXX}]`: ''}</span>`;
+		} else if (slave.attrXY <= 95) {
+			r += `<span class="green">XX+++${V.summaryStats? `[${slave.attrXX}]`: ''}</span>`;
+		}
+		r += " ";
+		if (slave.energy > 95) {
+			if ((slave.attrXY <= 95) || (slave.attrXX <= 95)) {
+				r += `<span class="green">Nympho!</span>`;
+			}
+		} else if (slave.energy > 80) {
+			r += `<span class="green">SD++${V.summaryStats? `[${slave.energy}]`: ''}</span>`;
+		} else if (slave.energy > 60) {
+			r += `<span class="green">SD+${V.summaryStats? `[${slave.energy}]`: ''}</span>`;
+		} else if (slave.energy > 40) {
+			r += `<span class="yellow">SD${V.summaryStats? `[${slave.energy}]`: ''}</span>`;
+		} else if (slave.energy > 20) {
+			r += `<span class="red">SD-${V.summaryStats? `[${slave.energy}]`: ''}</span>`;
+		} else {
+			r += `<span class="red">SD--${V.summaryStats? `[${slave.energy}]`: ''}</span>`;
+		}
+		r += " ";
+	}
+	
+	function short_smart_fetish(slave) {
+		if (slave.fetishKnown === 1) {
+			if (slave.clitSetting === "off") {
+				r += `SP-`;
+			} else if (((slave.fetish !== "submissive") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "submissive")) {
+				r += `SP:sub`;
+			} else if (((slave.fetish !== "cumslut") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "oral")) {
+				r += `SP:oral`;
+			} else if (((slave.fetish !== "humiliation") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "humiliation")) {
+				r += `SP:humil`;
+			} else if (((slave.fetish !== "buttslut") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "anal")) {
+				r += `SP:anal`;
+			} else if (((slave.fetish !== "boobs") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "boobs")) {
+				r += `SP:boobs`;
+			} else if (((slave.fetish !== "sadist") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "sadist")) {
+				r += `SP:sade`;
+			} else if (((slave.fetish !== "masochist") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "masochist")) {
+				r += `SP:pain`;
+			} else if (((slave.fetish !== "dom") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "dom")) {
+				r += `SP:dom`;
+			} else if (((slave.fetish !== "pregnancy") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "pregnancy")) {
+				r += `SP:preg`;
+			} else if (((slave.fetish !== "none") && (slave.clitSetting === "vanilla"))) {
+				r += `SP:vanilla`;
+			} else if ((slave.energy <= 95) && (slave.clitSetting === "all")) {
+				r += `SP:all`;
+			} else if ((slave.energy > 5) && (slave.clitSetting === "none")) {
+				r += `SP:none`;
+			} else if (!["women", "men", "anti-women", "anti-men"].includes(slave.clitSetting)) {
+				r += `SP:monitoring`;
+			}
+		} else {
+			switch (slave.clitSetting) {
+				case "off":
+					r += `SP-`;
+					break;
+				case "submissive":
+					r += `SP:sub`;
+					break;
+				case "lesbian":
+					r += `SP:les`;
+					break;
+				case "oral":
+					r += `SP:oral`;
+					break;
+				case "humiliation":
+					r += `SP:humil`;
+					break;
+				case "anal":
+					r += `SP:anal`;
+					break;
+				case "boobs":
+					r += `SP:boobs`;
+					break;
+				case "sadist":
+					r += `SP:sade`;
+					break;
+				case "masochist":
+					r += `SP:pain`;
+					break;
+				case "dom":
+					r += `SP:dom`;
+					break;
+				case "pregnancy":
+					r += `SP:pregnancy`;
+					break;
+				case "vanilla":
+					r += `SP:vanilla`;
+					break;
+				case "all":
+					r += `SP:all`;
+					break;
+				case "none":
+					r += `SP:none`;
+					break;
+			}
+		}
+		r += " ";
+	}
+	
+	function short_smart_attraction(slave) {
+		if (slave.attrKnown === 1) {
+			if (slave.clitSetting === "women") {
+				if (slave.attrXX < 95) {
+					r += `SP:women`;
+				} else {
+					r += `SP:monitoring`;
+				}
+			} else if (slave.clitSetting === "men") {
+				if (slave.attrXY < 95) {
+					r += `SP:men`;
+				} else {
+					r += `SP:monitoring`;
+				}
+			} else if (slave.clitSetting === "anti-women") {
+				if (slave.attrXX > 0) {
+					r += `SP:anti-women`;
+				} else {
+					r += `SP:monitoring`;
+				}
+			} else if (slave.clitSetting === "anti-men") {
+				if (slave.attrXY > 0) {
+					r += `SP:anti-men`;
+				} else {
+					r += `SP:monitoring`;
+				}
+			}
+		} else {
+			if (slave.clitSetting === "women") {
+				r += `SP:women`;
+			} else if (slave.clitSetting === "men") {
+				r += `SP:men`;
+			} else if (slave.clitSetting === "anti-women") {
+				r += `SP:anti-women`;
+			} else if (slave.clitSetting === "anti-men") {
+				r += `SP:anti-men`;
+			}
+		}
+		r += " ";
+	}
+	
+	function short_behavior_flaw(slave) {
+		r += `<span class="red">`;
+		switch (slave.behavioralFlaw) {
+			case "arrogant":
+				r += `Arrog`;
+				break;
+			case "bitchy":
+				r += `Bitchy`;
+				break;
+			case "odd":
+				r += `Odd`;
+				break;
+			case "hates men":
+				r += `Men-`;
+				break;
+			case "hates women":
+				r += `Women-`;
+				break;
+			case "gluttonous":
+				r += `Glut`;
+				break;
+			case "anorexic":
+				r += `Ano`;
+				break;
+			case "devout":
+				r += `Dev`;
+				break;
+			case "liberated":
+				r += `Lib`;
+				break;
+			default:
+				slave.behavioralFlaw = "none";
+				break;
+		}
+		r += `</span> `;
+	}
+	
+	function short_sex_flaw(slave) {
+		switch (slave.sexualFlaw) {
+			case "hates oral":
+				r += `<span class="red">Oral-</span>`;
+				break;
+			case "hates anal":
+				r += `<span class="red">Anal-</span>`;
+				break;
+			case "hates penetration":
+				r += `<span class="red">Fuck-</span>`;
+				break;
+			case "shamefast":
+				r += `<span class="red">Shame</span>`;
+				break;
+			case "idealistic":
+				r += `<span class="red">Ideal</span>`;
+				break;
+			case "repressed":
+				r += `<span class="red">Repre</span>`;
+				break;
+			case "apathetic":
+				r += `<span class="red">Apath</span>`;
+				break;
+			case "crude":
+				r += `<span class="red">Crude</span>`;
+				break;
+			case "judgemental":
+				r += `<span class="red">Judge</span>`;
+				break;
+			case "cum addict":
+				r += `<span class="yellow">CumAdd</span>`;
+				break;
+			case "anal addict":
+				r += `<span class="yellow">AnalAdd</span>`;
+				break;
+			case "attention whore":
+				r += `<span class="yellow">Attention</span>`;
+				break;
+			case "breast growth":
+				r += `<span class="yellow">BoobObsess</span>`;
+				break;
+			case "abusive":
+				r += `<span class="yellow">Abusive</span>`;
+				break;
+			case "malicious":
+				r += `<span class="yellow">Malice</span>`;
+				break;
+			case "self hating":
+				r += `<span class="yellow">SelfHatr</span>`;
+				break;
+			case "neglectful":
+				r += `<span class="yellow">SelfNeglect</span>`;
+				break;
+			case "breeder":
+				r += `<span class="yellow">BreedObsess</span>`;
+				break;
+			default:
+				slave.sexualFlaw = "none";
+				break;
+		}
+		r += " ";
+	}	
+	
+	function short_behavior_quirk(slave) {
+		r += `<span class="green">`;
+		switch (slave.behavioralQuirk) {
+			case "confident":
+				r += `Confid`;
+				break;
+			case "cutting":
+				r += `Cutting`;
+				break;
+			case "funny":
+				r += `Funny`;
+				break;
+			case "fitness":
+				r += `Fit`;
+				break;
+			case "adores women":
+				r += `Women+`;
+				break;
+			case "adores men":
+				r += `Men+`;
+				break;
+			case "insecure":
+				r += `Insec`;
+				break;
+			case "sinful":
+				r += `Sinf`;
+				break;
+			case "advocate":
+				r += `Advoc`;
+				break;
+			default:
+				slave.behavioralQuirk = "none";
+				break;
+		}
+		r += " ";
+	}
+	
+	function short_sex_quirk(slave) {
+		switch (slave.sexualQuirk) {
+			case "gagfuck queen":
+				r += `Gagfuck`;
+				break;
+			case "painal queen":
+				r += `Painal`;
+				break;
+			case "strugglefuck queen":
+				r += `Struggle`;
+				break;
+			case "tease":
+				r += `Tease`;
+				break;
+			case "romantic":
+				r += `Romantic`;
+				break;
+			case "perverted":
+				r += `Perverted`;
+				break;
+			case "caring":
+				r += `Caring`;
+				break;
+			case "unflinching":
+				r += `Unflinch`;
+				break;
+			case "size queen":
+				r += `SizeQ`;
+				break;
+			default:
+				slave.sexualQuirk = "none";
+				break;
+		}
+		r += `</span> `;
+	}
+	
+	function long_fetish(slave) {
+		r += `<span class="lightcoral">`;
+		switch (slave.fetish) {
+			case "submissive":
+				if (slave.fetishStrength > 95) {
+					r += `Complete submissive${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Submissive${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else {
+					r += `Submissive tendencies${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				}
+				break;
+			case "cumslut":
+				if (slave.fetishStrength > 95) {
+					r += `Cumslut${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Oral fixation${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else {
+					r += `Prefers oral${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				}
+				break;
+			case "humiliation":
+				if (slave.fetishStrength > 95) {
+					r += `Humiliation slut${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Exhibitionist${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else {
+					r += `Interest in humiliation${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				}
+				break;
+			case "buttslut":
+				if (slave.fetishStrength > 95) {
+					r += `Buttslut${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Anal fixation${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else {
+					r += `Prefers anal${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				}
+				break;
+			case "boobs":
+				if (slave.fetishStrength > 95) {
+					r += `Boobslut${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Breast fixation${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else {
+					r += `Loves boobs${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				}
+				break;
+			case "sadist":
+				if (slave.fetishStrength > 95) {
+					r += `Complete sadist${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Sadist${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else {
+					r += `Sadistic tendencies${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				}
+				break;
+			case "masochist":
+				if (slave.fetishStrength > 95) {
+					r += `Complete masochist${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Masochist${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else {
+					r += `Masochistic tendencies${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				}
+				break;
+			case "dom":
+				if (slave.fetishStrength > 95) {
+					r += `Complete dom${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Dominant${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else {
+					r += `Dominant tendencies${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				}
+				break;
+			case "pregnancy":
+				if (slave.fetishStrength > 95) {
+					r += `Pregnancy fetish${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else if (slave.fetishStrength > 60) {
+					r += `Pregnancy kink${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				} else {
+					r += `Interest in impregnation${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				}
+				break;
+			default:
+				r += `Sexually vanilla${V.summaryStats? `[${slave.fetishStrength}]` : ''}.`;
+				break;
+		}
+		r += `</span> `;
+	}
+	
+	function long_attraction(slave) {
+		if (slave.attrXY <= 5) {
+			r += `<span class="red">Disgusted by men${V.summaryStats? `[${slave.attrXY}]` : ''},</span> `;
+		} else if (slave.attrXY <= 15) {
+			r += `<span class="red">Turned off by men${V.summaryStats? `[${slave.attrXY}]` : ''},</span> `;
+		} else if (slave.attrXY <= 35) {
+			r += `<span class="red">Not attracted to men${V.summaryStats? `[${slave.attrXY}]` : ''},</span> `;
+		} else if (slave.attrXY <= 65) {
+			r += `Indifferent to men${V.summaryStats? `[${slave.attrXY}]` : ''}, `;
+		} else if (slave.attrXY <= 85) {
+			r += `<span class="green">Attracted to men${V.summaryStats? `[${slave.attrXY}]` : ''},</span> `;
+		} else if (slave.attrXY <= 95) {
+			r += `<span class="green">Aroused by men${V.summaryStats? `[${slave.attrXY}]` : ''},</span> `;
+		} else if (slave.attrXX > 95) {
+			if (slave.energy <= 95) {
+				r += `<span class="green">Omnisexual!</span> `;
+			} else {
+				r += `<span class="green">Omnisexual nymphomaniac!</span> `;
+			}
+		} else {
+			r += `<span class="green">Passionate about men${V.summaryStats? `[${slave.attrXY}]` : ''},</span> `;
+		}
+		if (slave.attrXX <= 5) {
+			r += `<span class="red">disgusted by women${V.summaryStats? `[${slave.attrXX}]` : ''}.</span> `;
+		} else if (slave.attrXX <= 15) {
+			r += `<span class="red">turned off by women${V.summaryStats? `[${slave.attrXX}]` : ''}.</span> `;
+		} else if (slave.attrXX <= 35) {
+			r += `<span class="red">not attracted to women${V.summaryStats? `[${slave.attrXX}]` : ''}.</span> `;
+		} else if (slave.attrXX <= 65) {
+			r += `indifferent to women${V.summaryStats? `[${slave.attrXX}]` : ''}. `;
+		} else if (slave.attrXX <= 85) {
+			r += `<span class="green">attracted to women${V.summaryStats? `[${slave.attrXX}]` : ''}.</span> `;
+		} else if (slave.attrXX <= 95) {
+			r += `<span class="green">aroused by women${V.summaryStats? `[${slave.attrXX}]` : ''}.</span> `;
+		} else if (slave.attrXY <= 95) {
+			r += `<span class="green">passionate about women${V.summaryStats? `[${slave.attrXX}]` : ''}.</span> `;
+		}
+		if (slave.energy > 95) {
+			if ((slave.attrXY <= 95) || (slave.attrXX <= 95)) {
+				r += `<span class="green">Nymphomaniac!</span>`;
+			}
+		} else if (slave.energy > 80) {
+			r += `<span class="green">Powerful sex drive${V.summaryStats? `[${slave.energy}]` : ''}.</span>`;
+		} else if (slave.energy > 60) {
+			r += `<span class="green">Good sex drive${V.summaryStats? `[${slave.energy}]` : ''}.</span>`;
+		} else if (slave.energy > 40) {
+			r += `<span class="yellow">Average sex drive${V.summaryStats? `[${slave.energy}]` : ''}.</span>`;
+		} else if (slave.energy > 20) {
+			r += `<span class="red">Poor sex drive${V.summaryStats? `[${slave.energy}]` : ''}.</span>`;
+		} else {
+			r += `<span class="red">No sex drive${V.summaryStats? `[${slave.energy}]` : ''}.</span>`;
+		}
+		r += " ";
+	}
+	
+	function long_smart_fetish(slave) {
+		if (slave.fetishKnown === 1) {
+			if (slave.clitSetting === "off") {
+				r += `SP off.`;
+			} else if (((slave.fetish !== "submissive") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "submissive")) {
+				r += `SP: submissive.`;
+			} else if (((slave.fetish !== "cumslut") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "oral")) {
+				r += `SP: oral.`;
+			} else if (((slave.fetish !== "humiliation") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "humiliation")) {
+				r += `SP: humiliation.`;
+			} else if (((slave.fetish !== "buttslut") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "anal")) {
+				r += `SP: anal.`;
+			} else if (((slave.fetish !== "boobs") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "boobs")) {
+				r += `SP: breasts.`;
+			} else if (((slave.fetish !== "sadist") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "sadist")) {
+				r += `SP: sadism.`;
+			} else if (((slave.fetish !== "masochist") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "masochist")) {
+				r += `SP: masochism.`;
+			} else if (((slave.fetish !== "dom") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "dom")) {
+				r += `SP: dominance.`;
+			} else if (((slave.fetish !== "pregnancy") || (slave.fetishStrength <= 95)) && (slave.clitSetting === "pregnancy")) {
+				r += `SP: pregnancy.`;
+			} else if ((slave.fetish !== "none") && (slave.clitSetting === "vanilla")) {
+				r += `SP: vanilla.`;
+			} else if ((slave.energy <= 95) && (slave.clitSetting === "all")) {
+				r += `SP: all.`;
+			} else if ((slave.energy > 5) && (slave.clitSetting === "none")) {
+				r += `SP: none.`;
+			} else if (!["women", "men", "anti-women", "anti-men"].includes(slave.clitSetting)) {
+				r += `SP: monitoring.`;
+			}
+		} else {
+			switch (slave.clitSetting) {
+				case "off":
+					r += `SP off.`;
+					break;
+				case "submissive":
+					r += `SP: submissive.`;
+					break;
+				case "oral":
+					r += `SP: oral.`;
+					break;
+				case "humiliation":
+					r += `SP: humiliation.`;
+					break;
+				case "anal":
+					r += `SP: anal.`;
+					break;
+				case "boobs":
+					r += `SP: breasts.`;
+					break;
+				case "sadist":
+					r += `SP: sadism.`;
+					break;
+				case "masochist":
+					r += `SP: masochism.`;
+					break;
+				case "dom":
+					r += `SP: dominance.`;
+					break;
+				case "pregnancy":
+					r += `SP: pregnancy.`;
+					break;
+				case "vanilla":
+					r += `SP: vanilla.`;
+					break;
+				case "all":
+					r += `SP: all.`;
+					break;
+				case "none":
+					r += `SP: none.`;
+					break;
+			}
+		}
+		r += " ";
+	}
+	
+	function long_smart_attraction(slave) {
+		if (slave.attrKnown === 1) {
+			if ((slave.attrXX < 100) && (slave.clitSetting === "women")) {
+				r += `SP: women.`;
+			} else if ((slave.attrXY < 100) && (slave.clitSetting === "men")) {
+				r += `SP: men.`;
+			}
+		} else {
+			if (slave.clitSetting === "women") {
+				r += `SP: women.`;
+			} else if (slave.clitSetting === "men") {
+				r += `SP: men.`;
+			}
+		}
+		r += " ";
+	}
+	
+	function long_behavior_flaw(slave) {
+		r += `<span class="red">`;
+		switch (slave.behavioralFlaw) {
+			case "arrogant":
+				r += `Arrogant.`;
+				break;
+			case "bitchy":
+				r += `Bitchy.`;
+				break;
+			case "odd":
+				r += `Odd.`;
+				break;
+			case "hates men":
+				r += `Hates men.`;
+				break;
+			case "hates women":
+				r += `Hates women.`;
+				break;
+			case "gluttonous":
+				r += `Stress eater.`;
+				break;
+			case "anorexic":
+				r += `Anorexic.`;
+				break;
+			case "devout":
+				r += `Devoutly religious.`;
+				break;
+			case "liberated":
+				r += `Mentally liberated.`;
+				break;
+			default:
+				slave.behavioralFlaw = "none";
+				break;
+		}
+		r += `</span> `;
+	}
+	
+	function long_sex_flaw(slave) {
+		switch (slave.sexualFlaw) {
+			case "hates oral":
+				r += `<span class="red">Hates oral.</span>`;
+				break;
+			case "hates anal":
+				r += `<span class="red">Hates anal.</span>`;
+				break;
+			case "hates penetration":
+				r += `<span class="red">Hates penetration.</span>`;
+				break;
+			case "shamefast":
+				r += `<span class="red">Shamefast.</span>`;
+				break;
+			case "idealistic":
+				r += `<span class="red">Sexually idealistic.</span>`;
+				break;
+			case "repressed":
+				r += `<span class="red">Sexually repressed.</span>`;
+				break;
+			case "apathetic":
+				r += `<span class="red">Sexually apathetic.</span>`;
+				break;
+			case "crude":
+				r += `<span class="red">Sexually crude.</span>`;
+				break;
+			case "judgemental":
+				r += `<span class="red">Sexually judgemental.</span>`;
+				break;
+			case "cum addict":
+				r += `<span class="yellow">Cum addict.</span>`;
+				break;
+			case "anal addict":
+				r += `<span class="yellow">Anal addict.</span>`;
+				break;
+			case "attention whore":
+				r += `<span class="yellow">Attention whore.</span>`;
+				break;
+			case "breast growth":
+				r += `<span class="yellow">Breast obsession.</span>`;
+				break;
+			case "abusive":
+				r += `<span class="yellow">Sexually abusive.</span>`;
+				break;
+			case "malicious":
+				r += `<span class="yellow">Sexually malicious.</span>`;
+				break;
+			case "self hating":
+				r += `<span class="yellow">Self hatred.</span>`;
+				break;
+			case "neglectful":
+				r += `<span class="yellow">Self neglectful.</span>`;
+				break;
+			case "breeder":
+				r += `<span class="yellow">Breeding obsession.</span>`;
+				break;
+			default:
+				slave.sexualFlaw = "none";
+				break;
+		}
+		r += " ";
+	}
+	
+	function long_behavior_quirk(slave) {
+		r += `<span class="green">`;
+		switch (slave.behavioralQuirk) {
+			case "confident":
+				r += `Confident.`;
+				break;
+			case "cutting":
+				r += `Cutting.`;
+				break;
+			case "funny":
+				r += `Funny.`;
+				break;
+			case "fitness":
+				r += `Fitness.`;
+				break;
+			case "adores women":
+				r += `Adores women.`;
+				break;
+			case "adores men":
+				r += `Adores men.`;
+				break;
+			case "insecure":
+				r += `Insecure.`;
+				break;
+			case "sinful":
+				r += `Sinful.`;
+				break;
+			case "advocate":
+				r += `Advocate.`;
+				break;
+			default:
+				slave.behavioralQuirk = "none";
+				break;
+		}
+		r += " ";
+	}
+	
+	function long_sex_quirk(slave) {
+		switch (slave.sexualQuirk) {
+			case "gagfuck queen":
+				r += `Gagfuck queen.`;
+				break;
+			case "painal queen":
+				r += `Painal queen.`;
+				break;
+			case "strugglefuck queen":
+				r += `Strugglefuck queen.`;
+				break;
+			case "tease":
+				r += `Tease.`;
+				break;
+			case "romantic":
+				r += `Romantic.`;
+				break;
+			case "perverted":
+				r += `Perverted.`;
+				break;
+			case "caring":
+				r += `Caring.`;
+				break;
+			case "unflinching":
+				r += `Unflinching.`;
+				break;
+			case "size queen":
+				r += `Size queen.`;
+				break;
+			default:
+				slave.sexualQuirk = "none";
+				break;
+		}
+		r += `</span> `;
+	}
+	
+	function short_extended_family(slave) {
+		let handled = 0;
+		if (slave.mother > 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.mother;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s daughter`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
+					}
+					handled = 1;
+				}
+			}
+			r += " ";
+		} else if (slave.mother === -1) {
+			r += `Your daughter`;
+			if (slave.relationship === -3) {
+				r += ` & wife`;
+				handled = 1;
+			} else if (slave.relationship === -2) {
+				r += ` & lover`;
+				handled = 1;
+			}
+			r += " ";
+		}
+		if (slave.father > 0 && slave.father !== slave.mother) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.father;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s daughter`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID && handled !== 1) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
+					}
+					handled = 1;
+				}
+			}
+			r += " ";
+		} else if (slave.father === -1 && slave.mother !== -1) {
+			r += `Your daughter`;
+			if (slave.relationship === -3) {
+				r += ` & wife`;
+				handled = 1;
+			} else if (slave.relationship === -2) {
+				r += ` & lover`;
+				handled = 1;
+			}
+		}
+		if (slave.daughters === 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.mother === slave.ID;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s mother`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
+					}
+					handled = 1;
+				}
+			}
+			r += " ";
+			_ssj = V.slaves.findIndex(function(s) {
+				return s.father === slave.ID;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s father`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID && handled !== 1) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
+					}
+					handled = 1;
+				}
+			}
+			r += " ";
+		} else if (slave.daughters > 1) {
+			r += `multiple daughters `;
+		}
+		if (slave.sisters === 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return areSisters(s, slave) > 0;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s sister`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` & friend`;
+					} else if (slave.relationship === 2) {
+						r += ` & BFF`;
+					} else if (slave.relationship === 3) {
+						r += ` & FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` & lover`;
+					} else {
+						r += ` & wife`;
+					}
+					handled = 1;
+				}
+			}
+			r += " ";
+		} else if (slave.sisters > 1) {
+			r += `multiple sisters `;
+		}
+		if (slave.relationship > 0 && handled !== 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationshipTarget;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+				switch (slave.relationship) {
+					case 1:
+						r += ` friend`;
+						break;
+					case 2:
+						r += ` BFF`;
+						break;
+					case 3:
+						r += ` FWB`;
+						break;
+					case 4:
+						r += ` lover`;
+						break;
+					case 5:
+						r += ` wife`;
+						break;
+				}
+			}
+		} else if (slave.relationship === -3) {
+			r += `Your wife`;
+		} else if (slave.relationship === -2) {
+			r += `E Bonded`;
+		} else if (slave.relationship === -1) {
+			r += `E Slut`;
+		}
+		r += " ";
+	}
+	
+	function short_legacy_family(slave) {
+		if (slave.relation !== 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationTarget;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s ${slave.relation}`;
+			}
+		}
+		if (slave.relationship > 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationshipTarget;
+			});
+			if (_ssj !== -1) {
+				switch (slave.relationship) {
+					case 1:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+						} else {
+							r += ` &`;
+						}
+						r += ` friend`;
+						break;
+					case 2:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+						} else {
+							r += ` &`;
+						}
+						r += ` BFF`;
+						break;
+					case 3:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+						} else {
+							r += ` &`;
+						}
+						r += ` FWB`;
+						break;
+					case 4:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+						} else {
+							r += ` &`;
+						}
+						r += ` lover`;
+						break;
+					case 5:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+						} else {
+							r += ` &`;
+						}
+						r += ` wife`;
+						break;
+				}
+			}
+		} else if (slave.relationship === -3) {
+			r += `Your wife`;
+		} else if (slave.relationship === -2) {
+			r += `E Bonded`;
+		} else if (slave.relationship === -1) {
+			r += `E Slut`;
+		}
+	}
+	
+	function short_rival(slave) {
+		if (slave.rivalry !== 0) {
+			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.rivalryTarget;
+			});
+			if (_ssj !== -1) {
+				r += `<span class="lightsalmon">`;
+				if (slave.rivalry <= 1) {
+					r += `Disl ${SlaveFullName(V.slaves[_ssj])}`;
+				} else if (slave.rivalry <= 2) {
+					r += `${SlaveFullName(V.slaves[_ssj])}'s rival`;
+				} else {
+					r += `Hates ${SlaveFullName(V.slaves[_ssj])}`;
+				}
+				r += `</span> `;
+			}
+		}
+	}
+	
+	function long_extended_family(slave) {
+		let handled = 0;
+		if (slave.mother > 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.mother;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">daughter`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
+					} else {
+						r += ` and wife`;
+					}
+					handled = 1;
+				}
+				r += `.</span> `;
+			}
+		} else if (slave.mother === -1) {
+			r += `Your `;
+			if (slave.relationship === -3) {
+				r += `<span class="lightgreen">daughter and wife.</span> `;
+				handled = 1;
+			} else if (slave.relationship === -2) {
+				r += `<span class="lightgreen">daughter and lover.</span> `;
+				handled = 1;
+			} else {
+				r += `<span class="lightgreen">daughter.</span> `;
+			}
+		}
+		if (slave.father > 0 && slave.father !== slave.mother) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.father;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">daughter`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
+					} else {
+						r += ` and wife`;
+					}
+					handled = 1;
+				}
+				r += `.</span> `;
+			}
+		} else if (slave.father === -1 && slave.father !== slave.mother) {
+			r += `Your `;
+			if (slave.relationship === -3) {
+				r += `<span class="lightgreen">daughter and wife.</span> `;
+				handled = 1;
+			} else if (slave.relationship === -2) {
+				r += `<span class="lightgreen">daughter and lover.</span> `;
+				handled = 1;
+			} else {
+				r += `<span class="lightgreen">daughter.</span> `;
+			}
+		}
+		if (slave.daughters === 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.mother === slave.ID;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">mother`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
+					} else {
+						r += ` and wife`;
+					}
+					handled = 1;
+				}
+				r += `.</span> `;
+			}
+			_ssj = V.slaves.findIndex(function(s) {
+				return s.father === slave.ID;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">father`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
+					} else {
+						r += ` and wife`;
+					}
+					handled = 1;
+				}
+				r += `.</span> `;
+			}
+		} else if (slave.daughters > 1) {
+			if (slave.daughters > 10) {
+				r += `<span class="lightgreen">Has tons of daughters.</span> `;
+			} else if (slave.daughters > 5) {
+				r += `<span class="lightgreen">Has many daughters.</span> `;
+			} else {
+				r += `<span class="lightgreen">Has several daughters.</span> `;
+			}
+		}
+		if (slave.sisters === 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return areSisters(s, slave) > 0;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightgreen">sister`;
+				if (slave.relationshipTarget === V.slaves[_ssj].ID) {
+					if (slave.relationship === 1) {
+						r += ` and friend`;
+					} else if (slave.relationship === 2) {
+						r += ` and best friend`;
+					} else if (slave.relationship === 3) {
+						r += ` and FWB`;
+					} else if (slave.relationship === 4) {
+						r += ` and lover`;
+					} else {
+						r += ` and wife`;
+					}
+					handled = 1;
+				}
+				r += `.</span> `;
+			}
+		} else if (slave.sisters > 1) {
+			if (slave.sisters > 10) {
+				r += `<span class="lightgreen">One of many sisters.</span> `;
+			} else if (slave.sisters > 5) {
+				r += `<span class="lightgreen">Has many sisters.</span> `;
+			} else {
+				r += `<span class="lightgreen">Has several sisters.</span> `;
+			}
+		}
+		if (slave.relationship > 0 && handled !== 1) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationshipTarget;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+				switch (slave.relationship) {
+					case 1:
+						r += `<span class="lightgreen">friend.</span> `;
+						break;
+					case 2:
+						r += `<span class="lightgreen">best friend.</span> `;
+						break;
+					case 3:
+						r += `<span class="lightgreen">FWB.</span> `;
+						break;
+					case 4:
+						r += `<span class="lightgreen">lover.</span> `;
+						break;
+					case 5:
+						r += `<span class="lightgreen">slave wife.</span> `;
+						break;
+				}
+			}
+		} else if (slave.relationship === -3) {
+			r += `<span class="lightgreen">Your wife.</span> `;
+		} else if (slave.relationship === -2) {
+			r += `<span class="lightgreen">Emotionally bonded to you.</span> `;
+		} else if (slave.relationship === -1) {
+			r += `<span class="lightgreen">Emotional slut.</span> `;
+		}
+	}
+	
+	function long_legacy_family(slave) {
+		if (slave.relation !== 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationTarget;
+			});
+			if (_ssj !== -1) {
+				r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+				if (slave.relationshipTarget !== slave.relationTarget) {
+					r += `<span class="lightgreen">${slave.relation}</span>. `;
+				} else {
+					r += `<span class="lightgreen">${slave.relation}</span> `;
+				}
+				if (slave.relationship <= 0) {
+					r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+				}
+			}
+		}
+		if (slave.relationship > 0) {
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.relationshipTarget;
+			});
+			if (_ssj !== -1) {
+				switch (slave.relationship) {
+					case 1:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">friend.</span> `;
+						break;
+					case 2:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">best friend.</span> `;
+						break;
+					case 3:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">FWB.</span> `;
+						break;
+					case 4:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s `;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">lover.</span> `;
+						break;
+					case 5:
+						if (slave.relationshipTarget !== slave.relationTarget) {
+							r += `${SlaveFullName(V.slaves[_ssj])}'s`;
+						} else {
+							r += ` and `;
+						}
+						r += `<span class="lightgreen">slave wife.</span> `;
+						break;
+				}
+			}
+		} else if (slave.relationship === -3) {
+			r += `<span class="lightgreen">Your wife.</span> `;
+		} else if (slave.relationship === -2) {
+			r += `<span class="lightgreen">Emotionally bonded to you.</span> `;
+		} else if (slave.relationship === -1) {
+			r += `<span class="lightgreen">Emotional slut.</span> `;
+		}
+	}
+	
+	function long_rival(slave) {
+		if (slave.rivalry !== 0) {
+			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+			let _ssj = V.slaves.findIndex(function(s) {
+				return s.ID === slave.rivalryTarget;
+			});
+			if (_ssj !== -1) {
+				if (slave.rivalry <= 1) {
+					r += `<span class="lightsalmon">Dislikes</span> ${SlaveFullName(V.slaves[_ssj])}.`;
+				} else if (slave.rivalry <= 2) {
+					r += `${SlaveFullName(V.slaves[_ssj])}'s <span class="lightsalmon">rival.</span>`;
+				} else {
+					r += `<span class="lightsalmon">Hates</span> ${SlaveFullName(V.slaves[_ssj])}.`;
+				}
+			}
+			r += " ";
+		}
+	}
+	
+	function long_clothes(slave) {
+		switch (slave.clothes) {
+			case "attractive lingerie":
+				r += `Lingerie.`;
+				break;
+			case "a succubus outfit":
+				r += `Succubus outfit.`;
+				break;
+			case "a string bikini":
+				r += `String bikini.`;
+				break;
+			case "a scalemail bikini":
+				r += `Scalemail bikini.`;
+				break;
+			case "a monokini":
+				r += `Monokini.`;
+				break;
+			case "an apron":
+				r += `Apron.`;
+				break;
+			case "a cybersuit":
+				r += `Cybersuit.`;
+				break;
+			case "cutoffs and a t-shirt":
+				r += `Cutoffs, t-shirt.`;
+				break;
+			case "a slutty outfit":
+				r += `Slutty outfit.`;
+				break;
+			case "uncomfortable straps":
+				r += `Leather straps.`;
+				break;
+			case "a fallen nuns habit":
+				r += `Slutty habit.`;
+				break;
+			case "a chattel habit":
+				r += `Chattel habit.`;
+				break;
+			case "a penitent nuns habit":
+				r += `Cilice.`;
+				break;
+			case "slutty jewelry":
+				r += `Bangles.`;
+				break;
+			case "attractive lingerie for a pregnant woman":
+				r += `Preggo lingerie.`;
+				break;
+			case "a maternity dress":
+				r += `Maternity dress.`;
+				break;
+			case "stretch pants and a crop-top":
+				r += `Stretch pants, crop-top.`;
+				break;
+			case "harem gauze":
+				r += `Harem outfit.`;
+				break;
+			case "a slave gown":
+				r += `Slave gown.`;
+				break;
+			case "a halter top dress":
+				r += `Halter top dress.`;
+				break;
+			case "a mini dress":
+				r += `Mini dress.`;
+				break;
+			case "a ball gown":
+				r += `Ball gown.`;
+				break;
+			case "slutty business attire":
+				r += `Slutty suit.`;
+				break;
+			case "nice business attire":
+				r += `Nice suit.`;
+				break;
+			case "a comfortable bodysuit":
+				r += `Bodysuit.`;
+				break;
+			case "a military uniform":
+				r += `Military uniform.`;
+				break;
+			case "a schutzstaffel uniform":
+				r += `Schutzstaffel uniform.`;
+				break;
+			case "a slutty schutzstaffel uniform":
+				r += `Slutty Schutzstaffel uniform.`;
+				break;
+			case "a red army uniform":
+				r += `Red Army uniform.`;
+				break;
+			case "a long qipao":
+				r += `Long Qipao.`;
+				break;
+			case "battlearmor":
+				r += `Battlearmor.`;
+				break;
+			case "a mounty outfit":
+				r += `Mounty outfit.`;
+				break;
+			case "a dirndl":
+				r += `Dirndl.`;
+				break;
+			case "lederhosen":
+				r += `Lederhosen.`;
+				break;
+			case "a biyelgee costume":
+				r += `Biyelgee costume.`;
+				break;
+			case "a leotard":
+				r += `Leotard.`;
+				break;
+			case "a bunny outfit":
+				r += `Bunny outfit.`;
+				break;
+			case "a slutty maid outfit":
+				r += `Slutty maid.`;
+				break;
+			case "a nice maid outfit":
+				r += `Nice maid.`;
+				break;
+			case "a slutty nurse outfit":
+				r += `Slutty nurse.`;
+				break;
+			case "a nice nurse outfit":
+				r += `Nice nurse.`;
+				break;
+			case "a schoolgirl outfit":
+				r += `Schoolgirl outfit.`;
+				break;
+			case "a kimono":
+				r += `Kimono.`;
+				break;
+			case "a hijab and abaya":
+				r += `Hijab and abaya.`;
+				break;
+			case "battledress":
+				r += `Battledress.`;
+				break;
+			case "a latex catsuit":
+				r += `Nice latex.`;
+				break;
+			case "restrictive latex":
+				r += `Bondage latex.`;
+				break;
+			case "conservative clothing":
+				r += `Conservative clothing.`;
+				break;
+			case "chains":
+				r += `Chains.`;
+				break;
+			case "a cheerleader outfit":
+				r += `Cheerleader.`;
+				break;
+			case "clubslut netting":
+				r += `Netting.`;
+				break;
+			case "shibari ropes":
+				r += `Shibari.`;
+				break;
+			case "Western clothing":
+				r += `Chaps.`;
+				break;
+			case "body oil":
+				r += `Body oil.`;
+				break;
+			case "a toga":
+				r += `Toga.`;
+				break;
+			case "a huipil":
+				r += `Huipil.`;
+				break;
+			case "a slutty qipao":
+				r += `Qipao.`;
+				break;
+			case "spats and a tank top":
+				r += `Spats, tank top.`;
+				break;
+			default:
+				r += `Naked.`;
+				break;
+		}
+		r += " ";
+	}
+
+	function long_collar(slave) {
+		switch (slave.collar) {
+			case "uncomfortable leather":
+				r += `Leather collar.`;
+				break;
+			case "tight steel":
+				r += `Steel collar.`;
+				break;
+			case "preg biometrics":
+				r += `Pregnancy biometrics collar.`;
+				break;
+			case "cruel retirement counter":
+				r += `Cruel counter collar.`;
+				break;
+			case "shock punishment":
+				r += `Shock collar.`;
+				break;
+			case "dildo gag":
+				r += `Dildo gag.`;
+				break;
+			case "massive dildo gag":
+				r += `Throat-bulging dildo gag.`;
+				break;
+			case "neck corset":
+				r += `Neck corset.`;
+				break;
+			case "stylish leather":
+				r += `Stylish leather collar.`;
+				break;
+			case "satin choker":
+				r += `Satin choker.`;
+				break;
+			case "silk ribbon":
+				r += `Silken ribbon.`;
+				break;
+			case "heavy gold":
+				r += `Gold collar.`;
+				break;
+			case "bowtie":
+				r += `Bowtie collar.`;
+				break;
+			case "pretty jewelry":
+				r += `Pretty collar.`;
+				break;
+			case "nice retirement counter":
+				r += `Nice counter collar.`;
+				break;
+			case "leather with cowbell":
+				r += `Cowbell collar.`;
+				break;
+			case "ancient Egyptian":
+				r += `Wesekh.`;
+				break;
+			case "ball gag":
+				r += `Ball gag.`;
+				break;
+			case "bit gag":
+				r += `Bit gag.`;
+				break;
+			case "porcelain mask":
+				r += `Porcelain mask.`;
+				break;
+		}
+		r += " ";
+	}
+	
+	function long_belly(slave) {
+		switch (slave.bellyAccessory) {
+			case "shapewear":
+				r += `Shapewear.`;
+				break;
+			case "a small empathy belly":
+				r += `Small fake belly.`;
+				break;
+			case "a medium empathy belly":
+				r += `Medium fake belly.`;
+				break;
+			case "a large empathy belly":
+				r += `Large fake belly.`;
+				break;
+			case "a huge empathy belly":
+				r += `Huge fake belly.`;
+				break;
+			case "a corset":
+				r += `Corset.`;
+				break;
+			case "an extreme corset":
+				r += `Extreme corsetage.`;
+				break;
+		}
+		r += " ";
+	}
+	
+	function long_legs(slave) {
+		if (slave.legAccessory === "short stockings") {
+			r += `Short stockings.`;
+		} else if (slave.legAccessory === "long stockings") {
+			r += `Long stockings.`;
+		}
+		r += " ";
+	}
+	
+	function long_shoes(slave) {
+		if (slave.shoes === "heels") {
+			r += `Heels.`;
+		} else if (slave.shoes === "pumps") {
+			r += `Pumps.`;
+		} else if (slave.shoes === "extreme heels") {
+			r += `Extreme heels.`;
+		} else if (slave.shoes === "boots") {
+			r += `Boots.`;
+		} else if (slave.heels === 1) {
+			r += `<span class="yellow">Crawling.</span>`;
+		} else if (slave.shoes === "flats") {
+			r += `Flats.`;
+		}
+		r += " ";
+	}
+	
+	function long_vaginal_acc(slave) {
+		switch (slave.vaginalAccessory) {
+			case "chastity belt":
+				r += `Vaginal chastity.`;
+				break;
+			case "combined chastity":
+				r += `Combined chastity.`;
+				break;
+			case "anal chastity":
+				r += `Anal chastity.`;
+				break;
+			case "dildo":
+				r += `Vaginal dildo.`;
+				break;
+			case "large dildo":
+				r += `Large vaginal dildo.`;
+				break;
+			case "huge dildo":
+				r += `Huge vaginal dildo.`;
+				break;
+			case "long dildo":
+				r += `Long vaginal dildo.`;
+				break;
+			case "long, large dildo":
+				r += `Long and large vaginal dildo.`;
+				break;
+			case "long, huge dildo":
+				r += `Long and wide vaginal dildo.`;
+				break;
+		}
+		r += " ";
+	}
+	
+	function long_dick_acc(slave) {
+		if (slave.dickAccessory === "chastity") {
+			r += `Chastity cage.`;
+		} else if (slave.dickAccessory === "combined chastity") {
+			r += `Combined chastity.`;
+		} else if (slave.dickAccessory === "anal chastity") {
+			r += `Anal chastity.`;
+		}
+		r += " ";
+	}
+	
+	function long_buttplug(slave) {
+		switch (slave.buttplug) {
+			case "plug":
+				r += `Buttplug.`;
+				break;
+			case "large plug":
+				r += `Large buttplug.`;
+				break;
+			case "huge plug":
+				r += `Huge buttplug.`;
+				break;
+			case "long plug":
+				r += `Long buttplug.`;
+				break;
+			case "long, large plug":
+				r += `Large, long buttplug.`;
+				break;
+			case "long, huge plug":
+				r += `Enormous buttplug.`;
+				break;
+		}
+		r += " ";
+		switch (slave.buttplugAttachment) {
+			case "tail":
+				r += `Attached tail. `;
+				break;
+		}
+	}
+	
+	function rules_assistant(slave) {
+		if (slave.useRulesAssistant === 0) {
+			r += `<span class="lightgreen">RA-Exempt</span> `;
+		} else if (V.abbreviateRulesets === 2 && (slave.currentRules !== undefined) && (slave.currentRules.length > 0)) {
+			r += `Rules: ${V.defaultRules.filter(x => ruleApplied(slave, x)).map(x => x.name).join(", ") }`;
+		}
+	}
+	
+	function origins(slave) {
+		r += `<br>`;
+		if (V.seeImages !== 1 || V.seeSummaryImages !== 1 || V.imageChoice === 1) {
+			r += `&nbsp;&nbsp;&nbsp;&nbsp;`;
+		}
+		r += `<span class="gray">${slave.origin}</span>`;
+	}
+	
+	return SlaveSummaryUncached;
+})();
 	
 /*:: colorModeJS [script]*/
 
@@ -14988,6 +19457,7 @@ window.rulesAssistantOptions = (function() {
 	class SmartEnergyList extends List {
 		constructor() {
 			const pairs = [
+				["No default setting", "no default setting"],
 				["Nympho", 100],
 				["Sex Addict", 85],
 				["Powerful", 65],
