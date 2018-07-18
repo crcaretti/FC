@@ -236,6 +236,112 @@ window.properTitle = function properTitle() {
 	else return "Ma'am";
 };
 
+window.newSlave = function newSlave(slave) {
+	const V = State.variables;
+
+	switch (slave.eyeColor) {
+		case "blind blue":
+			slave.origEye = "deep blue";
+			break;
+		case "milky white":
+		case "implant":
+			slave.origEye = jsEither(["blue", "green", "brown", "hazel", "light blue", "light green", "dark green", "dark blue"]);
+			break;
+		default:
+			slave.origEye = slave.eyeColor;
+			break;
+	}
+	slave.origHColor = slave.hColor;
+	slave.underArmHColor = slave.hColor;
+	slave.pubicHColor = slave.hColor;
+	slave.origSkin = slave.skin;
+
+	if (V.surnamesForbidden === 1) {
+		slave.slaveSurname = 0;
+	}
+
+	if (slave.preg > 0) {
+		slave.pregWeek = slave.preg;
+	} else {
+		slave.pregWeek = 0;
+	}
+
+	if (V.familyTesting === 1) {
+		slave.sisters = 0;
+		slave.daughters = 0;
+		if (slave.mother === -1 || slave.father === -1) {
+			V.PC.daughters += 1;
+		}
+		if (areSisters(V.PC, slave) > 0) {
+			V.PC.sisters += 1;
+		}
+		for (let k = 0; k < V.slaves.length; k++) {
+			if (V.slaves[k].mother === slave.ID || V.slaves[k].father === slave.ID) {
+				slave.daughters++;
+			}
+			if (slave.mother === V.slaves[k].ID || slave.father === V.slaves[k].ID) {
+				V.slaves[k].daughters++;
+			}
+			if (areSisters(V.slaves[k], slave) > 0) {
+				slave.sisters++;
+				V.slaves[k].sisters++;
+			}
+		}
+	}
+
+	if (slave.dick > 0 &&
+		slave.balls > 0 &&
+		slave.devotion <= 50 &&
+		(slave.fetish !== "buttslut" || slave.fetishKnown !== 1) &&
+		slave.sexualFlaw !== "hates women") {
+		V.REFeminizationCheckinIDs.push(slave.ID);
+	}
+	if (slave.actualAge > 35 && slave.face < 40 && slave.analSkill <= 30) {
+		V.REMILFCheckinIDs.push(slave.ID);
+	}
+	if (slave.attrXY <= 60 && slave.attrXX > 60 ) {
+		V.REOrientationCheckinIDs.push(slave.ID);
+	}
+	if (slave.face < -10) {
+		V.REUglyCheckinIDs.push(slave.ID);
+	}
+	if (slave.anus < 2) {
+		V.REButtholeCheckinIDs.push(slave.ID);
+	}
+	if (slave.boobs < 800) {
+		V.REReductionCheckinIDs.push(slave.ID);
+	}
+
+	if (slave.fuckdoll > 0) {
+		slave.pronoun = "it", slave.possessivePronoun = "its", slave.possessive = "its", slave.object = "it", slave.objectReflexive = "itself", slave.noun = "toy";
+	} else if (slave.dick > 0 && slave.vagina === -1 && V.diversePronouns === 1) {
+		slave.pronoun = "he", slave.possessivePronoun = "his", slave.possessive = "his", slave.object = "him", slave.objectReflexive = "himself", slave.noun = "boy";
+	} else {
+		slave.pronoun = "she", slave.possessivePronoun = "hers", slave.possessive = "her", slave.object = "her", slave.objectReflexive = "herself", slave.noun = "girl";
+	}
+
+	SetBellySize(slave);
+	addSlave(slave);
+	
+	if (slave.origin !== "She was your slave, but you freed her, which she repaid by participating in a coup attempt against you. It failed, and she is again your chattel." && slave.ID !== V.boomerangSlave.ID) {
+		V.genePool.push(slave);
+	} else {
+		if (V.genePool.findIndex(function(s) { return s.ID === slave.ID; }) === -1) {
+			V.genePool.push(slave);
+		}
+	}
+
+	/* add to facilities array if needed */
+	if (slave.assignment !== "rest") {
+		assignJob(slave, slave.assignment);
+	}
+
+	/** do not run the Rules Assistant before adding the new slave to the slaves list! **/
+	if (V.ui !== "start" && V.universalRulesNewSlavesRA === 1 && V.rulesAssistantAuto !== 0) {
+		DefaultRules(slave);
+	}
+};
+
 window.addSlave = function addSlave(slave) {
 	State.variables.slaves.push(slave);
 	State.variables.slaveIndices[slave.ID] = State.variables.slaves.length - 1;
@@ -1258,4 +1364,57 @@ window.SlaveSort = function SlaveSort(slaves, main=false) {
 		filterInPlace(slaves, s => V.slaveIndices[s] !== undefined);
 		slaves.sort((a, b) => V.slaveIndices[a] - V.slaveIndices[b]);
 	}
+};
+
+window.MenialPopCap = function MenialPopCap () {
+	const V = State.variables;
+	let popCap = 500;
+	let r = "";
+
+	for (let mwi = 20; mwi < V.sectors.length; mwi++) {
+		if (V.sectors[mwi].type === "Pens") {
+			popCap += 500;
+		}
+	}
+	let overMenialCap = V.helots + V.fuckdolls + V.menialBioreactors - popCap;
+	if (overMenialCap > 0) {
+		let price = menialSlaveCost();
+		if (V.helots > 0) {
+			if (V.helots > overMenialCap) {
+				V.cash += overMenialCap * price;
+				V.menialDemandFactor -= overMenialCap;
+				V.helots -= overMenialCap;
+				overMenialCap = 0;
+				r += "You don't have enough room for all your menials and are obliged to sell some.";
+			} else {
+				V.cash += V.helots * price;
+				V.menialDemandFactor -= V.helots;
+				overMenialCap -= V.helots;
+				V.helots = 0;
+				r += "You don't have enough room for your menials and are obliged to sell them.";
+			}
+		}
+		if (overMenialCap > 0 && V.fuckdolls > 0) {
+			if (V.fuckdolls > overMenialCap) {
+				V.cash += overMenialCap * (price * 2);
+				V.menialDemandFactor -= overMenialCap;
+				V.fuckdolls -= overMenialCap;
+				overMenialCap = 0;
+				r += "You don't have enough room for all your fuckdolls and are obliged to sell some.";
+			} else {
+				V.cash += V.fuckdolls * (price * 2);
+				V.menialDemandFactor -= V.fuckdolls;
+				overMenialCap -= V.fuckdolls;
+				V.fuckdolls = 0;
+				r += "You don't have enough room for your fuckdolls and are obliged to sell them.";
+			}
+		}
+		if (overMenialCap > 0 && V.menialBioreactors > 0) {
+			V.cash += overMenialCap * (price - 100);
+			V.menialDemandFactor -= overMenialCap;
+			V.menialBioreactors -= overMenialCap;
+			r += "You don't have enough room for all your menial bioreactors and are obliged to sell some.";
+		}
+	}
+	return r;
 };
