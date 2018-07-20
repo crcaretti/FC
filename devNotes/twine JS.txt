@@ -2699,6 +2699,7 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 			bellyImplantVol: -1,
 			teeth: "no default setting",
 			label: "no default setting",
+			removeLabel: "no default setting",
 			skinColor: "no default setting",
 		}
 	};
@@ -13916,9 +13917,14 @@ window.DefaultRules = (function() {
 	}
 	
 	function ProcessLabel(slave, rule) {
-		if (rule.label !== "no default setting" && slave.customLabel !== rule.label) {
-			slave.customLabel = rule.label;
-			r += `<br>${slave.slaveName}'s label has been set to ${rule.label}`;
+		if (rule.label !== "no default setting" && !slave.customLabel.includes("["+rule.label+"]")) {
+			slave.customLabel = slave.customLabel + "[" + rule.label + "]";
+			r += `<br>${slave.slaveName} has been tagged as ${rule.label}`;
+		} 
+
+		if (rule.removeLabel !== "no default setting" && slave.customLabel.includes("["+rule.removeLabel+"]")) {
+			slave.customLabel = slave.customLabel.replace("["+rule.removeLabel+"]", "");
+			r += `<br>${slave.slaveName}'s tag [${rule.removeLabel}] is removed.`;
 		}
 	}
 
@@ -14893,6 +14899,7 @@ window.rulesAssistantOptions = (function() {
 		constructor() {
 			super("Other Settings");
 			this.appendChild(new LabelList());
+			this.appendChild(new LabelRemoveList());
 		}
 	}
 
@@ -17080,6 +17087,17 @@ window.rulesAssistantOptions = (function() {
 		}
 	}
 	
+	class LabelRemoveList extends List {
+		constructor() {
+			const items = [
+				["no default setting"],
+			];
+			super("Remove custom label", items, true);
+			this.setValue(current_rule.set.removeLabel);
+			this.onchange = (value) => current_rule.set.removeLabel = value;
+		}
+	}
+
 	class SkinColourList extends List {
 		constructor() {
 			const items = [
