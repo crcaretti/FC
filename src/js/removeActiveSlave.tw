@@ -1,0 +1,205 @@
+:: Remove activeSlave JS [script]
+
+window.removeActiveSlave = function removeActiveSlave() {
+	"use strict";
+	const V = State.variables;
+
+	const AS_ID = V.activeSlave.ID;
+	let LENGTH = V.slaves.length;
+	const INDEX = V.slaveIndices[AS_ID];
+	let missing = false;
+
+	WombZeroID(V.PC, AS_ID);
+	if (V.activeSlave.reservedChildren > 0) {
+		V.reservedChildren -= V.activeSlave.reservedChildren;
+	}
+	if (V.PC.mother === AS_ID) {
+		V.PC.mother = V.missingParentID;
+		missing = true;
+	}
+	if (V.PC.father === AS_ID) {
+		V.PC.father = V.missingParentID;
+		missing = true;
+	}
+	if (V.PC.sisters > 0) {
+		if (areSisters(V.PC, V.activeSlave) > 0) {
+			V.PC.sisters--;
+		}
+	}
+	if (V.PC.daughters > 0) {
+		if (V.activeSlave.father === -1 || V.activeSlave.mother === -1) {
+			V.PC.daughters--;
+		}
+	}
+
+	if (INDEX >= 0 && INDEX < LENGTH) {
+		if (V.incubator > 0) {
+			V.tanks.forEach(child => {
+				if (AS_ID === child.mother) {
+					child.mother = V.missingParentID;
+					missing = true;
+				}
+				if (AS_ID === child.father) {
+					child.father = V.missingParentID;
+					missing = true;
+				}
+			});
+		}
+		V.slaves.forEach(slave => {
+			WombZeroID(slave, AS_ID); /* This check is complex, should be done in JS now, all needed will be done here. */
+			if (V.activeSlave.daughters > 0) {
+				if (slave.mother === AS_ID) {
+					slave.mother = V.missingParentID;
+				}
+				if (slave.father === AS_ID) {
+					slave.father = V.missingParentID;
+				}
+				missing = true;
+			}
+			if (V.activeSlave.mother > 0 || V.activeSlave.father > 0) {
+				if (V.activeSlave.mother === slave.ID || V.activeSlave.father === slave.ID) {
+					slave.daughters--;
+				}
+			}
+			if (V.activeSlave.sisters > 0) {
+				if (areSisters(V.activeSlave, slave) > 0) {
+					slave.sisters--;
+				}
+			}
+			if (slave.ID === V.activeSlave.relationTarget) {
+				slave.relation = 0;
+				slave.relationTarget = 0;
+			}
+			if (slave.milkSource !== 0) {
+				if (slave.milkSource === AS_ID) {
+					slave.milkSource = 0;
+					slave.inflation = 0;
+					slave.inflationType = "none";
+					slave.inflationMethod = 0;
+				}
+			}
+			if (slave.cumSource !== 0) {
+				if (slave.cumSource === AS_ID) {
+					slave.cumSource = 0;
+					slave.inflation = 0;
+					slave.inflationType = "none";
+					slave.inflationMethod = 0;
+				}
+			}
+			if (slave.ID === V.activeSlave.relationshipTarget) {
+				slave.relationship = 0;
+				slave.relationshipTarget = 0;
+			}
+			if (slave.ID === V.activeSlave.rivalryTarget) {
+				slave.rivalry = 0;
+				slave.rivalryTarget = 0;
+			}
+			/* moved to saDevotion as a discovery event
+			   if (slave.origBodyOwnerID === AS_ID) {
+			   slave.origBodyOwnerID = 0;
+			   }
+			*/
+		});
+
+		/* remove from Pit fighters list, if needed */
+		V.fighterIDs.delete(AS_ID);
+
+		/* remove from Coursing Association, if needed */
+		if (V.Lurcher !== 0 && V.Lurcher.ID === AS_ID) {
+			V.Lurcher = 0;
+		}
+
+		if (Array.isArray(V.personalAttention)) {
+			const _rasi = V.personalAttention.findIndex(function(s) { return s.ID === AS_ID; });
+			if (_rasi !== -1) {
+				V.personalAttention.deleteAt(_rasi);
+				if (V.personalAttention.length === 0) {
+					if (V.PC.career === "escort") {
+						V.personalAttention = "whoring";
+					} else if (V.PC.career === "servant") {
+						V.personalAttention = "upkeep";
+					} else {
+						V.personalAttention = "business";
+					}
+				}
+			}
+		}
+
+			/* Remove from facility array or leadership role, if needed */
+			removeJob(V.activeSlave, V.activeSlave.assignment);
+
+		if (V.traitor !== 0) {
+			if (AS_ID === V.traitor.pregSource) {
+				V.traitor.pregSource = 0;
+			}
+			if (V.traitor.mother === AS_ID) {
+				V.traitor.mother = V.missingParentID;
+				missing = true;
+			}
+			if (V.traitor.father === AS_ID) {
+				V.traitor.father = V.missingParentID;
+				missing = true;
+			}
+			if (V.traitor.origBodyOwnerID === AS_ID) {
+				V.traitor.origBodyOwnerID = 0;
+			}
+		}
+		if (V.boomerangSlave !== 0) {
+			if (AS_ID === V.boomerangSlave.pregSource) {
+				V.boomerangSlave.pregSource = 0;
+			}
+			if (V.boomerangSlave.mother === AS_ID) {
+				V.boomerangSlave.mother = V.missingParentID;
+				missing = true;
+			}
+			if (V.boomerangSlave.father === AS_ID) {
+				V.boomerangSlave.father = V.missingParentID;
+				missing = true;
+			}
+			if (V.boomerangSlave.origBodyOwnerID === AS_ID) {
+				V.traitor.origBodyOwnerID = 0;
+			}
+		}
+		
+		let _o = V.organs.findIndex(function(s) { return s.ID === V.activeSlave.ID; });
+		if (_o !== -1) {
+			V.organs.deleteAt(_o);
+		}
+		_o = V.limbs.findIndex(function(s) { return s.ID === V.activeSlave.ID; });
+		if (_o !== -1) {
+			V.limbs.deleteAt(_o);
+		}
+		
+		const _geneIndex = V.genePool.findIndex(function(s) { return s.ID === V.activeSlave.ID; });
+		if (_geneIndex !== -1) {
+			let keep = false;
+			if (V.traitor !== 0) {
+				if (isImpregnatedBy(V.traitor, V.activeSlave) || V.traitor.ID === V.activeSlave.ID) { /* did we impregnate the traitor, or are we the traitor? */
+					keep = true;
+				}
+			}
+			if (V.boomerangSlave !== 0) {
+				if (isImpregnatedBy(V.boomerangSlave, V.activeSlave) || V.boomerangSlave.ID === V.activeSlave.ID) { /* did we impregnate the boomerang, or are we the boomerang? */
+					keep = true;
+				}
+			}
+			if (!keep) { /* avoid going through this loop if possible */
+				keep = V.slaves.some(slave => {
+					/* have we impregnated a slave that is not ourself? */
+					return (slave.ID !== V.activeSlave.ID && isImpregnatedBy(slave, V.activeSlave))
+				});
+			}
+			if (!keep) {
+				V.genePool.deleteAt(_geneIndex);
+			}
+		}
+		
+		removeSlave(INDEX);
+		LENGTH--;
+		V.activeSlave = 0;
+		
+		if (missing) {
+			V.missingParentID--;
+		}
+	}
+};
