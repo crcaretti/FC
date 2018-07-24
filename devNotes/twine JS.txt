@@ -6623,8 +6623,6 @@ window.populateEventArray = function(RESS = State.variables.RESSevent.length, RE
 
 /*:: AssayJS [script]*/
 
-:: AssayJS [script]
-
 window.isSlim = function(slave) {
 	var slim = false;
 	var ArcologyZero = State.variables.arcologies[0];
@@ -10305,7 +10303,7 @@ window.saChoosesOwnClothes = function saChoosesOwnClothes(slave) {
 	return r;
 };
 
-// :: FResult [script]
+/* :: FResult [script]*/
 
 // this is a port of the FResult widget
 // it has been broken up into several functions, because it grew too long
@@ -13942,7 +13940,7 @@ window.DefaultRules = (function() {
 
 	function ProcessPorn(slave, rule) {
 		if ((rule.pornFameSpending !== undefined) && (rule.pornFameSpending !== "no default setting")) {
-			if ((slave.prestige < 3)) {
+			if ((slave.pornPrestige < 3)) {
 				if ((slave.pornFameSpending !== rule.pornFameSpending)) {
 					slave.pornFameSpending = rule.pornFameSpending;
 					r += `<br>${slave.slaveName}'s porn publicity has been corrected.`;
@@ -15892,7 +15890,7 @@ window.rulesAssistantOptions = (function() {
 		constructor() {
 			const pairs = [
 				["No default setting", "no default setting"],
-				["No broadcasting", -1],
+				/*["No broadcasting", -1], **This has changed, it would now use .pornFeed** */
 				["No subsidy", 0],
 				["1000", 1000],
 				["2000", 2000],
@@ -18465,6 +18463,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `C`;
 			r += `</span> `;
 			short_prestige(slave);
+			short_porn_prestige(slave);
 		} else if (V.abbreviateSkills === 2) {
 			long_intelligence(slave);
 			long_sex_skills(slave);
@@ -18472,6 +18471,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `Trained fighter.`;
 			r += `</span> `;
 			long_prestige(slave);
+			long_porn_prestige(slave);
 		}
 		if (V.abbreviateMental === 1) {
 			if (slave.fetish !== "mindbroken") {
@@ -20329,13 +20329,13 @@ window.SlaveSummaryUncached = (function(){
 			} else {
 				r += `Amp`;
 			}
-			r += " ";
 		}
+		r += " ";
 		if (!canWalk(slave)) {
-			r += `Immob`;
+			r += ` Immob `;
 		}
 		if (slave.heels === 1) {
-			r += `Heel`;
+			r += ` Heel `;
 		}
 		r += `</span> `;
 	}
@@ -20911,6 +20911,20 @@ window.SlaveSummaryUncached = (function(){
 		}
 	}
 	
+	function short_porn_prestige(slave) {
+		if (slave.pornPrestige > 0) {
+			r += `<span class="green">`;
+			if (slave.pornPrestige > 2) {
+				r += `PPrest++`;
+			} else if (slave.pornPrestige === 2) {
+				r += `PPrest+`;
+			} else if (slave.pornPrestige === 1) {
+				r += `PPrest`;
+			}
+			r += `</span> `;
+		}
+	}
+	
 	function long_intelligence(slave) {
 		if (slave.fetish === "mindbroken") {
 			return;
@@ -21017,6 +21031,20 @@ window.SlaveSummaryUncached = (function(){
 				r += `Very prestigious.`;
 			} else if (slave.prestige === 1) {
 				r += `Prestigious.`;
+			}
+			r += `</span> `;
+		}
+	}
+	
+	function long_porn_prestige(slave) {
+		if (slave.pornPrestige > 0) {
+			r += `<span class="green">`;
+			if (slave.pornPrestige > 2) {
+				r += `Porn star.`;
+			} else if (slave.pornPrestige === 2) {
+				r += `Porn slut.`;
+			} else if (slave.pornPrestige === 1) {
+				r += `Porn amateur.`;
 			}
 			r += `</span> `;
 		}
@@ -23016,3 +23044,120 @@ window.removeActiveSlave = function removeActiveSlave() {
 		}
 	}
 };
+
+/*:: SA porn JS [script]*/
+
+/* to later be rolled into saPorn */
+
+window.getHighestPorn = function(slave) {
+
+	var max = {value: 0, type: "none"};
+	
+	if(slave.pornTypeGeneral > max.value){
+		max = {value: slave.pornTypeGeneral, type: "generic"};
+	}
+	if(slave.pornTypeFuckdoll > max.value){
+		max = {value: slave.pornTypeFuckdoll, type: "fuckdoll"};
+	}
+	if(slave.pornTypeRape > max.value){
+		max = {value: slave.pornTypeRape, type: "rape"};
+	}
+	if(slave.pornTypePreggo > max.value){
+		max = {value: slave.pornTypePreggo, type: "preggo"};
+	}
+	if(slave.pornTypeBBW > max.value){
+		max = {value: slave.pornTypeBBW, type: "BBW"};
+	}
+	if(slave.pornTypeGainer > max.value){
+		max = {value: slave.pornTypeGainer, type: "weight gain"};
+	}
+	if(slave.pornTypeStud > max.value){
+		max = {value: slave.pornTypeStud, type: "big dick"};
+	}
+	if(slave.pornTypeLoli > max.value){
+		max = {value: slave.pornTypeLoli, type: "underage"};
+	}
+	if(slave.pornTypeDeepThroat > max.value){
+		max = {value: slave.pornTypeDeepThroat, type: "deepthroat"};
+	}
+	if(slave.pornTypeStruggleFuck > max.value){
+		max = {value: slave.pornTypeStruggleFuck, type: "unwilling"};
+	}
+	if(slave.pornTypePainal > max.value){
+		max = {value: slave.pornTypePainal, type: "hardcore anal"};
+	}
+	if(slave.pornTypeTease > max.value){
+		max = {value: slave.pornTypeTease, type: "softcore"};
+	}
+	if(slave.pornTypeRomantic > max.value){
+		max = {value: slave.pornTypeRomantic, type: "romantic"};
+	}
+	if(slave.pornTypePervert > max.value){
+		max = {value: slave.pornTypePervert, type: "really perverted"};
+	}
+	if(slave.pornTypeCaring > max.value){
+		max = {value: slave.pornTypeCaring, type: "voyeur"};
+	}
+	if(slave.pornTypeUnflinching > max.value){
+		max = {value: slave.pornTypeUnflinching, type: "unspeakable"};
+	}
+	if(slave.pornTypeSizeQueen > max.value){
+		max = {value: slave.pornTypeSizeQueen, type: "huge insertion"};
+	}
+	if(slave.pornTypeNeglectful > max.value){
+		max = {value: slave.pornTypeNeglectful, type: "orgasm denial"};
+	}
+	if(slave.pornTypeCumAddict > max.value){
+		max = {value: slave.pornTypeCumAddict, type: "cum addiction"};
+	}
+	if(slave.pornTypeAnalAddict > max.value){
+		max = {value: slave.pornTypeAnalAddict, type: "anal addiction"};
+	}
+	if(slave.pornTypeAttentionWhore > max.value){
+		max = {value: slave.pornTypeAttentionWhore, type: "exhibition"};
+	}
+	if(slave.pornTypeBreastGrowth > max.value){
+		max = {value: slave.pornTypeBreastGrowth, type: "breast expansion"};
+	}
+	if(slave.pornTypeAbusive > max.value){
+		max = {value: slave.pornTypeAbusive, type: "abuse"};
+	}
+	if(slave.pornTypeMalicious > max.value){
+		max = {value: slave.pornTypeMalicious, type: "sexual torture"};
+	}
+	if(slave.pornTypeSelfHating > max.value){
+		max = {value: slave.pornTypeSelfHating, type: "self hating"};
+	}
+	if(slave.pornTypeBreeder > max.value){
+		max = {value: slave.pornTypeBreeder, type: "breeder"};
+	}
+	if(slave.pornTypeSub > max.value){
+		max = {value: slave.pornTypeSub, type: "submissive"};
+	}
+	if(slave.pornTypeCumSlut > max.value){
+		max = {value: slave.pornTypeCumSlut, type: "cum"};
+	}
+	if(slave.pornTypeAnal > max.value){
+		max = {value: slave.pornTypeAnal, type: "buttslut"};
+	}
+	if(slave.pornTypeHumiliation > max.value){
+		max = {value: slave.pornTypeHumiliation, type: "humiliating"};
+	}
+	if(slave.pornTypeBoobs > max.value){
+		max = {value: slave.pornTypeBoobs, type: "breast"};
+	}
+	if(slave.pornTypeDom > max.value){
+		max = {value: slave.pornTypeDom, type: "dominant"};
+	}
+	if(slave.pornTypeSadist > max.value){
+		max = {value: slave.pornTypeSadist, type: "sadistic"};
+	}
+	if(slave.pornTypeMasochist > max.value){
+		max = {value: slave.pornTypeMasochist, type: "masochistic"};
+	}
+	if(slave.pornTypePregnancy > max.value){
+		max = {value: slave.pornTypePregnancy, type: "pregnancy fetish"};
+	}
+	
+	return max;
+}
