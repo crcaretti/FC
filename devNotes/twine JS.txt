@@ -37,6 +37,8 @@ if (typeof interpolate == "undefined") {
 	window.interpolate = interpolate;
 }
 
+config.history.maxStates = 1;
+
 window.isFullyPotent = function(slave) {
 	if (!slave) {
 		return null;
@@ -6623,8 +6625,6 @@ window.populateEventArray = function(RESS = State.variables.RESSevent.length, RE
 
 /*:: AssayJS [script]*/
 
-:: AssayJS [script]
-
 window.isSlim = function(slave) {
 	var slim = false;
 	var ArcologyZero = State.variables.arcologies[0];
@@ -8416,7 +8416,7 @@ window.DegradingName = function DegradingName(slave) {
 		if (slave.labia > 1) {
 			suffixes.push("Curtains", "Flower", "Lips");
 		}
-		if (slave.breedingMark === 1) {
+		if (slave.breedingMark === 1 && V.propOutcome === 1) {
 			suffixes.push("Breeder", "Oven", "Womb");
 		}
 		if (slave.butt > 5) {
@@ -10305,7 +10305,7 @@ window.saChoosesOwnClothes = function saChoosesOwnClothes(slave) {
 	return r;
 };
 
-// :: FResult [script]
+/* :: FResult [script]*/
 
 // this is a port of the FResult widget
 // it has been broken up into several functions, because it grew too long
@@ -10445,7 +10445,7 @@ window.FResult = (function() {
 			if (slave.preg > 10) V.FResult += 2;
 			else V.FResult -= 2;
 		} else if (V.arcologies[0].FSRestart > 20) {
-			if (slave.bellyPreg >= 500 && slave.breedingMark === 1)
+			if (slave.bellyPreg >= 500 && slave.breedingMark === 1 && V.propOutcome === 1)
 				V.FResult += 1;
 			else if (slave.preg > 10)
 				V.FResult -= 10;
@@ -11475,86 +11475,6 @@ window.getHeroSlave = function(heroSlave, baseHeroSlave) {
     return newSlave;
 }
 
-/*:: Art Color Tools JS [script]*/
-
-/* 
-This takes a textual hair colour description and tries to guess the appropriate HTML compliant color code.
-
-hColor should be a color name, but can also be a string describing hair colour.
-
-This code's working is described to the user in the Encyclopedia, chapter "Lore", section "Dyes".
-*/
-window.extractHairColor = function(hColor) {
-	/* 
-	these are color names known and used in FreeCities 
-	attributed color names are at the front of the array
-	*/
-	var FCname2HTMLarray = [
-		["blazing red", "#E00E2B"],
-		["neon green", "#25d12b"],
-		["neon blue", "#2284C3"],
-		["neon pink", "#cc26aa"],
-		["strawberry-blonde", "#e5a88c"],
-		["platinum blonde", "#fcf3c1"],
-		["dark brown", "#463325"],
-		["brown", "#8D4F21"],
-		["auburn", "#7e543e"],
-		["black", "#3F4040"],
-		["blonde", "#F4F1A3"],
-		["blue", "#4685C5"],
-		["burgundy", "#5f3946"],
-		["chestnut", "#663622"],
-		["chocolate", "#6e4937"],
-		["copper", "#a16145"],
-		["ginger", "#da822d"],
-		["golden", "#ffdf31"],
-		["green", "#5FBA46"],
-		["grey", "#9e9fa4"],
-		["hazel", "#8d6f1f"],
-		["pink", "#D18CBC"],
-		["red", "#BB2027"],
-		["deep red", "#6D1318"],
-		["blue-violet", "#8790B7"],
-		["silver", "#cdc9c6"],
-		["light olive", "#d4c6bb"],
-		["dark", "#a46237"],
-		/* these are not actually FreeCities canon, but like to appear in custom descriptions */
-		["dark", "#463325"],
-		["brunette", "#8D4F21"]
-	];
-	
-	/* these are HTML color names supported by most browsers */
-	var HTMLstandardColors = ["aliceblue","antiquewhite","aqua","aquamarine","azure","beige","bisque","black","blanchedalmond","blue","blueviolet","brown","burlywood","cadetblue","chartreuse","chocolate","coral","cornflowerblue","cornsilk","crimson","cyan","darkblue","darkcyan","darkgoldenrod","darkgray","darkgrey","darkgreen","darkkhaki","darkmagenta","darkolivegreen","darkorange","darkorchid","darkred","darksalmon","darkseagreen","darkslateblue","darkslategray","darkslategrey","darkturquoise","darkviolet","deeppink","deepskyblue","dimgray","dimgrey","dodgerblue","firebrick","floralwhite","forestgreen","fuchsia","gainsboro","ghostwhite","gold","goldenrod","gray","grey","green","greenyellow","honeydew","hotpink","indianred ","indigo ","ivory","khaki","lavender","lavenderblush","lawngreen","lemonchiffon","lightblue","lightcoral","lightcyan","lightgoldenrodyellow","lightgray","lightgrey","lightgreen","lightpink","lightsalmon","lightseagreen","lightskyblue","lightslategray","lightslategrey","lightsteelblue","lightyellow","lime","limegreen","linen","magenta","maroon","mediumaquamarine","mediumblue","mediumorchid","mediumpurple","mediumseagreen","mediumslateblue","mediumspringgreen","mediumturquoise","mediumvioletred","midnightblue","mintcream","mistyrose","moccasin","navajowhite","navy","oldlace","olive","olivedrab","orange","orangered","orchid","palegoldenrod","palegreen","paleturquoise","palevioletred","papayawhip","peachpuff","peru","pink","plum","powderblue","purple","rebeccapurple","red","rosybrown","royalblue","saddlebrown","salmon","sandybrown","seagreen","seashell","sienna","silver","skyblue","slateblue","slategray","slategrey","snow","springgreen","steelblue","tan","teal","thistle","tomato","turquoise","violet","wheat","white","whitesmoke","yellow","yellowgreen"];
-	
-	var FCnames = new Map(FCname2HTMLarray);
-	hColor = hColor.toLowerCase(); /* normalization: lowercase color name */
-	var colorCode = FCnames.get(hColor); /* look up in FreeCities color names */
-	if (!colorCode) { /* not a FreeCities color name*/
-		if (HTMLstandardColors.includes(hColor) || hColor.match(/^#([0-9a-f]{3}){1,2}$/) !== null) {
-			colorCode = hColor; /* is a HTML color name or value, use it directly */
-		} else { 
-			/* 
-			is not even a HTML color name. hColor probably is a description.
-			look for anything resembling a valid color name within the description.
-			*/
-			var hColorNoSpaces = hColor.replace(/\s+/g, ''); /* remove all spaces from description */
-			var FCkeys = Array.from(FCnames.keys());
-			var colorCodes = [
-				FCnames.get(FCkeys.find(function (e){return hColor.startsWith(e);})),
-				HTMLstandardColors.find(function (e){return hColorNoSpaces.startsWith(e);}),
-				FCnames.get(FCkeys.find(function (e){return hColor.includes(e);})),
-				HTMLstandardColors.find(function (e){return hColorNoSpaces.includes(e);})
-			];
-			colorCode = colorCodes.find(function (e){return e;}); /* picks the first successful guess */
-		}
-	}
-	if (!colorCode) {
-		console.log("Art Color Tools JS: Unable to determine HTML compliant color code for hair color string '"+hColor+"'.");
-		colorCode = "fuchsia"; /* use fuchsia as error marker */
-	}
-	return colorCode;
-};
-
 /*SFJS [script]*/
 
 window.simpleWorldEconomyCheck = function() {
@@ -11600,26 +11520,21 @@ window.HSM = function() {
 /*:: colorModeJS [script]*/
 
 window.setColors = function(colorMap){
+    let props = ["color","backgroundColor","backgroundImage"];
     let styleSheetArray = Array.from(document.styleSheets);
     styleSheetArray.forEach( styleSheet => {
         let cssRules = Array.from(styleSheet.cssRules);
         cssRules.forEach( cssRule => {
             if ( cssRule.type === 1 ){
-                let color = cssRule.style.color;
-                let bgcolor = cssRule.style.backgroundColor;
-                if (
-                    color != "" &&
-                    color != "inherit" ){
-                    cssRule.style.color = colorMap[color] || color;
-                    console.log('color: ',color);
-                }
-                if (
-                    bgcolor != "" &&
-                    bgcolor != "inherit" &&
-                    bgcolor != "transparent" ){
-                    cssRule.style.backgroundColor = colorMap[bgcolor] || bgcolor;
-                    console.log('color: ',color);
-                }
+                props.forEach( propName => {
+                    let currentValue = cssRule.style[propName];
+                    if (
+                        currentValue != "" &&
+                        currentValue != "inherit" &&
+                        currentValue != "transparent"){
+                        cssRule.style[propName] = colorMap[currentValue] || currentValue;
+                    }
+                })
             }
         });
     });
@@ -11848,7 +11763,7 @@ window.DefaultRules = (function() {
 				break;
 
 			case "be confined in the arcade":
-				if ((V.arcadeSlaves < V.arcade && slave.indentureRestrictions <= 0 && slave.breedingMark != 1))
+				if ((V.arcadeSlaves < V.arcade && slave.indentureRestrictions <= 0 && (slave.breedingMark != 1 || V.propOutcome === 0)))
 					break;
 				else {
 					RAFacilityRemove(slave, rule); // before deleting rule.setAssignment 
@@ -11884,7 +11799,7 @@ window.DefaultRules = (function() {
 				break;
 
 			case "work in the brothel":
-				if ((V.brothelSlaves < V.brothel && (slave.devotion > 50 || slave.trust > 50 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)) && slave.breedingMark != 1))
+				if ((V.brothelSlaves < V.brothel && (slave.devotion > 50 || slave.trust > 50 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)) && (slave.breedingMark != 1 || V.propOutcome === 0)))
 					break;
 				else {
 					RAFacilityRemove(slave, rule); // before deleting rule.setAssignment 
@@ -11893,7 +11808,7 @@ window.DefaultRules = (function() {
 				break;
 
 			case "serve in the club":
-				if ((V.clubSlaves < V.club && (slave.devotion > 50 || slave.trust > 50 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)) && slave.breedingMark != 1))
+				if ((V.clubSlaves < V.club && (slave.devotion > 50 || slave.trust > 50 || slave.trust < -50 || (slave.devotion >= -50 && slave.trust < -20)) && (slave.breedingMark != 1 || V.propOutcome === 0)))
 					break;
 				else {
 					RAFacilityRemove(slave, rule); // before deleting rule.setAssignment 
@@ -11905,7 +11820,7 @@ window.DefaultRules = (function() {
 				if ((V.dairy > V.dairySlaves+V.bioreactorsXY+V.bioreactorsXX+V.bioreactorsHerm+V.bioreactorsBarren)) {
 					if ((slave.indentureRestrictions > 0) && (V.dairyRestraintsSetting > 1))
 						break;
-					else if (((slave.indentureRestrictions > 1) && (V.dairyRestraintsSetting > 0)) || (slave.breedingMark == 1 && V.dairyRestriantsSettings > 0) || ((V.dairyPregSetting > 0) && ((slave.bellyImplant != -1) || (slave.broodmother !== 0))))
+					else if (((slave.indentureRestrictions > 1) && (V.dairyRestraintsSetting > 0)) || (slave.breedingMark == 1 && V.propOutcome == 1 && V.dairyRestriantsSettings > 0) || ((V.dairyPregSetting > 0) && ((slave.bellyImplant != -1) || (slave.broodmother !== 0))))
 						break;
 					else {
 						if ((slave.lactation > 0 || ((V.dairySlimMaintainUpgrade === 0 || V.dairySlimMaintain === 0) && (slave.boobs > 300 || slave.dick === 0 || V.dairyImplantsSetting == 1) && V.dairyImplantsSetting != 2)) || (slave.balls > 0)) {
@@ -11994,7 +11909,7 @@ window.DefaultRules = (function() {
 				break;
 
 			case "work a glory hole":
-				if (slave.indentureRestrictions <= 0 && slave.breedingMark != 1)
+				if (slave.indentureRestrictions <= 0 && (slave.breedingMark != 1 || V.propOutcome === 0))
 					break;
 				else
 					delete rule.setAssignment;
@@ -12003,7 +11918,7 @@ window.DefaultRules = (function() {
 			case "whore":
 			case "serve the public":
 			case "stay confined":
-				if ((slave.fuckdoll === 0) && slave.breedingMark != 1)
+				if ((slave.fuckdoll === 0) && (slave.breedingMark != 1 || V.propOutcome === 0))
 					break;
 				else
 					delete rule.setAssignment;
@@ -12221,21 +12136,21 @@ window.DefaultRules = (function() {
 						break;
 
 					case "long dildo":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length dildo for her pussy.`;
 							slave.vaginalAccessory = "dildo";
 						}
 						break;
 
 					case "long, large dildo":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length large dildo for her pussy.`;
 							slave.vaginalAccessory = "large dildo";
 						}
 						break;
 
 					case "long, huge dildo":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length huge dildo for her pussy.`;
 							slave.vaginalAccessory = "huge dildo";
 						} else {
@@ -12278,21 +12193,21 @@ window.DefaultRules = (function() {
 						break;
 
 					case "long dildo":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length dildo for her pussy.`;
 							slave.vaginalAccessory = "dildo";
 						}
 						break;
 
 					case "long, large dildo":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length large dildo for her pussy.`;
 							slave.vaginalAccessory = "large dildo";
 						}
 						break;
 
 					case "long, huge dildo":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so the virgin ${slave.slaveName} has been given a standard length huge dildo for her pussy.`;
 							slave.vaginalAccessory = "huge dildo";
 						} else {
@@ -12335,21 +12250,21 @@ window.DefaultRules = (function() {
 						break;
 
 					case "long dildo":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so ${slave.slaveName} has been given a standard length dildo for her pussy.`;
 							slave.vaginalAccessory = "dildo";
 						}
 						break;
 
 					case "long, large dildo":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so ${slave.slaveName} has been given a standard length large dildo for her pussy.`;
 							slave.vaginalAccessory = "large dildo";
 						}
 						break;
 
 					case "long, huge dildo":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of cervix penetrating dildos on marked slaves, so ${slave.slaveName} has been given a standard length huge dildo for her pussy.`;
 							slave.vaginalAccessory = "huge dildo";
 						} else {
@@ -12465,21 +12380,21 @@ window.DefaultRules = (function() {
 						break;
 
 					case "long plug":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so the anal virgin ${slave.slaveName} has been given a standard length plug for her anus.`;
 							slave.buttplug = "plug";
 						}
 						break;
 
 					case "long, large plug":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so the anal virgin ${slave.slaveName} has been given a standard length large plug for her anus.`;
 							slave.buttplug = "large plug";
 						}
 						break;
 
 					case "long, huge plug":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so the anal virgin ${slave.slaveName} has been given a standard length huge plug for her anus.`;
 							slave.buttplug = "huge plug";
 						} else {
@@ -12522,21 +12437,21 @@ window.DefaultRules = (function() {
 						break;
 
 					case "long plug":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so ${slave.slaveName} has been given a standard length plug for her anus.`;
 							slave.buttplug = "plug";
 						}
 						break;
 						
 					case "long, large plug":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so ${slave.slaveName} has been given a standard length large plug for her anus.`;
 							slave.buttplug = "large plug";
 						}
 						break;
 
 					case "long, huge plug":
-						if (slave.breedingMark == 1) {
+						if (slave.breedingMark == 1 && V.propOutcome == 1) {
 							r += `<br>Breeding regulations forbid the use of anal plugs that can damage a growing fetus on marked slaves, so ${slave.slaveName} has been given a standard length huge plug for her anus.`;
 							slave.buttplug = "huge plug";
 						} else {
@@ -12879,12 +12794,12 @@ window.DefaultRules = (function() {
 				break;
 
 			case "female hormone injections":
-				if (!(slave.breedingMark != 1 && (slave.ovaries == 1 || slave.mpreg == 1) && slave.pubertyXX === 0))
+				if (!((slave.breedingMark != 1 || V.propOutcome == 0) && (slave.ovaries == 1 || slave.mpreg == 1) && slave.pubertyXX === 0))
 					flag = false;
 				break;
 
 			case "male hormone injections":
-				if (!(slave.breedingMark != 1 && slave.balls > 0 && slave.pubertyXY === 0))
+				if (!((slave.breedingMark != 1 || V.propOutcome == 0) && slave.balls > 0 && slave.pubertyXY === 0))
 					flag = false;
 				break;
 				
@@ -12944,7 +12859,7 @@ window.DefaultRules = (function() {
 				break;
 			
 			case "super fertility drugs":
-				if (!(slave.indentureRestrictions < 1 && slave.breedingMark !== 1))
+				if (!(slave.indentureRestrictions < 1 && (slave.breedingMark !== 1 || V.propOutcome == 0)))
 					flag = false;
 				break;
 			
@@ -12994,7 +12909,7 @@ window.DefaultRules = (function() {
 				break;
 				
 			case "female hormone injections":
-				if (!(slave.breedingMark !== 1 && (slave.ovaries === 1 || slave.mpreg === 1) && slave.pubertyXX === 0))
+				if (!((slave.breedingMark !== 1 || V.propOutcome == 0) && (slave.ovaries === 1 || slave.mpreg === 1) && slave.pubertyXX === 0))
 					flag = false;
 				break;
 			
@@ -13278,7 +13193,7 @@ window.DefaultRules = (function() {
 	}
 
 	function ProcessPregnancyDrugs(slave, rule) {
-		if (slave.pregKnown == 1 && rule.pregSpeed != "no default setting" && slave.breedingMark != 1 && slave.indentureRestrictions < 1 && slave.broodmother === 0) {
+		if (slave.pregKnown == 1 && rule.pregSpeed != "no default setting" && (slave.breedingMark != 1 || V.propOutcome == 0) && slave.indentureRestrictions < 1 && slave.broodmother === 0) {
 			if (rule.pregSpeed == "slow" && slave.preg < 35) {
 				slave.pregControl = "slow gestation";
 				r += `<br>${slave.slaveName} is pregnant, so she has been put on the gestation slowing agents.`;
@@ -13942,7 +13857,7 @@ window.DefaultRules = (function() {
 
 	function ProcessPorn(slave, rule) {
 		if ((rule.pornFameSpending !== undefined) && (rule.pornFameSpending !== "no default setting")) {
-			if ((slave.prestige < 3)) {
+			if ((slave.pornPrestige < 3)) {
 				if ((slave.pornFameSpending !== rule.pornFameSpending)) {
 					slave.pornFameSpending = rule.pornFameSpending;
 					r += `<br>${slave.slaveName}'s porn publicity has been corrected.`;
@@ -15892,7 +15807,7 @@ window.rulesAssistantOptions = (function() {
 		constructor() {
 			const pairs = [
 				["No default setting", "no default setting"],
-				["No broadcasting", -1],
+				/*["No broadcasting", -1], **This has changed, it would now use .pornFeed** */
 				["No subsidy", 0],
 				["1000", 1000],
 				["2000", 2000],
@@ -18465,6 +18380,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `C`;
 			r += `</span> `;
 			short_prestige(slave);
+			short_porn_prestige(slave);
 		} else if (V.abbreviateSkills === 2) {
 			long_intelligence(slave);
 			long_sex_skills(slave);
@@ -18472,6 +18388,7 @@ window.SlaveSummaryUncached = (function(){
 				r += `Trained fighter.`;
 			r += `</span> `;
 			long_prestige(slave);
+			long_porn_prestige(slave);
 		}
 		if (V.abbreviateMental === 1) {
 			if (slave.fetish !== "mindbroken") {
@@ -20329,13 +20246,13 @@ window.SlaveSummaryUncached = (function(){
 			} else {
 				r += `Amp`;
 			}
-			r += " ";
 		}
+		r += " ";
 		if (!canWalk(slave)) {
-			r += `Immob`;
+			r += ` Immob `;
 		}
 		if (slave.heels === 1) {
-			r += `Heel`;
+			r += ` Heel `;
 		}
 		r += `</span> `;
 	}
@@ -20548,7 +20465,7 @@ window.SlaveSummaryUncached = (function(){
 		} else {
 			r += `<span class="pink">Very beautiful${V.summaryStats? `[${slave.face}]`: ''}</span>`;
 		}
-		r += ` ${slave.faceShape} face.`;
+		r += ` ${slave.faceShape} face. `;
 	}
 	
 	function long_eyes(slave) {
@@ -20911,6 +20828,20 @@ window.SlaveSummaryUncached = (function(){
 		}
 	}
 	
+	function short_porn_prestige(slave) {
+		if (slave.pornPrestige > 0) {
+			r += `<span class="green">`;
+			if (slave.pornPrestige > 2) {
+				r += `PPrest++`;
+			} else if (slave.pornPrestige === 2) {
+				r += `PPrest+`;
+			} else if (slave.pornPrestige === 1) {
+				r += `PPrest`;
+			}
+			r += `</span> `;
+		}
+	}
+	
 	function long_intelligence(slave) {
 		if (slave.fetish === "mindbroken") {
 			return;
@@ -21017,6 +20948,20 @@ window.SlaveSummaryUncached = (function(){
 				r += `Very prestigious.`;
 			} else if (slave.prestige === 1) {
 				r += `Prestigious.`;
+			}
+			r += `</span> `;
+		}
+	}
+	
+	function long_porn_prestige(slave) {
+		if (slave.pornPrestige > 0) {
+			r += `<span class="green">`;
+			if (slave.pornPrestige > 2) {
+				r += `Porn star.`;
+			} else if (slave.pornPrestige === 2) {
+				r += `Porn slut.`;
+			} else if (slave.pornPrestige === 1) {
+				r += `Porn amateur.`;
 			}
 			r += `</span> `;
 		}
@@ -23014,5 +22959,1418 @@ window.removeActiveSlave = function removeActiveSlave() {
 		if (missing) {
 			V.missingParentID--;
 		}
+	}
+};
+
+/*:: SA porn JS [script]*/
+
+/* to later be rolled into saPorn */
+
+window.getHighestPorn = function(slave) {
+
+	var max = {value: 0, type: "none"};
+	
+	if(slave.pornTypeGeneral > max.value){
+		max = {value: slave.pornTypeGeneral, type: "generic"};
+	}
+	if(slave.pornTypeFuckdoll > max.value){
+		max = {value: slave.pornTypeFuckdoll, type: "fuckdoll"};
+	}
+	if(slave.pornTypeRape > max.value){
+		max = {value: slave.pornTypeRape, type: "rape"};
+	}
+	if(slave.pornTypePreggo > max.value){
+		max = {value: slave.pornTypePreggo, type: "preggo"};
+	}
+	if(slave.pornTypeBBW > max.value){
+		max = {value: slave.pornTypeBBW, type: "BBW"};
+	}
+	if(slave.pornTypeGainer > max.value){
+		max = {value: slave.pornTypeGainer, type: "weight gain"};
+	}
+	if(slave.pornTypeStud > max.value){
+		max = {value: slave.pornTypeStud, type: "big dick"};
+	}
+	if(slave.pornTypeLoli > max.value){
+		max = {value: slave.pornTypeLoli, type: "underage"};
+	}
+	if(slave.pornTypeDeepThroat > max.value){
+		max = {value: slave.pornTypeDeepThroat, type: "deepthroat"};
+	}
+	if(slave.pornTypeStruggleFuck > max.value){
+		max = {value: slave.pornTypeStruggleFuck, type: "unwilling"};
+	}
+	if(slave.pornTypePainal > max.value){
+		max = {value: slave.pornTypePainal, type: "hardcore anal"};
+	}
+	if(slave.pornTypeTease > max.value){
+		max = {value: slave.pornTypeTease, type: "softcore"};
+	}
+	if(slave.pornTypeRomantic > max.value){
+		max = {value: slave.pornTypeRomantic, type: "romantic"};
+	}
+	if(slave.pornTypePervert > max.value){
+		max = {value: slave.pornTypePervert, type: "really perverted"};
+	}
+	if(slave.pornTypeCaring > max.value){
+		max = {value: slave.pornTypeCaring, type: "voyeur"};
+	}
+	if(slave.pornTypeUnflinching > max.value){
+		max = {value: slave.pornTypeUnflinching, type: "unspeakable"};
+	}
+	if(slave.pornTypeSizeQueen > max.value){
+		max = {value: slave.pornTypeSizeQueen, type: "huge insertion"};
+	}
+	if(slave.pornTypeNeglectful > max.value){
+		max = {value: slave.pornTypeNeglectful, type: "orgasm denial"};
+	}
+	if(slave.pornTypeCumAddict > max.value){
+		max = {value: slave.pornTypeCumAddict, type: "cum addiction"};
+	}
+	if(slave.pornTypeAnalAddict > max.value){
+		max = {value: slave.pornTypeAnalAddict, type: "anal addiction"};
+	}
+	if(slave.pornTypeAttentionWhore > max.value){
+		max = {value: slave.pornTypeAttentionWhore, type: "exhibition"};
+	}
+	if(slave.pornTypeBreastGrowth > max.value){
+		max = {value: slave.pornTypeBreastGrowth, type: "breast expansion"};
+	}
+	if(slave.pornTypeAbusive > max.value){
+		max = {value: slave.pornTypeAbusive, type: "abuse"};
+	}
+	if(slave.pornTypeMalicious > max.value){
+		max = {value: slave.pornTypeMalicious, type: "sexual torture"};
+	}
+	if(slave.pornTypeSelfHating > max.value){
+		max = {value: slave.pornTypeSelfHating, type: "self hating"};
+	}
+	if(slave.pornTypeBreeder > max.value){
+		max = {value: slave.pornTypeBreeder, type: "breeder"};
+	}
+	if(slave.pornTypeSub > max.value){
+		max = {value: slave.pornTypeSub, type: "submissive"};
+	}
+	if(slave.pornTypeCumSlut > max.value){
+		max = {value: slave.pornTypeCumSlut, type: "cum"};
+	}
+	if(slave.pornTypeAnal > max.value){
+		max = {value: slave.pornTypeAnal, type: "buttslut"};
+	}
+	if(slave.pornTypeHumiliation > max.value){
+		max = {value: slave.pornTypeHumiliation, type: "humiliating"};
+	}
+	if(slave.pornTypeBoobs > max.value){
+		max = {value: slave.pornTypeBoobs, type: "breast"};
+	}
+	if(slave.pornTypeDom > max.value){
+		max = {value: slave.pornTypeDom, type: "dominant"};
+	}
+	if(slave.pornTypeSadist > max.value){
+		max = {value: slave.pornTypeSadist, type: "sadistic"};
+	}
+	if(slave.pornTypeMasochist > max.value){
+		max = {value: slave.pornTypeMasochist, type: "masochistic"};
+	}
+	if(slave.pornTypePregnancy > max.value){
+		max = {value: slave.pornTypePregnancy, type: "pregnancy fetish"};
+	}
+	
+	return max;
+}
+
+/*:: Art JS [script]*/
+
+/*
+Displays assistant images. Currently passage-based.
+sizePlacement: Image size/center.
+	3: Large, right. Example: description.
+	2: Medium, right. Example: random events.
+*/
+window.AssistantArtRendered = function AssistantArtRendered(sizePlacement) {
+	const V = State.variables;
+	let fileName = "";
+
+	if (V.imageChoice === 0) {
+		switch (V.assistantAppearance) {
+			case "monstergirl":
+				fileName = "'resources/renders/assistant monstergirl.png'";
+				break;
+			case "shemale":
+				fileName = "'resources/renders/assistant shemale.png'";
+				break;
+			case "amazon":
+				fileName = "'resources/renders/assistant amazon.png'";
+				break;
+			case "businesswoman":
+				fileName = "'resources/renders/assistant businesswoman.png'";
+				break;
+			case "goddess":
+				fileName = "'resources/renders/assistant goddess.png'";
+				break;
+			case "schoolgirl":
+				fileName = "'resources/renders/assistant schoolgirl.png'";
+				break;
+			default:
+				fileName = "'resources/renders/assistant default.png'";
+		}
+		if (sizePlacement === 3) {
+			fileName = `<img src=${fileName} style='float:right; border:3px hidden'/>`;
+		} else {
+			fileName = `<img src=${fileName} style='float:right; border:3px hidden' width='300' height='300'/>`;
+		}
+	}
+	return fileName;
+};
+
+window.ArtControlRendered = function ArtControlRendered(slave, sizePlacement) {
+	const V = State.variables;
+	let fileName = "";
+	let r = "";
+
+	if (slave.vagina > -1) {
+		if (slave.dick > 0) {
+			if (slave.balls > 0) {
+				fileName = "futanari";
+			} else {
+				fileName = "herm";
+			}
+		} else {
+			fileName = "female";
+		}
+	} else {
+		if (slave.balls > 0) {
+			fileName = "shemale";
+		} else {
+			fileName = "gelding";
+		}
+	}
+	if (slave.belly > 1500) {
+		fileName = `preg ${fileName}`;
+	}
+	if (slave.boobs < 400) {
+		fileName = `${fileName} small`;
+	} else if (slave.boobs < 800) {
+		fileName = `${fileName} big`;
+	} else if (slave.boobs < 6000) {
+		fileName = `${fileName} huge`;
+	} else {
+		fileName = `${fileName} hyper`;
+	}
+	if (slave.muscles > 30) {
+		fileName = `${fileName} muscle`;
+	} else {
+		fileName = `${fileName} soft`;
+	}
+	if (slave.fuckdoll > 0) {
+		fileName = `${fileName} rebellious`;
+	} else if (slave.devotion <= 20) {
+		if (slave.trust < -20) {
+			fileName = `${fileName} reluctant`;
+		} else {
+			fileName = `${fileName} rebellious`;
+		}
+	} else if (slave.fetish === "mindbroken") {
+		fileName = `${fileName} reluctant`;
+	} else if (slave.devotion <= 50 || slave.fetishKnown !== 1 || V.seeMainFetishes === 0 && sizePlacement < 2) {
+		fileName = `${fileName} obedient`;
+	} else {
+		if (slave.fetish === "none") {
+			fileName = `${fileName} obedient`;
+		} else {
+			fileName = `${fileName} ${slave.fetish}`;
+		}
+	}
+
+	fileName = `'resources/renders/${fileName}.png'`;
+	if (sizePlacement === 3) {
+		r = `<img src=${fileName} style='float:right; border:3px hidden'>`;
+	} else if (sizePlacement === 2) {
+		r = `<img src=${fileName} style='float:right; border:3px hidden' width='300' height='300'>`;
+	} else if (sizePlacement === 1) {
+		r = `<img src=${fileName} style='float:left; border:3px hidden' width='150' height='150'>`;
+	} else {
+		r = `<img src=${fileName} style='float:left; border:3px hidden' width='120' height='120'>`;
+	}
+	return r;
+};
+
+/* 
+This takes a textual hair colour description and tries to guess the appropriate HTML compliant color code.
+
+hColor should be a color name, but can also be a string describing hair colour.
+
+This code's working is described to the user in the Encyclopedia, chapter "Lore", section "Dyes".
+*/
+window.extractHairColor = function(hColor) {
+	/* 
+	these are color names known and used in FreeCities 
+	attributed color names are at the front of the array
+	*/
+	var FCname2HTMLarray = [
+		["blazing red", "#E00E2B"],
+		["neon green", "#25d12b"],
+		["neon blue", "#2284C3"],
+		["neon pink", "#cc26aa"],
+		["strawberry-blonde", "#e5a88c"],
+		["platinum blonde", "#fcf3c1"],
+		["dark brown", "#463325"],
+		["brown", "#8D4F21"],
+		["auburn", "#7e543e"],
+		["black", "#3F4040"],
+		["blonde", "#F4F1A3"],
+		["blue", "#4685C5"],
+		["burgundy", "#5f3946"],
+		["chestnut", "#663622"],
+		["chocolate", "#6e4937"],
+		["copper", "#a16145"],
+		["ginger", "#da822d"],
+		["golden", "#ffdf31"],
+		["green", "#5FBA46"],
+		["grey", "#9e9fa4"],
+		["hazel", "#8d6f1f"],
+		["pink", "#D18CBC"],
+		["red", "#BB2027"],
+		["deep red", "#6D1318"],
+		["blue-violet", "#8790B7"],
+		["silver", "#cdc9c6"],
+		["light olive", "#d4c6bb"],
+		["dark", "#a46237"],
+		/* these are not actually FreeCities canon, but like to appear in custom descriptions */
+		["dark", "#463325"],
+		["brunette", "#8D4F21"]
+	];
+	
+	/* these are HTML color names supported by most browsers */
+	var HTMLstandardColors = ["aliceblue","antiquewhite","aqua","aquamarine","azure","beige","bisque","black","blanchedalmond","blue","blueviolet","brown","burlywood","cadetblue","chartreuse","chocolate","coral","cornflowerblue","cornsilk","crimson","cyan","darkblue","darkcyan","darkgoldenrod","darkgray","darkgrey","darkgreen","darkkhaki","darkmagenta","darkolivegreen","darkorange","darkorchid","darkred","darksalmon","darkseagreen","darkslateblue","darkslategray","darkslategrey","darkturquoise","darkviolet","deeppink","deepskyblue","dimgray","dimgrey","dodgerblue","firebrick","floralwhite","forestgreen","fuchsia","gainsboro","ghostwhite","gold","goldenrod","gray","grey","green","greenyellow","honeydew","hotpink","indianred ","indigo ","ivory","khaki","lavender","lavenderblush","lawngreen","lemonchiffon","lightblue","lightcoral","lightcyan","lightgoldenrodyellow","lightgray","lightgrey","lightgreen","lightpink","lightsalmon","lightseagreen","lightskyblue","lightslategray","lightslategrey","lightsteelblue","lightyellow","lime","limegreen","linen","magenta","maroon","mediumaquamarine","mediumblue","mediumorchid","mediumpurple","mediumseagreen","mediumslateblue","mediumspringgreen","mediumturquoise","mediumvioletred","midnightblue","mintcream","mistyrose","moccasin","navajowhite","navy","oldlace","olive","olivedrab","orange","orangered","orchid","palegoldenrod","palegreen","paleturquoise","palevioletred","papayawhip","peachpuff","peru","pink","plum","powderblue","purple","rebeccapurple","red","rosybrown","royalblue","saddlebrown","salmon","sandybrown","seagreen","seashell","sienna","silver","skyblue","slateblue","slategray","slategrey","snow","springgreen","steelblue","tan","teal","thistle","tomato","turquoise","violet","wheat","white","whitesmoke","yellow","yellowgreen"];
+	
+	var FCnames = new Map(FCname2HTMLarray);
+	hColor = hColor.toLowerCase(); /* normalization: lowercase color name */
+	var colorCode = FCnames.get(hColor); /* look up in FreeCities color names */
+	if (!colorCode) { /* not a FreeCities color name*/
+		if (HTMLstandardColors.includes(hColor) || hColor.match(/^#([0-9a-f]{3}){1,2}$/) !== null) {
+			colorCode = hColor; /* is a HTML color name or value, use it directly */
+		} else { 
+			/* 
+			is not even a HTML color name. hColor probably is a description.
+			look for anything resembling a valid color name within the description.
+			*/
+			var hColorNoSpaces = hColor.replace(/\s+/g, ''); /* remove all spaces from description */
+			var FCkeys = Array.from(FCnames.keys());
+			var colorCodes = [
+				FCnames.get(FCkeys.find(function (e){return hColor.startsWith(e);})),
+				HTMLstandardColors.find(function (e){return hColorNoSpaces.startsWith(e);}),
+				FCnames.get(FCkeys.find(function (e){return hColor.includes(e);})),
+				HTMLstandardColors.find(function (e){return hColorNoSpaces.includes(e);})
+			];
+			colorCode = colorCodes.find(function (e){return e;}); /* picks the first successful guess */
+		}
+	}
+	if (!colorCode) {
+		console.log("Art Color Tools JS: Unable to determine HTML compliant color code for hair color string '"+hColor+"'.");
+		colorCode = "fuchsia"; /* use fuchsia as error marker */
+	}
+	return colorCode;
+};
+
+window.clothing2artSuffix = function(v) {
+  if (v == "restrictive latex") { v = "latex"; } /* universal "special case": latex art is actually "restrictive latex" TODO: align name in vector source */
+  return v.replace(/^a[n]? /,"") /* remove "a" and "an" from the beginning*/
+          .replace(/ ?(outfit|clothing) ?/,"") /* remove "outfit" and "clothing" (redundant) */
+          .replace(/ and .+/,"") /* remove concatenated descriptions */
+          .replace(/\w\S*/g, 
+            function(txt){
+                return txt.charAt(0).toUpperCase() + 
+                       txt.substr(1).toLowerCase();
+            }
+          ) /* CamelCase by whitespace */
+          .replace(/\W/g,""); /* remove remaining whitespace */
+};
+
+/*:: Slave Generation JS [script]*/
+
+window.generateAge = function generateAge(slave) {
+	const V = State.variables;
+
+	if (V.activeSlaveOneTimeMaxAge > 998) {
+		V.activeSlaveOneTimeMaxAge = (V.pedo_mode === 1) ? 18 : 42;
+	} else if (V.pedo_mode === 1 && V.one_time_age_overrides_pedo_mode === 0 && V.activeSlaveOneTimeMaxAge > 18) {
+		V.activeSlaveOneTimeMaxAge = 18;
+	}
+	if (V.retirementAge < V.activeSlaveOneTimeMaxAge) {
+		V.activeSlaveOneTimeMaxAge = (V.retirementAge - 1);
+	}
+	if (V.activeSlaveOneTimeMinAge < V.minimumSlaveAge) {
+		V.activeSlaveOneTimeMinAge = V.minimumSlaveAge;
+	} else if (V.pedo_mode === 1 && V.one_time_age_overrides_pedo_mode === 0) {
+		V.activeSlaveOneTimeMinAge = V.minimumSlaveAge;
+	}
+	if (V.activeSlaveOneTimeMaxAge < V.activeSlaveOneTimeMinAge) {
+		V.activeSlaveOneTimeMaxAge = V.activeSlaveOneTimeMinAge;
+	}
+	if (V.activeSlaveOneTimeMaxAge >= 30 && V.arcologies[0].FSMaturityPreferentialist !== "unset" && V.ageAdjustOverride !== 1) {
+		V.activeSlaveOneTimeMaxAge += 10;
+	}
+	slave.actualAge = jsRandom(V.activeSlaveOneTimeMinAge, V.activeSlaveOneTimeMaxAge);
+	const secondAgeRoll = jsRandom(V.activeSlaveOneTimeMinAge, V.activeSlaveOneTimeMaxAge);
+	if (V.arcologies[0].FSYouthPreferentialist !== "unset" && V.arcologies[0].FSYouthPreferentialist >= jsRandom(1, 100)) {
+		slave.actualAge = Math.min(slave.actualAge, secondAgeRoll);
+	} else if (V.arcologies[0].FSMaturityPreferentialist !== "unset" && V.arcologies[0].FSMaturityPreferentialist >= jsRandom(1, 100)) {
+		slave.actualAge = Math.max(slave.actualAge, secondAgeRoll);
+	}
+	if (slave.actualAge >= V.retirementAge) {
+		slave.actualAge = (V.retirementAge - 2);
+	}
+	V.activeSlaveOneTimeMinAge = 0;
+	V.activeSlaveOneTimeMaxAge = 999;
+	V.one_time_age_overrides_pedo_mode = 0;
+	V.ageAdjustOverride = 0;
+	slave.visualAge = slave.actualAge;
+	slave.physicalAge = slave.actualAge;
+	slave.ovaryAge = slave.actualAge;
+	slave.age = slave.actualAge; /*compatibility*/
+	slave.pubertyAgeXX = V.fertilityAge;
+	slave.pubertyAgeXY = V.potencyAge;
+};
+
+window.nationalityToName = function nationalityToName(slave) {
+	const V = State.variables;
+
+	slave.birthName =
+		jsEither(setup.namePoolSelector[slave.nationality + "." + slave.race] ||
+			setup.namePoolSelector[slave.nationality] ||
+			setup.whiteAmericanSlaveNames);
+	slave.birthSurname =
+		jsEither(setup.surnamePoolSelector[slave.nationality + "." + slave.race] ||
+			setup.surnamePoolSelector[slave.nationality] ||
+			setup.whiteAmericanSlaveSurnames);
+	slave.slaveName = slave.birthName;
+	slave.slaveSurname = slave.birthSurname;
+	if (V.useFSNames === 1) {
+		if (V.arcologies[0].FSChattelReligionist > 20) {
+			slave.slaveName = jsEither(setup.chattelReligionistSlaveNames), slave.slaveSurname = 0;
+		} else if (V.arcologies[0].FSRomanRevivalist > 20) {
+			slave.slaveName = jsEither(setup.romanSlaveNames), slave.slaveSurname = jsEither(setup.romanSlaveSurnames);
+		} else if (V.arcologies[0].FSAztecRevivalist > 20) {
+			slave.slaveName = jsEither(setup.aztecSlaveNames), slave.slaveSurname = 0;
+		} else if (V.arcologies[0].FSEgyptianRevivalist > 20) {
+			slave.slaveName = jsEither(setup.ancientEgyptianSlaveNames), slave.slaveSurname = 0;
+		} else if (V.arcologies[0].FSEdoRevivalist > 20) {
+			slave.slaveName = jsEither(setup.edoSlaveNames), slave.slaveSurname = jsEither(setup.edoSlaveSurnames);
+		} else if (V.arcologies[0].FSDegradationist !== "unset") {
+			DegradingName(slave);
+		}
+	}
+};
+
+window.nationalityToAccent = function nationalityToAccent(slave) {
+	const V = State.variables;
+	const naturalAccent = jsEither([0, 1, 1, 2, 2, 2, 3, 3, 3, 3]);
+
+	switch (slave.nationality) {
+		case "Afghan":
+			slave.accent = (V.language === "Pashto") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Albanian":
+			slave.accent = naturalAccent;
+			break;
+		case "Algerian":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "American":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Spanish" && slave.race === "latina") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Chinese" && slave.race === "asian") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Arabic" && slave.race === "middle eastern") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Andorran":
+			slave.accent = (V.language === "Catalan") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Angolan":
+			slave.accent = (V.language === "Portuguese") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Antiguan":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Argentinian":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Armenian":
+			if (V.language === "Russian") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Aruban":
+			if (V.language === "Dutch") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Portuguese") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Australian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Austrian":
+			if (V.language === "German") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Serbian") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Slovene") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Turkish" && slave.race === "middle eastern") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Azerbaijani":
+			slave.accent = naturalAccent;
+			break;
+		case "Bahamian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Bahraini":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Bangladeshi":
+			if (V.language === "Bengali") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Hindi") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Barbadian":
+			slave.accent = naturalAccent;
+			break;
+		case "Belarusian":
+			slave.accent = naturalAccent;
+			break;
+		case "Belgian":
+			if (V.language === "Dutch") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "German") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Belizean":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Beninese":
+			slave.accent = (V.language === "French") ? 1 : naturalAccent;
+			break;
+		case "Bermudian":
+			slave.accent = (V.language === "English") ? 1 : naturalAccent;
+			break;
+		case "Bhutanese":
+			slave.accent = (V.language === "Dzongkha") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Bissau-Guinean":
+			slave.accent = (V.language === "Portuguese") ? 1 : naturalAccent;
+			break;
+		case "Bolivian":
+			slave.accent = (V.language === "Spanish") ? 1 : naturalAccent;
+			break;
+		case "Bosnian":
+			slave.accent = naturalAccent;
+			break;
+		case "Brazilian":
+			slave.accent = (V.language === "Portuguese") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "British":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Bruneian":
+			if (V.language === "Malay") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Bulgarian":
+			slave.accent = naturalAccent;
+			break;
+		case "Burkinabé":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Burmese":
+			slave.accent = naturalAccent;
+			break;
+		case "Burundian":
+			slave.accent = (V.language === "Kirundi") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Cambodian":
+			if (V.language === "Khmer") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Cham") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Cameroonian":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Canadian":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Cape Verdean":
+			slave.accent = (V.language === "Portuguese") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Catalan":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Central African":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Chadian":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Chilean":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Chinese":
+			if (V.language === "Tibetan") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Korean") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Kazakh") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Colombian":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Comorian":
+			if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Congolese":
+			if (V.language === "Lingala") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Kikongo") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "a Cook Islander":
+			if (V.language === "Cook Islands Māori") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Costa Rican":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Croatian":
+			slave.accent = naturalAccent;
+			break;
+		case "Cuban":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Cypriot":
+			if (V.language === "Greek") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Turkish") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Czech":
+			slave.accent = naturalAccent;
+			break;
+		case "Danish":
+			slave.accent = naturalAccent;
+			break;
+		case "Djiboutian":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Dominican":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Dominiquais":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Dutch":
+			slave.accent = naturalAccent;
+			break;
+		case "East Timorese":
+			if (V.language === "Tetum") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Portuguese") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Malay") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Ecuadorian":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Egyptian":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Emirati":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Equatoguinean":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Eritrean":
+			if (V.language === "Tigrinya") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Estonian":
+			slave.accent = (V.language === "Russian") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Ethiopian":
+			if (V.language === "Amharic") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Tigrinya") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Fijian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Filipina":
+			if (V.language === "Filipino") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Tagalog") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Spanish") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Finnish":
+			slave.accent = (V.language === "Swedish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "French":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Spanish") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "German") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Arabic" && slave.race === "middle eastern") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Catalan") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "French Guianan":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "French Polynesian":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Gabonese":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Gambian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Georgian":
+			slave.accent = (V.language === "Abkhaz") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "German":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Turkish" && slave.race === "middle eastern") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Ghanan":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Hausa") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Greek":
+			slave.accent = naturalAccent;
+			break;
+		case "Greenlandic":
+			slave.accent = (V.language === "Danish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Grenadian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Guamanian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Guatemalan":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Guinean":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Guyanese":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Haitian":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Honduran":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Hungarian":
+			slave.accent = naturalAccent;
+			break;
+		case "I-Kiribati":
+			if (V.language === "Gilbertese") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Icelandic":
+			if (V.language === "Danish") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Indian":
+			if (V.language === "Hindi") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Indonesian":
+			slave.accent = (V.language === "Malay") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Iranian":
+			if (V.language === "Persian") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Iraqi":
+			if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Kurdish") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Irish":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Israeli":
+			if (V.language === "Hebrew") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Italian":
+			slave.accent = naturalAccent;
+			break;
+		case "Ivorian":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Jamaican":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Japanese":
+			slave.accent = naturalAccent;
+			break;
+		case "Jordanian":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Kazakh":
+			slave.accent = (V.language === "Russian") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Kenyan":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Kittitian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Korean":
+			slave.accent = (V.language === "Chinese") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Kosovan":
+			if (V.language === "Albanian") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Serbian") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Kurdish":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Kuwaiti":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Kyrgyz":
+			slave.accent = (V.language === "Russian") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Laotian":
+			if (V.language === "Lao") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Khmu") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Latvian":
+			slave.accent = naturalAccent;
+			break;
+		case "Lebanese":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Liberian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Libyan":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "a Liechtensteiner":
+			slave.accent = (V.language === "German") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Lithuanian":
+			slave.accent = naturalAccent;
+			break;
+		case "Luxembourgian":
+			if (V.language === "German") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Macedonian":
+			slave.accent = naturalAccent;
+			break;
+		case "Malagasy":
+			slave.accent = naturalAccent;
+			break;
+		case "Malawian":
+			slave.accent = naturalAccent;
+			break;
+		case "Malaysian":
+			slave.accent = (V.language === "Malay") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Maldivian":
+			slave.accent = naturalAccent;
+			break;
+		case "Malian":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Maltese":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Italian") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Marshallese":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Mauritanian":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Mauritian":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Mexican":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Micronesian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Moldovan":
+			slave.accent = naturalAccent;
+			break;
+		case "Monégasque":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Mongolian":
+			slave.accent = naturalAccent;
+			break;
+		case "Montenegrin":
+			slave.accent = naturalAccent;
+			break;
+		case "Moroccan":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Mosotho":
+			slave.accent = naturalAccent;
+			break;
+		case "Motswana":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Mozambican":
+			slave.accent = (V.language === "Portuguese") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Namibian":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Afrikaans") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Nauruan":
+			slave.accent = naturalAccent;
+			break;
+		case "Nepalese":
+			slave.accent = naturalAccent;
+			break;
+		case "New Caledonian":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "a New Zealander":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Ni-Vanuatu":
+			if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Nicaraguan":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Nigerian":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Hausa") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Nigerien":
+			if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Hausa") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Arabic") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Niuean":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Norwegian":
+			slave.accent = naturalAccent;
+			break;
+		case "Omani":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Pakistani":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Palauan":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Sonsorolese") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Tobian") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Japanese") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Palestinian":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Panamanian":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Papua New Guinean":
+			slave.accent = naturalAccent;
+			break;
+		case "Paraguayan":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Peruvian":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Polish":
+			slave.accent = naturalAccent;
+			break;
+		case "Portuguese":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Puerto Rican":
+			if (V.language === "Spanish") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Qatari":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Romanian":
+			slave.accent = naturalAccent;
+			break;
+		case "Russian":
+			slave.accent = naturalAccent;
+			break;
+		case "Rwandan":
+			slave.accent = (V.language === "Kinyarwanda") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Sahrawi":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Saint Lucian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Salvadoran":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Sammarinese":
+			slave.accent = (V.language === "Italian") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Samoan":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "São Toméan":
+			slave.accent = (V.language === "Portuguese") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Saudi":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Scottish":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Senegalese":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Serbian":
+			slave.accent = naturalAccent;
+			break;
+		case "Seychellois":
+			if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Sierra Leonean":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Singaporean":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Chinese") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Malay") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Tamil") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Slovak":
+			slave.accent = naturalAccent;
+			break;
+		case "Slovene":
+			slave.accent = naturalAccent;
+			break;
+		case "a Solomon Islander":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Somali":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "South African":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Afrikaans") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "South Sudanese":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Spanish":
+			slave.accent = (V.language === "Catalan") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Sri Lankan":
+			if (V.language === "Sinhalese") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Tamil") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Sudanese":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Surinamese":
+			slave.accent = (V.language === "Dutch") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Swazi":
+			slave.accent = naturalAccent;
+			break;
+		case "Swedish":
+			if (V.language === "English") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Finnish") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Norwegian") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "German") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Swiss":
+			if (V.language === "German") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Italian") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Syrian":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Taiwanese":
+			slave.accent = (V.language === "Chinese") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Tajik":
+			slave.accent = (V.language === "Russian") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Tanzanian":
+			slave.accent = (V.language === "Swahili") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Thai":
+			if (V.language === "Chinese") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Malay") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else if (V.language === "Khmer") {
+				slave.accent = jsEither([0, 1, 2, 2, 2, 3, 3]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Tibetan":
+			slave.accent = (V.language === "Chinese") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Togolese":
+			slave.accent = (V.language === "French") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Tongan":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Trinidadian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Tunisian":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Turkish":
+			slave.accent = naturalAccent;
+			break;
+		case "Turkmen":
+			slave.accent = (V.language === "Russian") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Tuvaluan":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Ugandan":
+			slave.accent = (V.language === "Swahili") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Ukrainian":
+			slave.accent = (V.language === "Russian") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Uruguayan":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Uzbek":
+			slave.accent = (V.language === "Russian") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Vatican":
+			slave.accent = (V.language === "Italian") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Venezuelan":
+			slave.accent = (V.language === "Spanish") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Vietnamese":
+			slave.accent = (V.language === "Chinese") ? jsEither([0, 1, 2, 2, 2, 3, 3]) : naturalAccent;
+			break;
+		case "Vincentian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Yemeni":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Zairian":
+			if (V.language === "Lingala") {
+				slave.accent = jsEither([0, 0, 0, 1]);
+			} else if (V.language === "Kikongo") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "Swahili") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else if (V.language === "French") {
+				slave.accent = jsEither([0, 1, 1, 1, 2]);
+			} else {
+				slave.accent = naturalAccent;
+			}
+			break;
+		case "Zambian":
+			slave.accent = (V.language === "English") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Zimbabwean":
+			slave.accent = (V.language === "English" && slave.race === "white") ? jsEither([0, 1, 1, 1, 2]) : naturalAccent;
+			break;
+		case "Ancient Chinese Revivalist":
+			slave.accent = (V.language === "Chinese") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Ancient Egyptian Revivalist":
+			slave.accent = (V.language === "Ancient Egyptian") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Arabian Revivalist":
+			slave.accent = (V.language === "Arabic") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Aztec Revivalist":
+			slave.accent = (V.language === "Nahuatl") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Edo Revivalist":
+			slave.accent = (V.language === "Japanese") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		case "Roman Revivalist":
+			slave.accent = (V.language === "Latin") ? jsEither([0, 0, 0, 1]) : naturalAccent;
+			break;
+		default:
+			slave.accent = naturalAccent;
+			break;
+	}
+
+	if (slave.nationality === V.language) {
+		slave.accent = jsEither([0, 0, 0, 1]);
 	}
 };

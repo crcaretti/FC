@@ -1,4 +1,118 @@
-:: Art Color Tools JS [script]
+:: Art JS [script]
+
+/*
+Displays assistant images. Currently passage-based.
+sizePlacement: Image size/center.
+	3: Large, right. Example: description.
+	2: Medium, right. Example: random events.
+*/
+window.AssistantArtRendered = function AssistantArtRendered(sizePlacement) {
+	const V = State.variables;
+	let fileName = "";
+
+	if (V.imageChoice === 0) {
+		switch (V.assistantAppearance) {
+			case "monstergirl":
+				fileName = "'resources/renders/assistant monstergirl.png'";
+				break;
+			case "shemale":
+				fileName = "'resources/renders/assistant shemale.png'";
+				break;
+			case "amazon":
+				fileName = "'resources/renders/assistant amazon.png'";
+				break;
+			case "businesswoman":
+				fileName = "'resources/renders/assistant businesswoman.png'";
+				break;
+			case "goddess":
+				fileName = "'resources/renders/assistant goddess.png'";
+				break;
+			case "schoolgirl":
+				fileName = "'resources/renders/assistant schoolgirl.png'";
+				break;
+			default:
+				fileName = "'resources/renders/assistant default.png'";
+		}
+		if (sizePlacement === 3) {
+			fileName = `<img src=${fileName} style='float:right; border:3px hidden'/>`;
+		} else {
+			fileName = `<img src=${fileName} style='float:right; border:3px hidden' width='300' height='300'/>`;
+		}
+	}
+	return fileName;
+};
+
+window.ArtControlRendered = function ArtControlRendered(slave, sizePlacement) {
+	const V = State.variables;
+	let fileName = "";
+	let r = "";
+
+	if (slave.vagina > -1) {
+		if (slave.dick > 0) {
+			if (slave.balls > 0) {
+				fileName = "futanari";
+			} else {
+				fileName = "herm";
+			}
+		} else {
+			fileName = "female";
+		}
+	} else {
+		if (slave.balls > 0) {
+			fileName = "shemale";
+		} else {
+			fileName = "gelding";
+		}
+	}
+	if (slave.belly > 1500) {
+		fileName = `preg ${fileName}`;
+	}
+	if (slave.boobs < 400) {
+		fileName = `${fileName} small`;
+	} else if (slave.boobs < 800) {
+		fileName = `${fileName} big`;
+	} else if (slave.boobs < 6000) {
+		fileName = `${fileName} huge`;
+	} else {
+		fileName = `${fileName} hyper`;
+	}
+	if (slave.muscles > 30) {
+		fileName = `${fileName} muscle`;
+	} else {
+		fileName = `${fileName} soft`;
+	}
+	if (slave.fuckdoll > 0) {
+		fileName = `${fileName} rebellious`;
+	} else if (slave.devotion <= 20) {
+		if (slave.trust < -20) {
+			fileName = `${fileName} reluctant`;
+		} else {
+			fileName = `${fileName} rebellious`;
+		}
+	} else if (slave.fetish === "mindbroken") {
+		fileName = `${fileName} reluctant`;
+	} else if (slave.devotion <= 50 || slave.fetishKnown !== 1 || V.seeMainFetishes === 0 && sizePlacement < 2) {
+		fileName = `${fileName} obedient`;
+	} else {
+		if (slave.fetish === "none") {
+			fileName = `${fileName} obedient`;
+		} else {
+			fileName = `${fileName} ${slave.fetish}`;
+		}
+	}
+
+	fileName = `'resources/renders/${fileName}.png'`;
+	if (sizePlacement === 3) {
+		r = `<img src=${fileName} style='float:right; border:3px hidden'>`;
+	} else if (sizePlacement === 2) {
+		r = `<img src=${fileName} style='float:right; border:3px hidden' width='300' height='300'>`;
+	} else if (sizePlacement === 1) {
+		r = `<img src=${fileName} style='float:left; border:3px hidden' width='150' height='150'>`;
+	} else {
+		r = `<img src=${fileName} style='float:left; border:3px hidden' width='120' height='120'>`;
+	}
+	return r;
+};
 
 /* 
 This takes a textual hair colour description and tries to guess the appropriate HTML compliant color code.
@@ -76,4 +190,18 @@ window.extractHairColor = function(hColor) {
 		colorCode = "fuchsia"; /* use fuchsia as error marker */
 	}
 	return colorCode;
+};
+
+window.clothing2artSuffix = function(v) {
+  if (v == "restrictive latex") { v = "latex"; } /* universal "special case": latex art is actually "restrictive latex" TODO: align name in vector source */
+  return v.replace(/^a[n]? /,"") /* remove "a" and "an" from the beginning*/
+          .replace(/ ?(outfit|clothing) ?/,"") /* remove "outfit" and "clothing" (redundant) */
+          .replace(/ and .+/,"") /* remove concatenated descriptions */
+          .replace(/\w\S*/g, 
+            function(txt){
+                return txt.charAt(0).toUpperCase() + 
+                       txt.substr(1).toLowerCase();
+            }
+          ) /* CamelCase by whitespace */
+          .replace(/\W/g,""); /* remove remaining whitespace */
 };
