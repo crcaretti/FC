@@ -4,7 +4,6 @@ for these included passages, it is not safe to assume that a temporary variable 
 
 when passages are included by other passages, any variables that they set will override variables in the calling passage, so extra care should be taken in these passages if they use $i, _i, _j or other common variable names to ensure that callers are not expecting those variables to be unchanged after the include
 
-
 all sa... passages
 
 arcologyDescription
@@ -50,6 +49,7 @@ economics
 	marketsReport
 
 npc
+
 	degradingName
 	fAbuse
 	fFeelings
