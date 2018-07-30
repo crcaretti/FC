@@ -1,49 +1,61 @@
-:: SA stay confined [nobr]
+:: SA stay confined [script]
 
-<<if $slaves[$i].fetish != "mindbroken">>
-<<if ($slaves[$i].devotion < -50)>>
-	is kept in solitary confinement whenever $he is not being forced to do something else. $He still hates $his place in the world, but being forced to rely on slave life as $his only human contact @@.hotpink;grinds down $his resistance.@@
-	<<set $slaves[$i].devotion += 2>>
-<<elseif ($slaves[$i].devotion <= 20)>>
-	is kept in solitary confinement whenever $he is not being forced to do something else. With nothing to do but look forward to the next time $he's let out to serve, @@.hotpink;$he begins to rely on servitude.@@
-	<<set $slaves[$i].devotion += 1>>
-<<elseif ($slaves[$i].devotion <= 50)>>
-	accepts solitary confinement whenever $he is not being forced to do something else. Since $he is obedient, the mental torture neither breaks $him further nor causes $him to hate you.
-<<else>>
-	accepts solitary confinement whenever $he is not being forced to do something else. $He spends $his time wondering hopelessly how $he has failed you, @@.mediumorchid;damaging $his devotion to you.@@
-	<<set $slaves[$i].devotion -= 2>>
-<</if>>
+window.saStayConfined = function saStayConfined(slave) {
 
-<<if ($slaves[$i].trust < -50)>>
-	$He is so terrified of you that this confinement does not make $him fear you any more.
-<<elseif ($slaves[$i].trust < -20)>>
-	$He is already afraid of you, but this confinement makes $him @@.gold;fear you even more.@@
-	<<set $slaves[$i].trust -= 2>>
-<<elseif ($slaves[$i].trust <= 20)>>
-	This confinement makes $him @@.gold;fear your power@@ over $him.
-	<<set $slaves[$i].trust -= 4>>
-<<else>>
-	This confinement makes $him @@.gold;trust you less,@@ and fear you more.
-	<<set $slaves[$i].trust -= 5>>
-<</if>>
+	var pronouns = getPronouns(slave)
+	var he = pronouns.pronoun, him = pronouns.object, his = pronouns.possessive, hers = pronouns.possessivePronoun, himself = pronouns.objectReflexive, boy = pronouns.noun
+	var He = capFirstChar(he), His = capFirstChar(his)
+	var V = State.variables
 
-The stress of confinement @@.red;damages $his health@@.
-<<set $slaves[$i].health -= 10>>
+	var t = ""
 
-<<else>>
-	is oblivious to $his confinement.
-<</if>>
+	if (slave.fetish != "mindbroken") {
+		if (slave.devotion < -50) {
+			t += `is kept in solitary confinement whenever ${he} is not being forced to do something else. ${He} still hates ${his} place in the world, but being forced to rely on slave life as ${his} only human contact <span class='hotpink'>grinds down ${his} resistance.</span>`
+			slave.devotion += 2
+		} else if (slave.devotion <= 20) {
+			t += `is kept in solitary confinement whenever ${he} is not being forced to do something else. With nothing to do but look forward to the next time ${he}'s let out to serve, <span class='hotpink'>${he} begins to rely on servitude.</span>`
+			slave.devotion += 1
+		} else if (slave.devotion <= 50) {
+			t += `accepts solitary confinement whenever ${he} is not being forced to do something else. Since ${he} is obedient, the mental torture neither breaks ${him} further nor causes ${him} to hate you.`
+		} else {
+			t += `accepts solitary confinement whenever ${he} is not being forced to do something else. ${He} spends ${his} time wondering hopelessly how ${he} has failed you, <span class='mediumorchid'>damaging ${his} devotion to you.</span>`
+			slave.devotion -= 2
+		}
 
-<<if ($slaves[$i].sentence == 0) && (($slaves[$i].devotion > 20) || (($slaves[$i].devotion >= -20) && ($slaves[$i].trust < -20)) || (($slaves[$i].devotion >= -50) && ($slaves[$i].trust < -50)) || ($slaves[$i].fetish == "mindbroken"))>>
-	<<if $slaves[$i].fetish == "mindbroken">>
-		$His broken mind hinges entirely on other's guidance,
-	<<else>>
-		$He is now willing to @@.hotpink;do as $he's told@@,
-	<</if>>
-	so @@.yellow;$his assignment has defaulted to rest.@@
-	<<if $slaves[$i].assignment == "be confined in the cellblock">>
-		<<set _brokenSlaves++, _DL--, _dI-->>
-	<</if>>
-	<<= removeJob($slaves[$i], $slaves[$i].assignment)>>
-<</if>>
+		if (slave.trust < -50) {
+			t += ` ${He} is so terrified of you that this confinement does not make ${him} fear you any more.`
+		} else if (slave.trust < -20) {
+			t += ` ${He} is already afraid of you, but this confinement makes ${him} <span class='gold'>fear you even more.</span>`
+			slave.trust -= 2
+		} else if (slave.trust <= 20) {
+			t += ` This confinement makes ${him} <span class='gold'>fear your power</span> over ${him}.`
+			slave.trust -= 4
+		} else {
+			t += ` This confinement makes ${him} <span class='gold'>trust you less,</span> and fear you more.`
+			slave.trust -= 5
+		}
 
+		t += ` The stress of confinement <span class='red'>damages ${his} health.</span>`
+		slave.health -= 10
+	} else {
+		t += `is oblivious to ${his} confinement.`
+	}
+
+	if (slave.sentence == 0 && (slave.devotion > 20 || (slave.devotion >= -20 && slave.trust < -20) || (slave.devotion >= -50 && slave.trust < -50) || slave.fetish == "mindbroken")) {
+		if (slave.fetish == "mindbroken") {
+			t += ` ${His} broken mind hinges entirely on other's guidance,`
+		} else {
+			t += ` ${He} is now willing to <span class='hotpink'>do as ${he}'s told,</span>`
+		}
+		t += ` so <span class='yellow'>${his} assignment has defaulted to rest.</span>`
+		if (slave.assignment == "be confined in the cellblock") {
+			State.temporary.brokenSlaves++
+			State.temporary.DL--
+			State.temporary.dI--
+		}
+		removeJob(slave, slave.assignment)
+	}
+	
+	return t
+}
