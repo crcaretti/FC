@@ -1089,3 +1089,176 @@ window.nationalityToAccent = function nationalityToAccent(slave) {
 		slave.accent = jsEither([0, 0, 0, 1]);
 	}
 };
+
+/*
+Backup and then apply gingering modifiers to $activeSlave - no changes should be made to $activeSlave until after calling removeGingering() to restore the backup
+Called from lawCompliance
+*/
+window.checkForGingering = function checkForGingering() {
+	const V = State.variables;
+	let r = "";
+	const pronouns = getPronouns(V.activeSlave);
+	const he = pronouns.pronoun;
+	const him = pronouns.object;
+	const his = pronouns.possessive;
+	const He = capFirstChar(he);
+	const His = capFirstChar(his);
+
+	/* reset in case gingered slaves were viewed but not purchased (no newSlaveIntro) */
+	V.gingering = 0, V.gingeringDetected = 0, V.gingeringDetection = 0, V.toSearch = V.activeSlave.origin;
+	if (V.applyLaw === 1 && V.HonestySMR === 1) {
+		/* SMR prohibits gingering and is enforced for this slave - do nothing */
+	} else if (V.activeSlave.indenture > 0) {
+		/* indentured servants cannot be gingered */
+	} else if (V.toSearch !== 0 && V.toSearch.indexOf("Shelter") !== -1) {
+		/* is a Shelter slave - do nothing */
+	} else {
+		V.beforeGingering = clone(V.activeSlave);
+		if (V.activeSlave.trust < -20 && jsRandom(1, 3) === 1) {
+			V.gingering = "antidepressant";
+			V.activeSlave.trust += jsRandom(10, 40);
+		} else if (V.activeSlave.devotion < -20 && jsRandom(1, 3) === 1) {
+			V.gingering = "depressant";
+			V.activeSlave.devotion += jsRandom(10, 40);
+		} else if (V.activeSlave.health < 60 && jsRandom(1, 3) === 1) {
+			V.gingering = "stimulant";
+			V.activeSlave.health += jsRandom(20, 40);
+		} else if (V.activeSlave.balls > 0 && V.activeSlave.dick > 2 && jsRandom(1, 3) === 1) {
+			V.gingering = "vasoconstrictor";
+			V.activeSlave.dick -= jsRandom(1, 2);
+		} else if (V.activeSlave.balls > 0 && V.activeSlave.dick < 5 && jsRandom(1, 3) === 1) {
+			V.gingering = "vasodilator";
+			V.activeSlave.dick += jsRandom(1, 2);
+		} else if (V.activeSlave.attrKnown === 0 && jsRandom(1, 3) === 1) {
+			V.gingering = "aphrodisiac";
+			V.activeSlave.aphrodisiacs = 2;
+			V.activeSlave.attrKnown = 1;
+			V.activeSlave.attrXX = jsRandom(60, 90);
+			V.activeSlave.attrXY = jsRandom(60, 90);
+			V.activeSlave.energy = jsRandom(50, 90);
+		} else if (V.activeSlave.anus > 0 && V.activeSlave.fetishKnown === 0 && jsRandom(1, 3) === 1) {
+			V.gingering = "ginger";
+			V.activeSlave.fetish = "buttslut";
+			V.activeSlave.fetishKnown = 1;
+			V.activeSlave.fetishStrength = 65;
+		}
+	}
+	if (V.gingering !== 0) {
+		if (V.PC.slaving >= 100) {
+			V.gingeringDetected = 1, V.gingeringDetection = "slaver";
+			switch (V.gingering) {
+				case "antidepressant":
+					r += `${He} is acting dazed and unfocused. ${He}'s obviously been given antidepressants to make ${him} appear less fearful, and will be considerably less trusting than ${he} seems.`;
+					break;
+				case "depressant":
+					r += `${He} is acting languid and drugged. ${He}'s obviously been given a depressant to make ${him} appear less hateful, and will be considerably less accepting of slavery than ${he} seems.`;
+					break;
+				case "stimulant":
+					r += `${He} is acting twitchy and hyperactive. ${He}'s obviously been given a stimulant to make ${him} seem healthier and more energetic, and is a lot less healthy than ${he} looks.`;
+					break;
+				case "vasoconstrictor":
+					r += `${His} lips have the slightest blue tinge, making it obvious ${he}'s been given a vasoconstrictor. ${His} cock is a lot less of a girldick than it looks right now.`;
+					break;
+				case "vasodilator":
+					r += `${He} has an impressive erection, but it seems quite unconnected to the rest of ${him}, as if ${he} doesn't know what to do with it. ${He}'s obviously been given a vasodilator to make ${his} dick seem a little less pathetic.`;
+					break;
+				case "aphrodisiac":
+					r += `${His} pupils are slightly dilated, ${his} breath comes in fast pants, and ${his} skin is flushed. ${He}'s obviously been given as big of a dose of aphrodisiacs as ${he} can handle without a heart attack.`;
+					break;
+				default:
+					r += `${He} is acting oddly, presenting ${his} ass in an awkward way and acting uncomfortable. ${He}'s obviously had an irritant shoved up ${his} butt to make ${him} act like an anal whore.`;
+			}
+			r += ` It's a trick you're very familiar with, given your <span class="springgreen">training as a slaver.</span>`;
+		} else {
+			/* not slaver */
+			if (V.PC.warfare >= 100 && jsRandom(1, 2) === 1) {
+				V.gingeringDetected = 1, V.gingeringDetection = "mercenary";
+			} else if (V.PC.rumor === "force" && jsRandom(1, 2) === 1) {
+				V.gingeringDetected = 1, V.gingeringDetection = "force";
+			} else if (jsRandom(1, 3) === 1) {
+				V.gingeringDetected = 1;
+			}
+			if (V.gingeringDetected === 1) {
+				switch (V.gingering) {
+					case "antidepressant":
+						r += `${He} is acting dazed and unfocused, like ${he}'s been given antidepressants to make ${him} appear less fearful. ${He} may be considerably less trusting than ${he} seems. `;
+						break;
+					case "depressant":
+						r += `${He} is acting languid and drugged, like ${he}'s been given a depressant to make ${him} appear less hateful. ${He} may be considerably less accepting of slavery than ${he} seems. `;
+						break;
+					case "stimulant":
+						r += `${He} is acting twitchy and hyperactive, like ${he}'s been given a stimulant to make ${him} seem healthier and more energetic. ${He} may be considerably less vital than ${he} seems. `;
+						break;
+					case "vasoconstrictor":
+						r += `${His} lips have the slightest blue tinge, suggesting that ${he} may have been given a vasoconstrictor. If ${he} has, ${his} cock may be considerably less feminine and demure than it now seems. `;
+						break;
+					case "vasodilator":
+						r += `${He} has an impressive erection, but it seems quite unconnected to the rest of ${him}, as if ${he} doesn't know what to do with it. ${He} may have been given a vasodilator. If ${he} has, ${his} cock may be considerably less impressive than it now seems. `;
+						break;
+					case "aphrodisiac":
+						r += `${His} pupils are slightly dilated, ${his} breath comes in fast pants, and ${his} skin is flushed. These are the characteristic symptoms of a dose of aphrodisiacs limited only by a desire to avoid giving ${him} a heart attack. `;
+						break;
+					default:
+						r += `${He} is acting oddly, presenting ${his} ass in an awkward way and acting uncomfortable. ${He} may be considerably less interested in anal sex than ${he} seems. `;
+				}
+				if (V.gingeringDetection === "mercenary") {
+					r += `The nervous seller confirms this in response to a direct inquiry. Your intimidating reputation from your <span class="springgreen">extensive combat training</span> has its uses.`;
+				} else if (V.gingeringDetection === "force") {
+					r += `The nervous seller confirms this in response to a direct inquiry. Your reputation as a <span class="springgreen"> ${V.PCTitle ? "man" : "woman"} of blood</span> has its uses.`;
+				}
+			}
+		} /* gingering detected */
+	} /* gingering !== 0 */
+	return r;
+};
+
+/*
+Retrieve original $activeSlave without gingering modifiers
+Call as removeGingering()
+Called from newSlaveIntro, bulkSlaveGenerate
+*/
+window.removeGingering = function removeGingering() {
+	const V = State.variables;
+	if (V.gingering !== 0 && V.beforeGingering !== 0 && V.activeSlave !== 0 && V.beforeGingering.ID === V.activeSlave.ID) {
+		/* extra checks to ensure gingering state is not left over from a different slave that was inspected but not purchased */
+		V.activeSlave = V.beforeGingering, V.beforeGingering = 0;
+	} else {
+		/* clear left over state from a different slave without modifying activeSlave */
+		V.gingering = 0, V.beforeGingering = 0;
+	}
+};
+
+window.randomizeAttraction = function randomizeAttraction(slave) {
+	const sexuality = jsRandom(0, 100);
+	let attraction = Math.clamp(slave.energy * 2, 60, 180);
+
+	if (slave.balls > 0) {
+		if (sexuality > 90) {
+			slave.attrXY = Math.clamp(attraction, 0, 100);
+			attraction -= slave.attrXY;
+			slave.attrXX = Math.clamp(attraction, 0, 100);
+		} else if (sexuality > 70) {
+			slave.attrXY = Math.clamp(attraction + jsRandom(-5, 5), 0, 100);
+			slave.attrXX = Math.clamp(attraction + jsRandom(-5, 5), 0, 100);
+		} else {
+			slave.attrXX = Math.clamp(attraction, 0, 100);
+			attraction -= slave.attrXX;
+			slave.attrXY = Math.clamp(attraction, 0, 100);
+		}
+	} else {
+		if (sexuality > 90) {
+			slave.attrXX = Math.clamp(attraction, 0, 100);
+			attraction -= slave.attrXX;
+			slave.attrXY = Math.clamp(attraction, 0, 100);
+		} else if (sexuality > 60) {
+			slave.attrXY = Math.clamp(attraction + jsRandom(-5, 5), 0, 100);
+			slave.attrXX = Math.clamp(attraction + jsRandom(-5, 5), 0, 100);
+		} else {
+			slave.attrXY = Math.clamp(attraction, 0, 100);
+			attraction -= slave.attrXY;
+			slave.attrXX = Math.clamp(attraction, 0, 100);
+		}
+	}
+	slave.attrXX = Math.clamp(slave.attrXX + jsRandom(-5, 5), 0, 100);
+	slave.attrXY = Math.clamp(slave.attrXY + jsRandom(-5, 5), 0, 100);
+};
