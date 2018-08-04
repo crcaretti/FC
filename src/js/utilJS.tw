@@ -5,8 +5,8 @@
  * Height.mean(nationality, race, genes) - returns the mean adult height for the given combination
  * Height.mean(slave) - returns the mean (expected) height for the given slave
  *
- * Height.random(nationality, race, genes, age) - returns a random height for the given combination,
- *     with Gaussian distribution (mean = 1, standard deviation = 0.05) around the mean height
+ * Height.random(nationality, race, genes, age) - returns a random height using the skew-normal distribution 
+ *                                                around the mean height for the given arguments
  * Height.random(nationality, race, genes) - returns a random height for the given combination of an adult, as above
  * Height.random(slave[, options]) - returns a random height for the given slave, as above.
  *                                   The additional options object can modify how the values are generated
@@ -45,9 +45,9 @@
  *
  *Skew, spread, limitMult: These are statistics things. BTW, a gaussian distribution is a normal distribution. Just a naming thing.
  *
- *Skew: See https://brownmath.com/stat/shape.htm#Skewness. Basically a measure of how asymmetrical the curve is. It doesn't change the mean, and can't move the main mass of the distribution far from the mean! The normal distribution can't do that. You can, however, use it to fatten one or the other tail.
+ *Skew: The shape parameter of a skew-normal distribution. See http://azzalini.stat.unipd.it/SN/Intro/intro.html for more details. Basically a measure of how asymmetrical the curve is. It doesn't move the main mass of the distribution. Rather, it's more like it moves mass from one of the tails into the main mass of the distribution.
  *
- *Spread: Changes the average distance from the mean, making the graph wider and shorter. Moves "mass" from the center to the tail. It's basically standard deviation, but named funny because FC codebase.
+ *Spread: Changes the average distance from the mean, making the graph wider and shorter. Moves "mass" from the center to the tail. It's basically standard deviation, but named funny because FC codebase. Changing this can have dramatic effects. It's advised to keep this at or below 0.1 for usual height generation.
  *
  *limitMult: A clamp, expressed in z-score. (z=1 is one standard dev above mean, for ex.) If it excludes too much of the distribution the other parameters describe, you're going to spend lots of CPU making and throwing away heights. Don't worry about this unless you run into it.
  *
@@ -97,7 +97,7 @@ window.Height = (function(){
 		"Finnish": 165.3, "French Guianan": 157, "French Polynesian": undefined, "French": 162.5, "Gabonese": 158.4, "Gambian": 157.8, "Georgian": 160.5, "German": 162.8, "Ghanan": 158.5, 
 		"Greek": 165, "Greenlandic": undefined, "Grenadian": undefined, "Guamanian": undefined, "Guatemalan": 147.3, "Guinean": 158.8, "Guyanese": 157.9, "Haitian": 158.6, "Honduran": 152.0, "Hungarian": 164, 
 		"I-Kiribati": undefined, "Icelandic": 168, "Indian": 151.9, "Indonesian": 147, "Iranian": 157.2, "Iraqi": 155.8, "Irish": 163, "Israeli": 166, "Italian": 162.5, "Ivorian": 158.9, 
-		"Jamaican": 160.8, "Japanese": 158, "Jordanian": 158.2, "Kazakh": 159.8, "Kenyan": 159.4, "Kittitian": 156.9, "Korean": 156.15, "Kosovan": undefined, "Kurdish": undefined, "Kuwaiti": 156.1, 
+		"Jamaican": 160.8, "Japanese": 158, "Jordanian": 158.2, "Kazakh": 159.8, "Kenyan": 159.4, "Kittitian": 156.9, "Korean": 156.15, "Kosovan": 165.7, "Kurdish": undefined, "Kuwaiti": 156.1, 
 		"Kyrgyz": 158.6, "Laotian": undefined, "Latvian": 165.7, "Lebanese": 165, "Liberian": 157.3, "Libyan": 160.5, "a Liechtensteiner": 164.3, "Lithuanian": 167.5, "Luxembourgian": 164.8, 
 		"Macedonian": undefined, "Malagasy": 154.3, "Malawian": 155, "Malaysian": 154.7, "Maldivian": undefined, "Malian": 160.4, "Maltese": 159.9, "Marshallese": undefined, "Mauritanian": undefined, 
 		"Mauritian": undefined, "Mexican": 154, "Micronesian": undefined, "Moldovan": 161.2, "Monégasque": undefined, "Mongolian": 157.7, "Montenegrin": 168.4, "Moroccan": 158.5, "Mosotho": 157.6, 
@@ -123,8 +123,8 @@ window.Height = (function(){
 		"Egyptian": 170.3, "Emirati": 170.3, "Equatoguinean": undefined, "Eritrean": undefined, "Estonian": 179.1, "Ethiopian": undefined, "Fijian": 170.4, "Filipina": 163.5, "Finnish": 178.9, 
 		"French Guianan": 168, "French Polynesian": undefined, "French": 175.6, "Gabonese": undefined, "Gambian": 168, "Georgian": 172.7, "German": 175.4, "Ghanan": 169.5, "Greek": 177, "Greenlandic": undefined, 
 		"Grenadian": undefined, "Guamanian": undefined, "Guatemalan": 157.5, "Guinean": undefined, "Guyanese": 168.6, "Haitian": undefined, "Honduran": undefined, "Hungarian": 176, "I-Kiribati": undefined, "Icelandic": 181, 
-		"Indian": 164.7, "Indonesian": 158, "Iranian": 170.3, "Iraqi": 165.4, "Irish": 177, "Israeli": 177, "Italian": 176.5, "Ivorian": undefined, "Jamaican": 171.8, "Japanese": 172, "Jordanian": undefined, 
-		"Kazakh": 169, "Kenyan": 170.0, "Kittitian": 164.4, "Korean": 168.15, "Kosovan": undefined, "Kurdish": undefined, "Kuwaiti": 169.2, "Kyrgyz": 170.4, "Laotian": 160.5, "Latvian": 174.2, "Lebanese": 176, 
+		"Indian": 164.7, "Indonesian": 158, "Iranian": 170.3, "Iraqi": 165.4, "Irish": 177, "Israeli": 177, "Italian": 176.5, "Ivorian": 170.1, "Jamaican": 171.8, "Japanese": 172, "Jordanian": undefined, 
+		"Kazakh": 169, "Kenyan": 170.0, "Kittitian": 164.4, "Korean": 168.15, "Kosovan": 179.5, "Kurdish": undefined, "Kuwaiti": 169.2, "Kyrgyz": 170.4, "Laotian": 160.5, "Latvian": 174.2, "Lebanese": 176, 
 		"Liberian": undefined, "Libyan": 171.3, "a Liechtensteiner": 175.4, "Lithuanian": 177.2, "Luxembourgian": 179.9, "Macedonian": undefined, "Malagasy": 161.5, "Malawian": 166, "Malaysian": 166.3, 
 		"Maldivian": undefined, "Malian": 171.3, "Maltese": 169.9, "Marshallese": undefined, "Mauritanian": undefined, "Mauritian": undefined, "Mexican": 167, "Micronesian": undefined, "Moldovan": undefined, 
 		"Monégasque": undefined, "Mongolian": 168.4, "Montenegrin": 183.2, "Moroccan": 172.7, "Mosotho": undefined, "Motswana": undefined, "Mozambican": undefined, "Namibian": undefined, "Nauruan": undefined, 
@@ -582,5 +582,200 @@ window.getSlaveTrustClass = function (slave) {
 	} else {
 		if (slave.devotion < -20) return 'defiant';
 		else return 'profoundly-trusting';
+	}
+};
+
+//takes an integer e.g. $activeSlave.hLength, returns a string in the format 10 inches
+window.cmToInchString = function(s) {
+	return Math.round(s/2.54) + (Math.round(s/2.54) === 1?" inch":" inches");
+};
+
+//takes an integer e.g. $activeSlave.height, returns a string in the format 6'5"
+window.cmToFootInchString = function(s) {
+	if (Math.round(s/2.54) < 12)
+		return cmToInchString(s);
+	return Math.trunc(Math.round(s/2.54)/12) + `'` + Math.round(s/2.54)%12 + `"`;
+};
+
+//takes a dick value e.g. $activeSlave.dick, returns a string in the format 6 inches
+window.dickToInchString = function(s) {
+	return cmToInchString(dickToCM(s));
+};
+
+//takes a dick value e.g. $activeSlave.dick, returns an int of the dick length in cm
+window.dickToCM = function(s) {
+	return (s<9?s*5:(s===9?50:s*6));
+};
+
+//takes a ball value e.g. $activeSlave.balls, returns a string in the format 3 inches
+window.ballsToInchString = function(s) {
+	return cmToInchString(ballsToCM(s));
+};
+
+//takes a ball value e.g. $activeSlave.balls, returns an int of the ball size in cm
+window.ballsToCM = function(s) {
+	if (s < 2)
+		return 0;
+	return (s<10?(s-1)*2:s*2);
+};
+
+//takes a dick value e.g. $activeSlave.dick, returns a string in the format of either `20cm (8 inches)`, `8 inches`, or `20cm`
+window.dickToEitherUnit = function(s) {
+	if (State.variables.showInches === 1)
+		return dickToCM(s) + "cm (" + dickToInchString(s) + ")";
+	if (State.variables.showInches === 2)
+		return dickToInchString(s);
+	return dickToCM(s) + "cm";
+};
+
+//takes a ball value e.g. $activeSlave.balls, returns a string in the format of either `20cm (8 inches)`, `8 inches`, or `20cm`
+window.ballsToEitherUnit = function(s) {
+	if (State.variables.showInches === 1)
+		return ballsToCM(s) + "cm (" + ballsToInchString(s) + ")";
+	if (State.variables.showInches === 2)
+		return ballsToInchString(s);
+	return ballsToCM(s) + "cm";
+};
+
+//takes an int in centimetres e.g. $activeSlave.height, returns a string in the format of either `200cm (6'7")`, `6'7"`, or `200cm`
+window.heightToEitherUnit = function(s) {
+	if (State.variables.showInches === 1)
+		return s + "cm (" + cmToFootInchString(s) + ")";
+	if (State.variables.showInches === 2)
+		return cmToFootInchString(s);
+	return s + "cm";
+};
+
+//takes an int in centimetres e.g. $activeSlave.hLength, returns a string in the format of either `30cm (12 inches)`, `12 inches`, or `30cm`
+window.lengthToEitherUnit = function(s) {
+	if (State.variables.showInches === 1)
+		return s + "cm (" + cmToInchString(s) + ")";
+	if (State.variables.showInches === 2)
+		return cmToInchString(s);
+	return s + "cm";
+};
+
+/* decoration should be passed as "facilityDecoration" in quotes. For example, ValidateFacilityDecoration("brothelDecoration"). The quotes are important, do not pass it as a story variable. */
+window.ValidateFacilityDecoration = function ValidateFacilityDecoration(decoration) {
+	const V = State.variables;
+	switch (V[decoration]) {
+		case "standard":
+			/*nothing to do */
+			break;
+		case "Supremacist":
+			if (!Number.isFinite(V.arcologies[0].FSSupremacist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Subjugationist":
+			if (!Number.isFinite(V.arcologies[0].FSSubjugationist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Gender Radicalist":
+			if (!Number.isFinite(V.arcologies[0].FSGenderRadicalist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Gender Fundamentalist":
+			if (!Number.isFinite(V.arcologies[0].FSGenderFundamentalist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Paternalist":
+			if (!Number.isFinite(V.arcologies[0].FSPaternalist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Body Purist":
+			if (!Number.isFinite(V.arcologies[0].FSBodyPurist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Transformation Fetishist":
+			if (!Number.isFinite(V.arcologies[0].FSTransformationFetishist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Youth Preferentialist":
+			if (!Number.isFinite(V.arcologies[0].FSYouthPreferentialist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Maturity Preferentialist":
+			if (!Number.isFinite(V.arcologies[0].FSMaturityPreferentialist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Slimness Enthusiast":
+			if (!Number.isFinite(V.arcologies[0].FSSlimnessEnthusiast)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Asset Expansionist":
+			if (!Number.isFinite(V.arcologies[0].FSAssetExpansionist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Pastoralist":
+			if (!Number.isFinite(V.arcologies[0].FSPastoralist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Physical Idealist":
+			if (!Number.isFinite(V.arcologies[0].FSPhysicalIdealist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Chattel Religionist":
+			if (!Number.isFinite(V.arcologies[0].FSChattelReligionist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Degradationist":
+			if (!Number.isFinite(V.arcologies[0].FSDegradationist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Roman Revivalist":
+			if (!Number.isFinite(V.arcologies[0].FSRomanRevivalist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Egyptian Revivalist":
+			if (!Number.isFinite(V.arcologies[0].FSEgyptianRevivalist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Edo Revivalist":
+			if (!Number.isFinite(V.arcologies[0].FSEdoRevivalist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Arabian Revivalist":
+			if (!Number.isFinite(V.arcologies[0].FSArabianRevivalist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Chinese Revivalist":
+			if (!Number.isFinite(V.arcologies[0].FSChineseRevivalist)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Repopulation Focus":
+			if (!Number.isFinite(V.arcologies[0].FSRepopulationFocus)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Eugenics":
+			if (!Number.isFinite(V.arcologies[0].FSRestart)) {
+				V[decoration] = "standard";
+			}
+			break;
+		case "Hedonistic":
+			if (!Number.isFinite(V.arcologies[0].FSHedonisticDecadence)) {
+				V[decoration] = "standard";
+			}
+			break;
 	}
 };

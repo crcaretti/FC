@@ -2,7 +2,7 @@
 
 <<set $showEncyclopedia = 0>>
 
-<<SlaveTitle $activeSlave>>
+<<set $desc = SlaveTitle($activeSlave)>>
 
 <<if $activeSlave.mother > 0>>
 	<<set _tempMom = getSlave($activeSlave.mother)>>
@@ -106,7 +106,7 @@ You completed the legalities before heading to $incubatorName, knowing the tank 
 <<if $arcologies[0].FSDegradationist != "unset">>
     <br><<link "Have your PA assign her a degrading name">>
 		<<replace "#naming">>
-		<<DegradingName $activeSlave>>
+		<<run DegradingName($activeSlave)>>
 		<<set $activeSlave.birthName = $activeSlave.slaveName>>
 		$assistantName registers the new girl as "<<print $activeSlave.slaveName>>" in your registry.
 		<</replace>>
@@ -245,7 +245,7 @@ You completed the legalities before heading to $incubatorName, knowing the tank 
 	alone, having no family<<if $activeSlave.mother == -1 || $activeSlave.father == -1>>, other than you,<</if>> in your stock.
 <</if>>
 <<if $arcologies[0].FSRestartDecoration == 100 && def _tempMom>>
-	<<if _tempMom.breedingMark == 1>>
+	<<if _tempMom.breedingMark == 1 && $propOutcome == 1>>
 		The Societal Elite are waiting to inspect the child of their eugenics programs.
 		<<if $arcologies[0].FSSupremacist > 20 && $activeSlave.race != $arcologies[0].FSSupremacistRace>>
 			They take one look at the $activeSlave.race <<if $activeSlave.race == "mixed race">>mutt<<else>>dog<</if>> you've sired for them and @@.red;leave in a huff.@@
@@ -322,10 +322,10 @@ You completed the legalities before heading to $incubatorName, knowing the tank 
 		Her eyes focus on _tempMom.slaveName's rounded middle, staring in fascination at the unfamiliar bulge.<<if $activeSlave.readyOva >= 20>> A hand runs across her own middle and another down to her moist pussy.<</if>>
 		<<set _momInterest = "belly">>
 	<<elseif _tempMom.dick > 15>>
-		Her eyes focus on _tempMom.slaveName's <<print (6*_tempMom.dick)>>cm long dick, trying to understand how it can fit in a girl.
+		Her eyes focus on _tempMom.slaveName's <<= dickToEitherUnit(_tempMom.dick).replace("es","")>> long dick, trying to understand how it can fit in a girl.
 		<<set _momInterest = "dick">>
 	<<elseif _tempMom.balls > 60>>
-		Her eyes focus on _tempMom.slaveName's <<print (_tempMom.balls*2)>>cm long testicles, taking in every centimeter of their enormity, before shifting to the cum steadily drooling from <<if _tempMom.dick > 0>>the tip of her dick<<else>>the hole in her crotch<</if>>.
+		Her eyes focus on _tempMom.slaveName's <<= ballsToEitherUnit(_tempMom.balls).replace("es","")>> long testicles, taking in every centimeter of their enormity, before shifting to the cum steadily drooling from <<if _tempMom.dick > 0>>the tip of her dick<<else>>the hole in her crotch<</if>>.
 		<<set _momInterest = "balls">>
 	<<elseif _tempMom.hips > 2>>
 		Her eyes focus on _tempMom.slaveName's abnormally wide hips. She runs her hands down her own sides, pondering how such a wonder occurs.
@@ -406,10 +406,10 @@ You completed the legalities before heading to $incubatorName, knowing the tank 
 		Her eyes focus on _tempDad.slaveName's rounded middle, staring in fascination at the unfamiliar bulge.<<if $activeSlave.readyOva >= 20>> A hand runs across her own middle and another down to her moist pussy.<</if>>
 		<<set _dadInterest = "belly">>
 	<<elseif _tempDad.dick > 15>>
-		Her eyes focus on _tempDad.slaveName's <<print (6*_tempDad.dick)>>cm long dick, trying to understand how it can fit in a girl.
+		Her eyes focus on _tempDad.slaveName's <<= dickToEitherUnit(_tempDad.dick).replace("es","")>> long dick, trying to understand how it can fit in a girl.
 		<<set _dadInterest = "dick">>
 	<<elseif _tempDad.balls > 60>>
-		Her eyes focus on _tempDad.slaveName's <<print (_tempDad.balls*2)>>cm long testicles, taking in every centimeter of their enormity, before shifting to the cum steadily drooling from <<if _tempDad.dick > 0>>the tip of her dick<<else>>the hole in her crotch<</if>>..
+		Her eyes focus on _tempDad.slaveName's <<= ballsToEitherUnit(_tempDad.balls).replace("es","")>> long testicles, taking in every centimeter of their enormity, before shifting to the cum steadily drooling from <<if _tempDad.dick > 0>>the tip of her dick<<else>>the hole in her crotch<</if>>..
 		<<set _dadInterest = "balls">>
 	<<elseif _tempDad.hips > 2>>
 		Her eyes focus on _tempDad.slaveName's abnormally wide hips. She runs her hands down her own sides, pondering how such a wonder occurs.
@@ -646,10 +646,10 @@ You slowly strip down, gauging her reactions to your show, until you are fully n
 		You perform a careful medical examination to verify fertility, and then forcefully take the girl's virginity. Whenever you feel able, you drain your balls into her cunt, only allowing her to wander off when scans verify a fertilized ovum. She didn't properly understand the scans, so she just thought it was sex; she won't realize what happened for some months at least, and in the mean time, will think she is just getting fat. Though once her child starts kicking, she might make the connection between sex and pregnancy.
 	<</if>>
 	<<= VaginalVCheck()>>
-	<<if $arcologies[0].FSRestart != "unset" && $activeSlave.breedingMark == 0>>
+	<<if $arcologies[0].FSRestart != "unset" && $activeSlave.breedingMark == 0 && $eugenicsFullControl != 1>>
 		The Societal Elite @@.red;disapprove@@ of this breach of eugenics.
 		<<set $failedElite += 5>>
-	<<elseif $activeSlave.breedingMark == 1>>
+	<<elseif $activeSlave.breedingMark == 1 && $propOutcome == 1>>
 		The Societal Elite @@.green;are pleased@@ that you are promptly putting a child in her.
 		<<set $failedElite -= 5>>
 	<<elseif $arcologies[0].FSGenderFundamentalist != "unset">>
@@ -995,7 +995,7 @@ You beckon the curious girl to your hefty breasts, having noticed how hungrily s
 
 <<if $arcologies[0].FSRestart >= 10>>
 <<if $activeSlave.preg != -2 && $activeSlave.ovaries > 0>>
-<<if $activeSlave.breedingMark == 0>>
+<<if $activeSlave.breedingMark == 0 || $propOutcome == 0>>
 <br><<link "Sterilize her">>
 	<<set $activeSlave.preg = -2>>
 	<<set $activeSlave.pregType = 0>>

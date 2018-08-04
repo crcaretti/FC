@@ -3,12 +3,12 @@
 <<set setup.passagePreFilters = setup.passagePreFilters || {
 	"Main":                      s => (s.assignmentVisible == 1),
 	"Personal Attention Select": s => (s.assignmentVisible == 1 && s.fuckdoll <= 0),
-	"Agent Select":              s => (s.fuckdoll == 0 && s.devotion >= 20 && s.intelligence > 0 && s.intelligenceImplant > 0 && canWalk(s) && canSee(s) && canTalk(s) && s.broodmother < 2 && s.breedingMark != 1),
-	"BG Select":                 s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "guard you" && canWalk(s) && canSee(s) && s.breedingMark != 1),
+	"Agent Select":              s => (s.fuckdoll == 0 && s.devotion >= 20 && s.intelligence > 0 && s.intelligenceImplant > 0 && canWalk(s) && canSee(s) && canTalk(s) && s.broodmother < 2 && (s.breedingMark != 1 || $propOutcome == 0)),
+	"BG Select":                 s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "guard you" && canWalk(s) && canSee(s) && (s.breedingMark != 1 || $propOutcome == 0)),
 	"Recruiter Select":          s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "recruit girls" && canWalk(s) && canSee(s) && canTalk(s)),
 	"HG Select":                 s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.assignment != "be your Head Girl" && canWalk(s) && canSee(s) && canTalk(s)),
 	"Head Girl Suite":           s => (s.assignmentVisible == 1 && s.fuckdoll <= 0 && (
-		   ($Flag == 0 && s.assignment != "be your Head Girl" && s.indentureRestrictions <= 0 && s.breedingMark != 1)
+		   ($Flag == 0 && s.assignment != "be your Head Girl" && s.indentureRestrictions <= 0 && (s.breedingMark != 1 || $propOutcome == 0))
 		|| ($Flag != 0 && s.assignment == "live with your Head Girl"))),
 	"Subordinate Targeting":     s => (s.devotion >= -20 && s.fuckdoll == 0 && $activeSlave.ID != s.ID && ($activeSlave.amp != 1 || s.amp != 1)),
 	"Spa":                       s => (s.assignmentVisible == 1 && s.fuckdoll <= 0 && (
@@ -20,12 +20,12 @@
 		   ($Flag == 0 && s.assignment != "work in the brothel")
 		|| ($Flag == 1 && s.assignment == "work in the brothel")
 		|| ($Flag != 0 && $Flag != 1 && s.ID == $Madam.ID))),
-	"Madam Select":              s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.intelligence > -2 && canWalk(s) && canSee(s) && s.breedingMark != 1),
+	"Madam Select":              s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.intelligence > -2 && canWalk(s) && canSee(s) && (s.breedingMark != 1 || $propOutcome == 0)),
 	"Club":                      s => (s.assignmentVisible == 1 && s.fuckdoll <= 0 && (
 		   ($Flag == 0 && s.assignment != "serve in the club")
 		|| ($Flag == 1 && s.assignment == "serve in the club")
 		|| ($Flag != 0 && $Flag != 1 && s.ID == $DJ.ID))),
-	"DJ Select":                 s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.intelligence > -2 && canTalk(s) && canWalk(s) && s.breedingMark != 1),
+	"DJ Select":                 s => (s.assignmentVisible == 1 && s.fuckdoll == 0 && s.devotion > 50 && s.intelligence > -2 && canTalk(s) && canWalk(s) && (s.breedingMark != 1 || $propOutcome == 0)),
 	"Clinic":                    s => (s.assignmentVisible == 1 && s.fuckdoll <= 0 && (
 		   ($Flag == 0 && s.assignment != "get treatment in the clinic")
 		|| ($Flag == 1 && s.assignment == "get treatment in the clinic")
@@ -275,7 +275,7 @@
 <<case "Brothel">>
 <<if $Flag == 0>>
 	<<if $brothel <= $brothelSlaves>><<continue>><</if>>
-	<<if _Slave.breedingMark != 1>>
+	<<if (_Slave.breedingMark != 1 || $propOutcome == 0)>>
 	<<if (_Slave.devotion > 50) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50) || (_Slave.trust > 50)>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
@@ -300,7 +300,7 @@
 <<case "Club">>
 <<if $Flag == 0>>
 	<<if $club <= $clubSlaves>><<continue>><</if>>
-	<<if _Slave.breedingMark != 1>>
+	<<if (_Slave.breedingMark != 1 || $propOutcome == 0)>>
 	<<if (_Slave.devotion > 50) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50) || (_Slave.trust > 50)>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
  		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
@@ -378,7 +378,7 @@
 	<<elseif (_Slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)>>
 		<br>//_Slave.slaveName's indenture allows only free range milking.//
 		<<continue>>
-	<<elseif _Slave.breedingMark == 1 && $dairyRestraintsSetting > 0>>
+	<<elseif _Slave.breedingMark == 1 && $propOutcome == 1 && $dairyRestraintsSetting > 0>>
 		<br>//_Slave.slaveName may only be a free range cow//
 		<<continue>>
 	<<elseif ($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother != 0))>>
@@ -486,7 +486,7 @@
 <<if $Flag == 0>>
 	<<if _Slave.assignment == "be confined in the arcade">><<continue>><</if>>
 	<<if $arcade <= $arcadeSlaves && $arcadeUpgradeFuckdolls != 1>><<continue>><</if>>
-	<<if _Slave.breedingMark != 1>>
+	<<if (_Slave.breedingMark != 1 || $propOutcome == 0)>>
 	<<if (_Slave.indentureRestrictions <= 0)>>
 		<br style="clear:both" /><<if $lineSeparations == 0>><br><<else>><hr style="margin:0"><</if>><<if ($seeImages == 1) && ($seeSummaryImages == 1)>><div class="imageRef smlImg"><<SlaveArt _Slave 1>></div><</if>>
 		[[_slaveName|Slave Interact][$activeSlave = $slaves[_ssi]]]
@@ -510,7 +510,7 @@
 	<<elseif (_Slave.indentureRestrictions > 1)>>
 		<br>//_Slave.slaveName's indenture forbids fighting.//
 		<<continue>>
-	<<elseif _Slave.breedingMark == 1>>
+	<<elseif _Slave.breedingMark == 1 && $propOutcome == 1>>
 		<br>//_Slave.slaveName may not participate in combat//
 		<<continue>>
 	<<else>>
@@ -582,7 +582,7 @@ will
 	<<else>>
 		| Fucktoy
 	<</if>>
-	<<if _Slave.indentureRestrictions <= 0 && _Slave.breedingMark != 1>>
+	<<if _Slave.indentureRestrictions <= 0 && (_Slave.breedingMark != 1 || $propOutcome == 0)>>
 		<<if _Slave.assignment != "work a glory hole">>
 			| <<link "Gloryhole" "Main">><<= assignJob($slaves[_ssi], "work a glory hole")>><</link>>
 		<<else>>
@@ -604,12 +604,12 @@ will
 		<<else>>
 			| House Servant
 		<</if>>
-		<<if (_Slave.assignment != "whore") && _Slave.breedingMark != 1>>
+		<<if (_Slave.assignment != "whore") && (_Slave.breedingMark != 1 || $propOutcome == 0)>>
 			| <<link "Whore" "Main">><<= assignJob($slaves[_ssi], "whore")>><</link>>
 		<<else>>
 			| Whore
 		<</if>>
-		<<if (_Slave.assignment != "serve the public") && _Slave.breedingMark != 1>>
+		<<if (_Slave.assignment != "serve the public") && (_Slave.breedingMark != 1 || $propOutcome == 0)>>
 			| <<link "Public Servant" "Main">><<= assignJob($slaves[_ssi], "serve the public")>><</link>>
 		<<else>>
 			| Public Servant
@@ -639,13 +639,13 @@ will
 	<br>Transfer to:
 
 	<<if _Slave.assignment != "rest" && _Slave.assignment != "please you" && _Slave.assignment != "take classes" && _Slave.assignment != "be a servant" && _Slave.assignment != "whore" && _Slave.assignment != "serve the public" && _Slave.assignment != "get milked" && _Slave.assignment != "stay confined">>
-		<<link "Penthouse" "Main">><<= removeJob($slaves[_ssi], $slaves[_ssi].assignment)>><</link>>
+		<<link "Penthouse" "Main">><<= removeJob($slaves[_ssi], $slaves[_ssi].assignment)>><</link>> |
 	<<else>>
 		Penthouse |
 	<</if>>
 
 	<<if $arcade != 0>>
-		<<if $arcade > $arcadeSlaves && (_Slave.indentureRestrictions <= 0) && _Slave.breedingMark != 1>>
+		<<if $arcade > $arcadeSlaves && (_Slave.indentureRestrictions <= 0) && (_Slave.breedingMark != 1 || $propOutcome == 0)>>
 			[[Arcade|Assign][$assignTo = "Arcade", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
 		<<else>>Arcade<</if>>
 		<<if _numFacilities-- > 1>>|<</if>>
@@ -689,14 +689,14 @@ will
 	<</if>>
 
 	<<if $brothel != 0>>
-		<<if $brothel > $brothelSlaves && (((_Slave.devotion > 50) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50) || (_Slave.trust > 50)) && _Slave.breedingMark != 1)>>
+		<<if $brothel > $brothelSlaves && (((_Slave.devotion > 50) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50) || (_Slave.trust > 50)) && (_Slave.breedingMark != 1 || $propOutcome == 0))>>
 			[[Brothel|Assign][$assignTo = "Brothel", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
 		<<else>>Brothel<</if>>
 		<<if _numFacilities-- > 1>>|<</if>>
 	<</if>>
 
 	<<if $club != 0>>
-		<<if $club > $clubSlaves && (((_Slave.devotion > 50) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50) || (_Slave.trust > 50)) && _Slave.breedingMark != 1)>>
+		<<if $club > $clubSlaves && (((_Slave.devotion > 50) || ((_Slave.devotion >= -50) && (_Slave.trust < -20)) || (_Slave.trust < -50) || (_Slave.trust > 50)) && (_Slave.breedingMark != 1 || $propOutcome == 0))>>
 			[[Club|Assign][$assignTo = "Club", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
 		<<else>>Club<</if>>
 		<<if _numFacilities-- > 1>>|<</if>>
@@ -706,7 +706,7 @@ will
 		<<set _dairySeed = $bioreactorsXY+$bioreactorsXX+$bioreactorsHerm+$bioreactorsBarren>>
 		<<if $dairy <= $dairySlaves+_dairySeed>>
 			Dairy
-		<<elseif (((_Slave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) || ((_Slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || (_Slave.breedingMark == 1 && $dairyRestraintsSetting > 0) || (($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother > 0))))>>
+		<<elseif (((_Slave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) || ((_Slave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || (_Slave.breedingMark == 1 && $propOutcome == 1 && $dairyRestraintsSetting > 0) || (($dairyPregSetting > 0) && ((_Slave.bellyImplant != -1) || (_Slave.broodmother > 0))))>>
 			Dairy
 		<<elseif ((_Slave.lactation > 0) || (_Slave.balls > 0)) || (($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0) && ($dairySlimMaintainUpgrade == 0))>>
 			 [[Dairy|Assign][$assignTo = "Dairy", $i = _ssi]] /* $i = -1 tells Assign to use _Slave as-is */
@@ -732,7 +732,8 @@ will
 <br/>
 <<if $seeImages != 1 || $seeSummaryImages != 1 || $imageChoice == 1>>&nbsp;&nbsp;&nbsp;&nbsp;<</if>>
 
-<<SlaveSummary _Slave>>
+<<run clearSummaryCache()>>
+<<= SlaveSummary(_Slave)>>
 
 <<set $slaves[_ssi] = _Slave>>
 

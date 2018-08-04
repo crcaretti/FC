@@ -6,6 +6,7 @@
 
 <<set $nextButton = "Confirm changes", $nextLink = "AS Dump", $returnTo = "Main", _SL = $slaves.length>>
 <<setLocalPronouns $activeSlave>>
+<<run Enunciate($activeSlave)>>
 
 <<if ($activeSlave.assignmentVisible == 0)>>
 <<switch $activeSlave.assignment>>
@@ -282,20 +283,20 @@
 		<<set _si = $slaveIndices[$activeSlave.relationshipTarget]>>
 		<<if isSlaveAvailable($slaves[_si])>>
 			<<if ($activeSlave.relationship == 1)>>
-				| <<link `"Fuck $him with $his friend <<SlaveFullName $slaves[_si]>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
+				| <<link `"Fuck $him with $his friend <<= SlaveFullName($slaves[_si])>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
 			<<elseif ($activeSlave.relationship == 2)>>
-				| <<link `"Fuck $him with $his best friend <<SlaveFullName $slaves[_si]>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
+				| <<link `"Fuck $him with $his best friend <<= SlaveFullName($slaves[_si])>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
 			<<elseif ($activeSlave.relationship == 3)>>
-				| <<link `"Fuck $him with $his FWB <<SlaveFullName $slaves[_si]>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
+				| <<link `"Fuck $him with $his FWB <<= SlaveFullName($slaves[_si])>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
 			<<elseif ($activeSlave.relationship == 4)>>
-				| <<link `"Fuck $him with $his lover <<SlaveFullName $slaves[_si]>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
+				| <<link `"Fuck $him with $his lover <<= SlaveFullName($slaves[_si])>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
 			<<else>>
-				| <<link `"Fuck $him with $his slave wife <<SlaveFullName $slaves[_si]>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
+				| <<link `"Fuck $him with $his slave wife <<= SlaveFullName($slaves[_si])>>"`>><<replace "#miniscene">><<set $partner = "relationship">><<include "FRelation">><br>&nbsp;&nbsp;&nbsp;&nbsp;<</replace>><</link>>
 			<</if>>
 		<<else>>
 			<<if $slaves[_si].assignment == "be your agent">>
 				<<if $activeSlave.broodmother < 2>>
-					| <<link `"Send $him to live with your agent <<SlaveFullName $slaves[_si]>>"`>>
+					| <<link `"Send $him to live with your agent <<= SlaveFullName($slaves[_si])>>"`>>
 						<<set $subSlave = $slaves[_si]>>
 						<<goto "Agent Company">>
 					<</link>>
@@ -303,7 +304,7 @@
 					| //A hyper-broodmother cannot be sent to live with your agent//
 				<</if>>
 			<<else>>
-				| //<<SlaveFullName $slaves[_si]>> is unavailable//
+				| //<<= SlaveFullName($slaves[_si])>> is unavailable//
 			<</if>>
 		<</if>>
 	<</if>>
@@ -337,7 +338,7 @@
 		<</if>>
 	<</if>>
 <</if>>
-<<if _activeSlaveRepSacrifice > 0 && $arcologies[0].FSPaternalist == "unset" && $activeSlave.breedingMark == 0>>
+<<if _activeSlaveRepSacrifice > 0 && $arcologies[0].FSPaternalist == "unset" && ($activeSlave.breedingMark == 0 || $propOutcome == 0)>>
 	<<set _activeSlaveRepSacrifice = repGainSacrifice()>>
 	| <<link "Sacrifice $him on the altar" "Aztec Slave Sacrifice">><<set $sacrificeType = "life">><</link>>//This will kill $him and gain you _activeSlaveRepSacrifice reputation//
 <</if>>
@@ -471,7 +472,7 @@
 	  <<link "Rest">>                   <<= removeJob($activeSlave, $activeSlave.assignment)>><<replace "#assign">>$activeSlave.assignment<</replace>><<SlaveInteractFucktoy>><</link>>
 	| <<link "Fucktoy">>                <<= assignJob($activeSlave, "please you")>><<replace "#assign">>$activeSlave.assignment<</replace>><<SlaveInteractFucktoy>><</link>>
 
-	<<if ($activeSlave.indentureRestrictions <= 0) && $activeSlave.breedingMark != 1>>
+	<<if ($activeSlave.indentureRestrictions <= 0) && ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 	| <<link "Gloryhole">>              <<= assignJob($activeSlave, "work a glory hole")>><<replace "#assign">>$activeSlave.assignment<</replace>><<SlaveInteractFucktoy>><</link>>
 	<</if>>
 
@@ -498,7 +499,7 @@
 	/*| //Too resistant to be a servant// */
 	<</if>>
 
-	<<if $activeSlave.breedingMark != 1>>
+	<<if ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 	| <<link "Whore">>                  <<= assignJob($activeSlave, "whore")>><<replace "#assign">>$activeSlave.assignment<</replace>><<SlaveInteractFucktoy>><</link>>
 	| <<link "Public Servant">>         <<= assignJob($activeSlave, "serve the public")>><<replace "#assign">>$activeSlave.assignment<</replace>><<SlaveInteractFucktoy>><</link>>
 	<</if>>
@@ -522,7 +523,7 @@
 	<br>Transfer to:
 
 	<<if $arcade != 0>>
-		<<if $arcade > $arcadeSlaves && ($activeSlave.indentureRestrictions <= 0) && $activeSlave.breedingMark != 1>>
+		<<if $arcade > $arcadeSlaves && ($activeSlave.indentureRestrictions <= 0) && ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 			[[Arcade|Assign][$assignTo = "Arcade", $i = -1]] /* $i = -1 tells Assign to use $activeSlave as-is */
 		<<else>>Arcade<</if>>
 		<<if _numFacilities-- > 1>>|<</if>>
@@ -566,14 +567,14 @@
 	<</if>>
 
 	<<if $brothel != 0>>
-		<<if $brothel > $brothelSlaves && ((($activeSlave.devotion > 50) || (($activeSlave.devotion >= -50) && ($activeSlave.trust < -20)) || ($activeSlave.trust < -50) || ($activeSlave.trust > 50)) && $activeSlave.breedingMark != 1)>>
+		<<if $brothel > $brothelSlaves && ((($activeSlave.devotion > 50) || (($activeSlave.devotion >= -50) && ($activeSlave.trust < -20)) || ($activeSlave.trust < -50) || ($activeSlave.trust > 50)) && ($activeSlave.breedingMark != 1 || $propOutcome == 0))>>
 			[[Brothel|Assign][$assignTo = "Brothel", $i = -1]] /* $i = -1 tells Assign to use $activeSlave as-is */
 		<<else>>Brothel<</if>>
 		<<if _numFacilities-- > 1>>|<</if>>
 	<</if>>
 
 	<<if $club != 0>>
-		<<if $club > $clubSlaves && ((($activeSlave.devotion > 50) || (($activeSlave.devotion >= -50) && ($activeSlave.trust < -20)) || ($activeSlave.trust < -50) || ($activeSlave.trust > 50)) && $activeSlave.breedingMark != 1)>>
+		<<if $club > $clubSlaves && ((($activeSlave.devotion > 50) || (($activeSlave.devotion >= -50) && ($activeSlave.trust < -20)) || ($activeSlave.trust < -50) || ($activeSlave.trust > 50)) && ($activeSlave.breedingMark != 1 || $propOutcome == 0))>>
 			[[Club|Assign][$assignTo = "Club", $i = -1]] /* $i = -1 tells Assign to use $activeSlave as-is */
 		<<else>>Club<</if>>
 		<<if _numFacilities-- > 1>>|<</if>>
@@ -583,7 +584,7 @@
 		<<set _dairySeed = $bioreactorsXY+$bioreactorsXX+$bioreactorsHerm+$bioreactorsBarren>>
 		<<if $dairy <= $dairySlaves+_dairySeed>>
 			Dairy
-		<<elseif((($activeSlave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) || (($activeSlave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || ($activeSlave.breedingMark == 1 && $dairyRestraintsSetting > 0) || (($dairyPregSetting > 0) && (($activeSlave.bellyImplant != -1) || ($activeSlave.broodmother > 0))))>>
+		<<elseif((($activeSlave.indentureRestrictions > 0) && ($dairyRestraintsSetting > 1)) || (($activeSlave.indentureRestrictions > 1) && ($dairyRestraintsSetting > 0)) || ($activeSlave.breedingMark == 1 && $propOutcome == 1 && $dairyRestraintsSetting > 0) || (($dairyPregSetting > 0) && (($activeSlave.bellyImplant != -1) || ($activeSlave.broodmother > 0))))>>
 			Dairy
 		<<elseif (($activeSlave.lactation > 0) || ($activeSlave.balls > 0)) || (($dairyFeedersUpgrade == 1) && ($dairyFeedersSetting > 0) && ($dairySlimMaintainUpgrade == 0))>>
 			 [[Dairy|Assign][$assignTo = "Dairy", $i = -1]] /* $i = -1 tells Assign to use $activeSlave as-is */
@@ -613,8 +614,10 @@
 	<<link "Apron">><<set $activeSlave.clothes = "an apron",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Bangles">><<set $activeSlave.clothes = "slutty jewelry",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Battlearmor">><<set $activeSlave.clothes = "battlearmor",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
-	| <<link "Biyelgee Costume">><<set $activeSlave.clothes = "a biyelgee costume",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	| <<link "Biyelgee costume">><<set $activeSlave.clothes = "a biyelgee costume",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Bodysuit">><<set $activeSlave.clothes = "a comfortable bodysuit",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	| <<link "Burkini">><<set $activeSlave.clothes = "a burkini",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	| <<link "Burqa">><<set $activeSlave.clothes = "a burqa",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Cheerleader outfit">><<set $activeSlave.clothes = "a cheerleader outfit",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">><<print $activeSlave.clothes>><</replace>><</link>>
 	| <<link "Clubslut netting">><<set $activeSlave.clothes = "clubslut netting",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Cutoffs and a t-shirt">><<set $activeSlave.clothes = "cutoffs and a t-shirt",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
@@ -623,6 +626,7 @@
 	| <<link "Fallen nun">><<set $activeSlave.clothes = "a fallen nuns habit",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Haltertop dress">><<set $activeSlave.clothes = "a halter top dress",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Hijab and abaya">><<set $activeSlave.clothes = "a hijab and abaya",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	| <<link "Hijab and blouse">><<set $activeSlave.clothes = "a hijab and blouse",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Latex catsuit">><<set $activeSlave.clothes = "a latex catsuit",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Lederhosen">><<set $activeSlave.clothes = "lederhosen",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Leotard">><<set $activeSlave.clothes = "a leotard",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
@@ -631,15 +635,16 @@
 	| <<link "Military uniform">><<set $activeSlave.clothes = "a military uniform",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Mini dress">><<set $activeSlave.clothes = "a mini dress",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Monokini">><<set $activeSlave.clothes = "a monokini",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
-	| <<link "Mounty Outfit">><<set $activeSlave.clothes = "a mounty outfit",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	| <<link "Mounty outfit">><<set $activeSlave.clothes = "a mounty outfit",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Nice lingerie">><<set $activeSlave.clothes = "attractive lingerie",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	| <<link "Niqab and abaya">><<set $activeSlave.clothes = "a niqab and abaya",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Nurse (nice)">><<set $activeSlave.clothes = "a nice nurse outfit",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Nurse (slutty)">><<set $activeSlave.clothes = "a slutty nurse outfit",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
-	| <<link "Red Army Uniform">><<set $activeSlave.clothes = "a red army uniform",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	| <<link "Red Army uniform">><<set $activeSlave.clothes = "a red army uniform",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Scalemail bikini">><<set $activeSlave.clothes = "a scalemail bikini",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Schoolgirl">><<set $activeSlave.clothes = "a schoolgirl outfit",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
-	| <<link "Schutzstaffel Uniform">><<set $activeSlave.clothes = "a schutzstaffel uniform",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
-	| <<link "Schutzstaffel Uniform (slutty)">><<set $activeSlave.clothes = "a slutty schutzstaffel uniform",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	| <<link "Schutzstaffel uniform (nice)">><<set $activeSlave.clothes = "a schutzstaffel uniform",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	| <<link "Schutzstaffel uniform (slutty)">><<set $activeSlave.clothes = "a slutty schutzstaffel uniform",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Silken ballgown">><<set $activeSlave.clothes = "a ball gown",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Skimpy battledress">><<set $activeSlave.clothes = "battledress",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	| <<link "Slave gown">><<set $activeSlave.clothes = "a slave gown",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
@@ -677,11 +682,11 @@
 	<<if isItemAccessible("a maternity dress")>>
 		| //FS// <<link "Maternity dress">><<set $activeSlave.clothes = "a maternity dress",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	<</if>>
-	<<if isItemAccessible("a slutty qipao")>>
-		| //FS// <<link "Qipao (Slutty)">><<set $activeSlave.clothes = "a slutty qipao",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
-	<</if>>
 	<<if isItemAccessible("a long qipao")>>
-		| //FS// <<link "Qipao (Nice)">><<set $activeSlave.clothes = "a long qipao",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+		| //FS// <<link "Qipao (nice)">><<set $activeSlave.clothes = "a long qipao",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
+	<</if>>
+	<<if isItemAccessible("a slutty qipao")>>
+		| //FS// <<link "Qipao (slutty)">><<set $activeSlave.clothes = "a slutty qipao",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
 	<</if>>
 	<<if isItemAccessible("stretch pants and a crop-top")>>
 		| //FS// <<link "Stretch pants and a crop-top">><<set $activeSlave.clothes = "stretch pants and a crop-top",$activeSlave.choosesOwnClothes = 0>><<replace "#clothes">>$activeSlave.clothes<</replace>><</link>>
@@ -761,7 +766,7 @@
 	<br>Torso accessory: ''<span id="bellyAccessory">$activeSlave.bellyAccessory</span>.''
 	<<link "None">><<set $activeSlave.bellyAccessory = "none">><<replace "#bellyAccessory">>$activeSlave.bellyAccessory<</replace>><</link>>
 	| <<link "Tight corset">><<set $activeSlave.bellyAccessory = "a corset">><<replace "#bellyAccessory">>$activeSlave.bellyAccessory<</replace>><</link>>
-	<<if $activeSlave.breedingMark != 1>>
+	<<if ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 	| <<link "Extreme corset">><<set $activeSlave.bellyAccessory = "an extreme corset">><<replace "#bellyAccessory">>$activeSlave.bellyAccessory<</replace>><</link>>
 	<</if>>
 	<<if isItemAccessible("a small empathy belly")>> /* works for all of them */
@@ -778,16 +783,16 @@
 	<br>Anal accessory: ''<span id="buttplug">$activeSlave.buttplug</span>.''
 	<<link "None">><<set $activeSlave.buttplug = "none", $activeSlave.buttplugAttachment = "none">><<replace "#buttplug">>$activeSlave.buttplug<</replace>><</link>>
 	| <<link "Normal">><<set $activeSlave.buttplug = "plug">><<replace "#buttplug">>$activeSlave.buttplug<</replace>><</link>>
-	<<if isItemAccessible("long plug") && $activeSlave.breedingMark != 1>>
+	<<if isItemAccessible("long plug") && ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 	| <<link "Long">><<set $activeSlave.buttplug = "long plug">><<replace "#buttplug">>$activeSlave.buttplug<</replace>><</link>>
 	<</if>>
 	| <<link "Large">><<set $activeSlave.buttplug = "large plug">><<replace "#buttplug">>$activeSlave.buttplug<</replace>><</link>>
-	<<if isItemAccessible("long, large plug") && $activeSlave.breedingMark != 1>>
+	<<if isItemAccessible("long, large plug") && ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 	| <<link "Long and large">><<set $activeSlave.buttplug = "long, large plug">><<replace "#buttplug">>$activeSlave.buttplug<</replace>><</link>>
 	<</if>>
 	<<if $activeSlave.anus >= 2>>| <<link "Huge">><<set $activeSlave.buttplug = "huge plug">><<replace "#buttplug">>$activeSlave.buttplug<</replace>><</link>><</if>>
 	<<if isItemAccessible("long, huge plug")>>
-	<<if $activeSlave.breedingMark != 1 && $activeSlave.anus >= 2>>
+	<<if ($activeSlave.breedingMark != 1 || $propOutcome == 0) && $activeSlave.anus >= 2>>
 	| <<link "Long and huge">><<set $activeSlave.buttplug = "long, huge plug">><<replace "#buttplug">>$activeSlave.buttplug<</replace>><</link>>
 	<</if>>
 	<</if>>
@@ -800,15 +805,15 @@
 	<br>Vaginal accessory: ''<span id="vaginalAccessory">$activeSlave.vaginalAccessory</span>.''
 	<<link "None">><<set $activeSlave.vaginalAccessory = "none">><<replace "#vaginalAccessory">>$activeSlave.vaginalAccessory<</replace>><<SlaveInteractImpreg>><<SlaveInteractFertility>><<SlaveInteractSexOption>><<SlaveInteractAnalSexOption>><<SlaveInteractGropeOption>><<SlaveInteractDickGropeOption>><<SlaveInteractAnalGropeOption>><</link>>
 	| <<link "Dildo">><<set $activeSlave.vaginalAccessory = "dildo">><<replace "#vaginalAccessory">>$activeSlave.vaginalAccessory<</replace>><</link>>
-	<<if isItemAccessible("long dildo") && $activeSlave.breedingMark != 1>>
+	<<if isItemAccessible("long dildo") && ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 	| <<link "Long dildo">><<set $activeSlave.vaginalAccessory = "long dildo">><<replace "#vaginalAccessory">>$activeSlave.vaginalAccessory<</replace>><</link>>
 	<</if>>
 	| <<link "Large dildo">><<set $activeSlave.vaginalAccessory = "large dildo">><<replace "#vaginalAccessory">>$activeSlave.vaginalAccessory<</replace>><</link>>
-	<<if isItemAccessible("long, large dildo") && $activeSlave.breedingMark != 1>>
+	<<if isItemAccessible("long, large dildo") && ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 	| <<link "Large and long dildo">><<set $activeSlave.vaginalAccessory = "long, large dildo">><<replace "#vaginalAccessory">>$activeSlave.vaginalAccessory<</replace>><</link>>
 	<</if>>
 	<<if $activeSlave.vagina >= 2>>| <<link "Huge dildo">><<set $activeSlave.vaginalAccessory = "huge dildo">><<replace "#vaginalAccessory">>$activeSlave.vaginalAccessory<</replace>><</link>><</if>>
-	<<if isItemAccessible("long, huge dildo") && $activeSlave.breedingMark != 1>>
+	<<if isItemAccessible("long, huge dildo") && ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 	<<if $activeSlave.vagina >= 2>>| <<link "Huge and long dildo">><<set $activeSlave.vaginalAccessory = "long, huge dildo">><<replace "#vaginalAccessory">>$activeSlave.vaginalAccessory<</replace>><</link>><</if>>
 	<</if>>
 	| <<link "Chastity belt">><<set $activeSlave.vaginalAccessory = "chastity belt",$activeSlave.choosesOwnChastity = 0>><<replace "#vaginalAccessory">>$activeSlave.vaginalAccessory<</replace>><<SlaveInteractImpreg>><<SlaveInteractFertility>><<SlaveInteractSexOption>><<SlaveInteractAnalSexOption>><<SlaveInteractGropeOption>><<SlaveInteractDickGropeOption>><<SlaveInteractAnalGropeOption>><</link>>
@@ -929,7 +934,7 @@
 			<</if>>
 		<</if>>
 		| <<link "Fertility">><<set $activeSlave.drugs = "fertility drugs">><<SlaveInteractDrugs>><</link>>
-		<<if ($seeHyperPreg == 1) && ($activeSlave.indentureRestrictions < 1) && ($superFertilityDrugs == 1) && $activeSlave.breedingMark != 1>>
+		<<if ($seeHyperPreg == 1) && ($activeSlave.indentureRestrictions < 1) && ($superFertilityDrugs == 1) && ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 			| <<link "Fertility+">><<set $activeSlave.drugs = "super fertility drugs">><<SlaveInteractDrugs>><</link>>
 		<</if>>
 		<<if ($activeSlave.dick > 0)>>
@@ -1001,7 +1006,7 @@
 				| Weight loss pills
 			<</if>>
 		<</if>>
-		<<if $precociousPuberty == 1 && $pubertyHormones == 1 && $activeSlave.breedingMark != 1>>
+		<<if $precociousPuberty == 1 && $pubertyHormones == 1 && ($activeSlave.breedingMark != 1 || $propOutcome == 0)>>
 			<<if ($activeSlave.ovaries == 1 || $activeSlave.mpreg == 1) && $activeSlave.pubertyXX == 0>>
 				| <<link "Female hormone injections">><<set $activeSlave.drugs = "female hormone injections">><<SlaveInteractDrugs>><</link>>
 			<</if>>
@@ -1073,14 +1078,14 @@ Aphrodisiacs: <span id="aphrodisiacs"><strong><<if $activeSlave.aphrodisiacs > 1
 			<</if>>
 		<<elseif ($activeSlave.preg > 35)>>
 			| <<link "Give $him a cesarean section" "csec">><</link>>
-		<<elseif ($activeSlave.preg > 0) && $activeSlave.breedingMark == 1 && $activeSlave.pregSource == -1>>
+		<<elseif ($activeSlave.preg > 0) && $activeSlave.breedingMark == 1 && $propOutcome == 1 && $activeSlave.pregSource == -1>>
 			//You are forbidden from aborting an elite child//
 		<<elseif ($activeSlave.preg > 0)>>
 			<<link "Abort $his pregnancy" "Abort">><</link>>
 		<</if>>
 	<</if>>
 <</if>>
-<<if ($activeSlave.pregKnown == 1) && ($pregSpeedControl == 1) && ($activeSlave.breedingMark != 1) && ($activeSlave.indentureRestrictions < 1) && ($activeSlave.broodmother == 0) && $seePreg != 0>>
+<<if ($activeSlave.pregKnown == 1) && ($pregSpeedControl == 1) && ($activeSlave.breedingMark != 1 || $propOutcome == 0) && ($activeSlave.indentureRestrictions < 1) && ($activeSlave.broodmother == 0) && $seePreg != 0>>
 <br>&nbsp;&nbsp;&nbsp;&nbsp;
 	__Pregnancy control__: <<if $activeSlave.pregControl == "labor supressors">>Labor is suppressed<<elseif $activeSlave.pregControl == "slow gestation">>Slowed gestation speed<<elseif $activeSlave.pregControl == "speed up">>Faster gestation speed, staffed clinic recommended<<else>>Normal gestation and birth<</if>>.
 	<<if ($activeSlave.preg >= 38)>>
@@ -1339,30 +1344,134 @@ Relationship rules: ''<span id="relationshipRules">$activeSlave.relationshipRule
 <<link "Permissive">><<set $activeSlave.relationshipRules = "permissive">><<replace "#relationshipRules">>$activeSlave.relationshipRules<</replace>><</link>>
 
 <<if $studio == 1>>
-	<br>
-	<<if $activeSlave.pornFameSpending == -1>>
-		The media hub is not releasing highlights of $his sex life. [[Release|Slave Interact][$activeSlave.pornFameSpending = 0]]
+	
+	<br><br>__Media__:<br>
+	<<if $activeSlave.pornPrestige == 3>>
+		//$He is so prestigious in the realm of $activeSlave.pornFameType porn that $his fame is self-sustaining.//
+	<<elseif $activeSlave.pornFeed == 0>>
+		The media hub is not releasing highlights of $his sex life. [[Release|Slave Interact][$activeSlave.pornFeed = 1]]
 	<<else>>
-		<<if $activeSlave.prestige < 3>>
-			The media hub is releasing
-			<<if $activeSlave.pornFameSpending  < 500>>
-				minimal
-			<</if>> highlights of $his sex life.
-			<<if $activeSlave.pornFameSpending == 0>>
-				[[Begin publicizing?|Slave Interact][$activeSlave.pornFameSpending += 1000]]
-				//Will cost <<print cashFormat(1000)>> weekly.//
-			<<else>>
-				<<print cashFormat($activeSlave.pornFameSpending)>> weekly is spent to publicize them.
-				<<if $activeSlave.pornFameSpending < 5000>>
-					[[Increase|Slave Interact][$activeSlave.pornFameSpending += 1000]] |
-				<</if>>
-				[[Decrease|Slave Interact][$activeSlave.pornFameSpending -= 1000]]
-			<</if>>
+		The media hub is releasing highlights of $his sex life <<if $activeSlave.pornFameSpending  < 500>>to those who can find it<<elseif $activeSlave.pornFameSpending  < 2500>>on several websites<<elseif $activeSlave.pornFameSpending  > 5000>>through your old distributor<<else>>on many websites<</if>>.
+		<<if $activeSlave.pornFameSpending == 0>>
+			[[Halt|Slave Interact][$activeSlave.pornFeed = 0, $activeSlave.pornFocus = "none"]] |
+			[[Publicize|Slave Interact][$activeSlave.pornFameSpending += 1000]]
+			//Will cost <<print cashFormat(1000)>> weekly.//
 		<<else>>
-			//$He is so prestigious that subsidizing coverage of $his sex life will not increase $his fame.//
+			<<textbox "_newPornSpending" $activeSlave.pornFameSpending>> weekly is spent to publicize them. [[Save changes|Slave Interact][$activeSlave.pornFameSpending = Number(_newPornSpending) || 0]] |
+			[[Halt|Slave Interact][$activeSlave.pornFeed = 0, $activeSlave.pornFameSpending = 0, $activeSlave.pornFocus = "none"]] |
+			<<if $activeSlave.pornFameSpending < 5000>>
+				[[Increase|Slave Interact][$activeSlave.pornFameSpending += 1000]] |
+			<</if>>
+			[[Decrease|Slave Interact][$activeSlave.pornFameSpending -= 1000]]
+			<<if $activeSlave.pornFameSpending > 5000>><<set _warn = 1>><</if>>
+			<<set $activeSlave.pornFameSpending = Number($activeSlave.pornFameSpending) || 0>>
+			<<set $activeSlave.pornFameSpending = Math.clamp(Math.ceil($activeSlave.pornFameSpending/1000)*1000, 0, 5000)>>
+			<<if _warn>><br>//Spending more than <<print cashFormat(5000)>> weekly will have no effect.//<</if>>
+		<</if>>
+		
+		<<if $studioFeed == 1>>
+			<br>
+			<<if $activeSlave.pornFame < 100>>
+				$He lacks the fame in porn needed to discern what $his feed is getting tagged as.
+			<<else>>
+				<<if $activeSlave.pornPrestige > 0>>
+					$He is known for $activeSlave.pornFameType porn<<if $activeSlave.pornPrestige > 1>> and viewers have grown to expect it from $him<</if>>.
+				<</if>>
+				<<if $activeSlave.pornFocus == "none">>
+					You are allowing $his viewers to guide the direction of $his content.
+				<<else>>
+					You are focusing attention on the $activeSlave.pornFocus aspect of $his content.
+				<</if>>
+				<<switch $activeSlave.sexualFlaw>>
+				<<case "neglectful">>
+					[[Neglectful|Slave Interact][$activeSlave.pornFocus = "neglectful"]] |
+				<<case "cum addict">>
+					[[Cum addiction|Slave Interact][$activeSlave.pornFocus = "cum addict"]] |
+				<<case "anal addict">>
+					[[Anal addiction|Slave Interact][$activeSlave.pornFocus = "anal addict"]] |
+				<<case "attention whore">>
+					[[Attention whore|Slave Interact][$activeSlave.pornFocus = "attention whore"]] |
+				<<case "breast growth">>
+					[[Breast growth|Slave Interact][$activeSlave.pornFocus = "breast growth"]] |
+				<<case "abusive">>
+					[[Abusive|Slave Interact][$activeSlave.pornFocus = "abusive"]] |
+				<<case "malicious">>
+					[[Malicious|Slave Interact][$activeSlave.pornFocus = "malicious"]] |
+				<<case "self hating">>
+					[[Self hating|Slave Interact][$activeSlave.pornFocus = "self hating"]] |
+				<<case "breeder">>
+					[[Breeder|Slave Interact][$activeSlave.pornFocus = "breeder"]] |
+				<</switch>>
+
+				<<switch $activeSlave.fetish>>
+				<<case "submissive">>
+					[[Submissive|Slave Interact][$activeSlave.pornFocus = "submissive"]] |
+				<<case "cumslut">>
+					[[Cumslut|Slave Interact][$activeSlave.pornFocus = "cumslut"]] |
+				<<case "buttslut">>
+					[[Buttslut|Slave Interact][$activeSlave.pornFocus = "buttslut"]] |
+				<<case "humiliation">>
+					[[Humiliation|Slave Interact][$activeSlave.pornFocus = "humiliation"]] |
+				<<case "boobs">>
+					[[Boobs|Slave Interact][$activeSlave.pornFocus = "boobs"]] |
+				<<case "dom">>
+					[[Dominant|Slave Interact][$activeSlave.pornFocus = "dom"]] |
+				<<case "sadist">>
+					[[Sadist|Slave Interact][$activeSlave.pornFocus = "sadist"]] |
+				<<case "masochist">>
+					[[Masochist|Slave Interact][$activeSlave.pornFocus = "masochist"]] |
+				<<case "pregnancy">>
+					[[Pregnancy|Slave Interact][$activeSlave.pornFocus = "pregnancy"]] |
+				<</switch>>
+				
+				<<switch $activeSlave.sexualQuirk>>
+				<<case "gagfuck queen">>
+					[[Gagfuck queen|Slave Interact][$activeSlave.pornFocus = "gagfuck queen"]] |
+				<<case "strugglefuck queen">>
+					[[Strugglefuck queen|Slave Interact][$activeSlave.pornFocus = "strugglefuck queen"]] |
+				<<case "painal queen">>
+					[[Painal queen|Slave Interact][$activeSlave.pornFocus = "painal queen"]] |
+				<<case "tease">>
+					[[Tease|Slave Interact][$activeSlave.pornFocus = "tease"]] |
+				<<case "romantic">>
+					[[Romantic|Slave Interact][$activeSlave.pornFocus = "romantic"]] |
+				<<case "perverted">>
+					[[Perverted|Slave Interact][$activeSlave.pornFocus = "perverted"]] |
+				<<case "caring">>
+					[[Caring|Slave Interact][$activeSlave.pornFocus = "caring"]] |
+				<<case "unflinching">>
+					[[Unspeakable|Slave Interact][$activeSlave.pornFocus = "unspeakable"]] |
+				<<case "size queen">>
+					[[Size queen|Slave Interact][$activeSlave.pornFocus = "size queen"]] |
+				<</switch>>
+
+				<<if $activeSlave.fuckdoll > 0>>
+					[[Fuckdoll|Slave Interact][$activeSlave.pornFocus = "fuckdoll"]] |
+				<</if>>
+				<<if ($activeSlave.devotion < -20) && ($activeSlave.analCount + $activeSlave.vaginalCount > 0)>>
+					[[Rape|Slave Interact][$activeSlave.pornFocus = "rape"]] |
+				<</if>>
+				<<if $activeSlave.bellyPreg > 500>>
+					[[Preggo|Slave Interact][$activeSlave.pornFocus = "preggo"]] |
+				<</if>>
+				<<if $activeSlave.weight > 95>>
+					[[BBW|Slave Interact][$activeSlave.pornFocus = "BBW"]] |
+				<</if>>
+				<<if $activeSlave.visualAge <= 12>>
+					[[Underage|Slave Interact][$activeSlave.pornFocus = "underage"]] |
+				<</if>>
+				<<if ($activeSlave.weight > 30 && $activeSlave.diet == "fattening") || ($activeSlave.inflation > 0 && $activeSlave.inflationType == "food")>>
+					[[Weight gain|Slave Interact][$activeSlave.pornFocus = "weight gain"]] |
+				<</if>>
+				<<if canPenetrate($activeSlave) && $activeSlave.dick > 3>>
+					[[Big dick|Slave Interact][$activeSlave.pornFocus = "well hung"]] |
+				<</if>>
+
+				[[Smut is smut|Slave Interact][$activeSlave.pornFocus = "porn"]] |
+				[[No focus|Slave Interact][$activeSlave.pornFocus = "none"]]
+			<</if>>
 		<</if>>
 	<</if>>
-	<br>
 <</if>>
 
 <br><br>
