@@ -12,7 +12,7 @@ window.SFCR = function() {const V = State.variables;
 	} else if (V.ColonelFeelings >= 45){if (V.PC.title === 1){return`boyfriend`;} else {return`girlfriend`;}
 	} else if (V.ColonelFeelings >= 65){return`lover`;}}
 
-window.TroopDec = function() {const V = State.variables;const commom = "the <<print commaNum($SFTroops)>> members of $securityForceName";
+window.TroopDec = function() {const V = State.variables;const commom = "the <<print commaNum(SFUnit.Troops)>> members of $SF.Lower";
 if (V.SFTroops < 100)
 	return`sparsely occupied, ${commom} residing within them concentrating together in a corner. The hundreds of empty beds and lockers visibly herald the future`;
 else if (V.SFTroops < 400)
@@ -48,15 +48,7 @@ window.Count = function() {const V = State.variables,T = State.temporary;
 	if (V.PC.hacking >= 75){T.SatU = 10,T.GiantRobotU = 10;} else {T.SatU = 9,T.GiantRobotU = 9;};T.MissileSiloU = 3;
 	T.Base = V.Firebase+V.Armoury+V.SFDrugs+V.SFDrones+T.Garage+T.Hanger;
 	T.BaseU = T.FirebaseU+T.ArmouryU+T.SFDrugsU+T.SFDronesU+T.GarageU+T.HangerU;
-	if (V.PC.hacking >= 75){T.SubU = 10;} else {T.SubU = 9;};T.HATU = 10;T.AircraftCarrierU = 10; 
-	if (V.terrain !== "oceanic" && V.terrain !== "marine"){
-	T.LaunchBay = V.Satellite+V.GiantRobot+V.MissileSilo;
-	T.LaunchBayU = T.SatU+T.GiantRobotU+T.MissileSiloU;
-	V.SFU = T.Base+T.LaunchBay,T.max = T.BaseU+T.LaunchBayU;
-} else if (V.terrain === "oceanic"||V.terrain === "marine"){
-	T.LaunchBay = V.Satellite,T.LaunchBayU = T.SatU;
-	T.NavalYard = V.AircraftCarrier+V.Sub+V.HAT,T.NavalYardU = T.AircraftCarrierU+T.SubU+T.HATU;
-	V.SFU = T.Base+T.LaunchBay+T.NavalYard,T.max = T.BaseU+T.LaunchBayU+T.NavalYardU;}
+	if (V.PC.hacking >= 75){T.SubU = 10;} else {T.SubU = 9;};T.HATU = 10;T.AircraftCarrierU = 10;
 	V.Firebase = Math.clamp(V.Firebase, 0, T.FirebaseU);
 	V.Armoury = Math.clamp(V.Armoury, 0, T.ArmouryU);
 	V.SFDrugs = Math.clamp(V.SFDrugs, 0, T.SFDrugsU);
@@ -71,8 +63,17 @@ window.Count = function() {const V = State.variables,T = State.temporary;
 	V.GiantRobot = Math.clamp(V.GiantRobot, 0, T.GiantRobotU);
 	V.MissileSilo = Math.clamp(V.MissileSilo, 0, T.MissileSiloU);
 	V.AircraftCarrier = Math.clamp(V.AircraftCarrier, 0, T.AircraftCarrierU);
-	V.Submarine = Math.clamp(V.Submarine, 0, T.SubU);
-	V.HAT = Math.clamp(V.HAT, 0, T.HATU),V.SFU = Math.clamp(V.SFU, 0, T.max);
+	V.Sub = Math.clamp(V.Sub, 0, T.SubU);
+	V.HAT = Math.clamp(V.HAT, 0, T.HATU);
+	if (V.terrain !== "oceanic" && V.terrain !== "marine") {
+	T.LaunchBay = V.Satellite+V.GiantRobot+V.MissileSilo;
+	T.LaunchBayU = T.SatU+T.GiantRobotU+T.MissileSiloU;
+	V.SF.Units = T.Base+T.LaunchBay,T.max = T.BaseU+T.LaunchBayU;
+} else if (V.terrain === "oceanic"||V.terrain === "marine") {
+	T.LaunchBay = V.Satellite,T.LaunchBayU = T.SatU;
+	T.NavalYard = V.AircraftCarrier+V.Sub+V.HAT,T.NavalYardU = T.AircraftCarrierU+T.SubU+T.HATU;
+	V.SF.Units = T.Base+T.LaunchBay+T.NavalYard,T.max = T.BaseU+T.LaunchBayU+T.NavalYardU;}
+	V.SF.Units = Math.clamp(V.SF.Units, 0, T.max);
 	if (V.economy === .5){T.Env = 4;} else if (V.economy === 1.5){T.Env = 2;} else {T.Env = 3;};
 }
 
@@ -94,7 +95,7 @@ window.Firebase = function() {const V = State.variables;
 	if (V.Firebase >= 8){pads =`and a powerful arcology wide electromagnetic force field has been installed`;} else {barrel =`double-barreled`;}
 	if (V.Firebase === 9)barrel =`tripple-barreled`;sizeI =`415 cm wide`;
 	if (V.Firebase === 10)barrel =`quad-barreled`;sizeI =`420 cm wide`;
-	return` ${t} ${quanitiy} heavy, long range, ${barrel} electromagnetic railgun ${sizeI} artillery pieces have been installed in ${casemates} casemates along the aerial launch pads ${pads}, giving $securityForceName an immense superiority in local firepower.`;}
+	return` ${t} ${quanitiy} heavy, long range, ${barrel} electromagnetic railgun ${sizeI} artillery pieces have been installed in ${casemates} casemates along the aerial launch pads ${pads}, giving $SF.Lower an immense superiority in local firepower.`;}
 
 window.Armoury = function() {const V = State.variables;
 	if (V.Armoury === 0)
@@ -109,7 +110,7 @@ window.Armoury = function() {const V = State.variables;
 		return`Has begun to equip the soldiers with more advanced combat armour suits, and has expanded its inventory of electromagnetic weaponry.`;
 	if (V.Armoury > 4)
 	var t =`Acquired heavy weapon attachments for its combat armour suits`;
-	var y =`for the soldiers, ensuring that the infantry of $securityForceName is perhaps the most well-equipped in the world.`;
+	var y =`for the soldiers, ensuring that the infantry of $SF.Lower is perhaps the most well-equipped in the world.`;
 	if (V.Armoury === 5)var size =`small`;
 	if (V.Armoury === 6)size =`both small and medium`;
 	if (V.Armoury >= 7)size =`small/medium and large`;
@@ -133,10 +134,10 @@ window.SFDrugs = function() {const V = State.variables;
 		tryptamine =`has also begun providing tryptamine-based psychedelics to the soldiers, allowing them to avoid traumatic stress in the field.`;
 	if (V.SFDrugs >= 5)improvement =`maximally`;
 		tryptamine =`tryptamine-based psychedelics`;
-		tryptamine1 =`Greatly increasing their effectiveness in all aspects thus ensuring that the soldiers of $securityForceName go into combat wired, aggressive, and euphoric (if needed).`;
+		tryptamine1 =`Greatly increasing their effectiveness in all aspects thus ensuring that the soldiers of $SF.Lower go into combat wired, aggressive, and euphoric (if needed).`;
 	if (V.SFDrugs === 6)purity =`with much higher purity compontent`;
 	if (V.SFDrugs === 7)LSD =`and a slight trace of LSD`;
-	if (V.SFDrugs === 8)Dose =`into a single dose`;var doc =`<div style='font-size: 75%;'>*Only the doctors of $securityForceName were consulted to ensure a completely unbiased result.</div>`
+	if (V.SFDrugs === 8)Dose =`into a single dose`;var doc =`<div style='font-size: 75%;'>*Only the doctors of $SF.Lower were consulted to ensure a completely unbiased result.</div>`
 		Effects =`However side effects may include (no particular order): Dissociative Identity Disorder, severe clinical depression, unstoppable vomiting, extreme paranoia, PTSD, finally total organ failure. Recommended by 9/10 doctors*.`;
 	if (V.SFDrugs === 9)Effects =`Potential side effects have been reduced slightly to “only mildly” severe ones: Dissociative Identity Disorder, severe clinical depression, unstoppable vomiting, extreme paranoia and PTSD. Now recommended by 15/10 doctors*.`;var Effect0 =``;
 	if (V.SFDrugs === 10)Dose =`into a single higher strength dose`;
@@ -176,7 +177,7 @@ window.SFVehiclesDec = function() {const V = State.variables;
 		if (V.SFVehicles === 6)var size =`light`;
 		if (V.SFVehicles === 7)size =`light and medium`;
 		if (V.SFVehicles === 8)size =`light, medium and heavy`;
-	return`Has replaced both its armoured and support vehicles with the most advanced ${size} variants possible. Ensuring that the mobile unit of $securityForceName is far superior to anything in $arcologies[0].name's immediate area.`;}
+	return`Has replaced both its armoured and support vehicles with the most advanced ${size} variants possible. Ensuring that the mobile unit of $SF.Lower is far superior to anything in $arcologies[0].name's immediate area.`;}
 
 window.ADec = function() {const V = State.variables;
 	if (V.SFAirForce === 0)
@@ -297,7 +298,7 @@ window.ms = function() {const V = State.variables;
 	if (V.MissileSilo === 3)return`Modernized the black and silver missile silo's launching electronics, wiring and circuitry.`;}
 
 window.AC = function() {const V = State.variables; 
-	if (V.AircraftCarrier === 1)return`An old aircraft carrier has been 'borrowed' from the old world for use by $securityForceName. It is moored to the pier in the Naval Yard. ${jets} strike jets have been recommissioned to serve as its airpower. `;
+	if (V.AircraftCarrier === 1)return`An old aircraft carrier has been 'borrowed' from the old world for use by $SF.Lower. It is moored to the pier in the Naval Yard. ${jets} strike jets have been recommissioned to serve as its airpower. `;
 	if (V.AircraftCarrier > 1)var dock =`The aircraft carrier is moored to the pier in the Naval Yard.`; var emp =`The electronics and wiring have been shielded to protect from EMP blasts`; var radar =``;var emp2 =`.`;var morale =``;var AA ='';var prop =``;var scramble ='';var jets =`Mothballed`; var jets2 = "";
 	if (V.AircraftCarrier >= 3)radar =`The island's radar and comms have been improved.`; 
 	if (V.AircraftCarrier >= 4)AA = `The antiair guns have been updated to automatically track and predict enemy aircraft movement.`; 
@@ -324,13 +325,13 @@ window.Sub = function() {const V = State.variables;
 	return`${dock} ${reactor} ${reactor1} ${Cal} ${hull} ${tubes} ${sonar} ${control} ${missiles}`;}
 
 window.HAT = function() {const V = State.variables;
-	if (V.HAT === 1)var skirt =`, has been recommissioned for use by $securityForceName`;var guns =``;var turbines =``;var armor =``;var tons =`200`;var ramps =``;var frame =``;var loadout =``;
+	if (V.HAT === 1)var skirt =`, has been recommissioned for use by $SF.Lower`;var guns =``;var turbines =``;var armor =``;var tons =`200`;var ramps =``;var frame =``;var loadout =``;
 	if (V.HAT >= 2)skirt =`. The skirt has been upgraded to improve cushion when travelling over uneven terrain and waves, as well as increasing durability`;
-	if (V.HAT >= 3)var guns2 = `machine guns`;guns =`Quad .50 cal ${guns2} have been mounted on the corners of the craft to defend against attackers.`;
+	if (V.HAT >= 3)var guns2 = `minigun`;guns =`A .50 cal ${guns2} has been mounted in each of the four corners of the craft to defend against attackers.`;
 	if (V.HAT >= 4)var fans =`rear fans`;var speed =`acceleration and speed`;turbines =`The turbines powering the ${fans} have been replaced with a more powerful version, allowing greater ${speed}.`;
 	if (V.HAT >= 5)armor =`The armor protecting its cargo has been increased.`;
 	if (V.HAT >= 6)tons =`300`;fans =`rear fans and impeller`;speed =`acceleration, speed, and carrying capacity`;
-	if (V.HAT >= 7)guns2 =`machine guns and grenade launchers`;
+	if (V.HAT >= 7)guns2 =`minigun and grenade launcher combo`;
 	if (V.HAT >= 8)ramps =`The loading ramps have been improved, allowing for faster unloading.`;
 	if (V.HAT >= 9)frame =`The frame has been widened and reinforced, allowing for more space on the deck.`;
 	if (V.HAT === 10)loadout =`An experimental loadout sacrifices all carrying capacity to instead act as a floating gun platform by mounting several rotary autocannons the deck, should the need arise.`;
@@ -338,16 +339,16 @@ window.HAT = function() {const V = State.variables;
 	
 window.Interactions = function() {const V = State.variables,T = State.temporary;
 var choice = "";var gift ="";var giftdec = "";var giftdec2 = "";var Colonel = "";var join ="";var status =``;var staus2 =``;
-if (V.SFU !== T.max){if (V.SFUpgrade === 1)status =`being`
-	else status =`able to be`;staus2 =`improved this week.`;
-} else {status =`fully equipped and upgraded - nothing else can be done.`;}
-if (V.SFGift === 1||(V.ColonelDiscussion === 1||V.ColonelSexed === 1))choice =`This week you have already`;
-	if (V.SFGift === 1){gift =`been provided with`;
+if (V.SF.Units !== T.max){if (V.SF.U === 1)status =`being`
+	else status =`able to be`;staus2 =` improved this week`;
+} else {status =`fully equipped and upgraded - nothing else can be done`;}
+if (V.SF.WG === 1||(V.SFColonel.Talk === 1||V.SFColonel.Fun === 1))choice =`. This week you have already`;
+	if (V.SF.WG === 1){gift =`been provided with`;
 		if (V.choice === 1){giftdec =`an extra @@.yellowgreen;<<print cashFormat(Math.ceil($CashGift))>>@@ in tribute`;
 		} else if (V.choice === 2||V.choice === 3){giftdec =`a message of support, @@.green;improving@@`;
-			if (V.choice == 2)giftdec2 =` your reputation`; else giftdec2 =` the prosperity of $arcologies[0].name`;
+			if (V.choice == 2)giftdec2 =`your reputation.`; else giftdec2 =`the prosperity of $arcologies[0].name`;
 		}
 	}
-	if (V.ColonelDiscussion === 1||V.ColonelSexed === 1){Colonel =` spent time with The Colonel`;
-		if (V.SFGift === 1){join =` and`;}}
-return`${status} ${staus2} ${choice} ${gift} ${giftdec}${giftdec2}${join}${Colonel}.//`;}
+	if (V.SFColonel.Talk === 1||V.SFColonel.Fun === 1){Colonel =`spent time with The Colonel`;
+		if (V.SF.WG === 1){join =`and`;}}
+return`${status}${staus2}${choice} ${gift} ${giftdec} ${giftdec2} ${join} ${Colonel}.//`;}
