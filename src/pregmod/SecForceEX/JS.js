@@ -6,22 +6,22 @@ if (V.AttendanceGranted !== -1){
 } else {return`The Colonel`};}
 
 window.SFCR = function() {const V = State.variables;
-	if (V.ColonelFeelings === 0){return`boss`;
-	} else if (V.ColonelFeelings >= 10){return`friend`;
-	} else if (V.ColonelFeelings >= 25){return`close friend`;
-	} else if (V.ColonelFeelings >= 45){if (V.PC.title === 1){return`boyfriend`;} else {return`girlfriend`;}
-	} else if (V.ColonelFeelings >= 65){return`lover`;}}
+	if (V.SF.Status === 0){return`boss`;
+	} else if (V.SF.Status >= 10){return`friend`;
+	} else if (V.SF.Status >= 25){return`close friend`;
+	} else if (V.SF.Status >= 45){if (V.PC.title === 1){return`boyfriend`;} else {return`girlfriend`;}
+	} else if (V.SF.Status >= 65){return`lover`;}}
 
 window.TroopDec = function() {const V = State.variables;const commom = "the <<print commaNum(SFUnit.Troops)>> members of $SF.Lower";
-if (V.SFTroops < 100)
+if (V.SF.Troops < 100)
 	return`sparsely occupied, ${commom} residing within them concentrating together in a corner. The hundreds of empty beds and lockers visibly herald the future`;
-else if (V.SFTroops < 400)
+else if (V.SF.Troops < 400)
 	return`lightly occupied, with ${commom} starting to spread out across them`;
-else if (V.SFTroops < 800)
+else if (V.SF.Troops < 800)
 	return`moderately occupied, though ${commom} residing within have a considerable amount of extra room`;
-else if (V.SFTroops < 1500)
+else if (V.SF.Troops < 1500)
 	return`well-occupied, and ${commom} residing within have started to form small cliques based on section and row`;
-else if (V.SFTroops < 2000)
+else if (V.SF.Troops < 2000)
 	return`near capacity, and ${commom} often barter their personal loot, whether it be monetary or human, for the choicest bunks`;}
 
 window.HSM = function() {const V = State.variables;
@@ -60,13 +60,13 @@ window.Count = function() {const V = State.variables,T = State.temporary;
 	V.SF.SpacePlane = Math.clamp(V.SF.SpacePlane, 0, T.SF.SpacePlaneU);
 	V.SF.Drones = Math.clamp(V.SF.Drones, 0, T.SF.DronesU);
 	V.SF.Satellite = Math.clamp(V.SF.Satellite, 0, T.SatU);
-	V.GiantRobot = Math.clamp(V.GiantRobot, 0, T.GiantRobotU);
-	V.MissileSilo = Math.clamp(V.MissileSilo, 0, T.MissileSiloU);
-	V.AircraftCarrier = Math.clamp(V.AircraftCarrier, 0, T.AircraftCarrierU);
+	V.SF.GiantRobot = Math.clamp(V.SF.GiantRobot, 0, T.GiantRobotU);
+	V.SF.MissileSilo = Math.clamp(V.SF.MissileSilo, 0, T.MissileSiloU);
+	V.SF.AircraftCarrier = Math.clamp(V.SF.AircraftCarrier, 0, T.AircraftCarrierU);
 	V.Sub = Math.clamp(V.Sub, 0, T.SubU);
 	V.HAT = Math.clamp(V.HAT, 0, T.HATU);
 	if (V.terrain !== "oceanic" && V.terrain !== "marine") {
-	T.LaunchBay = V.SF.Satellite+V.GiantRobot+V.MissileSilo;
+	T.LaunchBay = V.SF.Satellite+V.SF.GiantRobot+V.SF.MissileSilo;
 	T.LaunchBayU = T.SatU+T.GiantRobotU+T.MissileSiloU;
 	V.SF.Units = T.Base+T.LaunchBay,T.max = T.BaseU+T.LaunchBayU;
 } else if (V.terrain === "oceanic"||V.terrain === "marine") {
@@ -88,11 +88,11 @@ window.Firebase = function() {const V = State.variables;
 		return`Has added additional support personnel and equipment, allowing the potential procurement of heavier infantry armour, fighting vehicles, and combat drones.`;
 	if (V.SF.Firebase === 4)
 		return`Has expanded tremendously, adding an aerial control facility and express elevator connecting to a ring of launch pads and hangars built around the arcology's upper levels. Additional facilities have been added for soldier recreation, and Spartan quarters for live-in slaves, both menial and service, have been installed.`;
-	if (V.Firebase > 4)var quanitiy ="";var casemates ="";var pads ="";var sizeI ="";var barrel ="";
+	if (V.SF.Firebase > 4)var quanitiy ="";var casemates ="";var pads ="";var sizeI ="";var barrel ="";
 	var t =`Has (mostly) taken on the appearance of a professional military installation, with clearly delineated soldier and logistical areas, dedicated support and recreation facilities, in addition to advanced command and control apparatus. As a final measure,`;
-	if (V.Firebase >= 6){quanitiy =`quad`;} else {sizeI =`356 cm wide`;}
-	if (V.Firebase >= 7){casemates =`fortified EMP/jammer resistant`} else {sizeI =`406 cm wide`;}
-	if (V.Firebase >= 8){pads =`and a powerful arcology wide electromagnetic force field has been installed`;} else {barrel =`double-barreled`;}
+	if (V.SF.Firebase >= 6){quanitiy =`quad`;} else {sizeI =`356 cm wide`;}
+	if (V.SF.Firebase >= 7){casemates =`fortified EMP/jammer resistant`} else {sizeI =`406 cm wide`;}
+	if (V.SF.Firebase >= 8){pads =`and a powerful arcology wide electromagnetic force field has been installed`;} else {barrel =`double-barreled`;}
 	if (V.SF.Firebase === 9)barrel =`tripple-barreled`;sizeI =`415 cm wide`;
 	if (V.SF.Firebase === 10)barrel =`quad-barreled`;sizeI =`420 cm wide`;
 	return` ${t} ${quanitiy} heavy, long range, ${barrel} electromagnetic railgun ${sizeI} artillery pieces have been installed in ${casemates} casemates along the aerial launch pads ${pads}, giving $SF.Lower an immense superiority in local firepower.`;}
@@ -243,61 +243,61 @@ window.Sat = function() {const V = State.variables;
 	return`Modernised the satellite's electronics ${wire}. ${jd}${jam} ${jd3} ${emp0}${emp1} ${beem1} ${beem0} ${beem3} ${beem4}`;}
 
 window.GR = function() {const V = State.variables;
-	if (V.GiantRobot === 1)return`A basic black and silver giant robot has been 'borrowed'.`;
-	if (V.GiantRobot > 1)var bat =``;var weight =``;var skin =``;var armor =``;var weapons =``;var QOL =``;var pilots =``;
-	if (V.GiantRobot >= 3)bat =`.Power efficiency has been increased`;
-	if (V.GiantRobot >= 4)weight =`Overall weight has been reduced signicantly allowing for greater mobility.`;
-	if (V.GiantRobot >= 5)bat =`Power efficiency and battery capacity have been increased.`;
-	if (V.GiantRobot >= 6)armor =`Armor has been thickened and is lighter`;
-	if (V.GiantRobot >= 7)weapons =`and heat seeking missiles plus a massive 150m long energy sword in addition to quad 420 cm back mounted powerful electromagnetic cannons`;
-	if (V.GiantRobot >= 8)pilots =`The pilot count has been increased to two via a synced neural link.`;
-	if (V.GiantRobot >= 9)QOL =`Improved the life support systems and crew seating, allowing for longer operational durations. Added hover and boost capabilities, allowing for greater mobility in addition to ramming potential.`;
-	if (V.GiantRobot >= 10)skin =`Replaced the skin with an advanced optical illusion kit and overclocked the movement systems allowing for even greater mobility. However the amount of heat generated has increased slightly.`;
+	if (V.SF.GiantRobot === 1)return`A basic black and silver giant robot has been 'borrowed'.`;
+	if (V.SF.GiantRobot > 1)var bat =``;var weight =``;var skin =``;var armor =``;var weapons =``;var QOL =``;var pilots =``;
+	if (V.SF.GiantRobot >= 3)bat =`.Power efficiency has been increased`;
+	if (V.SF.GiantRobot >= 4)weight =`Overall weight has been reduced signicantly allowing for greater mobility.`;
+	if (V.SF.GiantRobot >= 5)bat =`Power efficiency and battery capacity have been increased.`;
+	if (V.SF.GiantRobot >= 6)armor =`Armor has been thickened and is lighter`;
+	if (V.SF.GiantRobot >= 7)weapons =`and heat seeking missiles plus a massive 150m long energy sword in addition to quad 420 cm back mounted powerful electromagnetic cannons`;
+	if (V.SF.GiantRobot >= 8)pilots =`The pilot count has been increased to two via a synced neural link.`;
+	if (V.SF.GiantRobot >= 9)QOL =`Improved the life support systems and crew seating, allowing for longer operational durations. Added hover and boost capabilities, allowing for greater mobility in addition to ramming potential.`;
+	if (V.SF.GiantRobot >= 10)skin =`Replaced the skin with an advanced optical illusion kit and overclocked the movement systems allowing for even greater mobility. However the amount of heat generated has increased slightly.`;
 	return`The black and silver gaint robot has had it's wiring and circuitry upgraded ${bat} ${weight} ${armor}. For self defense the robot has it's bare hands ${weapons}. ${pilots} ${QOL} ${skin}`;}
 
 window.ms = function() {const V = State.variables;
-	if (V.MissileSilo === 1)return`A basic black and silver missile silo has been 'borrowed' from the old world.`;
-	if (V.MissileSilo === 2)return`Modernized the black and silver missile silo's launching electronics`;
-	if (V.MissileSilo === 3)return`Modernized the black and silver missile silo's launching electronics, wiring and circuitry.`;}
+	if (V.SF.MissileSilo === 1)return`A basic black and silver missile silo has been 'borrowed' from the old world.`;
+	if (V.SF.MissileSilo === 2)return`Modernized the black and silver missile silo's launching electronics`;
+	if (V.SF.MissileSilo === 3)return`Modernized the black and silver missile silo's launching electronics, wiring and circuitry.`;}
 
 window.AC = function() {const V = State.variables; 
-	if (V.AircraftCarrier === 1)return`An old aircraft carrier has been 'borrowed' from the old world for use by $SF.Lower. It is moored to the pier in the Naval Yard. ${jets} strike jets have been recommissioned to serve as its airpower. `;
-	if (V.AircraftCarrier > 1)var dock =`The aircraft carrier is moored to the pier in the Naval Yard.`; var emp =`The electronics and wiring have been shielded to protect from EMP blasts`; var radar =``;var emp2 =`.`;var morale =``;var AA ='';var prop =``;var scramble ='';var jets =`Mothballed`; var jets2 = "";
-	if (V.AircraftCarrier >= 3)radar =`The island's radar and comms have been improved.`; 
-	if (V.AircraftCarrier >= 4)AA = `The antiair guns have been updated to automatically track and predict enemy aircraft movement.`; 
-	if (V.AircraftCarrier >= 5)prop =`The propulsion system has been tweaked to be much more difficult to pick up by sonar.`;
-	if (V.AircraftCarrier >= 6)jets =`Modern`; 
-	if (V.AircraftCarrier >= 7)morale =`The mess, bunks, and recreation on the ship have been renovated, boosting morale among the sailors.`;
-	if (V.AircraftCarrier >= 8)jets2 =`with state-of-the-art weapons systems`; 
-	if (V.AircraftCarrier >= 9)scramble = `The catapult has been converted into an electromagnetic launcher, halving the time it takes to scramble jets.`;
-	if (V.AircraftCarrier >= 10)emp2 =`, and the power plant has been converted to nuclear power.`;
+	if (V.SF.AircraftCarrier === 1)return`An old aircraft carrier has been 'borrowed' from the old world for use by $SF.Lower. It is moored to the pier in the Naval Yard. ${jets} strike jets have been recommissioned to serve as its airpower. `;
+	if (V.SF.AircraftCarrier > 1)var dock =`The aircraft carrier is moored to the pier in the Naval Yard.`; var emp =`The electronics and wiring have been shielded to protect from EMP blasts`; var radar =``;var emp2 =`.`;var morale =``;var AA ='';var prop =``;var scramble ='';var jets =`Mothballed`; var jets2 = "";
+	if (V.SF.AircraftCarrier >= 3)radar =`The island's radar and comms have been improved.`; 
+	if (V.SF.AircraftCarrier >= 4)AA = `The antiair guns have been updated to automatically track and predict enemy aircraft movement.`; 
+	if (V.SF.AircraftCarrier >= 5)prop =`The propulsion system has been tweaked to be much more difficult to pick up by sonar.`;
+	if (V.SF.AircraftCarrier >= 6)jets =`Modern`; 
+	if (V.SF.AircraftCarrier >= 7)morale =`The mess, bunks, and recreation on the ship have been renovated, boosting morale among the sailors.`;
+	if (V.SF.AircraftCarrier >= 8)jets2 =`with state-of-the-art weapons systems`; 
+	if (V.SF.AircraftCarrier >= 9)scramble = `The catapult has been converted into an electromagnetic launcher, halving the time it takes to scramble jets.`;
+	if (V.SF.AircraftCarrier >= 10)emp2 =`, and the power plant has been converted to nuclear power.`;
 	return`${dock} ${jets} strike jets ${jets2} have been recommissioned to serve as its airpower.${scramble} ${emp}${emp2} ${radar} ${AA} ${prop} ${morale}`;}
 
 window.Sub = function() {const V = State.variables;
-	if (V.Sub === 1)return`An old attack submarine has been recommissioned from the old world, and is moored to the pier of the Naval Yard. Because diesel engines provide power and breathing oxygen is kept in pressurized canisters, the sub must frequently surface.`;
-	if (V.Sub > 1)var dock =`The attack submarine is moored to the pier of the Naval Yard.`; var reactor =`A nuclear reactor provides power`;
+	if (V.SF.Sub === 1)return`An old attack submarine has been recommissioned from the old world, and is moored to the pier of the Naval Yard. Because diesel engines provide power and breathing oxygen is kept in pressurized canisters, the sub must frequently surface.`;
+	if (V.SF.Sub > 1)var dock =`The attack submarine is moored to the pier of the Naval Yard.`; var reactor =`A nuclear reactor provides power`;
 	var reactor1 = `, but because oxygen is still kept in pressurized canisters the sub must frequently surface to replenish its oxygen stocks.`;var missiles = ""; var Cal = "";var hull = "";var tubes = "";var sonar = "";var control = "";
-	if (V.Sub >= 3)reactor1 =`and an oxygen generator pulls O₂ from the surrounding seawater, allowing the submarine to remain underwater for months if necessary.`;
-	if (V.Sub >= 4)Cal =` Calibration of the propulsion systems has reduced the telltale hum of a moving sub to a whisper.`; 
-	if (V.Sub >= 5)hull =`The outer hull has been redesigned to absorb sonar and for hydrodynamics.`;
-	if (V.Sub === 6)tubes =`The torpedo tubes have been redesigned for much faster loading speeds.`;
-	if (V.Sub >= 7)sonar =`The passive sonar has been finely tuned to detect mechanical noises kilometers away.`; 
-	if (V.Sub >= 8)control =`The control room computers have been upgraded to automate many conn duties.`;
-	if (V.Sub >= 9)tubes =`The torpedo tubes have been redesigned for much faster loading speeds, and hold newer,faster and more agile torpedoes.`;
-	if (V.Sub === 10)missiles =`The submarine has been outfitted with several cruise missiles to attack land or sea-based targets.`
+	if (V.SF.Sub >= 3)reactor1 =`and an oxygen generator pulls O₂ from the surrounding seawater, allowing the submarine to remain underwater for months if necessary.`;
+	if (V.SF.Sub >= 4)Cal =` Calibration of the propulsion systems has reduced the telltale hum of a moving sub to a whisper.`; 
+	if (V.SF.Sub >= 5)hull =`The outer hull has been redesigned to absorb sonar and for hydrodynamics.`;
+	if (V.SF.Sub === 6)tubes =`The torpedo tubes have been redesigned for much faster loading speeds.`;
+	if (V.SF.Sub >= 7)sonar =`The passive sonar has been finely tuned to detect mechanical noises kilometers away.`; 
+	if (V.SF.Sub >= 8)control =`The control room computers have been upgraded to automate many conn duties.`;
+	if (V.SF.Sub >= 9)tubes =`The torpedo tubes have been redesigned for much faster loading speeds, and hold newer,faster and more agile torpedoes.`;
+	if (V.SF.Sub === 10)missiles =`The submarine has been outfitted with several cruise missiles to attack land or sea-based targets.`
 	return`${dock} ${reactor} ${reactor1} ${Cal} ${hull} ${tubes} ${sonar} ${control} ${missiles}`;}
 
 window.HAT = function() {const V = State.variables;
-	if (V.HAT === 1)var skirt =`, has been recommissioned for use by $SF.Lower`;var guns =``;var turbines =``;var armor =``;var tons =`200`;var ramps =``;var frame =``;var loadout =``;
-	if (V.HAT >= 2)skirt =`. The skirt has been upgraded to improve cushion when travelling over uneven terrain and waves, as well as increasing durability`;
-	if (V.HAT >= 3)var guns2 = `minigun`;guns =`A .50 cal ${guns2} has been mounted in each of the four corners of the craft to defend against attackers.`;
-	if (V.HAT >= 4)var fans =`rear fans`;var speed =`acceleration and speed`;turbines =`The turbines powering the ${fans} have been replaced with a more powerful version, allowing greater ${speed}.`;
-	if (V.HAT >= 5)armor =`The armor protecting its cargo has been increased.`;
-	if (V.HAT >= 6)tons =`300`;fans =`rear fans and impeller`;speed =`acceleration, speed, and carrying capacity`;
-	if (V.HAT >= 7)guns2 =`minigun and grenade launcher combo`;
-	if (V.HAT >= 8)ramps =`The loading ramps have been improved, allowing for faster unloading.`;
-	if (V.HAT >= 9)frame =`The frame has been widened and reinforced, allowing for more space on the deck.`;
-	if (V.HAT === 10)loadout =`An experimental loadout sacrifices all carrying capacity to instead act as a floating gun platform by mounting several rotary autocannons the deck, should the need arise.`;
+	if (V.SF.HAT === 1)var skirt =`, has been recommissioned for use by $SF.Lower`;var guns =``;var turbines =``;var armor =``;var tons =`200`;var ramps =``;var frame =``;var loadout =``;
+	if (V.SF.HAT >= 2)skirt =`. The skirt has been upgraded to improve cushion when travelling over uneven terrain and waves, as well as increasing durability`;
+	if (V.SF.HAT >= 3)var guns2 = `minigun`;guns =`A .50 cal ${guns2} has been mounted in each of the four corners of the craft to defend against attackers.`;
+	if (V.SF.HAT >= 4)var fans =`rear fans`;var speed =`acceleration and speed`;turbines =`The turbines powering the ${fans} have been replaced with a more powerful version, allowing greater ${speed}.`;
+	if (V.SF.HAT >= 5)armor =`The armor protecting its cargo has been increased.`;
+	if (V.SF.HAT >= 6)tons =`300`;fans =`rear fans and impeller`;speed =`acceleration, speed, and carrying capacity`;
+	if (V.SF.HAT >= 7)guns2 =`minigun and grenade launcher combo`;
+	if (V.SF.HAT >= 8)ramps =`The loading ramps have been improved, allowing for faster unloading.`;
+	if (V.SF.HAT >= 9)frame =`The frame has been widened and reinforced, allowing for more space on the deck.`;
+	if (V.SF.HAT === 10)loadout =`An experimental loadout sacrifices all carrying capacity to instead act as a floating gun platform by mounting several rotary autocannons the deck, should the need arise.`;
 	return`An air cushion transport vehicle, or hovercraft${skirt}. It is parked on the pier of the Naval Yard, ready to ferry ${tons} tons of soldiers and vehicles at any time. ${guns} ${turbines} ${armor} ${ramps} ${frame} ${loadout}`;}
 	
 window.Interactions = function() {const V = State.variables,T = State.temporary;
