@@ -39,38 +39,38 @@ window.HSM = function() {const V = State.variables;
 	else if (V.PC.hacking >= 100)return .75;}
 
 window.Count = function() {const V = State.variables,T = State.temporary;
-	T.FirebaseU = 10,T.ArmouryU = 10,T.SFDrugsU = 10;
-	T.Garage = V.SFVehicles+V.HeavyBattleTank,T.SFVehiclesU = 0;
-	T.HeavyBattleTankU = 10,T.GarageU = T.SFVehiclesU+T.HeavyBattleTankU;
-	T.Hanger = V.SFAirForce+V.SpacePlane+V.GunS,T.SFAirForceU = 0,T.GunSU = 6;
-	if (V.Armoury >= 10){T.SpacePlaneU = 10;} else {T.SpacePlaneU = 9;};
-	T.HangerU = T.SFAirForceU+T.SpacePlaneU+T.GunSU,T.SFDronesU = 8;
+	T.FirebaseU = 10,T.SF.ArmouryU = 10,T.SF.DrugsU = 10;
+	T.Garage = V.SF.Vehicles+V.SF.HBT,T.SF.VehiclesU = 0;
+	T.SF.HBTU = 10,T.GarageU = T.SF.VehiclesU+T.SF.HBTU;
+	T.Hanger = V.SF.AirForce+V.SF.SpacePlane+V.SF.GunS,T.SF.AirForceU = 0,T.SF.GunSU = 6;
+	if (V.SF.Armoury >= 10){T.SF.SpacePlaneU = 10;} else {T.SF.SpacePlaneU = 9;};
+	T.HangerU = T.SF.AirForceU+T.SF.SpacePlaneU+T.SF.GunSU,T.SF.DronesU = 8;
 	if (V.PC.hacking >= 75){T.SatU = 10,T.GiantRobotU = 10;} else {T.SatU = 9,T.GiantRobotU = 9;};T.MissileSiloU = 3;
-	T.Base = V.Firebase+V.Armoury+V.SFDrugs+V.SFDrones+T.Garage+T.Hanger;
-	T.BaseU = T.FirebaseU+T.ArmouryU+T.SFDrugsU+T.SFDronesU+T.GarageU+T.HangerU;
+	T.Base = V.Firebase+V.SF.Armoury+V.SF.Drugs+V.SF.Drones+T.Garage+T.Hanger;
+	T.BaseU = T.FirebaseU+T.SF.ArmouryU+T.SF.DrugsU+T.SF.DronesU+T.GarageU+T.HangerU;
 	if (V.PC.hacking >= 75){T.SubU = 10;} else {T.SubU = 9;};T.HATU = 10;T.AircraftCarrierU = 10;
-	V.Firebase = Math.clamp(V.Firebase, 0, T.FirebaseU);
-	V.Armoury = Math.clamp(V.Armoury, 0, T.ArmouryU);
-	V.SFDrugs = Math.clamp(V.SFDrugs, 0, T.SFDrugsU);
-	V.SFVehicles = Math.clamp(V.SFVehicles, 0, T.SFVehiclesU);
-	V.HeavyBattleTank = Math.clamp(V.HeavyBattleTank, 0, T.HeavyBattleTankU);
-	V.SFAirForce = Math.clamp(V.SFAirForce, 0, T.SFAirForceU);
-	V.SpacePlane = Math.clamp(V.SpacePlane, 0, T.SpacePlaneU);
-	V.GunS = Math.clamp(V.GunS, 0, T.GunSU);
-	V.SpacePlane = Math.clamp(V.SpacePlane, 0, T.SpacePlaneU);
-	V.SFDrones = Math.clamp(V.SFDrones, 0, T.SFDronesU);
-	V.Satellite = Math.clamp(V.Satellite, 0, T.SatU);
+	V.SF.Firebase = Math.clamp(V.Firebase, 0, T.FirebaseU);
+	V.SF.Armoury = Math.clamp(V.SF.Armoury, 0, T.SF.ArmouryU);
+	V.SF.Drugs = Math.clamp(V.SF.Drugs, 0, T.SF.DrugsU);
+	V.SF.Vehicles = Math.clamp(V.SF.Vehicles, 0, T.SF.VehiclesU);
+	V.SF.HBT = Math.clamp(V.SF.HBT, 0, T.SF.HBTU);
+	V.SF.AirForce = Math.clamp(V.SF.AirForce, 0, T.SF.AirForceU);
+	V.SF.SpacePlane = Math.clamp(V.SF.SpacePlane, 0, T.SF.SpacePlaneU);
+	V.SF.GunS = Math.clamp(V.SF.GunS, 0, T.SF.GunSU);
+	V.SF.SpacePlane = Math.clamp(V.SF.SpacePlane, 0, T.SF.SpacePlaneU);
+	V.SF.Drones = Math.clamp(V.SF.Drones, 0, T.SF.DronesU);
+	V.SF.Satellite = Math.clamp(V.SF.Satellite, 0, T.SatU);
 	V.GiantRobot = Math.clamp(V.GiantRobot, 0, T.GiantRobotU);
 	V.MissileSilo = Math.clamp(V.MissileSilo, 0, T.MissileSiloU);
 	V.AircraftCarrier = Math.clamp(V.AircraftCarrier, 0, T.AircraftCarrierU);
 	V.Sub = Math.clamp(V.Sub, 0, T.SubU);
 	V.HAT = Math.clamp(V.HAT, 0, T.HATU);
 	if (V.terrain !== "oceanic" && V.terrain !== "marine") {
-	T.LaunchBay = V.Satellite+V.GiantRobot+V.MissileSilo;
+	T.LaunchBay = V.SF.Satellite+V.GiantRobot+V.MissileSilo;
 	T.LaunchBayU = T.SatU+T.GiantRobotU+T.MissileSiloU;
 	V.SF.Units = T.Base+T.LaunchBay,T.max = T.BaseU+T.LaunchBayU;
 } else if (V.terrain === "oceanic"||V.terrain === "marine") {
-	T.LaunchBay = V.Satellite,T.LaunchBayU = T.SatU;
+	T.LaunchBay = V.SF.Satellite,T.LaunchBayU = T.SatU;
 	T.NavalYard = V.AircraftCarrier+V.Sub+V.HAT,T.NavalYardU = T.AircraftCarrierU+T.SubU+T.HATU;
 	V.SF.Units = T.Base+T.LaunchBay+T.NavalYard,T.max = T.BaseU+T.LaunchBayU+T.NavalYardU;}
 	V.SF.Units = Math.clamp(V.SF.Units, 0, T.max);
@@ -78,205 +78,168 @@ window.Count = function() {const V = State.variables,T = State.temporary;
 }
 
 window.Firebase = function() {const V = State.variables;
-	if (V.Firebase === 0)
+	if (V.SF.Firebase === 0)
 		return`Is currently quite basic, consisting of little more than a dormitory, armoury, a processing facility for human spoils, and a common area, sectioned off by stacks of empty supply crates. The cavernous space, however, is ripe for expansion.`;
-	if (V.Firebase === 1)
+	if (V.SF.Firebase === 1)
 		return`Has become more permanent, expanding into free space, erecting permanent dividers, and sectioning off an area for use as a garage and vehicle maintenance bay.`;
-	if (V.Firebase === 2)
+	if (V.SF.Firebase === 2)
 		return`Has added a facility for the storage, maintenance, and deployment of armed combat drones, and added storage facilities for the soldiers to store their personal spoils in.`;
-	if (V.Firebase === 3)
+	if (V.SF.Firebase === 3)
 		return`Has added additional support personnel and equipment, allowing the potential procurement of heavier infantry armour, fighting vehicles, and combat drones.`;
-	if (V.Firebase === 4)
+	if (V.SF.Firebase === 4)
 		return`Has expanded tremendously, adding an aerial control facility and express elevator connecting to a ring of launch pads and hangars built around the arcology's upper levels. Additional facilities have been added for soldier recreation, and Spartan quarters for live-in slaves, both menial and service, have been installed.`;
 	if (V.Firebase > 4)var quanitiy ="";var casemates ="";var pads ="";var sizeI ="";var barrel ="";
 	var t =`Has (mostly) taken on the appearance of a professional military installation, with clearly delineated soldier and logistical areas, dedicated support and recreation facilities, in addition to advanced command and control apparatus. As a final measure,`;
 	if (V.Firebase >= 6){quanitiy =`quad`;} else {sizeI =`356 cm wide`;}
 	if (V.Firebase >= 7){casemates =`fortified EMP/jammer resistant`} else {sizeI =`406 cm wide`;}
 	if (V.Firebase >= 8){pads =`and a powerful arcology wide electromagnetic force field has been installed`;} else {barrel =`double-barreled`;}
-	if (V.Firebase === 9)barrel =`tripple-barreled`;sizeI =`415 cm wide`;
-	if (V.Firebase === 10)barrel =`quad-barreled`;sizeI =`420 cm wide`;
+	if (V.SF.Firebase === 9)barrel =`tripple-barreled`;sizeI =`415 cm wide`;
+	if (V.SF.Firebase === 10)barrel =`quad-barreled`;sizeI =`420 cm wide`;
 	return` ${t} ${quanitiy} heavy, long range, ${barrel} electromagnetic railgun ${sizeI} artillery pieces have been installed in ${casemates} casemates along the aerial launch pads ${pads}, giving $SF.Lower an immense superiority in local firepower.`;}
 
 window.Armoury = function() {const V = State.variables;
-	if (V.Armoury === 0)
+	if (V.SF.Armoury === 0)
 		return`Is well-stocked with high-quality personal weapons and light armour, but contains little in the way of exceptional armament.`;
-	if (V.Armoury === 1)
+	if (V.SF.Armoury === 1)
 		return`Has large stocks of the absolute latest personal weapons and light armour, It has also added first-generation exo-suits to improve soldier lethality.`;
-	if (V.Armoury === 2)
+	if (V.SF.Armoury === 2)
 		return`Has acquired advanced tactical helmets and second-generation exo-suits to further improve soldier lethality.`;
-	if (V.Armoury === 3)
+	if (V.SF.Armoury === 3)
 		return`Has replaced deployed exo-suits with basic enclosed combat armour suits, and has further begun to deploy early electromagnetic (coilgun) weaponry.`;
-	if (V.Armoury === 4)
+	if (V.SF.Armoury === 4)
 		return`Has begun to equip the soldiers with more advanced combat armour suits, and has expanded its inventory of electromagnetic weaponry.`;
-	if (V.Armoury > 4)
+	if (V.SF.Armoury > 4)
 	var t =`Acquired heavy weapon attachments for its combat armour suits`;
 	var y =`for the soldiers, ensuring that the infantry of $SF.Lower is perhaps the most well-equipped in the world.`;
-	if (V.Armoury === 5)var size =`small`;
-	if (V.Armoury === 6)size =`both small and medium`;
-	if (V.Armoury >= 7)size =`small/medium and large`;
-	if (V.Armoury === 8)var kit =`with basic thrusters`;
-	if (V.Armoury === 9)kit =`with advanced thrusters`;
-	if (V.Armoury === 10)kit =`with advanced thrusters and optical illusion kits`;
+	if (V.SF.Armoury === 5)var size =`small`;
+	if (V.SF.Armoury === 6)size =`both small and medium`;
+	if (V.SF.Armoury >= 7)size =`small/medium and large`;
+	if (V.SF.Armoury === 8)var kit =`with basic thrusters`;
+	if (V.SF.Armoury === 9)kit =`with advanced thrusters`;
+	if (V.SF.Armoury === 10)kit =`with advanced thrusters and optical illusion kits`;
 	return`${t} ${kit},and has further sourced ${size} advanced electromagnetic weaponry (miniaturized railguns) ${y}`;}
 
-window.SFDrugs = function() {const V = State.variables;
-	if (V.SFDrugs === 0)
+window.Drugs = function() {const V = State.variables;
+	if (V.SF.Drugs === 0)
 		return`Is providing the soldiers with standard ephedrine-based stimulants.`;
-	if (V.SFDrugs === 1)
+	if (V.SF.Drugs === 1)
 		return`Improved the formula of the ephedrine-based stimulants, concentrating them and increasing both their potency, and the effectiveness of the soldiers under their influence.`;
-	if (V.SFDrugs === 2)
+	if (V.SF.Drugs === 2)
 		return`Replaced the soldiers' stimulants with methamphetamine-based variants, greatly increasing their alertness and aggressiveness when under their influence.`;
-	if (V.SFDrugs === 3)
+	if (V.SF.Drugs === 3)
 		return`Improved and concentrated the methamphetamine-based stimulants, and has also begun providing soldiers with phencyclidine-based dissociatives, allowing the soldiers to excuse their actions in the field and reducing any reluctance to follow severe orders.`;
-	if (V.SFDrugs > 3)var improvement =``;var tryptamine =``;var tryptamine1 =``;var Dose =``;var LSD =``;var purity =``;var doc =``;var Effects =``;
+	if (V.SF.Drugs > 3)var improvement =``;var tryptamine =``;var tryptamine1 =``;var Dose =``;var LSD =``;var purity =``;var doc =``;var Effects =``;
 	var x = 'the formulas of the methamphetamine-based stimulants and phencyclidine-based dissociatives,';
-	if (V.SFDrugs === 4)improvement =`further`;
+	if (V.SF.Drugs === 4)improvement =`further`;
 		tryptamine =`has also begun providing tryptamine-based psychedelics to the soldiers, allowing them to avoid traumatic stress in the field.`;
-	if (V.SFDrugs >= 5)improvement =`maximally`;
+	if (V.SF.Drugs >= 5)improvement =`maximally`;
 		tryptamine =`tryptamine-based psychedelics`;
 		tryptamine1 =`Greatly increasing their effectiveness in all aspects thus ensuring that the soldiers of $SF.Lower go into combat wired, aggressive, and euphoric (if needed).`;
-	if (V.SFDrugs === 6)purity =`with much higher purity compontent`;
-	if (V.SFDrugs === 7)LSD =`and a slight trace of LSD`;
-	if (V.SFDrugs === 8)Dose =`into a single dose`;var doc =`<div style='font-size: 75%;'>*Only the doctors of $SF.Lower were consulted to ensure a completely unbiased result.</div>`
+	if (V.SF.Drugs === 6)purity =`with much higher purity compontent`;
+	if (V.SF.Drugs === 7)LSD =`and a slight trace of LSD`;
+	if (V.SF.Drugs === 8)Dose =`into a single dose`;var doc =`<div style='font-size: 75%;'>*Only the doctors of $SF.Lower were consulted to ensure a completely unbiased result.</div>`
 		Effects =`However side effects may include (no particular order): Dissociative Identity Disorder, severe clinical depression, unstoppable vomiting, extreme paranoia, PTSD, finally total organ failure. Recommended by 9/10 doctors*.`;
-	if (V.SFDrugs === 9)Effects =`Potential side effects have been reduced slightly to “only mildly” severe ones: Dissociative Identity Disorder, severe clinical depression, unstoppable vomiting, extreme paranoia and PTSD. Now recommended by 15/10 doctors*.`;var Effect0 =``;
-	if (V.SFDrugs === 10)Dose =`into a single higher strength dose`;
+	if (V.SF.Drugs === 9)Effects =`Potential side effects have been reduced slightly to “only mildly” severe ones: Dissociative Identity Disorder, severe clinical depression, unstoppable vomiting, extreme paranoia and PTSD. Now recommended by 15/10 doctors*.`;var Effect0 =``;
+	if (V.SF.Drugs === 10)Dose =`into a single higher strength dose`;
 		Effect0 =`at the cost of lengthening the effects`;
 	return`Has ${improvement} refined ${x} and ${tryptamine} ${purity} ${LSD} ${Dose}. ${tryptamine1} ${Effect0}.${Effects} ${doc}`;}
 
-window.SFDrones = function() {const V = State.variables;
-	if (V.SFDrones === 0)
+window.Drones = function() {const V = State.variables;
+	if (V.SF.Drones === 0)
 		return`Contains a small number of 're-purposed' non-military drones from the arcology's original contingent`;
-	if (V.SFDrones === 1)
+	if (V.SF.Drones === 1)
 		return`Has replaced the security drones with basic, lightly-armored military combat models possessing integrated small arms`;
-	if (V.SFDrones === 2)
+	if (V.SF.Drones === 2)
 		return`Has replaced its basic military drones with more advanced models and added a number of support drones carrying heavy weaponry to its fleet`;
-	if (V.SFDrones === 3)
+	if (V.SF.Drones === 3)
 		return`Acquired even more advanced models of both the standard combat drones and the heavy support drones, and expanded its numbers of both.`;
-	if (V.SFDrones === 4)
+	if (V.SF.Drones === 4)
 		return`Has upgraded both the standard and support models of drones to carry basic electromagnetic weaponry, improving their overall combat effectiveness.`;
-	if (V.SFDrones === 5)
+	if (V.SF.Drones === 5)
 		return`Has mproved the electromagnetic armament of its drones by mounting both miniaturized and heavy railguns on them. In addition further sourcing numerous models of drones for roles as diverse as reconnaissance, independent slave capture and swarming tactics.`;var thick =``;var power =``;var advanced =``;
-	if (V.SFDrones === 6)thick =`thicker`;var power =``;
-	if (V.SFDrones === 7)power =`higher power`;var advanced =``;
-	if (V.SFDrones === 8)advanced =`more advanced highly`;
+	if (V.SF.Drones === 6)thick =`thicker`;var power =``;
+	if (V.SF.Drones === 7)power =`higher power`;var advanced =``;
+	if (V.SF.Drones === 8)advanced =`more advanced highly`;
 	return`Has acquired even lighter advanced ${thick} armored combat drones with ${power} electromagnetic weaponry, advanced heavy drones with ${power} electromagnetic support weaponry along with ${advanced} specialized drones for reconnaissance, capture, and swarm tactics.`;}
 /*
-window.SFVehiclesDec = function() {const V = State.variables;
-	if (V.SFVehicles === 0)
-		return`Has only basic, unarmoured vehicles for use by the soldiers, primarily high-end civilian vehicles with jury-rigged crew-served weapons.`;
-	if (V.SFVehicles === 1)
-		return`Has replaced its technical fleet with armed military utility vehicles and also sourced customized, high-volume slave transports for better securing human spoils.`;
-	if (V.SFVehicles === 2)
-		return`Has added a number of light infantry fighting vehicles to its fleet, and acquired more slave transports to keep up with demand.`;
-	if (V.SFVehicles === 3)
-		return`Has acquired improved infantry fighting vehicles, and has also added some mobile artillery and other support vehicles.`;
-	if (V.SFVehicles === 4)
-		return`Has acquired some heavier armoured vehicles to augment the infantry fighting vehicles in addition to expanding their inventory of artillery and support vehicles.`;
-	if (V.SFVehicles >= 5)
-		if (V.SFVehicles === 6)var size =`light`;
-		if (V.SFVehicles === 7)size =`light and medium`;
-		if (V.SFVehicles === 8)size =`light, medium and heavy`;
-	return`Has replaced both its armoured and support vehicles with the most advanced ${size} variants possible. Ensuring that the mobile unit of $SF.Lower is far superior to anything in $arcologies[0].name's immediate area.`;}
-
-window.ADec = function() {const V = State.variables;
-	if (V.SFAirForce === 0)
-		return`Primarily consists VTOL's of non-lethal weaponry .`;
-	if (V.SFAirForce === 1)
-		return``;
-	if (V.SFAirForce === 2)
-		return``;
-	if (V.SFAirForce === 3)
-		return``;
-	if (V.SFAirForce === 4)
-		return``;
-	if (V.SFAirForce === 5)
-		return``;
-	if (V.SFAirForce === 6)
-		return``;
-	if (V.SFAirForce === 7)
-		return``;
-	if (V.SFAirForce === 8)
-		return``;
-	if (V.SFAirForce === 9)
-		return``;
-	if (V.SFAirForce === 10)
-		return``;}
-
-window.TDec = function() {const V = State.variables;
-	if (V.SFAirForce === 0)
-		return`Primarily consists of light transport VTOL's.`;
-	if (V.SFAirForce === 1)
-		return``;
-	if (V.SFAirForce === 2)
-		return``;
-	if (V.SFAirForce === 3)
-		return``;
-	if (V.SFAirForce === 4)
-		return``;
-	if (V.SFAirForce === 5)
-		return``;
-	if (V.SFAirForce === 6)
-		return``;
-	if (V.SFAirForce === 7)
-		return``;
-	if (V.SFAirForce === 8)
-		return``;
-	if (V.SFAirForce === 9)
-		return``;
-	if (V.SFAirForce === 10)
-		return``;}
+window.SF.VehiclesDec = function() {const V = State.variables;
 */
+window.AttAir= function() {const V = State.variables;
+	if (V.SF.AirForce >= 1)var W1 =`only armed`;var W2 =``;var W3 =`a poor weapon against anything flying, but enough to handle ground forces`;var engines =``;var troops2 =``;var stealth =``;var support =`support ground troops`;var C =`a`;var lock =``;var scramble =``;var AI-2 =``;
+		var group =`A small group of attack VTOL have been recommissioned for use by $SF.lower, enough to make up a squadron`
+	if (V.SF.AirForce >= 2)W1 =`armed`;W2 =`and air-to-air missiles`;W3 =`${C} combination that can defend the arcology from anything in the air, as well as ${support}`;
+	if (V.SF.AirForce >= 3)engines =`The engines have been tuned, allowing faster flight with greater acceleration.`;
+	if (V.SF.AirForce >= 4)troops =`An advanced targeting AI has been installed to intelligently call shots, allowing much more efficent use of ammunition and anti-countermeasure targeting.`;
+	if (V.SF.AirForce >= 5)stealth =`The VTOLs have been given stealth technology by replacing the skin with a radar-absorbent material.`;
+	if (V.SF.AirForce >= 6)group =`A respectable number of attack VTOL protect your arcology, split into a few squadrons`;
+	if (V.SF.AirForce >= 7)C =`A`;support =`attack ground targets`;W2 =`rocket pods, and air-to-air missiles.`;
+	if (V.SF.AirForce >= 8)lock =`Multispectrum countermeasures protect against all known types of missile lock-ons.`;
+	if (V.SF.AirForce >= 9)scramble =`The VTOLs can scramble to react to any threat in under three minutes.`;
+	if (V.SF.AirForce === 10)AI-2 =`A piloting AI has been installed, allowing the VTOLs to operate without human interaction.`;
+	return`${group}. Several of the landing pads around $arcologies[0].name host groups of four fighters, ready to defend the arcology at a moment's notice. The attack VTOL are currently ${W1} with a Gatling cannon ${W2} ${W3}. ${troops2} ${engines} ${scramble} ${stealth} ${lock} ${AI-2}`;}
+
+window.TsAir = function() {const V = State.variables;
+	if (V.SF.AirForce >= 1)var Num = `number`;var capacity = `small platoon or 15`;var engines =``;var engines2 =``;var Radar =``;var Armor =``;var landing =``;var miniguns =``;var counter =``;
+	if (V.SF.AirForce >= 2)engines =`The tiltrotor engines have been replaced with a more powerful engine, allowing faster travel times.`;
+	if (V.SF.AirForce >= 3)counter =`Multispectrum countermeasures have been added to protect against seeking missiles.`;
+	if (V.SF.AirForce >= 4)miniguns =`Mounted miniguns have been added to cover soldiers disembarking in dangerous areas.`;
+	if (V.SF.AirForce >= 5)Num =`large number`;
+	if (V.SF.AirForce >= 6)landing =`The landing equipment has been overhauled, protecting any onboard in case of a hard landing or crash.`;
+	if (V.SF.AirForce >= 7)Armor =`Armor has been added to protect passengers from small arms fire from below.`;
+	if (V.SF.AirForce >= 8)capacity =`large platoon or 20`;engines2 =`Further tweaks to the engine allow for greater lifting capacity.`;
+	if (V.SF.AirForce >= 9)Radar =`Radar-absorbent materials have replaced the old skin, making it difficult to see the VTOL on radar.`;
+	if (V.SF.AirForce === 10)engines2 =``;engines =`The tiltrotors have been replaced with tiltjets, allowing for much greater airspeed and acceleration.`;
+	return`A ${number} of transport tiltrotor VTOL have been recommissioned for use by $SF.Lower. The VTOLs are resting on large pads near the base to load either a ${capacity} tons of materiel. ${Armor} ${counter} ${landing} ${engines} ${engines2} ${Radar} ${miniguns}`;}
 
 window.HBT = function() {const V = State.variables;
 	var Body =`The heavy battle tank rests in the corner of the garage, its massive chassis barely able to fit through the widened doors`;
 	var armour =`The armour has been modernised`;
-	if (V.HeavyBattleTank === 1)return`${Body}.`;
-	if (V.HeavyBattleTank === 2)return`${Body} ${armour}.`;
-	if (V.HeavyBattleTank === 3)var barrel =`single`;var mg =`single`;var ml =`single`;
-	if (V.HeavyBattleTank === 4)mg =`dual`; if (V.HeavyBattleTank === 5)ml =`dual`;
-	if (V.HeavyBattleTank === 6)mg =`tri`; if (V.HeavyBattleTank >= 7)mg =`quad`;
-	if (V.HeavyBattleTank === 8)ml =`tri`; if (V.HeavyBattleTank >= 9)barrel =`dual`;
-	if (V.HeavyBattleTank === 10)ml =`quad`;
+	if (V.SF.HBT === 1)return`${Body}.`;
+	if (V.SF.HBT === 2)return`${Body} ${armour}.`;
+	if (V.SF.HBT === 3)var barrel =`single`;var mg =`single`;var ml =`single`;
+	if (V.SF.HBT === 4)mg =`dual`; if (V.SF.HBT === 5)ml =`dual`;
+	if (V.SF.HBT === 6)mg =`tri`; if (V.SF.HBT >= 7)mg =`quad`;
+	if (V.SF.HBT === 8)ml =`tri`; if (V.SF.HBT >= 9)barrel =`dual`;
+	if (V.SF.HBT === 10)ml =`quad`;
 	return`${Body}. ${armour} also the turret has been re-fitted with a ${barrel} barreled 356 mm main gun along with a ${mg} barrel .50 cal and ${ml} row missile launcher.`;}
 
 window.SP = function() {const V = State.variables;
-	if (V.SpacePlane === 1)
+	if (V.SF.SpacePlane === 1)
 		return`A basic black twin engine space plane has been 'borrowed' from the old world.`;
-	if (V.SpacePlane > 1)var engine =``;var modernised =``;var modernised2 =``;var modernised3 =``;var drag =``;var crew =``;var engine2 =``;var skin =``;
+	if (V.SF.SpacePlane > 1)var engine =``;var modernised =``;var modernised2 =``;var modernised3 =``;var drag =``;var crew =``;var engine2 =``;var skin =``;
 		var shield =`shielding has been upgraded reducing both potential heat damage and radar signature.`;
-	if (V.SpacePlane >= 3)engine =`Another pair of engines have been mounted on top of the tail`;
-	if (V.SpacePlane >= 4)modernised =`modernized the electronics`;
-	if (V.SpacePlane >= 5)modernised2 =`in addition to the fuel lines to increase efficiency`;
-	if (V.SpacePlane >= 6)modernised3 =`The engines have been improved to allow for more efficient fuel.`;
-	if (V.SpacePlane >= 7)drag =`Reduced the weight and reworked the body to reduce drag.`;
-	if (V.SpacePlane >= 8)crew =`Increased the crew comfort and life support systems to increase operational time.`;
-	if (V.SpacePlane >= 9)engine2 =`Added an aditional engine per wing which greatly increases acceleration and raises the top speed to mach 15, making it untouchable.`;
-	if (V.SpacePlane === 10)skin =`Replaced the skin with an advanced optical illusion kit.`;
+	if (V.SF.SpacePlane >= 3)engine =`Another pair of engines have been mounted on top of the tail`;
+	if (V.SF.SpacePlane >= 4)modernised =`modernized the electronics`;
+	if (V.SF.SpacePlane >= 5)modernised2 =`in addition to the fuel lines to increase efficiency`;
+	if (V.SF.SpacePlane >= 6)modernised3 =`The engines have been improved to allow for more efficient fuel.`;
+	if (V.SF.SpacePlane >= 7)drag =`Reduced the weight and reworked the body to reduce drag.`;
+	if (V.SF.SpacePlane >= 8)crew =`Increased the crew comfort and life support systems to increase operational time.`;
+	if (V.SF.SpacePlane >= 9)engine2 =`Added an aditional engine per wing which greatly increases acceleration and raises the top speed to mach 15, making it untouchable.`;
+	if (V.SF.SpacePlane === 10)skin =`Replaced the skin with an advanced optical illusion kit.`;
 	return`The black and silver space plane's ${shield} ${engine}. ${modernised} ${modernised2}. ${modernised3} ${drag} ${crew} ${engine2}`;}
 
 window.GunS = function() {const V = State.variables;
-	if (V.GunS === 1)
+	if (V.SF.GunS === 1)
 		return`A basic black and silver gunship has been 'borrowed' from the old world.`;
-	if (V.GunS > 1)var gun =``;var electronics =``;var crew =``;var speed =``;
-	if (V.GunS >= 3)gun =`The 140 mm gatteling gun rounds have been upgraded with exposive tips.`;
-	if (V.GunS >= 4)electronics =`The electronics have been modernised and made emp resistant.`;
-	if (V.GunS >= 5)crew =`The crew seating has been made more confortable.`;
-	if (V.GunS >= 6)speed =`Increased the speed and maneuverability.`;
+	if (V.SF.GunS > 1)var gun =``;var electronics =``;var crew =``;var speed =``;
+	if (V.SF.GunS >= 3)gun =`The 140 mm gatteling gun rounds have been upgraded with exposive tips.`;
+	if (V.SF.GunS >= 4)electronics =`The electronics have been modernised and made emp resistant.`;
+	if (V.SF.GunS >= 5)crew =`The crew seating has been made more confortable.`;
+	if (V.SF.GunS >= 6)speed =`Increased the speed and maneuverability.`;
 	return`The armour of the black and silver gunship has been modernized. ${gun} ${electronics} ${crew} ${speed}`;}
 
 window.Sat = function() {const V = State.variables;
-	if (V.Satellite === 1)
+	if (V.SF.Satellite === 1)
 		return`A basic satellite has been 'borrowed' from the old world.`;
-	if (V.Satellite > 1)var wire =``;var emp1 =``;var beem0 =``;var beem3 =``;var jam =``;var jd3 =``;var emp =``;var beem1 =``;var emp0 =``;var beem4 =``;var jd =``;
-	if (V.Satellite >= 3)wire =`wiring, and circuitry`;
-	if (V.Satellite === 4){jd =`Installed a basic`;} else {jam =` localized communications jammer to the satellite (excludes your own frequencies with little to no leeway) that will "slightly" anger locals until it is deactivated. ${jd3}`;}
-	if (V.Satellite >= 5)jd =`Installed a more advanced version that is 50% more powerful`;jd3 =`The AO localization has been increased which reduces the amount of affected equipment`;
-	if (V.Satellite === 6){emp0 =`The satellite is now equipped with a basic`;beem0 =`an entire city block.`;} else {emp1 =` EMP generator (advanced EMP hardening was applied before the insulation and activation) that will "slightly" damage equipment with the AO.`;beem1 =`Thanks to imporvements applied to battery system and shielding in additon to R&D funds, the satellite will be able to shoot a concentrated beam of pure energy that is able to level`;}
-	if (V.Satellite >= 7){emp0 =`The satellite is now equipped with a more advanced version that is 50% more powerful`;} else {beem0 =`a suburb to a block of houses.`;}
-	if (V.Satellite === 8)beem0 =`a single house to 30m.`;beem3 =`The beem can also now fire off a heat wave to disorrent targets`;
-	if (V.Satellite === 9){beem0 =`20m to 10m.`;} else {beem3 =`The beem can also now fire off a much stronger heat wave to disorrent targets for longer and with more effects.`;}
-	if (V.Satellite === 10)beem0 =`5m to 1m.`;beem4 =`It is now possible for the beem to be split as required.`;
+	if (V.SF.Satellite > 1)var wire =``;var emp1 =``;var beem0 =``;var beem3 =``;var jam =``;var jd3 =``;var emp =``;var beem1 =``;var emp0 =``;var beem4 =``;var jd =``;
+	if (V.SF.Satellite >= 3)wire =`wiring, and circuitry`;
+	if (V.SF.Satellite === 4){jd =`Installed a basic`;} else {jam =` localized communications jammer to the satellite (excludes your own frequencies with little to no leeway) that will "slightly" anger locals until it is deactivated. ${jd3}`;}
+	if (V.SF.Satellite >= 5)jd =`Installed a more advanced version that is 50% more powerful`;jd3 =`The AO localization has been increased which reduces the amount of affected equipment`;
+	if (V.SF.Satellite === 6){emp0 =`The satellite is now equipped with a basic`;beem0 =`an entire city block.`;} else {emp1 =` EMP generator (advanced EMP hardening was applied before the insulation and activation) that will "slightly" damage equipment with the AO.`;beem1 =`Thanks to imporvements applied to battery system and shielding in additon to R&D funds, the satellite will be able to shoot a concentrated beam of pure energy that is able to level`;}
+	if (V.SF.Satellite >= 7){emp0 =`The satellite is now equipped with a more advanced version that is 50% more powerful`;} else {beem0 =`a suburb to a block of houses.`;}
+	if (V.SF.Satellite === 8)beem0 =`a single house to 30m.`;beem3 =`The beem can also now fire off a heat wave to disorrent targets`;
+	if (V.SF.Satellite === 9){beem0 =`20m to 10m.`;} else {beem3 =`The beem can also now fire off a much stronger heat wave to disorrent targets for longer and with more effects.`;}
+	if (V.SF.Satellite === 10)beem0 =`5m to 1m.`;beem4 =`It is now possible for the beem to be split as required.`;
 	return`Modernised the satellite's electronics ${wire}. ${jd}${jam} ${jd3} ${emp0}${emp1} ${beem1} ${beem0} ${beem3} ${beem4}`;}
 
 window.GR = function() {const V = State.variables;
