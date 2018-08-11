@@ -1,5 +1,4 @@
 :: Backwards Compatibility [nobr]
-:: Backwards Compatibility [nobr]
 
 <<set $nextButton = "Continue", $nextLink = "Main", $returnTo = "Main">>
 
@@ -772,39 +771,31 @@
 	<<set $prisonCircuitIndex = random(0,$prisonCircuit.length-1)>>
 <</if>>
 
-	<<if ndef $securityForceHeavyBattleTank>>
-		<<set $securityForceHeavyBattleTank = 0>> <</if>>
-	<<if ndef $securityForceSpacePlanePower>>
-		<<set $securityForceSpacePlanePower = 0>> <</if>>
-	<<if ndef $securityForceAC130>> <<set $securityForceAC130 = 0>> <</if>>
-	<<if ndef $securityForceSatellitePower>>
-		<<set $securityForceSatellitePower = 0>>
-	<</if>>
-
-	<<if $terrain != "oceanic" && $terrain != "marine">>
-		<<set $GiantRobot = $securityForceGiantRobot>>
-			<<unset $securityForceGiantRobot>>
-		<<if ndef $GiantRobot>> <<set $GiantRobot = 0>> <</if>>
-		<<set $MissileSilo = $securityForceMissileSilo>>
-			<<unset $securityForceMissileSilo>>
-		<<if ndef $MissileSilo>> <<set $MissileSilo = 0>> <</if>>
-	<<elseif $terrain == "oceanic" || $terrain == "marine">>
-		<<set $AircraftCarrier = $securityForceAircraftCarrier>>
-			<<unset $securityForceAircraftCarrier>>
-		<<if ndef $AircraftCarrier>> <<set $AircraftCarrier = 0>> <</if>>=
-		<<set $Sub = $securityForceSubmarine>>
-			<<unset $securityForceSubmarine>>
-		<<if ndef $Sub>> <<set $Sub = 0>> <</if>>
-		<<set $HAT = $securityForceHeavyAmphibiousTransport>>
-			<<unset $securityForceHeavyAmphibiousTransport>>
-		<<if ndef $HAT>> <<set $HAT = 0>> <</if>>
+/* SFVAR */ <<if !$securityForceEventSeen>> <<set $SFMODToggle = -1>> <</if>>
+<<set $SF = Object.assign({}, $SF, {Toggle:$SFMODToggle, Active:$securityForceActive})>>
+	<<unset $SFMODToggle, $securityForceActive, $securityForceCreate, $securityForceEventSeen>>
+<<if $SF.Toggle && $SF.Active === 1>> 
+	<<if ndef $arcologies[0].SFRaid>> <<set $arcologies[0].SFRaid = 1>> <</if>>
+	<<if ndef $arcologies[0].SFRaidTarget>>
+		<<set $arcologies[0].SFRaidTarget = -1>> <</if>>
+	<<run Object.assign($SF, {Depravity:$securityForceDepravity,
+	Units:$SFAO, MWU:$securityForceUpgradeTokenReset, U:$securityForceUpgradeToken,
+	WG:$securityForceGiftToken, SpecOps:0, ROE:$securityForceRulesOfEngagement,
+	Target:$securityForceFocus, Regs:$securityForceAccountability,
+	Caps:"The Special Force", Lower:$securityForceName, Subsidy:$SubsidyActive})>>
+		<<unset $securityForceActive, $TierTwoUnlock, $SFAO,
+		$securityForceUpgradeTokenReset, $securityForceUpgradeToken,
+		$securityForceGiftToken, $securityForceRulesOfEngagement, $securityForceFocus,
+		$securityForceAccountability, $securityForceName, $SubsidyActive>>
+	<<if $SF.Lower != "the special force">>
+		<<set $SF.Caps = $SF.Lower.replace("the ", "The ")>>
 	<</if>>
 
 	<<if ndef $ColonelCore>> <<set $ColonelCore = "">> <</if>>
 	<<if ndef $ColonelDiscussion>> <<set $ColonelDiscussion = 0>> <</if>>
 	<<if ndef $ColonelSexed>> <<set $ColonelSexed = 0>> <</if>>
-	<<set $SFColonel = {Core:$ColonelCore, Talk:$securityForceColonelToken,
-	Fun:$securityForceColonelSexed, Status:$ColonelRelationship}>>
+	<<set $SFColonel = Object.assign({}, $SFColonel = {Core:$ColonelCore, Talk:$securityForceColonelToken,
+	Fun:$securityForceColonelSexed, Status:$ColonelRelationship})>>
 		<<unset $ColonelCore, $securityForceColonelToken, securityForceColonelSexed,
 		ColonelRelationship>>
 
@@ -812,13 +803,14 @@
 	<<if ndef $TotalTradeShowIncome>> <<set $TotalTradeShowIncome = 0>> <</if>>
 	<<if ndef $TradeShowHelots>> <<set $TradeShowHelots = 0>> <</if>>
 	<<if ndef $TotalTradeShowHelots>> <<set $TotalTradeShowHelots = 0>> <</if>>
-	<<set $SFTradeShow = {History:$OverallTradeShowAttendance,
+	<<set $SFTradeShow = Object.assign({}, $SFTradeShow, {History:$OverallTradeShowAttendance,
 	CanAttend:$CurrentTradeShowAttendance, Income:$TradeShowIncome,
 	Revenue:$TotalTradeShowIncome, Helots:$TradeShowHelots,
-	TotalHelots:$TotalTradeShowHelots, Mercs:0, TotalMercs:0}>>
+	TotalHelots:$TotalTradeShowHelots, Mercs:0, TotalMercs:0})>>
 		<<unset $OverallTradeShowAttendance, $CurrentTradeShowAttendance,
 		$TradeShowIncome, $TotalTradeShowIncome, $TradeShowHelots,
 		$TotalTradeShowHelots>>
+	<<if $SFTradeShow.History > 0>> <<set $SFTradeShow.View = 1>> <</if>>
 
 	<<if ndef $securityForceHeavyBattleTank>>
 		<<set $securityForceHeavyBattleTank = 0>> <</if>>
@@ -827,38 +819,32 @@
 	<<if ndef $securityForceAC130>> <<set $securityForceAC130 = 0>> <</if>>
 	<<if ndef $securityForceSatellitePower>>
 		<<set $securityForceSatellitePower = 0>> <</if>>
-	<<set $SFUnit = {Troops:$securityForcePersonnel,
+<<if ndef $securityForceGiantRobot>> 
+			<<set $securityForceGiantRobot = 0>> <</if>>
+		<<if ndef $securityForceMissileSilo>>
+			<<set $securityForceMissileSilo = 0>> <</if>>
+<<if ndef $securityForceAircraftCarrier>> 
+			<<set $securityForceAircraftCarrier = 0>> <</if>>
+		<<if ndef $securityForceSubmarine>>
+			<<set $securityForceSubmarine = 0>> <</if>>
+		<<if ndef $securityForceHeavyAmphibiousTransport>>
+			<<set $securityForceHeavyAmphibiousTransport = 0>> <</if>>
+	<<set $SFUnit = Object.assign({}, $SFUnit, {Troops:$securityForcePersonnel,
 	Armoury:$securityForceInfantryPower, Firebase:$securityForceArcologyUpgrades,
 	Vehicles:$securityForceVehiclePower, Drones:$securityForceDronePower,
 	Drugs:$securityForceStimulantPower, HBT:$securityForceHeavyBattleTank,
 	AirForce:$securityForceAircraftPower, SpacePlane:$securityForceSpacePlanePower,
-	GunS:$securityForceAC130, Satellite:$securityForceSatellitePower>>
+	GunS:$securityForceAC130, Satellite:$securityForceSatellitePower,
+	GiantRobot:$securityForceGiantRobot, MissileSilo:$securityForceMissileSilo,
+	AircraftCarrier:$securityForceAircraftCarrier, Sub:$securityForceSubmarine,
+	HAT:$securityForceHeavyAmphibiousTransport})>>
 		<<unset $securityForcePersonnel, $securityForceInfantryPower,
 		$securityForceArcologyUpgrades, $securityForceVehiclePower,
 		$securityForceDronePower, $securityForceStimulantPower,
 		$securityForceHeavyBattleTank, $securityForceAircraftPower,
-		$securityForceSpacePlanePower,$securityForceAC130,
-		$securityForceSatellitePower>>
-	<<if $terrain != "oceanic" && $terrain != "marine">>
-		<<if ndef $securityForceGiantRobot>>
-			<<set $securityForceGiantRobot = 0>> <</if>>
-		<<if ndef $securityForceMissileSilo>>
-			<<set $securityForceMissileSilo = 0>> <</if>>
-		<<set $SFUnit = {GiantRobot:$securityForceGiantRobot,
-		MissileSilo:$securityForceMissileSilo}>>
-			<<unset $securityForceGiantRobot, $securityForceMissileSilo>>
-	<<elseif $terrain == "oceanic"||$terrain == "marine">>
-		<<if ndef $securityForceAircraftCarrier>>
-			<<set $securityForceAircraftCarrier = 0>> <</if>>
-		<<if ndef $securityForceSubmarine>> <
-			<set $securityForceSubmarine = 0>> <</if>>
-		<<if ndef $securityForceHeavyAmphibiousTransport>>
-			<<set $securityForceHeavyAmphibiousTransport = 0>> <</if>>
-		<<set $SFUnit = {AircraftCarrier:$securityForceAircraftCarrier,
-		Sub:securityForceSubmarine, HAT:$securityForceHeavyAmphibiousTransport}>>
-			<<unset $securityForceAircraftCarrier, $securityForceSubmarine,
-			$securityForceHeavyAmphibiousTransport>>
-	<</if>>
+		$securityForceSpacePlanePower,$securityForceAC130, $securityForceSatellitePower,
+		$securityForceGiantRobot, $securityForceMissileSilo,
+		$securityForceAircraftCarrier, $securityForceSubmarine, $securityForceHeavyAmphibiousTransport>>
 <</if>>
 
 <<if ndef $useSlaveSummaryTabs>>
