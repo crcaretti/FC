@@ -26,7 +26,7 @@
 		Society @@.red;very strongly disapproves@@ of your being in debt; this damages the idea that you model yourself on what a Roman leader should be.
 		<<FSChange "RomanRevivalist" -10>>
 	<</if>>
-	<<if $cash < 0 && $cash > -25000 && $arcologies[0].FSRestartDecoration == 100>>
+	<<if $cash < 0 && $cash > -25000 && $arcologies[0].FSRestartDecoration == 100 && $eugenicsFullControl != 1>>
 		Money is quickly shifted to bring you out of debt, though @@.red;the Societal Elite are left doubting@@ your worth.
 		<<set $cash = 0>>
 		<<set $failedElite += 100>>
@@ -47,7 +47,7 @@
 			You focus on finding "dates" this week and earn @@.yellowgreen;<<print cashFormat(Math.trunc(($seed*($rep/500))+($PC.belly)))>>@@ for your body, much more than usual; guess your pregnancy focused population wants your baby rounded body more than ever. However, doing such things @@.red;damages your reputation@@.
 			<<set $cash += Math.trunc(($seed*($rep/500))+($PC.belly))>>
 			<<set $rep = Math.trunc($rep*.90)>>
-		<<elseif $arcologies[0].FSRestart != "unset">>
+		<<elseif $arcologies[0].FSRestart != "unset" && $eugenicsFullControl != 1>>
 			<<if $PC.pregSource != -1>>
 				You focus on finding "dates" this week and earn @@.yellowgreen;<<print cashFormat(25)>>@@, barely enough to cover the abortion the john that gave it to you told you to get. Showing off your gravid body @@.red;infuriates your citizens and cripples your reputation@@.
 				<<set $cash += 25>>
@@ -181,8 +181,13 @@
 	<<switch $qualifiedFS.random()>>
 	<<case "eugenics">>
 		<<set $seed += random(2500,4000)>>
-		You are smuggling <<if $PC.dick != 0>>your<<else>>one of the Societal Elite's<</if>> semen to allow some desperate girls to be pregnant. Anonymity is really hard to attain, and it is easy to find out what you've been doing. Even if you did manage to make @@.yellowgreen;<<print cashFormat($seed)>>@@, the Societal Elite are @@.red;quite displeased@@ by your actions.
-		<<set $failedElite += 50, _caught = 1>>
+		<<if $eugenicsFullControl != 1>>
+			You are smuggling <<if $PC.dick != 0>>your<<else>>one of the Societal Elite's<</if>> semen to allow some desperate girls to be pregnant. Anonymity is really hard to attain, and it is easy to find out what you've been doing. Even if you did manage to make @@.yellowgreen;<<print cashFormat($seed)>>@@, the Societal Elite are @@.red;quite displeased@@ by your actions.
+			<<set $failedElite += 50, _caught = 1>>
+		<<else>>
+			You are smuggling <<if $PC.dick != 0>>your<<else>>one of the Societal Elite's<</if>> semen to allow some desperate girls to be pregnant. Anonymity is really hard to attain, and it is easy to find out what you've been doing. Even if you did manage to make @@.yellowgreen;<<print cashFormat($seed)>>@@, the Societal Elite are @@.red;quite displeased@@ by your actions, even though they know how little they can do about it now.
+			<<set _caught = 1>>
+		<</if>>
 	<<case "paternalist">>
 		<<set $seed += random(1000,1500)>>
 		You manage to find a few low-standards slavers without any problem, but when you actually try to do business, you are quickly recognized. You only manage to make @@.yellowgreen;<<print cashFormat($seed)>>@@ before you are sent away. The people of your arcology are @@.red;outraged by your lack of respect@@ for slave rights.
@@ -739,47 +744,50 @@
 
 Routine upkeep of your demesne costs @@.yellow;<<print cashFormat($costs)>>.@@
 <<if $plot == 1>>
-<<if $week > 10>>
-<<if $weatherToday.severity-$weatherCladding > 2>>
-	<<set $weatherAwareness = 1>>
-	<<if $weatherCladding == 1>>
-	<<set $seed = Math.trunc((($weatherToday.severity-3)*($arcologies[0].prosperity*random(50,100)))+random(1,100)), $PC.engineering += .1>>
-	$arcologies[0].name's hardened exterior only partially resisted the extreme weather this week, and it requires repairs costing @@.yellow;<<print cashFormat($seed)>>.@@ Your citizens are @@.green;grateful@@ to you for upgrading $arcologies[0].name to provide a safe haven from the terrible climate.
-	<<set $rep += 100>>
-	<<elseif $weatherCladding == 2>>
-	<<set $seed to Math.trunc((($weatherToday.severity-4)*($arcologies[0].prosperity*random(50,100)))+random(1,100)), $PC.engineering += .1>>
-	$arcologies[0].name's hardened exterior only partially resisted the extreme weather this week, and it requires repairs costing @@.yellow;<<print cashFormat($seed)>>.@@ Your citizens are @@.green;grateful@@ to you for upgrading $arcologies[0].name to provide a safe haven from the terrible climate.
-	<<set $rep += 100>>
-	<<else>>
-	<<set $seed = Math.trunc((($weatherToday.severity-2)*($arcologies[0].prosperity*random(50,100)))+random(1,100)), $PC.engineering += .1>>
-	Severe weather damaged the arcology this week, requiring repairs costing @@.yellow;<<print cashFormat($seed)>>.@@ Your citizens are @@.red;unhappy@@ that the arcology has proven vulnerable to the terrible climate.
-	<<set $rep -= 100>>
-	<</if>>
+	<<if $week > 10>>
+		<<if $weatherToday.severity-$weatherCladding > 2>>
+			<<set $weatherAwareness = 1>>
+			<<if $weatherCladding == 1>>
+				<<set $seed = Math.trunc((($weatherToday.severity-3)*($arcologies[0].prosperity*random(50,100)))+random(1,100)), $PC.engineering += .1>>
+				$arcologies[0].name's hardened exterior only partially resisted the extreme weather this week, and it requires repairs costing @@.yellow;<<print cashFormat($seed)>>.@@ Your citizens are @@.green;grateful@@ to you for upgrading $arcologies[0].name to provide a safe haven from the terrible climate.
+				<<set $rep += 100>>
+			<<elseif $weatherCladding == 2>>
+				<<set $seed to Math.trunc((($weatherToday.severity-4)*($arcologies[0].prosperity*random(50,100)))+random(1,100)), $PC.engineering += .1>>
+				$arcologies[0].name's hardened exterior only partially resisted the extreme weather this week, and it requires repairs costing @@.yellow;<<print cashFormat($seed)>>.@@ Your citizens are @@.green;grateful@@ to you for upgrading $arcologies[0].name to provide a safe haven from the terrible climate.
+				<<set $rep += 100>>
+			<<else>>
+				<<set $seed = Math.trunc((($weatherToday.severity-2)*($arcologies[0].prosperity*random(50,100)))+random(1,100)), $PC.engineering += .1>>
+				Severe weather damaged the arcology this week, requiring repairs costing @@.yellow;<<print cashFormat($seed)>>.@@ Your citizens are @@.red;unhappy@@ that the arcology has proven vulnerable to the terrible climate.
+				<<set $rep -= 100>>
+			<</if>>
 	<<if $cash > 0>>
-	<<set $cash -= $seed>>
+		<<set $cash -= $seed>>
 	<<elseif $arcologies[0].FSRestartDecoration == 100>>
-	Since you lack the resources to effect prompt repairs yourself, the Societal Elite cover for you. The arcology's prosperity is @@.red;is damaged@@, but your public rep is left intact. The Societal Elite @@.red;are troubled by your failure@@.
-	<<if $arcologies[0].prosperity > 50>>
-		<<set $arcologies[0].prosperity -= random(5,10), $PC.engineering += .1>>
-	<</if>>
-	<<set $failedElite += 100>>
-	<<set $cash -= Math.trunc($seed/4)>>
+		Since you lack the resources to effect prompt repairs yourself, the Societal Elite cover for you. The arcology's prosperity is @@.red;is damaged@@, but your public reputation is left intact. 
+		<<if $eugenicsFullControl != 1>>
+			The Societal Elite @@.red;are troubled by your failure@@.
+			<<set $failedElite += 100>>
+		<</if>>
+		<<if $arcologies[0].prosperity > 50>>
+			<<set $arcologies[0].prosperity -= random(5,10), $PC.engineering += .1>>
+		<</if>>
+		<<set $cash -= Math.trunc($seed/4)>>
 	<<else>>
-	Since you lack the resources to effect prompt repairs yourself, prominent citizens step in to repair their own parts of the arcology. This is @@.red;terrible for your reputation,@@ and it also @@.red;severely reduces the arcology's prosperity.@@
-	<<if $arcologies[0].prosperity > 50>>
-		<<set $arcologies[0].prosperity -= random(5,10), $PC.engineering += .1>>
+		Since you lack the resources to effect prompt repairs yourself, prominent citizens step in to repair their own parts of the arcology. This is @@.red;terrible for your reputation,@@ and it also @@.red;severely reduces the arcology's prosperity.@@
+		<<if $arcologies[0].prosperity > 50>>
+			<<set $arcologies[0].prosperity -= random(5,10), $PC.engineering += .1>>
+		<</if>>
+		<<set $rep = Math.trunc($rep*0.8)>>
+		<<set $cash -= Math.trunc($seed/4), $PC.engineering += .1>>
 	<</if>>
-	<<set $rep = Math.trunc($rep*0.8)>>
-	<<set $cash -= Math.trunc($seed/4), $PC.engineering += .1>>
+		<<elseif $weatherToday.severity-$weatherCladding == 2>>
+			<<if $weatherCladding >= 1>>
+				<<set $weatherAwareness = 1>>
+				The arcology's hardened exterior resisted severe weather this week. Your citizens are @@.green;grateful@@ to you for maintaining the arcology as a safe haven from the terrible climate.
+				<<set $rep += 100>>
+			<</if>>
+		<</if>>
 	<</if>>
-<<elseif $weatherToday.severity-$weatherCladding == 2>>
-	<<if $weatherCladding >= 1>>
-	<<set $weatherAwareness = 1>>
-	The arcology's hardened exterior resisted severe weather this week. Your citizens are @@.green;grateful@@ to you for maintaining the arcology as a safe haven from the terrible climate.
-	<<set $rep += 100>>
-	<</if>>
-<</if>>
-<</if>>
 <</if>>
 <<if !isInt($costs)>>
 	<br>@@.red;Error, costs is NaN@@
