@@ -26,16 +26,21 @@
 		Society @@.red;very strongly disapproves@@ of your being in debt; this damages the idea that you model yourself on what a Roman leader should be.
 		<<FSChange "RomanRevivalist" -10>>
 	<</if>>
-	<<if $cash < 0 && $cash > -25000 && $arcologies[0].FSRestartDecoration == 100 && $eugenicsFullControl != 1>>
+	<<if $cash < 0 && $cash > -25000 && $arcologies[0].FSRestartDecoration == 100>>
+	<<$eugenicsFullControl != 1>>
 		Money is quickly shifted to bring you out of debt, though @@.red;the Societal Elite are left doubting@@ your worth.
 		<<set $cash = 0>>
 		<<set $failedElite += 100>>
+	<<else>>
+		Money is quickly shifted to bring you out of debt, though the Societal Elite grumble all the while.
+		<<set $cash = 0>>
+	<</if>>
 	<<elseif $cash < -9000>>
 		@@.red;WARNING: you are dangerously indebted.@@ Immediately acquire more liquid assets or you will be in danger of being enslaved yourself.
 		<<set $debtWarned += 1>>
 		<<if $debtWarned > 1>>
-		<<set $ui = "start">>
-		<<set $gameover = "debt">><<goto "Gameover">>
+			<<set $ui = "start">>
+			<<set $gameover = "debt">><<goto "Gameover">>
 		<</if>>
 	<</if>>
 <<elseif $PCWounded == 1 && $secExp == 1>>
@@ -47,12 +52,14 @@
 			You focus on finding "dates" this week and earn @@.yellowgreen;<<print cashFormat(Math.trunc(($seed*($rep/500))+($PC.belly)))>>@@ for your body, much more than usual; guess your pregnancy focused population wants your baby rounded body more than ever. However, doing such things @@.red;damages your reputation@@.
 			<<set $cash += Math.trunc(($seed*($rep/500))+($PC.belly))>>
 			<<set $rep = Math.trunc($rep*.90)>>
-		<<elseif $arcologies[0].FSRestart != "unset" && $eugenicsFullControl != 1>>
+		<<elseif $arcologies[0].FSRestart != "unset">>
 			<<if $PC.pregSource != -1>>
 				You focus on finding "dates" this week and earn @@.yellowgreen;<<print cashFormat(25)>>@@, barely enough to cover the abortion the john that gave it to you told you to get. Showing off your gravid body @@.red;infuriates your citizens and cripples your reputation@@.
 				<<set $cash += 25>>
 				<<set $rep = Math.trunc($rep*.25)>>
-				<<set $failedElite += 25>>
+				<<if $eugenicsFullControl != 1>>
+					<<set $failedElite += 25>>
+				<</if>>
 			<<else>>
 				<<set $seed = random(2000,4500)>>
 				You focus on finding "dates" this week and earn @@.yellowgreen;<<print cashFormat(Math.trunc($seed*($rep/500)))>>@@ for your body. However, doing such things @@.red;damages your reputation@@.
@@ -661,20 +668,20 @@
 	<</if>>
 <</if>>
 <<if $rep > 100>>
-<<if $RepForCash == 1>>
-	This week you used your position to secure business opportunities worth <<print cashFormat($policyCost)>> at the expense of citizens, @@.red;damaging your reputation.@@
-	<<set $rep -= 100, $cash += $policyCost>>
-<</if>>
+	<<if $RepForCash == 1>>
+		This week you used your position to secure business opportunities worth <<print cashFormat($policyCost)>> at the expense of citizens, @@.red;damaging your reputation.@@
+		<<set $rep -= 100, $cash += $policyCost>>
+	<</if>>
 <</if>>
 <<if $rep <= 18000>>
-<<if $RegularParties != 1>>
-<<if $rep > 1500>>
-	Your @@.red;reputation is damaged@@ by your not hosting regular social events for your leading citizens.
-	<<set $rep -= 100>>
-	<<else>>
-	Though you are not hosting regular social events for your leading citizens, your lack of renown prevents this from damaging your reputation; they don't expect someone so relatively unknown to be throwing parties.
-<</if>>
-<</if>>
+	<<if $RegularParties != 1>>
+		<<if $rep > 1500>>
+			Your @@.red;reputation is damaged@@ by your not hosting regular social events for your leading citizens.
+			<<set $rep -= 100>>
+		<<else>>
+			Though you are not hosting regular social events for your leading citizens, your lack of renown prevents this from damaging your reputation; they don't expect someone so relatively unknown to be throwing parties.
+		<</if>>
+	<</if>>
 <</if>>
 
 <<if $secExp == 1>>
@@ -760,26 +767,26 @@ Routine upkeep of your demesne costs @@.yellow;<<print cashFormat($costs)>>.@@
 				Severe weather damaged the arcology this week, requiring repairs costing @@.yellow;<<print cashFormat($seed)>>.@@ Your citizens are @@.red;unhappy@@ that the arcology has proven vulnerable to the terrible climate.
 				<<set $rep -= 100>>
 			<</if>>
-	<<if $cash > 0>>
-		<<set $cash -= $seed>>
-	<<elseif $arcologies[0].FSRestartDecoration == 100>>
-		Since you lack the resources to effect prompt repairs yourself, the Societal Elite cover for you. The arcology's prosperity is @@.red;is damaged@@, but your public reputation is left intact. 
-		<<if $eugenicsFullControl != 1>>
-			The Societal Elite @@.red;are troubled by your failure@@.
-			<<set $failedElite += 100>>
-		<</if>>
-		<<if $arcologies[0].prosperity > 50>>
-			<<set $arcologies[0].prosperity -= random(5,10), $PC.engineering += .1>>
-		<</if>>
-		<<set $cash -= Math.trunc($seed/4)>>
-	<<else>>
-		Since you lack the resources to effect prompt repairs yourself, prominent citizens step in to repair their own parts of the arcology. This is @@.red;terrible for your reputation,@@ and it also @@.red;severely reduces the arcology's prosperity.@@
-		<<if $arcologies[0].prosperity > 50>>
-			<<set $arcologies[0].prosperity -= random(5,10), $PC.engineering += .1>>
-		<</if>>
-		<<set $rep = Math.trunc($rep*0.8)>>
-		<<set $cash -= Math.trunc($seed/4), $PC.engineering += .1>>
-	<</if>>
+			<<if $cash > 0>>
+				<<set $cash -= $seed>>
+			<<elseif $arcologies[0].FSRestartDecoration == 100>>
+				Since you lack the resources to effect prompt repairs yourself, the Societal Elite cover for you. The arcology's prosperity is @@.red;is damaged@@, but your public reputation is left intact. 
+				<<if $eugenicsFullControl != 1>>
+					The Societal Elite @@.red;are troubled by your failure@@.
+					<<set $failedElite += 100>>
+				<</if>>
+				<<if $arcologies[0].prosperity > 50>>
+					<<set $arcologies[0].prosperity -= random(5,10), $PC.engineering += .1>>
+				<</if>>
+				<<set $cash -= Math.trunc($seed/4)>>
+			<<else>>
+				Since you lack the resources to effect prompt repairs yourself, prominent citizens step in to repair their own parts of the arcology. This is @@.red;terrible for your reputation,@@ and it also @@.red;severely reduces the arcology's prosperity.@@
+				<<if $arcologies[0].prosperity > 50>>
+					<<set $arcologies[0].prosperity -= random(5,10), $PC.engineering += .1>>
+				<</if>>
+				<<set $rep = Math.trunc($rep*0.8)>>
+				<<set $cash -= Math.trunc($seed/4), $PC.engineering += .1>>
+			<</if>>
 		<<elseif $weatherToday.severity-$weatherCladding == 2>>
 			<<if $weatherCladding >= 1>>
 				<<set $weatherAwareness = 1>>
@@ -875,12 +882,12 @@ Routine upkeep of your demesne costs @@.yellow;<<print cashFormat($costs)>>.@@
 		<<set $slaveCostFactor += 0.05>>
 	<<else>>
 		<<if $seed > 80>>
-		@@.yellow;The price of slaves has naturally risen slightly.@@<br>
-		<<set $slaveCostFactor += 0.05>>
-	<<elseif $seed > 60>>
-		@@.yellow;The price of slaves has naturally fallen slightly.@@<br>
-		<<set $slaveCostFactor -= 0.05>>
-	<</if>>
+			@@.yellow;The price of slaves has naturally risen slightly.@@<br>
+			<<set $slaveCostFactor += 0.05>>
+		<<elseif $seed > 60>>
+			@@.yellow;The price of slaves has naturally fallen slightly.@@<br>
+			<<set $slaveCostFactor -= 0.05>>
+		<</if>>
 	<</if>>
 <</if>>
 
