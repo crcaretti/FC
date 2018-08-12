@@ -161,7 +161,7 @@ window.AttGround = function() {const V = State.variables,S = V.SFUnit;
 	if (S.Vehicles >= 8)armor2 =`A layer of reactive armor has been added on top, protecting the tank from additional damage.`;
 	if (S.Vehicles >= 9)turret =`The turret has been massively redesigned, lowering the tank profile and increasing the efficiency of the mechanisms within.`;
 	if (S.Vehicles === 10)MG = `140 mm main gun can quash anything even the greatest Old World nations could muster`;
-	return `A fleet of main battle tanks ${b} are parked in the garage${c}. ${turret} ${engine} ${armor} ${armor2} The ${MG} ${ammo} ${mg} ${fireC0} ${fireC2} ${fireC1} ${fireC3}.`
+	return `A fleet of main battle tanks ${b} are parked in the garage${c}. ${turret} ${engine} ${armor} ${armor2} The ${MG}${ammo} ${mg} ${fireC0} ${fireC2} ${fireC3} ${fireC1}.`
 }
 
 window.AttAir= function() {const V = State.variables,S = V.SFUnit;
