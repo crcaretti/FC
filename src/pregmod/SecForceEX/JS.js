@@ -164,7 +164,21 @@ window.AttGround = function() {const V = State.variables,S = V.SFUnit;
 	return `A fleet of main battle tanks ${b} are parked in the garage${c}. ${turret} ${engine} ${armor} ${armor2} The ${MG}${ammo} ${mg} ${fireC0} ${fireC2} ${fireC3} ${fireC1}.`
 }
 
-window.AttAir= function() {const V = State.variables,S = V.SFUnit;
+window.TsGround = function() {const V = State.variables,S = V.SFUnit,e0 =`The engine has been`;
+	if (S.Vehicles === 1)var C =`has been recommissioned for use by $SF.lower. They`, B =`; mechanics are giving the new purchases a final tuneup before they are ready`,squad =`a squad`,G1 =`20`,G2 =`infantry in a firefight`,engine =``,armor =``,tires =``,missile =``,pod =``;
+	if (S.Vehicles >= 2)engine =`${e0} overhauled, allowing for higher mobility.`,C =``, B =``;
+	if (S.Vehicles >= 3)armor =`Composite armor has been bolted to the exterior, increasing the survivability of an explosive attack for the crew and passengers.`;
+	if (S.Vehicles >= 4)tires =`The tires have been replaced with a much more durable version that can support a heavier vehicle.`;
+	if (S.Vehicles >= 5)var m0 = `targeting any guided missiles with laser dazzlers and deploying a smokescreen`;missile =`An automatic missile defense system has been installed, ${m0}.`;
+	if (S.Vehicles >= 6)var side =`has been installed on the`;pod =`An anti-tank missle pod ${side} side of the turret.`;
+	if (S.Vehicles >= 7)G1 =`25`,G2 =`by attacking enemies behind cover and destroying light armor`;
+	if (S.Vehicles >= 8)side =`and an anti-aircraft missile pod have been installed on either`;
+	if (S.Vehicles >= 9)squad =`two squads`,armor=``,m0 =`destroying any incoming missiles with a high-powered laser. Some of the now redundant composite armor has been removed, and the additional space allows for more passengers.`;
+	if (S.Vehicles === 10)engine =`${e0} replaced with the newest model, allowing the vehicle to get in and out of the conflict extremely quickly.`;
+	return`A fleet of infantry fighting vehicles ${B} are parked in the garage${C}. The IFVs can carry ${squad} of 6 to a firezone. The ${G1} mm autocannon supports ${G2}. ${pod} ${engine} ${armor} ${missile}`;
+}
+
+window.AttAir = function() {const V = State.variables,S = V.SFUnit;
 	if (S.AirForce >= 1)var W1 =`only armed`,W2 =``,W3 =`a poor weapon against anything flying, but enough to handle ground forces`,engines =``,troops2 =``,stealth =``,support =`support ground troops`,C =`a`,lock =``,scramble =``,PAI =``,troops =``;
 		var group =`A small group of attack VTOL have been recommissioned for use by $SF.lower, enough to make up a squadron`;
 	if (S.AirForce >= 2)W1 =`armed`;W2 =`and air-to-air missiles`;W3 =`combination that can defend the arcology from anything in the air, as well as ${support}`;
