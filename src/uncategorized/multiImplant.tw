@@ -18,6 +18,7 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 		pigOvaries: 0,
 		dogOvaries: 0,
 		eyes: 0,
+		cochleae: 0,
 		voicebox: 0,
 		mpreg: 0,
 		mpregPig: 0,
@@ -60,6 +61,9 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 				<<set $completedOrgans.deleteAt(_j),_j-->>
 			<<elseif $completedOrgans[_j].type == "eyes">>
 				<<set _slaveOrgans.eyes = $completedOrgans[_j]>>
+				<<set $completedOrgans.deleteAt(_j),_j-->>
+			<<elseif $completedOrgans[_j].type == "cochleae">>
+				<<set _slaveOrgans.cochleae = $completedOrgans[_j]>>
 				<<set $completedOrgans.deleteAt(_j),_j-->>
 			<<elseif $completedOrgans[_j].type == "voicebox">>
 				<<set _slaveOrgans.voicebox = $completedOrgans[_j]>>
@@ -111,6 +115,39 @@ You head down to your <<if $surgeryUpgrade == 1>>heavily upgraded and customized
 			<br><hr>
 			@@.red;Could not implant eyes on $activeSlave.slaveName: she is not blind.@@
 			<<set $completedOrgans.push(_slaveOrgans.eyes)>>
+		<</if>>
+	<</if>>
+	/* cochleae */
+	<<if _slaveOrgans.cochleae != 0>>
+		<<if ($activeSlave.hears == -2) && $activeSlave.earImplant != 1>>
+			<<set $cash -= $surgeryCost>>
+			<<set $activeSlave.hears = 0>>
+			<<set $activeSlave.eyeColor = $activeSlave.origEye>>
+			/* no way to salvage original eye color */
+			<<set $activeSlave.health -= 20>>
+			<<if $organFarmUpgrade == 2>>
+				<<set $activeSlave.chem += 20>>
+			<</if>>
+			<<set $surgeryType = "undeafen">>
+			<br><hr>
+			<<include "Surgery Degradation">>
+		<<elseif $activeSlave.earImplant == 1>>
+			<<set $cash -= $surgeryCost>>
+			<<set $stockpile.cochlearImplant++>>
+			<<set $activeSlave.hears = 0>>
+			<<set _oldEyes = $genePool.find(function(s) { return s.ID = $activeSlave.ID; })>>
+			<<set $activeSlave.origEye = _oldEyes.origEye>>
+			<<set $activeSlave.eyeColor = $activeSlave.origEye>>
+			<<set $activeSlave.health -= 20>>
+			<<if $organFarmUpgrade == 2>>
+				<<set $activeSlave.chem += 20>>
+			<</if>>
+			<<set $surgeryType = "newEars">>
+			<<include "Surgery Degradation">>
+		<<else>>
+			<br><hr>
+			@@.red;Could not implant cochleae on $activeSlave.slaveName: she is not deaf.@@
+			<<set $completedOrgans.push(_slaveOrgans.cochleae)>>
 		<</if>>
 	<</if>>
 	/* voice */
