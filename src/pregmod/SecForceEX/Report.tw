@@ -1,0 +1,197 @@
+:: Security Force EOW Report [nobr]
+<<silently>> <<= Count()>>
+<<if $SFUnit.Troops > 2000>> <<set $SFUnit.Troops = random(1955,1999)>> <</if>>
+<<if $SFUnit.Troops < 100>> <<set $SFUnit.Troops += Math.ceil(random(2,5))>>
+<<elseif $SFUnit.Troops < 2000>>
+	<<if $SF.Target == "recruit">>
+		<<set $SFUnit.Troops += Math.ceil(random(-1*$SFUnit.Troops/100,0))>>
+	<<elseif $SF.Target == "raiding">>
+		<<set $SFUnit.Troops += Math.ceil(random(-3*$SFUnit.Troops/100,-4*$SFUnit.Troops/100))>>
+	<<else>>
+		<<set $SFUnit.Troops += Math.ceil(random(-2*$SFUnit.Troops/100,-3*$SFUnit.Troops/100))>>
+	<</if>>
+<</if>>
+<<set _Income = 50000,_Profit = 0,_ME = 1,_OPE = .10,_FNGs = 10,_Trade = 0.025>>
+
+<<if $SF.SpecOps>> <<set _SFUC = Math.ceil($SFUnit.Troops*.05),$SFUnit.Troops-_SFUC>>
+<<else>> <<set _SFUC = Math.ceil($SFUnit.Troops*.1),$SFUnit.Troops-_SFUC>> <</if>>
+<<if $SFUnit.Troops > 200>> <<set _Trade += 0.05*(Math.ceil($SFUnit.Troops/100))>>
+	<<set _Income += 5000*(Math.ceil($SFUnit.Troops/100))>>
+	<<if $secExp === 1>>
+		<<set $authority += 500*(Math.ceil($SFUnit.Troops/100)),$authority = Math.clamp($authority, 0, 20000)>>
+	<</if>>
+<</if>>
+
+<<if $SFUnit.Firebase > 0>>
+	<<set _FNGs += $SFUnit.Firebase,_Trade += 0.5*$SFUnit.Firebase,_ME *= 1+($SFUnit.Firebase*_OPE)>>
+<</if>>
+<<if $SFUnit.Armoury > 0>>
+	<<set _FNGs += ($SFUnit.Armoury*2),_Trade += 0.25*$SFUnit.Armoury,_ME *= 1+($SFUnit.Armoury*_OPE)>>
+<</if>>
+<<if $SFUnit.Drugs > 0>>
+	<<set _FNGs += $SFUnit.Drugs,_Trade += 0.25*$SFUnit.Drugs,_ME *= 1+($SFUnit.Drugs*_OPE)>>
+<</if>>
+<<if $SFUnit.Firebase >= 1>>
+	<<if $SFUnit.Vehicles > 0>>
+		<<set _FNGs += $SFUnit.Vehicles,_Trade += 0.25*$SFUnit.Vehicles,_ME *= 1+($SFUnit.Vehicles*_OPE)>>
+	<</if>>
+	<<if $SFUnit.HBT > 0>>
+		<<set _Trade  += 0.25*($SFUnit.HBT),_ME *= 1+($SFUnit.HBT*_OPE)>>
+	<</if>>
+<</if>>
+<<if $SFUnit.Firebase >= 2 && $SFUnit.Drones > 0>>
+	<<set _FNGs += $SFUnit.Drones,_Trade += 0.5*$SFUnit.Drones,_ME *= 1+($SFUnit.Drones*_OPE)>>
+<</if>>
+
+<<if $SFUnit.Firebase >= 4>>
+	<<if $SFUnit.AirForce > 0>>
+		<<set _FNGs += $SFUnit.AirForce,_Trade += 0.25*$SFUnit.AirForce,_ME *= 1+($SFUnit.AirForce*_OPE)>>
+	<</if>>
+	<<if $SFUnit.SpacePlane > 0>>
+		<<set _FNGs += $SFUnit.SpacePlane,_Trade += 0.25*$SFUnit.SpacePlane,_ME *= 1+($SFUnit.SpacePlane*_OPE)>>
+	<</if>>
+	<<if $SFUnit.GunS > 0>>
+		<<set _FNGs += $SFUnit.GunS,_Trade  += 0.25*$SFUnit.GunS,_ME *= 1+($SFUnit.GunS*_OPE)>>
+	<</if>>
+	<<if $SFUnit.Satellite > 0>>
+		<<set _FNGs += $SFUnit.Satellite,_Trade  += 0.25*$SFUnit.Satellite,_ME *= 1+($SFUnit.Satellite*_OPE)>>
+	<</if>>
+		<<if $SFUnit.GiantRobot > 0 && _Land>>
+			<<set _FNGs += SF.GiantRobot,_Trade  += 0.25*$SFUnit.GiantRobot,_ME *= 1+($SFUnit.GiantRobot*_OPE)>>
+		<</if>>
+		<<if $SFUnit.MissileSilo > 0 && _Land>>
+			<<set _Trade += 0.25*$SFUnit.MissileSilo,_ME *= 1+($SFUnit.MissileSilo*_OPE)>>
+	<</if>>
+<</if>>
+
+<<if $SFUnit.AircraftCarrier > 0 && !_Land>>
+	<<set _FNGs += $SFUnit.AircraftCarrier,_Trade  += 0.25*$SFUnit.AircraftCarrier,_ME *= 1+($SFUnit.AircraftCarrier*_OPE)>>
+<</if>>
+<<if $SFUnit.Sub > 0 && !_Land>>
+	<<set _FNGs += $SFUnit.Sub,_Trade  += 0.25*$SFUnit.Sub,_ME *= 1+($SFUnit.Sub*_OPE)>>
+<</if>>
+<<if $SFUnit.HAT > 0 && !_Land>>
+	<<set _Trade += 0.25*$SFUnit.HAT,_ME *= 1+($SFUnit.HAT*_OPE)>>
+<</if>>
+
+<<if $SFColonel.Fun > 0>> <<set _ME *= 1+($SFColonel.Fun*_OPE)>> <</if>>
+<<if $SFTradeShow.History > 0>> <<set _ME *= 1+($SFTradeShow.History*_OPE)>> <</if>>
+<<if $LieutenantColonel == 1>> <<set _ME *= 1+($LieutenantColonel*_OPE)>> <</if>>
+
+<<set _SFD = $SF.Depravity>>
+<<switch $SFColonel.Core>> <<case "kind" "collected.">>
+		<<set _FNGs += 10,_Trade += 0.15,_SFD -= 0.15>>
+	<<case "warmonger" "cruel" "psychopathic">>
+		<<set _ME *= 1.15+_OPE,_Trade -= 0.15,_SFD += 0.15>>
+<</switch>>
+<<if $SF.Target == "raiding">> <<set _SFD += 0.05>>
+<<elseif $SF.Target == "secure">> <<set _SFD -= 0.05>> <</if>>
+<<if $SF.ROE == "free">> <<set _ME *= _OPE*.95,_SFD += 0.05,_Trade += _Trade*.95>>
+<<elseif $SF.ROE == "hold">> <<set _ME *= _OPE*1.05,_SFD -= 0.05,_Trade += _Trade*1.05>> <</if>>
+<<if $SF.Regs == "none">> <<set _ME *= _OPE*.95,_SFD += 0.05,_Trade += _Trade*.95>>
+<<elseif $SF.Regs == "strict">> <<set _ME *= _OPE*1.05,_SFD -= 0.05,_Trade += _Trade*1.05>> <</if>>
+<<if _SFD != 0>>
+<<if _SFD < 0>> <<set _ef0 = _SFD*10,_ef1 = 1-(_SFD/10)>>
+<<elseif _SFD > 0>> <<set _ef0 = 1-(_SFD/10),_ef1 = _SFD*10>> <</if>>
+	<<set _Trade += _Trade*(_ef0),_Income += _Income*(_ef1)>> <</if>>
+
+<<if $SF.Target == "recruit">> <<set _FNGs += Math.ceil((_FNGs)*.95)>>
+<<else>> <<set _FNGs += Math.ceil((_FNGs)*.25)>> <</if>>
+<<if $SF.Target == "secure">> <<set $rep += Math.ceil($rep*((_Trade/100)*.95))>>
+	<<set $arcologies[0].prosperity = Math.ceil(($arcologies[0].prosperity+(_Trade/10)*.95))>>
+<<else>> <<set $rep += Math.ceil($rep*((_Trade/100)*.25))>>
+	<<set $arcologies[0].prosperity = Math.ceil(($arcologies[0].prosperity+(_Trade/10)*.25))>>
+<</if>>
+<<if $secExp === 1>> <<set $authority += $SF.Units*10,$authority = Math.clamp($authority, 0, 20000)>> <</if>>
+
+<<set _Income = (_Income*_ME)*(1+($week/1000)),$SFUnit.Troops += Math.round(_FNGs/2)>>
+<<if $SFUnit.Troops > 2000>> <<set $SFUnit.Troops = random(1955,1999)>> <</if>>
+<<if $rep > 20000>> <<set $rep = 20000>> <</if>>
+<<if $arcologies[0].prosperity > $AProsperityCap>>
+	<<set $arcologies[0].prosperity = $AProsperityCap>> <</if>>
+<<if _Income > 150000>> <<set _Profitable = 1,$SFUnit.Subsidy = 0>>
+<<else>> <<set _Profitable = 0>> <</if>>
+<<if $SF.Target == "raiding">> <<set _Profit = Math.ceil((_Income/1000)*1.95)>> <<else>>
+	<<set _Profit = Math.ceil((_Income/1000)*1.25)>> <</if>>
+<<set $cash += _Profit>>
+
+<<if $SFUnit.Drugs >= 8 || $SFUnit.Drugs >= 10>> <<set _Deaths = 0,_SurvivalChance = 50>>
+	<<if $SFUnit.Drugs >= 8>> <<set _SurvivalChance -= 5>> <<elseif $SFUnit.Drugs >= 10>>
+		<<set _SurvivalChance += 5>> <</if>>
+	<<if random(0,100) > _SurvivalChance>>
+		<<set _Deaths = random(0,(($SFUnit.Drugs*2)+4))>> <</if>>
+	<<if _Deaths > 0>> <<set $SFUnit.Troops -= _Deaths>> <</if>>
+<</if>> <</silently>>__Status and Activities of $SF.Lower __:
+<br>This week, $SF.Lower, <<print commaNum($SFUnit.Troops)>> strong, focused on
+<<if $SF.Target == "recruit">>
+recruiting and training more personnel. Smaller parties ventured out to protect the arcology's trade routes and strike targets of opportunity.
+<<elseif $SF.Target == "secure">>
+securing the trade routes between the arcology and the surrounding area. Smaller parties ventured out to strike targets of opportunity and process new recruits.
+<<elseif $SF.Target == "raiding">>
+locating and striking targets of opportunity, capturing both material loot and new slaves. Smaller parties secured the most important of the arcology's trade routes and processed new recruits.
+<</if>>
+<<if $SF.SpecOps > 0>> <br>A portion of the force was assigned as undercover officers <</if>>
+
+<<if _Deaths > 0>>
+<<print (_Deaths)>> soldiers fatally overdosed on the drug cocktail
+	<<if $SFTradeShow.CanAttend === -1>>
+		, The Colonel's much heavier than average drug use saves her from this side effect
+	<</if>>.
+<</if>>
+These activities have, overall, @@.green;improved@@ your arcology's prosperity.
+The goods procured by the $SF.Lower this week, after accounting for the spoils retained by individual soldiers were
+<<if _Profitable>>
+, @@.green;more than sufficient@@ to cover expenses. Excess material and human asets totaling @@.yellowgreen;<<print cashFormat(_Profit)>>@@ (after liquidation) were transferred to your accounts.
+<<else>>
+, @@.red;barely enough@@ to cover expenses. More growth will be needed to ensure profitability.
+<</if>>
+$SF.Caps managed to recruit <<print Math.round(_FNGs/2)>> new soldiers this week, and your reputation has @@.green;increased@@ through the improvement of trade security.
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;//Your instructions to <<print SFC()>>://
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Deployment focus:
+	<span id="focus"> <<if $SF.Target == "recruit">> ''Recruiting and Training''
+		<<elseif $SF.Target == "secure">> ''Securing Trade Routes''
+		<<else>> ''Raiding and Slaving'' <</if>> </span> .&nbsp;&nbsp;
+	<<link "Recruit and Train">> <<set $SF.Target = "recruit">>
+		<<replace "#focus">> ''Recruiting and Training'' <</replace>> <</link>>
+	| <<link "Secure Trade Routes">> <<set $SF.Target = "secure">>
+		<<replace "#focus">> ''Securing Trade Routes'' <</replace>> <</link>>
+	| <<link "Raiding and Slaving">> <<set $SF.Target = "raiding">>
+		<<replace "#focus">> ''Raiding and Slaving'' <</replace>> <</link>>
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rules of Engagement:
+	<span id="roe"> <<if $SF.ROE === "hold">> ''Hold Fire''
+		<<elseif $SF.ROE === "limited">> ''Limited Fire'' <<else>> ''Free Fire'' <</if>>
+		</span>.&nbsp;&nbsp;
+		<<link "Hold Fire">> <<set $SF.ROE = "hold">> <<replace "#roe">> ''Hold Fire''
+			<</replace>> <</link>>
+		| <<link "Limited Fire">> <<set $SF.ROE = "limited">> <<replace "#roe">>
+			'Limited Fire'' <</replace>> <</link>>
+		| <<link "Free Fire">> <<set $SF.ROE = "free">> <<replace "#roe">> ''Free Fire''
+			<</replace>> <</link>>
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Accountability:
+	<span id="accountability"> <<if $SF.Regs === "strict">> ''Strict Accountability''
+		<<elseif $SF.Regs === "some">> ''Some Accountability'' <<else>>
+		''No Accountability'' <</if>> </span>.&nbsp;&nbsp;
+		<<link "Strict Accountability">> <<set $SF.Regs = "strict">>
+		<<replace "#accountability">> ''Strict Accountability'' <</replace>> <</link>>
+		| <<link "Some Accountability">> <<set $SF.Regs = "some">>
+			<<replace "#accountability">> ''Some Accountability'' <</replace>> <</link>>
+		| <<link "No Accountability">> <<set $SF.Regs = "none">>
+		<<replace "#accountability">> ''No Accountability'' <</replace>> <</link>>
+<<if $SFTradeShow.View === 1 && $SFTradeShow.CanAttend === 1>><br>''TradeShow'':
+	<<set $SFTradeShow.Income = 0,$SFTradeShow.Helots = 0>>
+	<<set _TradeShowAttendes = 200,_MenialSlavesPerAttendee = 5>>
+	<<set _MenialSlaves = Math.ceil(random(1,((_TradeShowAttendes*_MenialSlavesPerAttendee)/10)))>>
+	<<set _TSProfit = Math.ceil(500000*(1+($SF.Units/1000))*(1+($arcologies[0].prosperity/1000))*_Env)>>
+	During a break, The Colonel managed to sell some generic schematics to the _TradeShowAttendes  attendes, some decided to also give her some menial slaves as a bonus.<br>
+	<<set $helots = $helots+_MenialSlaves>>
+	<<set $SFTradeShow.Helots += _MenialSlaves,$SFTradeShow.TotalHelots += _MenialSlaves>>
+	<<set $cash = $cash+_TSProfit,$SFTradeShow.Income += _TSProfit>>
+	<<set $SFTradeShow.Revenue += _TSProfit>>
+	<<if $secExp === 1 && $mercenaries > 0>> <<set $SFTradeShow.Mercs = 0>>
+		<<set _NewMercs = random(1,(_TradeShowAttendes/10))>>
+		<<set $mercFreeManpower += _NewMercs,$SFTradeShow.TotalMercs += _NewMercs>>
+		<<set $SFTradeShow.Mercs += _NewMercs>>
+	<</if>> <<set $SFTradeShow.History += 1>>
+<</if>> <<include "FlavourText">> <<if $SF.SpecOps>> <<set $SF.SpecOps = 0>> <</if>>
+<<set $SF.U = 0,$SF.WG = 0,$SFColonel.Talk = 0,$SFColonel.Fun = 0>>
