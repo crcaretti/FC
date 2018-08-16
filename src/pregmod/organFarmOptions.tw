@@ -14,6 +14,7 @@
 	pigOvaries: 0,
 	dogOvaries: 0,
 	eyes: 0,
+	cochleae: 0,
 	voicebox: 0,
 	mpreg: 0,
 	mpregPig: 0,
@@ -42,6 +43,8 @@
 			<<set $slaveOrgans.dogOvaries = 1>>
 		<<elseif $organs[_i].type == "eyes">>
 			<<set $slaveOrgans.eyes = 1>>
+		<<elseif $organs[_i].type == "cochleae">>
+			<<set $slaveOrgans.cochleae = 1>>
 		<<elseif $organs[_i].type == "voicebox">>
 			<<set $slaveOrgans.voicebox = 1>>
 		<<elseif $organs[_i].type == "mpreg">>
@@ -191,6 +194,18 @@ The fabricator is ready to grow an organ for $him. Extract tissue to begin growi
 		<</link>> //Costs <<print cashFormat(10000)>> and is imperfect - eyes will lack natural color//
 	<</if>>
 <</if>>
+<<if $slaveOrgans.cochleae != 1>>
+	<<if $activeSlave.hears <= -2 && $activeSlave.earImplant != 1>>
+		<br>&nbsp;&nbsp;&nbsp;&nbsp;
+		<<link "Cochleae">>
+			<<set $cash -= 10000>>
+			<<set _newOrgan = {type: "cochleae", weeksToCompletion: "6", ID: 0}>>
+			<<set _newOrgan.ID = $activeSlave.ID>>
+			<<set $organs.push(_newOrgan)>>
+			<<goto "Remote Surgery">>
+		<</link>> //Costs <<print cashFormat(8000)>>//
+	<</if>>
+<</if>>
 <<if $slaveOrgans.voicebox != 1>>
 	<<if ($activeSlave.voice == 0)>>
 		<br>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -246,7 +261,7 @@ The fabricator is ready to grow an organ for $him. Extract tissue to begin growi
 			<<switch $organs[_i].type>>
 			<<case "penis" "scrotum" "foreskin" "prostate" "voicebox">>
 				$organs[_i].type is
-			<<case "testicles" "ovaries" "eyes">>
+			<<case "testicles" "ovaries" "eyes" "cochleae">>
 				$organs[_i].type are
 			<<case "pigTesticles">>
 				pig testicles are
@@ -1083,6 +1098,72 @@ The fabricator is ready to grow an organ for $him. Extract tissue to begin growi
 					|
 					<<link "Discard" "Remote Surgery">>
 						<<set _ofo = $completedOrgans.findIndex(function(s) { return $activeSlave.ID == s.ID && s.type == "eyes"; })>>
+						<<if _ofo != -1>>
+							<<set $completedOrgans.deleteAt(_ofo)>>
+						<<else>>
+							@@.red;Organ not found for deletion!@@
+						<</if>>
+					<</link>>
+				<</if>>
+			<<elseif $completedOrgans[_i].type == "cochleae">>
+				<<if $activeSlave.hears > -2 && $activeSlave.earImplant != 1>>
+					<br>&nbsp;&nbsp;&nbsp;&nbsp;
+					ERROR: this slave has working cochleae.
+					<<link "Discard" "Remote Surgery">>
+						<<set _ofo = $completedOrgans.findIndex(function(s) { return $activeSlave.ID == s.ID && s.type == "cochleae"; })>>
+						<<if _ofo != -1>>
+							<<set $completedOrgans.deleteAt(_ofo)>>
+						<<else>>
+							@@.red;Organ not found for deletion!@@
+						<</if>>
+					<</link>>
+				<<elseif $activeSlave.earImplant == 1>>
+					<br>&nbsp;&nbsp;&nbsp;&nbsp;
+					<<link "Remove cochlear implants and implant" "Surgery Degradation">>
+						<<set $cash -= $surgeryCost>>
+						<<set _ofo = $completedOrgans.findIndex(function(s) { return $activeSlave.ID == s.ID && s.type == "cochleae"; })>>
+						<<if _ofo != -1>>
+							<<set $completedOrgans.deleteAt(_ofo)>>
+						<<else>>
+							@@.red;Organ not found for deletion!@@
+						<</if>>
+						<<set $stockpile.cochlearImplant++>>
+						<<set $activeSlave.hears = 0>>
+						<<set $activeSlave.health -= 20>>
+						<<if $organFarmUpgrade == 2>>
+							<<set $activeSlave.chem += 20>>
+						<</if>>
+						<<set $surgeryType = "newEars">>
+					<</link>>
+					|
+					<<link "Discard" "Remote Surgery">>
+						<<set _ofo = $completedOrgans.findIndex(function(s) { return $activeSlave.ID == s.ID && s.type == "cochleae"; })>>
+						<<if _ofo != -1>>
+							<<set $completedOrgans.deleteAt(_ofo)>>
+						<<else>>
+							@@.red;Organ not found for deletion!@@
+						<</if>>
+					<</link>>	
+				<<else>>
+					<br>&nbsp;&nbsp;&nbsp;&nbsp;
+					<<link "Implant" "Surgery Degradation">>
+						<<set $cash -= $surgeryCost>>
+						<<set _ofo = $completedOrgans.findIndex(function(s) { return $activeSlave.ID == s.ID && s.type == "cochleae"; })>>
+						<<if _ofo != -1>>
+							<<set $completedOrgans.deleteAt(_ofo)>>
+						<<else>>
+							@@.red;Organ not found for deletion!@@
+						<</if>>
+						<<set $activeSlave.hears = 0>>
+						<<set $activeSlave.health -= 20>>
+						<<if $organFarmUpgrade == 2>>
+							<<set $activeSlave.chem += 20>>
+						<</if>>
+						<<set $surgeryType = "undeafen">>
+					<</link>>
+					|
+					<<link "Discard" "Remote Surgery">>
+						<<set _ofo = $completedOrgans.findIndex(function(s) { return $activeSlave.ID == s.ID && s.type == "cochleae"; })>>
 						<<if _ofo != -1>>
 							<<set $completedOrgans.deleteAt(_ofo)>>
 						<<else>>
