@@ -6,56 +6,56 @@
  * Height.mean(slave) - returns the mean (expected) height for the given slave
  *
  * Height.random(nationality, race, genes, age) - returns a random height using the skew-normal distribution 
- *                                                around the mean height for the given arguments
+ *													around the mean height for the given arguments
  * Height.random(nationality, race, genes) - returns a random height for the given combination of an adult, as above
  * Height.random(slave[, options]) - returns a random height for the given slave, as above.
- *                                   The additional options object can modify how the values are generated
- *                                   in the same way setting them as global configuration would, but only for this
- *                                   specific generation.
+ *										The additional options object can modify how the values are generated
+ *										in the same way setting them as global configuration would, but only for this
+ *										specific generation.
  *
- *                                   Example: Only generate above-average heights based on $activeSlave:
- *                                   Height.random($activeSlave, {limitMult: [0, 5]})
+ *										Example: Only generate above-average heights based on $activeSlave:
+ *										Height.random($activeSlave, {limitMult: [0, 5]})
  *
  * Height.forAge(height, age, genes) - returns the height adapted to the age and genes
  * Height.forAge(height, slave) - returns the height adapted to the slave's age and genes
  *
  * Height.config(configuration) - configures the random height generator globally and returns the current configuration
- *   The options and their default values are:
- *   limitMult: [-3, 3] - Limit to the values the underlying (normal) random generator returns.
- *                        In normal use, the values are almost never reached; only 0.27% of values are
- *                        outside this range and need to be regenerated. With higher skew (see below),
- *                        this might change.
- *   spread: 0.05 - The random values generated are multiplied by this and added to 1 to generate
- *                  the final height multiplier. The default value together with the default limitMult
- *                  means that the generated height will always fall within (1 - 0.05 * 3) = 85% and
- *                  (1 + 0.05 * 3) = 115% of the mean height.
- *                  Minimum value: 0.001; maximum value: 0.5
- *   skew: 0 - How much the height distribution skews to the right (positive) or left (negative) side
- *             of the height.
- *             Minimum value: -1000, maximum value: 1000
- *   limitHeight: [0, 999] - Limit the resulting height range. Warning: A small height limit range
- *                           paired with a high spread value results in the generator having to
- *                           do lots of work generating and re-generating random heights until
- *                           one "fits".
+ *	The options and their default values are:
+ *	limitMult: [-3, 3] - Limit to the values the underlying (normal) random generator returns.
+ *						In normal use, the values are almost never reached; only 0.27% of values are
+ *						outside this range and need to be regenerated. With higher skew (see below),
+ *						this might change.
+ *	spread: 0.05 - The random values generated are multiplied by this and added to 1 to generate
+ *					the final height multiplier. The default value together with the default limitMult
+ *					means that the generated height will always fall within (1 - 0.05 * 3) = 85% and
+ *					(1 + 0.05 * 3) = 115% of the mean height.
+ *					Minimum value: 0.001; maximum value: 0.5
+ *	skew: 0 - How much the height distribution skews to the right (positive) or left (negative) side
+ *				of the height.
+ *				Minimum value: -1000, maximum value: 1000
+ *	limitHeight: [0, 999] - Limit the resulting height range. Warning: A small height limit range
+ *							paired with a high spread value results in the generator having to
+ *							do lots of work generating and re-generating random heights until
+ *							one "fits".
  *
  * Anon's explination:
- *limitMult: [0, -30]
+ * limitMult: [0, -30]
  *
- *This specifies a range going up from 0 to -30. It needs to go [-30, 0] instead. Same thing with [0, -5] two lines down. note: technically, this isn't true, because for some bizarre reason Height.random reverses the numbers for you if you get them wrong. But it's important to establish good habits, so.
+ * This specifies a range going up from 0 to -30. It needs to go [-30, 0] instead. Same thing with [0, -5] two lines down. note: technically, this isn't true, because for some bizarre reason Height.random reverses the numbers for you if you get them wrong. But it's important to establish good habits, so.
  *
- *Skew, spread, limitMult: These are statistics things. BTW, a gaussian distribution is a normal distribution. Just a naming thing.
+ * Skew, spread, limitMult: These are statistics things. BTW, a gaussian distribution is a normal distribution. Just a naming thing.
  *
- *Skew: The shape parameter of a skew-normal distribution. See http://azzalini.stat.unipd.it/SN/Intro/intro.html for more details. Basically a measure of how asymmetrical the curve is. It doesn't move the main mass of the distribution. Rather, it's more like it moves mass from one of the tails into the main mass of the distribution.
+ * Skew: The shape parameter of a skew-normal distribution. See http://azzalini.stat.unipd.it/SN/Intro/intro.html for more details. Basically a measure of how asymmetrical the curve is. It doesn't move the main mass of the distribution. Rather, it's more like it moves mass from one of the tails into the main mass of the distribution.
  *
- *Spread: Changes the average distance from the mean, making the graph wider and shorter. Moves "mass" from the center to the tail. It's basically standard deviation, but named funny because FC codebase. Changing this can have dramatic effects. It's advised to keep this at or below 0.1 for usual height generation.
+ * Spread: Changes the average distance from the mean, making the graph wider and shorter. Moves "mass" from the center to the tail. It's basically standard deviation, but named funny because FC codebase. Changing this can have dramatic effects. It's advised to keep this at or below 0.1 for usual height generation.
  *
- *limitMult: A clamp, expressed in z-score. (z=1 is one standard dev above mean, for ex.) If it excludes too much of the distribution the other parameters describe, you're going to spend lots of CPU making and throwing away heights. Don't worry about this unless you run into it.
+ * limitMult: A clamp, expressed in z-score. (z=1 is one standard dev above mean, for ex.) If it excludes too much of the distribution the other parameters describe, you're going to spend lots of CPU making and throwing away heights. Don't worry about this unless you run into it.
  *
- *There's also limitHeight which you're not using. It's basically limitMult in different units.
+ * There's also limitHeight which you're not using. It's basically limitMult in different units.
  */
 window.Height = (function(){
 	'use strict';
-	
+
 	// Global configuration (for different game modes/options/types)
 	var minMult = -3.0;
 	var maxMult = 3.0;
@@ -63,7 +63,7 @@ window.Height = (function(){
 	var spread = 0.05;
 	var minHeight = 0;
 	var maxHeight = 999;
-	
+
 	// Configuration method for the above values
 	const _config = function(conf) {
 		if(_.isUndefined(conf)) {
@@ -72,18 +72,18 @@ window.Height = (function(){
 		if(_.isFinite(conf.skew)) { skew = Math.clamp(conf.skew, -1000, 1000); }
 		if(_.isFinite(conf.spread)) { spread = Math.clamp(conf.spread, 0.001, 0.5); }
 		if(_.isArray(conf.limitMult) && conf.limitMult.length === 2 && conf.limitMult[0] !== conf.limitMult[1] &&
-		   _.isFinite(conf.limitMult[0]) && _.isFinite(conf.limitMult[1])) {
+			_.isFinite(conf.limitMult[0]) && _.isFinite(conf.limitMult[1])) {
 			minMult = Math.min(conf.limitMult[0], conf.limitMult[1]);
 			maxMult = Math.max(conf.limitMult[0], conf.limitMult[1]);
 		}
 		if(_.isArray(conf.limitHeight) && conf.limitHeight.length === 2 && conf.limitHeight[0] !== conf.limitHeight[1] &&
-		   _.isFinite(conf.limitHeight[0]) && _.isFinite(conf.limitHeight[1])) {
+			_.isFinite(conf.limitHeight[0]) && _.isFinite(conf.limitHeight[1])) {
 			minHeight = Math.min(conf.limitHeight[0], conf.limitHeight[1]);
 			maxHeight = Math.max(conf.limitHeight[0], conf.limitHeight[1]);
 		}
 		return {limitMult: [minMult, maxMult], limitHeight: [minHeight, maxHeight], skew: skew, spread: spread};
 	};
-	
+
 	/* if you can find an average for an undefined, add it in! */
 	const xxMeanHeight = {
 		"Afghan": 163.8, "Albanian": 161.8, "Algerian": 162, "American.asian": 158.4, "American.black": 163.6, "American.latina": 158.9, "American.white": 165, "American": 161.8, 
@@ -138,19 +138,19 @@ window.Height = (function(){
 		"Venezuelan": 169, "Vietnamese": 165.7, "Vincentian": 165.4, "Yemeni": 159.9, "Zairian": 158.9, "Zambian": undefined, "Zimbabwean": undefined,
 		"": 172.5 // defaults
 	};
-	
+
 	// Helper method - table lookup for nationality/race combinations
 	const nationalityMeanHeight = function(table, nationality, race, def) {
 		return table[nationality + "." + race] || table[nationality] || table["." + race] || table[""] || def;
 	};
-	
+
 	// Helper method - generate two independent Gaussian numbers using Box-Muller transform
 	const gaussianPair = function() {
 		let r = Math.sqrt(-2.0 * Math.log(1 - Math.random()));
 		let sigma = 2.0 * Math.PI * (1 - Math.random());
 		return [r * Math.cos(sigma), r * Math.sin(sigma)];
 	};
-	
+
 	// Helper method: Generate a skewed normal random variable with the skew s
 	// Reference: http://azzalini.stat.unipd.it/SN/faq-r.html
 	const skewedGaussian = function(s) {
@@ -163,7 +163,7 @@ window.Height = (function(){
 		let result = delta * randoms[0] + Math.sqrt(1 - delta * delta) * randoms[1];
 		return randoms[0] >= 0 ? result : -result;
 	};
-	
+
 	// Height multiplier generator; skewed gaussian according to global parameters
 	const multGenerator = function() {
 		let result = skewedGaussian(skew);
@@ -172,7 +172,7 @@ window.Height = (function(){
 		}
 		return result;
 	};
-	
+
 	// Helper method: Generate a height based on the mean one and limited according to config.
 	const heightGenerator = function(mean) {
 		let result = mean * (1 + multGenerator() * spread);
@@ -221,7 +221,7 @@ window.Height = (function(){
 			return interpolate(2, minHeight, midAge, midHeight, age);
 		}
 	};
-	
+
 	const _meanHeight = function(nationality, race, genes, age) {
 		if(_.isObject(nationality)) {
 			// We got called with a single slave as the argument
@@ -258,7 +258,7 @@ window.Height = (function(){
 		}
 		return applyAge(result, age, genes);
 	};
-	
+
 	const _randomHeight = function(nationality, race, genes, age) {
 		const mean = _meanHeight(nationality, race, genes, age);
 		// If we got called with a slave object and options, temporarily modify
@@ -272,7 +272,7 @@ window.Height = (function(){
 		}
 		return heightGenerator(mean);
 	};
-	
+
 	const _forAge = function(height, age, genes) {
 		if(_.isObject(age)) {
 			// We got called with a slave as a second argument
@@ -281,7 +281,7 @@ window.Height = (function(){
 			return applyAge(height, age, genes);
 		}
 	};
-	
+
 	return {
 		mean: _meanHeight,
 		random: _randomHeight,
@@ -380,19 +380,19 @@ window.cashFormat = function(s) {
 };
 
 window.isFloat = function(n){
-    return n === +n && n !== (n|0);
+	return n === +n && n !== (n|0);
 };
 
 window.isInt = function(n) {
-    return n === +n && n === (n|0);
+	return n === +n && n === (n|0);
 };
 
 window.numberWithCommas = function(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
 window.jsRandom = function(min,max) {
-    return Math.floor(Math.random()*(max-min+1)+min);
+	return Math.floor(Math.random()*(max-min+1)+min);
 };
 
 window.jsRandomMany = function (arr, count) {
@@ -413,13 +413,13 @@ window.jsEither = function(choices) {
 
 //This function is alternative to clone - usage needed if nested objects present. Slower but result is separate object tree, not with reference to source object.
 window.deepCopy = function (o) {
-   var output, v, key;
-   output = Array.isArray(o) ? [] : {};
-   for (key in o) {
-       v = o[key];
-       output[key] = (typeof v === "object") ? deepCopy(v) : v;
-   }
-   return output;
+	var output, v, key;
+	output = Array.isArray(o) ? [] : {};
+	for (key in o) {
+		v = o[key];
+		output[key] = (typeof v === "object") ? deepCopy(v) : v;
+	}
+	return output;
 };
 
 /*
@@ -531,7 +531,7 @@ window.getSlaveDisplayName = function (slave) {
 		"Mongolian",
 		"Taiwanese",
 		"Vietnamese"];
-        var names = [slave.slaveName, slave.slaveSurname || ""];
+		var names = [slave.slaveName, slave.slaveSurname || ""];
 	if ((1 !== State.variables.surnameOrder) && (surnamesFirstCountries.includes(slave.nationality)))
 		names.reverse();
 	return names.join(" ").trim();
@@ -540,7 +540,7 @@ window.getSlaveDisplayName = function (slave) {
 window.getSlaveDevotionClass = function (slave) {
 	if ((!slave) || (!State))
 		return undefined;
-	if  ('mindbroken' == slave.fetish)
+	if ('mindbroken' == slave.fetish)
 		return 'mindbroken';
 	if (slave.devotion < -95)
 		return 'very-hateful';
@@ -574,7 +574,7 @@ window.getSlaveTrustClass = function (slave) {
 	else if (slave.trust <= 20)
 		return 'fearful';
 	else if (slave.trust <= 50) {
-		if (slave.devotion < -20) return  'hate-careful';
+		if (slave.devotion < -20) return 'hate-careful';
 		else return 'careful';
 	} else if (slave.trust <= 95) {
 		if (slave.devotion < -20) return 'bold';
