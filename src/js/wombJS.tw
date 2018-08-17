@@ -28,24 +28,24 @@ $slave.bellyPreg = WombGetWolume($slave) - return double, with current womb volu
 
 //Init womb system.
 window.WombInit = function(actor) {
-	if (!Array.isArray(actor.womb)) {   
+	if (!Array.isArray(actor.womb)) {
 		//alert("creating new womb"); //debugging
 		actor.womb = [];
 	}
 
-	//    console.log("broodmother:" + typeof actor.broodmother);
-	
+	//console.log("broodmother:" + typeof actor.broodmother);
+
 	if ( typeof actor.broodmother != "number" ) {
 		actor.broodmother = 0;
 		actor.broodmotherFetuses = 0;
 	}
-	
+
 	if ( typeof actor.readyOva != "number" ) {
 		actor.readyOva = 0;
 	}
 
 	//backward compatibility setup. Fully accurate for normal pregnancy only.
-	if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother == 0)  {
+	if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother == 0) {
 		WombImpregnate(actor, actor.pregType, actor.pregSource, actor.preg);
 	} else if (actor.womb.length == 0 && actor.pregType != 0 && actor.broodmother > 0 && actor.broodmotherOnHold < 1) {
 		//sorry but for already present broodmothers it's impossible to calculate fully, aproximation used.
@@ -107,12 +107,12 @@ window.WombProgress = function(actor, ageToAdd) {
 window.WombBirth = function(actor, readyAge) {
 	try {
 		WombSort(actor); //For normal processing fetuses that more old should be first. Now - they are.
-        } catch(err){
+		} catch(err){
 		WombInit(actor);
-		alert("WombBirth warning - " + actor.slaveName+" "+err);       
-        }
+		alert("WombBirth warning - " + actor.slaveName+" "+err);
+		}
 
-	var birthed = [];    
+	var birthed = [];
 	var ready = WombBirthReady(actor, readyAge);
 	var i;
 
@@ -134,7 +134,7 @@ window.WombBirthReady = function(actor, readyAge) {
 		readyCnt += actor.womb.filter(ft => ft.age >= readyAge).length;
 	} catch(err){
 		WombInit(actor);
-		alert("WombBirthReady warning - " + actor.slaveName+" "+err);    
+		alert("WombBirthReady warning - " + actor.slaveName+" "+err);
 		return 0;
 	}
 
@@ -149,7 +149,7 @@ window.WombGetVolume = function(actor) { //most code from pregJS.tw with minor a
 	try {
 		actor.womb.forEach(ft => {
 			gestastionWeek = ft.age;
-			if (gestastionWeek <= 32)  {
+			if (gestastionWeek <= 32) {
 				targetLen = (0.00006396 * Math.pow(gestastionWeek, 4)) -
 					(0.005501 * Math.pow(gestastionWeek, 3)) +
 					(0.161 * Math.pow(gestastionWeek, 2)) -
@@ -171,7 +171,7 @@ window.WombGetVolume = function(actor) { //most code from pregJS.tw with minor a
 		});
 	} catch(err){
 		WombInit(actor);
-		alert("WombGetVolume warning - " + actor.slaveName + " " + err);       
+		alert("WombGetVolume warning - " + actor.slaveName + " " + err);
 	}
 	if (wombSize < 0) //catch for strange cases, to avoid messing with outside code.
 		wombSize = 0;
@@ -209,7 +209,7 @@ window.WombNormalizePreg = function(actor)
 {
 	// console.log("New actor: " + actor.slaveName + " ===============" + actor.name);
 	WombInit(actor);
-	
+
 	// this is broodmother on hold.
 	if (actor.womb.length == 0 && actor.broodmother >= 1) { 
 		actor.pregType = 0; 
@@ -220,43 +220,43 @@ window.WombNormalizePreg = function(actor)
 		// So we set this for special case.
 		if (actor.preg >= 0)
 			actor.preg = 0.1; 
-		
+
 		if (actor.pregSource > 0)
 			actor.pregSource = 0;
 
 		if (actor.pregWeek > 0) 
 			actor.pregWeek = 0;
-		
+
 		actor.broodmotherCountDown = 0;
 	}
-	
+
 	if (actor.womb.length > 0) {
 		var max = WombMaxPreg(actor);
-		//        console.log("max: " + max);
-		//        console.log(".preg: "+ actor.preg);
+		// console.log("max: " + max);
+		// console.log(".preg: "+ actor.preg);
 		if (actor.pregWeek < 1 )
 			actor.pregWeek = 1;
 
 		if (max < actor.preg) {
 			WombProgress(actor, actor.preg - max);
-			//            console.log("progressin womb");
+			// console.log("progressin womb");
 		}
 		else if ( max > actor.preg) {
 			actor.preg = max;
-			//            console.log("advancing .preg");
+			// console.log("advancing .preg");
 		}
 
 		actor.pregType = actor.womb.length;
 		actor.pregSource = actor.womb[0].fatherID;
 	} else if (actor.womb.length == 0 && actor.broodmother < 1) {
 		//not broodmother
-		//        console.log("preg fixing");
+		// console.log("preg fixing");
 		actor.pregType = 0;
 		actor.pregKnown = 0;
-		
+
 		if (actor.preg > 0)
 			actor.preg = 0;
-		
+
 		if (actor.pregSource > 0)
 			actor.pregSource = 0;
 
