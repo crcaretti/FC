@@ -37,6 +37,8 @@ if (typeof interpolate == "undefined") {
 	window.interpolate = interpolate;
 }
 
+config.history.maxStates = 1;
+
 window.isFullyPotent = function(slave) {
 	if (!slave) {
 		return null;
@@ -1429,9 +1431,9 @@ window.setPregType = function(actor) {
 	var ovum = 1;
 	var fertilityStack = 0;	// adds an increasing bonus roll for stacked fertility drugs
 
-	if(actor.broodmother < 1) { // Broodmothers should be not processed here. Necessary now.
+	if(actor.broodmother < 1) { /* Broodmothers should be not processed here. Necessary now.*/
 		if(typeof actor.readyOva == "number" && actor.readyOva != 0) {
-			ovum = actor.readyOva; //just single override; for delayed impregnation cases 
+			ovum = actor.readyOva;  /*just single override; for delayed impregnation cases */
 		} else if(actor.ID == -1) {
 			if(actor.birthMaster > 0) { // Predisposed to twins
 				if(actor.fertDrugs == 1) {
@@ -5443,8 +5445,10 @@ if(eventSlave.fetish != "mindbroken") {
 		}
 	}
 
-	if (eventSlave.bellyPreg >= 300000) {
-		State.variables.RESSevent.push("hyperpreg stuck");
+	if(State.variables.PC.dick != 0) {
+		if (eventSlave.bellyPreg >= 300000) {
+			State.variables.RESSevent.push("hyperpreg stuck");
+		}
 	}
 
 	if(eventSlave.prestige == 0) {
@@ -6593,8 +6597,10 @@ if(eventSlave.fetish != "mindbroken") {
 		}
 	}
 
-	if (eventSlave.bellyPreg >= 300000) {
-		State.variables.RESSevent.push("hyperpreg stuck");
+	if(State.variables.PC.dick != 0) {
+		if (eventSlave.bellyPreg >= 300000) {
+			State.variables.RESSevent.push("hyperpreg stuck");
+		}
 	}
 
 	if(eventSlave.relationship == 4) {
@@ -10686,6 +10692,13 @@ window.saRest = function saRest(slave) {
 	} else if (slave.health > -100) {
 		t += ` ${His} <span class='green'>health recovers</span> with rest.`;
 		slave.health += 10;
+		if (!(canHear(slave))) {
+			t += ` Since $he is deaf, the hustle and bustle of daily life in the penthouse <span class='green'>didn't bother $him at all.</span>`;
+			slave.health += 3;
+		} else if ((slave.hears == -1 && slave.earwear != "hearing aids") || (slave.hears == 0 && slave.earwear == "muffling ear plugs")) {
+			t += ` Since $he is hard of hearing, the hustle and bustle of daily life in the penthouse <span class='green'>didn't disturb $his rest as much.</span>`;
+			slave.health += 1;
+		}
 	}
 
 	if (slave.fuckdoll == 0 && slave.fetish != "mindbroken") {
@@ -10736,7 +10749,15 @@ window.saServant = function saServant(slave) {
 				} else {
 					t += `uses sex as a reward, getting ${him} off when ${he} <span class='yellowgreen'>works harder.</span>`;
 				}
-				V.cash += V.stewardessBonus;
+				if (!(canHear(slave))) {
+					t += ` However, $his inability to hear often leaves him oblivious to ${V.Stewardess.slaveName}'s orders, limiting their meaningful interactions.`;
+					V.cash += (V.stewardessBonus/4);
+				} else if ((slave.hears == -1 && slave.earwear != "hearing aids") || (slave.hears == 0 && slave.earwear == "muffling ear plugs")) {
+					t += `  However, $he often doesn't catch what ${V.Stewardess.slaveName} says, leading to frustration, confusion and less work done.`;
+					V.cash += (V.stewardessBonus/2);
+				} else {
+					V.cash += V.stewardessBonus;
+				}
 			}
 		}
 	}
@@ -10845,6 +10866,12 @@ window.saStayConfined = function saStayConfined(slave) {
 		} else {
 			t += ` This confinement makes ${him} <span class='gold'>trust you less,</span> and fear you more.`
 			slave.trust -= 5
+		}
+
+		if (slave.assignment == "be confined in the cellblock") {
+			if ((slave.hears == -1 && slave.earwear != "hearing aids") || (slave.hears == 0 && slave.earwear == "muffling ear plugs") || (slave.hears == -2)) {
+				t += ` $His hearing impairment spares $him the sounds of $his peers getting punished, lightening the impact of $his imprisonment.`
+			}
 		}
 
 		t += ` The stress of confinement <span class='red'>damages ${his} health.</span>`
@@ -11028,20 +11055,6 @@ function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot c
 'use strict';
 
 var lastActiveSlave, lastSlaves, lastPC;
-
-/*
-	To use, add something like:
-
-<div id="familyTree"></div>
-	<span id="familyTreeLink">
-		<<link "Pull up the file on her family tree.">>
-		<<replace #familyTreeLink>>
-			<<run renderFamilyTree($slaves, $activeSlave.ID)>>
-		<</replace>>
-	<</link>>
-</span>
-
-*/
 
 window.renderFamilyTree = function(slaves, filterID) {
 
@@ -11473,20 +11486,6 @@ window.buildFamilyTree = function(slaves = State.variables.slaves, filterID) {
 	}
 	return family_graph;
 };
-
-/*Old version. To use, do something like: 
-<div id="editFamily">
-	<div id="graph"></div>
-</div>
-
-<<run updateFamilyTree($activeSlave, $slaves, $PC)>>
-<script>updateFamilyTree()</script>
-If you want to update the tree, just re-call the run line.
-
-If there's no active slave, you can do:
-
-<<run updateFamilyTree(null, $slaves, $PC)>>
-*/
 
 window.updateFamilyTree = function(activeSlave = lastActiveSlave, slaves = lastSlaves, PC = lastPC) {
 	lastActiveSlave = activeSlave;
@@ -28865,7 +28864,7 @@ window.nationalityToAccent = function nationalityToAccent(slave) {
 	}
 
 	if (slave.nationality === V.language) {
-		slave.accent = jsEither([0, 0, 0, 1]);
+		slave.accent = jsEither([0, 0, 0, 0, 0, 0, 0, 0, 1]);
 	}
 };
 
