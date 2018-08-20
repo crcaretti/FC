@@ -56,6 +56,7 @@ if __name__ == "__main__":
     size_from_filename = re.compile(r'([0-9]+)\....$')
     favicons_html = []
     for fp in favicons_paths:
+        print('Found favicon source file "%s".'%(fp))
         # get mimetype by file extension
         mimetype = ext2mimetype[fp[-4:]]
         if (mimetype == 'image/x-icon'):
@@ -74,7 +75,8 @@ if __name__ == "__main__":
         )
 
     # modify header file
-    with open(header_html_path,'r+') as hf:
+    with open(header_html_path,'r+',encoding='utf-8') as hf:
+        print('Rewriting "%s"...'%(header_html_path))
         lines_in = hf.readlines() # read whole file
         lines_out = []
         for line in lines_in:
@@ -87,3 +89,5 @@ if __name__ == "__main__":
         hf.seek(0) # move to beginning of file
         hf.write(''.join(lines_out)) # overwrite with new data
         hf.truncate() # remove trailing old data
+        
+    print('Finished.')
