@@ -1326,12 +1326,44 @@ The fabricator is ready to grow an organ for $him. Extract tissue to begin growi
 							@@.red;Organ not found for deletion!@@
 						<</if>>
 					<</link>>
-				<</if>>
-				
+				<</if>>				
 			<<else>>
-				<<if $activeSlave.voice > 0>>
+				<<if $activeSlave.voice > 0 && $activeSlave.electrolarynx != 1>>
 					<br>&nbsp;&nbsp;&nbsp;&nbsp;
 					ERROR: this slave is not mute.
+					<<link "Discard" "Remote Surgery">>
+						<<set _ofo = $completedOrgans.findIndex(function(s) { return $activeSlave.ID == s.ID && s.type == "voicebox"; })>>
+						<<if _ofo != -1>>
+							<<set $completedOrgans.deleteAt(_ofo)>>
+						<<else>>
+							@@.red;Organ not found for deletion!@@
+						<</if>>
+					<</link>>
+				<<elseif $activeSlave.electrolarynx == 1>>
+					<br>&nbsp;&nbsp;&nbsp;&nbsp;
+					<<link "Remove electrolarynx and implant" "Surgery Degradation">>
+						<<set $cash -= $surgeryCost>>
+						<<set _ofo = $completedOrgans.findIndex(function(s) { return $activeSlave.ID == s.ID && s.type == "voicebox"; })>>
+						<<if _ofo != -1>>
+							<<set $completedOrgans.deleteAt(_ofo)>>
+						<<else>>
+							@@.red;Organ not found for deletion!@@
+						<</if>>
+						<<set $stockpile.electrolarynx++>>
+						<<if $activeSlave.ovaries == 1 && $activeSlave.hormoneBalance >= 200>>
+							<<set $activeSlave.voice = 3>>
+						<<elseif ($activeSlave.balls > 0) || ($activeSlave.hormoneBalance < -20)>>
+							<<set $activeSlave.voice = 1>>
+						<<else>>
+							<<set $activeSlave.voice = 2>>
+						<</if>>
+						<<set $activeSlave.health -= 20>>
+						<<if $organFarmUpgrade == 2>>
+							<<set $activeSlave.chem += 20>>
+						<</if>>
+						<<set $surgeryType = "newVoice">>
+					<</link>>
+					|
 					<<link "Discard" "Remote Surgery">>
 						<<set _ofo = $completedOrgans.findIndex(function(s) { return $activeSlave.ID == s.ID && s.type == "voicebox"; })>>
 						<<if _ofo != -1>>
