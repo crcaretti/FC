@@ -1,3 +1,5 @@
+config.history.maxStates = 1; /* If you remove this, I will fucking yell at you. Stop. Doing. It. */
+
 /*:: StoryJS [script]*/
 
 /*config.history.tracking = false;*/
@@ -2697,6 +2699,7 @@ window.emptyDefaultRule = function emptyDefaultRule() {
 			aphrodisiacs: "no default setting",
 			autoSurgery: 0,
 			autoBrand: 0,
+			pornFeed: "no default setting",
 			pornFameSpending: "no default setting",
 			dietGrowthSupport: 0,
 			eyewear: "no default setting",
@@ -11926,6 +11929,7 @@ window.DefaultRules = (function() {
 		ProcessPiercings(slave, rule);
 		ProcessSmartPiercings(slave, rule);
 		ProcessTattoos(slave, rule);
+		ProcessPornFeedEnabled(slave, rule);
 		ProcessPorn(slave, rule);
 		ProcessLabel(slave, rule);
 		return r;
@@ -14112,6 +14116,18 @@ window.DefaultRules = (function() {
 		}
 	}
 
+	function ProcessPornFeedEnabled(slave, rule) {
+		if (rule.pornFeed === undefined || rule.pornFeed === "no default setting") {
+			return;
+		}
+		if (rule.pornFeed === slave.pornFeed) {
+			return;
+		}
+		slave.pornFeed = rule.pornFeed;
+		let yesno = slave.pornFeed ? "are now" : "are no longer";
+		r += `<br>Highlights of ${slave.slaveName}'s sex life ${yesno} being released.`;
+	}
+
 	function ProcessPorn(slave, rule) {
 		if ((rule.pornFameSpending !== undefined) && (rule.pornFameSpending !== "no default setting")) {
 			if ((slave.pornPrestige < 3)) {
@@ -15098,8 +15114,10 @@ window.rulesAssistantOptions = (function() {
 			this.appendChild(new SmartEnergyList());
 			this.appendChild(new SpeechList());
 			this.appendChild(new RelationshipList());
-			if (V.studio === 1)
+			if (V.studio === 1) {
+				this.appendChild(new PornBroadcastStatus());
 				this.appendChild(new PornList());
+			}
 		}
 	}
 	
@@ -16068,6 +16086,19 @@ window.rulesAssistantOptions = (function() {
 			super("Relationship rules", pairs);
 			this.setValue(current_rule.set.relationshipRules);
 			this.onchange = (value) => current_rule.set.relationshipRules = value;
+		}
+	}
+
+	class PornBroadcastStatus extends List {
+		constructor() {
+			const pairs = [
+				["No default setting", "no default setting"],
+				["Disabled", 0],
+				["Enabled", 1]
+			];
+			super("Porn Broadcasting Status", pairs);
+			this.setValue(current_rule.set.pornFeed);
+			this.onchange = (value) => current_rule.set.pornFeed = value;
 		}
 	}
 
